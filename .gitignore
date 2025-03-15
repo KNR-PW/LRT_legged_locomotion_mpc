@@ -1,0 +1,4 @@
+.vscode
+build/
+tmp/
+include/locomotion_controller/path_management/package_path.h
