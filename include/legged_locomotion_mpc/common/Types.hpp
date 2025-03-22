@@ -42,6 +42,8 @@ namespace legged_locomotion_mpc
 
   using vector3_t = Eigen::Matrix<ocs2::scalar_t, 3, 1>;
   using matrix3_t = Eigen::Matrix<ocs2::scalar_t, 3, 3>;
+  using vector6_t = Eigen::Matrix<ocs2::scalar_t, 6, 1>;
+  using matrix6_t = Eigen::Matrix<ocs2::scalar_t, 6, 6>;
   using quaternion_t = Eigen::Quaternion<ocs2::scalar_t>;
 }
 
