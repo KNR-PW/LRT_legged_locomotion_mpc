@@ -44,6 +44,10 @@ set(FLAGS
 add_library(${PROJECT_NAME}
         src/common/Utils.cpp
         src/common/ModelSettings.cpp
+        
+        src/constraint/ZeroForceConstraint.cpp
+        src/constraint/ZeroWrenchConstraint.cpp
+        src/constraint/ForceFrictionConeConstraint.cpp
         src/main.cpp
 )
 
