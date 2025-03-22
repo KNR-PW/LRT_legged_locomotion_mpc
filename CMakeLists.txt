@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(legged_locomotion_controller LANGUAGES CXX)
+project(legged_locomotion_mpc LANGUAGES CXX)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
@@ -42,6 +42,8 @@ set(FLAGS
 )
 
 add_library(${PROJECT_NAME}
+        src/common/Utils.cpp
+        src/common/ModelSettings.cpp
         src/main.cpp
 )
 
