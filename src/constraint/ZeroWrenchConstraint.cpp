@@ -10,19 +10,19 @@ namespace legged_locomotion_mpc
   /******************************************************************************************************/
   ZeroWrenchConstraint::ZeroWrenchConstraint(const SwitchedModelReferenceManager &referenceManager,
     size_t contactPointIndex,
-    FloatingBaseModelInfo& info,
-    size_t stateDim,
-    size_t inputDim): 
+    FloatingBaseModelInfo& info): 
       StateInputConstraint(ocs2::ConstraintOrder::Linear),
       referenceManagerPtr_(&referenceManager),
       contactPointIndex_(contactPointIndex),
       info_(&info) 
   {
-    const FloatingBaseModelInfo& info = *info;
     const size_t startRow = 3 * info.numThreeDofContacts + 6 * (contactPointIndex_ - info.numThreeDofContacts);
-    approx_.dfdx = ocs2::matrix_t::Zero(6, stateDim);
-    approx_.dfdu = ocs2::matrix_t::Zero(6, inputDim);
-    approx_.dfdu.middleCols<6>(startRow).diagonal() = ocs2::vector_t::Ones(6);
+    const size_t stateDim = info.stateDim;
+    const size_t inputDim = info.inputDim;
+    
+    linearApproximation_.dfdx = ocs2::matrix_t::Zero(6, stateDim);
+    linearApproximation_.dfdu = ocs2::matrix_t::Zero(6, inputDim);
+    linearApproximation_.dfdu.middleCols<6>(startRow).diagonal() = ocs2::vector_t::Ones(6);
   }
 
   /******************************************************************************************************/
@@ -52,8 +52,8 @@ namespace legged_locomotion_mpc
     const ocs2::vector_t &input,
     const ocs2::PreComputation &preComp) const 
   {
-    approx_.f = getValue(time, state, input, preComp);
-    return approx_;
+    linearApproximation_.f = getValue(time, state, input, preComp);
+    return linearApproximation_;
   }
 
 } // namespace legged_locomotion_mpc

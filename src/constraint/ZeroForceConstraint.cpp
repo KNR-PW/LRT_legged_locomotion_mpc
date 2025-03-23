@@ -10,17 +10,18 @@ namespace legged_locomotion_mpc
   /******************************************************************************************************/
   ZeroForceConstraint::ZeroForceConstraint(const SwitchedModelReferenceManager &referenceManager,
     size_t contactPointIndex,
-    FloatingBaseModelInfo& info,
-    size_t stateDim,
-    size_t inputDim): 
+    FloatingBaseModelInfo& info): 
       StateInputConstraint(ocs2::ConstraintOrder::Linear),
       referenceManagerPtr_(&referenceManager),
       contactPointIndex_(contactPointIndex),
       info_(&info) 
   {
-    approx_.dfdx = ocs2::matrix_t::Zero(3, stateDim);
-    approx_.dfdu = ocs2::matrix_t::Zero(3, inputDim);
-    approx_.dfdu.middleCols<3>(3 * contactPointIndex_).diagonal() = ocs2::vector_t::Ones(3);
+    const size_t stateDim = info.stateDim;
+    const size_t inputDim = info.inputDim;
+    
+    linearApproximation_.dfdx = ocs2::matrix_t::Zero(3, stateDim);
+    linearApproximation_.dfdu = ocs2::matrix_t::Zero(3, inputDim);
+    linearApproximation_.dfdu.middleCols<3>(3 * contactPointIndex_).diagonal() = ocs2::vector_t::Ones(3);
   }
 
   /******************************************************************************************************/
@@ -50,8 +51,8 @@ namespace legged_locomotion_mpc
     const ocs2::vector_t &input,
     const ocs2::PreComputation &preComp) const 
   {
-    approx_.f = getValue(time, state, input, preComp);
-    return approx_;
+    linearApproximation_.f = getValue(time, state, input, preComp);
+    return linearApproximation_;
   }
 
 } // namespace legged_locomotion_mpc

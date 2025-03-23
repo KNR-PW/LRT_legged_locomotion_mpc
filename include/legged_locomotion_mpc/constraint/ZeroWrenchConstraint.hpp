@@ -21,14 +21,10 @@ namespace legged_locomotion_mpc
        * @param [in] referenceManager: Switched model ReferenceManager
        * @param [in] contactPointIndex: The 3 DoF contact index
        * @param [in] info: info of FloatingBase model
-       * @param [in] stateDim: size of state vector
-       * @param [in] inputDim: size of input vector
        */
       ZeroWrenchConstraint(const SwitchedModelReferenceManager &referenceManager,
           size_t contactPointIndex,
-          FloatingBaseModelInfo& info,
-          size_t stateDim,
-          size_t inputDim);
+          FloatingBaseModelInfo& info);
 
       ~ZeroWrenchConstraint() override = default;
 
@@ -55,7 +51,7 @@ namespace legged_locomotion_mpc
       const SwitchedModelReferenceManager *referenceManagerPtr_;
       const size_t contactPointIndex_;
       const FloatingBaseModelInfo* info_;
-      ocs2::VectorFunctionLinearApproximation approx_;
+      ocs2::VectorFunctionLinearApproximation linearApproximation_;
 
   };
 

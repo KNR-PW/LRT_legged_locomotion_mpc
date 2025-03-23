@@ -45,7 +45,7 @@ namespace legged_locomotion_mpc
   /**
    * Implements the constraint h(t,x,u) >= 0
    *
-   * frictionCoefficient * (Fz + gripperForce) - sqrt(Fx * Fx + Fy * Fy + regularization) >= 0
+   * (frictionCoefficient * (Fz + gripperForce))^2 - (Fx^2 + Fy^2 + regularization) >= 0
    *
    * The gripper force shifts the origin of the friction cone down in z-direction by the amount of gripping force available. This makes it
    * possible to produce tangential forces without applying a regular normal force on that foot, or to "pull" on the foot with magnitude up to
@@ -69,12 +69,14 @@ namespace legged_locomotion_mpc
       */
       struct Config 
       {
-        ocs2::scalar_t frictionCoefficient;
-        ocs2::scalar_t regularization;
-        ocs2::scalar_t gripperForce;
-        ocs2::scalar_t hessianDiagonalShift;
+        ocs2::scalar_t frictionCoefficientSquared_;
+        ocs2::scalar_t regularization_;
+        ocs2::scalar_t gripperForce_;
+        ocs2::scalar_t hessianDiagonalShift_;
 
-        explicit Config(ocs2::scalar_t frictionCoefficientParam = 0.7,
+
+        explicit Config(
+          ocs2::scalar_t frictionCoefficientParam = 0.7,
           ocs2::scalar_t regularizationParam = 25.0,
           ocs2::scalar_t gripperForceParam = 0.0,
           ocs2::scalar_t hessianDiagonalShiftParam = 1e-6);
@@ -122,45 +124,10 @@ namespace legged_locomotion_mpc
       void setSurfaceNormalInWorld(const vector3_t &surfaceNormalInWorld);
 
     private:
-      struct LocalForceDerivatives 
-      {
-        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-        matrix3_t dF_du; // derivative local force w.r.t. forces in world frame
-      };
-
-      struct ConeLocalDerivatives 
-      {
-        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-        vector3_t dCone_dF; // derivative w.r.t local force
-        matrix3_t d2Cone_dF2; // second derivative w.r.t local force
-      };
-
-      struct ConeDerivatives 
-      {
-        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-        vector3_t dCone_du;
-        matrix3_t d2Cone_du2;
-      };
-
+      
       ForceFrictionConeConstraint(const ForceFrictionConeConstraint&other) = default;
 
       ocs2::vector_t coneConstraint(const vector3_t &localForces) const;
-
-      LocalForceDerivatives computeLocalForceDerivatives(const vector3_t &forcesInBodyFrame) const;
-
-      ConeLocalDerivatives computeConeLocalDerivatives(const vector3_t &localForces) const;
-
-      ConeDerivatives computeConeConstraintDerivatives(const ConeLocalDerivatives &coneLocalDerivatives,
-        const LocalForceDerivatives &localForceDerivatives) const;
-
-      ocs2::matrix_t frictionConeInputDerivative(size_t inputDim,
-        const ConeDerivatives &coneDerivatives) const;
-
-      ocs2::matrix_t frictionConeSecondDerivativeInput(size_t inputDim,
-        const ConeDerivatives &coneDerivatives) const;
-
-      ocs2::matrix_t frictionConeSecondDerivativeState(size_t stateDim,
-        const ConeDerivatives &coneDerivatives) const;
 
       const SwitchedModelReferenceManager *referenceManagerPtr_;
 
@@ -168,8 +135,14 @@ namespace legged_locomotion_mpc
       const size_t contactPointIndex_;
       const FloatingBaseModelInfo* info_;
 
+      ocs2::VectorFunctionLinearApproximation linearApproximation_;
+      ocs2::VectorFunctionQuadraticApproximation quadraticApproximation_;
+
       // rotation world to terrain, normal to contact 
       matrix3_t rotationWorldToTerrain_ = matrix3_t::Identity();
+
+      // constant second derivative w.r.t to local forces
+      matrix3_t d2ConeD2F_;
   };
 }; // namespace legged_locomotion_mpc
 
