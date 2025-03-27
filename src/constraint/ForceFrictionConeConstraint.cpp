@@ -46,11 +46,11 @@ namespace legged_locomotion_mpc
       regularization_(regularizationParam),
       gripperForce_(gripperForceParam),
       hessianDiagonalShift_(hessianDiagonalShiftParam) 
-    {
-      assert(frictionCoefficientSquared_ > 0.0);
-      assert(regularization_ > 0.0);
-      assert(hessianDiagonalShift_ >= 0.0);
-    }
+  {
+    assert(frictionCoefficient_ > 0.0);
+    assert(regularization_ > 0.0);
+    assert(hessianDiagonalShift_ >= 0.0);
+  }
 
   /******************************************************************************************************/
   /******************************************************************************************************/

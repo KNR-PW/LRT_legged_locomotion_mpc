@@ -22,19 +22,20 @@ namespace legged_locomotion_mpc
     
       /**
       * frictionCoefficient: The coefficient of friction.
-      * regularization: A positive number to regulize the friction constraint. refer to the FrictionConeConstraint documentation.
-      * gripperForce: Gripper force in normal direction.
-      * hessianDiagonalShift: The Hessian shift to assure a strictly-convex quadratic constraint approximation.
+      * footLengthX: rectangular foot dimension in X axis w.r.t. foot frame 
+      *  (check linked pdf for details)
+      * footLengthY: rectangular foot dimension in Y axis w.r.t. foot frame 
+      *  (check linked pdf for details)
       */
       struct Config 
       {
         ocs2::scalar_t frictionCoefficient_;
-        ocs2::scalar_t rectangleX_;
-        ocs2::scalar_t rectangleY_;
+        ocs2::scalar_t footHalfLengthX_;
+        ocs2::scalar_t footHalfLengthY_;
 
         explicit Config(ocs2::scalar_t frictionCoefficientParam = 0.7,
-          ocs2::scalar_t rectangleX_,
-          ocs2::scalar_t rectangleY_);
+          ocs2::scalar_t footLengthX,
+          ocs2::scalar_t footLengthY);
 
       };
 
@@ -42,12 +43,12 @@ namespace legged_locomotion_mpc
        * Constructor
        * @param [in] referenceManager : Switched model ReferenceManager.
        * @param [in] config : Friction model settings.
-       * @param [in] contactPointIndex : The 3 DoF contact index.
+       * @param [in] contactFeetIndex : The 6 DoF contact index.
        * @param [in] info : The centroidal model information.
        */
       WrenchFrictionConeConstraint(const SwitchedModelReferenceManager &referenceManager,
         Config config,
-        size_t contactPointIndex,
+        size_t contactFeetIndex,
         FloatingBaseModelInfo& info);
 
       ~WrenchFrictionConeConstraint() override = default;
@@ -56,7 +57,7 @@ namespace legged_locomotion_mpc
 
       bool isActive(ocs2::scalar_t time) const override;
 
-      size_t getNumConstraints(ocs2::scalar_t time) const override { return 1; };
+      size_t getNumConstraints(ocs2::scalar_t time) const override { return 16; };
 
       ocs2::vector_t getValue(scalar_t time, const vector_t &state,
         const ocs2::vector_t &input,
@@ -74,52 +75,26 @@ namespace legged_locomotion_mpc
       void setSurfaceNormalInWorld(const vector3_t &surfaceNormalInWorld);
 
     private:
-      struct LocalForceDerivatives 
-      {
-        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-        matrix3_t dW_du; // derivative local wrench w.r.t. forces in world frame
-      };
-
-      struct ConeLocalDerivatives 
-      {
-        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-        vector3_t dCone_dw; // derivative w.r.t local wrench
-      };
-
-      struct ConeDerivatives 
-      {
-        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-        vector3_t dCone_du;
-      };
 
       WrenchFrictionConeConstraint(const WrenchFrictionConeConstraint &other) = default;
 
-      ocs2::vector_t coneConstraint(const vector3_t &localForces) const;
-
-      LocalForceDerivatives computeLocalForceDerivatives(const vector3_t &forcesInBodyFrame) const;
-
-      ConeLocalDerivatives computeConeLocalDerivatives(const vector3_t &localForces) const;
-
-      ConeDerivatives computeConeConstraintDerivatives(const ConeLocalDerivatives &coneLocalDerivatives,
-        const LocalForceDerivatives &localForceDerivatives) const;
-
-      ocs2::matrix_t frictionConeInputDerivative(size_t inputDim,
-        const ConeDerivatives &coneDerivatives) const;
-
-      ocs2::matrix_t frictionConeSecondDerivativeInput(size_t inputDim,
-        const ConeDerivatives &coneDerivatives) const;
-
-      ocs2::matrix_t frictionConeSecondDerivativeState(size_t stateDim,
-        const ConeDerivatives &coneDerivatives) const;
+      Eigen::Matrix<ocs2::scalar_t, 16, 6> generateConeConstraintMatrix(const Config& config);
 
       const SwitchedModelReferenceManager *referenceManagerPtr_;
 
       const Config config_;
-      const size_t contactPointIndex_;
+      const size_t contactFeetIndex_;
       const FloatingBaseModelInfo* info_;
 
+      ocs2::VectorFunctionLinearApproximation linearApproximation_;
+
+      Eigen::Matrix<ocs2::scalar_t, 16, 6> coneConstraintMatrix_;
+
       // rotation world to terrain, normal to contact 
-      matrix3_t rotationWorldToTerrain_ = matrix3_t::Identity();
+      // for 6D contact is the same as rotation matrix from world to foot 
+      // (when foot is in contact, it has to lay flat on terrain, so foot frame of r
+      // reference is same as normal to terrain)
+      matrix3_t rotationWorldToTerrain_;
   };
 }; // namespace legged_locomotion_mpc
 
