@@ -42,7 +42,7 @@ namespace legged_locomotion_mpc
     ocs2::scalar_t regularizationParam,
     ocs2::scalar_t gripperForceParam,
     ocs2::scalar_t hessianDiagonalShiftParam): 
-      frictionCoefficientSquared_(frictionCoefficientParam * frictionCoefficientParam),
+      frictionCoefficient_(frictionCoefficientParam),
       regularization_(regularizationParam),
       gripperForce_(gripperForceParam),
       hessianDiagonalShift_(hessianDiagonalShiftParam) 
@@ -65,9 +65,6 @@ namespace legged_locomotion_mpc
       contactPointIndex_(contactPointIndex),
       info_(&info) 
   {
-    d2ConeD2F_(0, 0) = -2;
-    d2ConeD2F_(1, 1) = -2;
-    d2ConeD2F_(2, 2) = 2 * config_.frictionCoefficientSquared_;
 
     const size_t stateDim = info.stateDim.size();
     const size_t inputDim = info.inputDim.size();
@@ -131,10 +128,13 @@ namespace legged_locomotion_mpc
     const vector3_t forcesInWorldFrame = access_helper_functions::getContactForces(input, contactPointIndex_, *info_);
     const vector3_t localForce = rotationWorldToTerrain_ * forcesInWorldFrame;
 
+    const scalar_t tangentForceInverse = 1 / (sqrt(localForces.x() * localForces.x() + 
+      localForces.y() * localForces.y() + config_.regularization_));
+
     const vector3_t dConeDF;
-    dConeDF(0) = -2 * localForces.x();
-    dConeDF(1) = -2 * localForces.y();
-    dConeDF(2) = 2 * config_.frictionCoefficientSquared_ * (localForces.z() + config_.gripperForce_);
+    dConeDF(0) = -localForces.x() * tangentForceInverse;
+    dConeDF(1) = -localForces.y() * tangentForceInverse;
+    dConeDF(2) = config_.frictionCoefficient_;
 
     linearApproximation_.f = coneConstraint(localForce);
     linearApproximation_.dfdu.block<1, 3>(0, 3 * contactPointIndex_) = dConeDF.transpose() * rotationWorldToTerrain_;
@@ -151,20 +151,38 @@ namespace legged_locomotion_mpc
     const ocs2::vector_t &input,
     const ocs2::PreComputation &preComp) const 
   {
-
-    const vector3_t dConeDF;
-    dConeDF(0) = -2 * localForces.x();
-    dConeDF(1) = -2 * localForces.y();
-    dConeDF(2) = 2 * config_.frictionCoefficientSquared_ * (localForces.z() + config_.gripperForce_);
-
     const vector3_t forcesInWorldFrame = access_helper_functions::getContactForces(input, contactPointIndex_, *info_);
     const vector3_t localForce = rotationWorldToTerrain_ * forcesInWorldFrame;
 
+    const scalar_t forceXSquared = localForces.x() * localForces.x();
+    const scalar_t forceYSquared = localForces.y() * localForces.y();
+    const scalar_t forceXforceY  = localForces.x() * localForces.y();
+
+    const scalar_t tangentForceSuaredInverse = 1 / (forceXSquared + 
+      forceYSquared + config_.regularization_);
+    
+    const scalar_t tangentForceInverse32 = tangentForceSuaredInverse * sqrt(tangentForceSuaredInverse);
+
+
+
+    const vector3_t dConeDF;
+    dConeDF(0) = -localForces.x() * tangentForceInverse;
+    dConeDF(1) = -localForces.y() * tangentForceInverse;
+    dConeDF(2) = config_.frictionCoefficient_;
+
+    
+    const matrix3_t d2ConeDF2 = matrix3_t::Zero();
+
+    d2ConeDF2(0, 0) = -(forceYSquared + config_.regularization_) * tangentForceInverse32;
+    d2ConeDF2(1, 1) = -(forceXSquared + config_.regularization_) * tangentForceInverse32;
+    d2ConeDF2(0, 1) =  forceXforceY * * tangentForceInverse32;
+    d2ConeDF2(1, 0) =  d2ConeDF2(0, 1);
+    
     quadraticApproximation_.f = coneConstraint(localForce);
 
     quadraticApproximation_.dfdu.block<1, 3>(0, 3 * contactPointIndex_) = dConeDF.transpose() * rotationWorldToTerrain_;
 
-    const matrix3_t d2ConeD2u = rotationWorldToTerrain_.transpose() * d2ConeD2F_ * rotationWorldToTerrain_;
+    const matrix3_t d2ConeD2u = rotationWorldToTerrain_.transpose() * d2ConeDF2 * rotationWorldToTerrain_;
     quadraticApproximation_.dfduu[0].block<3, 3>(3 * contactPointIndex_, 3 * contactPointIndex_) = d2ConeD2u;
     quadraticApproximation_.dfduu[0].diagonal().array() -= config_.hessianDiagonalShift_;
 
@@ -176,13 +194,13 @@ namespace legged_locomotion_mpc
   /******************************************************************************************************/
   ocs2::vector_t ForceFrictionConeConstraint::coneConstraint(const vector3_t &localForces) const 
   {
-    const scalar_t  tangentForceSquared = localForces.x() * localForces.x() + 
-      localForces.y() * localForces.y() + config_.regularization_;
+    const scalar_t tangentForce = sqrt(localForces.x() * localForces.x() + 
+      localForces.y() * localForces.y() + config_.regularization_);
 
-    const scalar_t frictionForceSquared = config_.frictionCoefficientSquared_
-      * (localForces.z() + config_.gripperForce_) * (localForces.z() + config_.gripperForce_);
+    const scalar_t frictionForce = config_.frictionCoefficient_
+      * (localForces.z() + config_.gripperForce_);
       
-    const scalar_t coneConstraint = frictionForceSquared - tangentForceSquared;
+    const scalar_t coneConstraint = frictionForce - tangentForce;
     return (ocs2::vector_t(1) << coneConstraint).finished();
   }
 

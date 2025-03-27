@@ -45,7 +45,7 @@ namespace legged_locomotion_mpc
   /**
    * Implements the constraint h(t,x,u) >= 0
    *
-   * (frictionCoefficient * (Fz + gripperForce))^2 - (Fx^2 + Fy^2 + regularization) >= 0
+   * frictionCoefficient * (Fz + gripperForce) - sqrt(Fx * Fx + Fy * Fy + regularization) >= 0
    *
    * The gripper force shifts the origin of the friction cone down in z-direction by the amount of gripping force available. This makes it
    * possible to produce tangential forces without applying a regular normal force on that foot, or to "pull" on the foot with magnitude up to
@@ -69,7 +69,7 @@ namespace legged_locomotion_mpc
       */
       struct Config 
       {
-        ocs2::scalar_t frictionCoefficientSquared_;
+        ocs2::scalar_t frictionCoefficient_;
         ocs2::scalar_t regularization_;
         ocs2::scalar_t gripperForce_;
         ocs2::scalar_t hessianDiagonalShift_;
@@ -141,8 +141,6 @@ namespace legged_locomotion_mpc
       // rotation world to terrain, normal to contact 
       matrix3_t rotationWorldToTerrain_ = matrix3_t::Identity();
 
-      // constant second derivative w.r.t to local forces
-      matrix3_t d2ConeD2F_;
   };
 }; // namespace legged_locomotion_mpc
 
