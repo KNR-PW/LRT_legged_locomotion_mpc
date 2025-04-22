@@ -20,8 +20,8 @@ namespace legged_locomotion_mpc
        * @param [in] endEffectorKinematics: The kinematic interface to the target end-effector.
        * @param [in] contactFeetIndex : The 6 DoF contact index.
        */
-      Zero6DofVelocityConstraint(const SwitchedModelReferenceManager &referenceManager,
-        const ocs2::Pinocchio6DofEndEffectorKinematicsCppAd &endEffectorKinematics,
+      Zero6DofVelocityConstraint(const SwitchedModelReferenceManager& referenceManager,
+        const ocs2::Pinocchio6DofEndEffectorKinematicsCppAd& endEffectorKinematics,
         size_t contactFeetIndex);
 
       ~Zero6DofVelocityConstraint() override = default;
@@ -30,15 +30,15 @@ namespace legged_locomotion_mpc
 
       bool isActive(ocs2::scalar_t time) const override;
 
-      size_t getNumConstraints(ocs2::scalar_t time) const override { return 3; }
+      size_t getNumConstraints(ocs2::scalar_t time) const override { return 6; }
 
       ocs2::vector_t getValue(ocs2::scalar_t time, const ocs2::vector_t &state,
-        const ocs2::vector_t &input,
-        const PreComputation &preComp) const override;
+        const ocs2::vector_t& input,
+        const PreComputation& preComp) const override;
 
         ocs2::VectorFunctionLinearApproximation getLinearApproximation(ocs2::scalar_t time,
-        const ocs2::vector_t &state, const vector_t &input,
-        const ocs2::PreComputation &preComp) const override;
+        const ocs2::vector_t& state, const vector_t& input,
+        const ocs2::PreComputation& preComp) const override;
 
     private:
       Zero6DofVelocityConstraint(const Zero6DofVelocityConstraint &rhs);

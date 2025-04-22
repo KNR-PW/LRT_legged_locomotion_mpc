@@ -23,7 +23,11 @@ namespace legged_locomotion_mpc
     const vector_t &state, const vector_t &input,
     const PreComputation &preComp) const
   {
-    return vector_t(endEffectorKinematicsPtr_->getVelocity(state, input).front());
+    const auto linearVelocity = endEffectorKinematicsPtr_->getLinearVelocity(state, input).front();
+    const auto angularVelocity = endEffectorKinematicsPtr_->getAngularVelocity(state, input).front();
+    vector_t velocity(6);
+    velocity << linearVelocity, angularVelocity;
+    return velocity;
   }
 
   VectorFunctionLinearApproximation Zero6DofVelocityConstraint::getLinearApproximation(
@@ -31,7 +35,16 @@ namespace legged_locomotion_mpc
     const vector_t &state, const vector_t &input,
     const PreComputation &preComp) const
   {
-    return endEffectorKinematicsPtr_->getVelocityLinearApproximation(state, input).front();
+    VectorFunctionLinearApproximation velocityApprox;
+
+    const auto linearVelocityApprox = endEffectorKinematicsPtr_->getLinearVelocityLinearApproximation(state, input).front();
+    const auto angularVelocityApprox = endEffectorKinematicsPtr_->getAngularVelocityLinearApproximation(state, input).front();
+
+    velocityApprox.f << linearVelocityApprox.f << angularVelocityApprox.f;
+    velocityApprox.dfdx << linearVelocityApprox.dfdx << angularVelocityApprox.dfdx;
+    velocityApprox.dfdu << linearVelocityApprox.dfdu << angularVelocityApprox.dfdu;
+    
+    return velocityApprox;
   }
 
   Zero6DofVelocityConstraint::Zero6DofVelocityConstraint(
