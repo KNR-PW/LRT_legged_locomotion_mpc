@@ -3,8 +3,9 @@
 
 #include <ocs2_core/constraint/StateInputConstraint.h>
 
+#include <legged_locomotion_mpc/common/ModelSettings.hpp>
 #include <legged_locomotion_mpc/common/Pinocchio6DofEndEffectorKinematicsCppAd.hpp>
-#include "legged_locomotion_mpc/reference_manager/SwitchedModelReferenceManager.hpp"
+#include <legged_locomotion_mpc/reference_manager/SwitchedModelReferenceManager.hpp>
 
 namespace legged_locomotion_mpc
 {
@@ -37,7 +38,7 @@ namespace legged_locomotion_mpc
         const PreComputation& preComp) const override;
 
         ocs2::VectorFunctionLinearApproximation getLinearApproximation(ocs2::scalar_t time,
-        const ocs2::vector_t& state, const vector_t& input,
+        const ocs2::vector_t& state, const ocs2::vector_t& input,
         const ocs2::PreComputation& preComp) const override;
 
     private:
@@ -48,6 +49,6 @@ namespace legged_locomotion_mpc
       const size_t contactFeetIndex_;
     };
 
-};
+}; // namespace legged_locomotion_mpc
 
 #endif

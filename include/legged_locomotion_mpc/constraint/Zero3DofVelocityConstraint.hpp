@@ -3,8 +3,10 @@
 
 #include <ocs2_core/constraint/StateInputConstraint.h>
 
-#include "ocs2_pinocchio_interface/PinocchioEndEffectorKinematicsCppAd.h"
-#include "legged_locomotion_mpc/reference_manager/SwitchedModelReferenceManager.hpp"
+#include <ocs2_pinocchio_interface/PinocchioEndEffectorKinematicsCppAd.h>
+
+#include <legged_locomotion_mpc/common/ModelSettings.hpp>
+#include <legged_locomotion_mpc/reference_manager/SwitchedModelReferenceManager.hpp">
 
 namespace legged_locomotion_mpc
 {
@@ -32,7 +34,8 @@ namespace legged_locomotion_mpc
 
       size_t getNumConstraints(ocs2::scalar_t time) const override { return 3; }
 
-      ocs2::vector_t getValue(ocs2::scalar_t time, const vector_t &state, const vector_t &input,
+      ocs2::vector_t getValue(ocs2::scalar_t time,
+        const ocs2::vector_t &state, const ocs2::vector_t &input,
         const PreComputation &preComp) const override;
 
         ocs2::VectorFunctionLinearApproximation getLinearApproximation(ocs2::scalar_t time,
