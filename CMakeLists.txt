@@ -44,11 +44,14 @@ set(FLAGS
 add_library(${PROJECT_NAME}
         src/common/Utils.cpp
         src/common/ModelSettings.cpp
+        src/kinematics/PinocchioForwardEndEffectorKinematicsCppAd.cpp
+        src/kinematics/ForwardEndEffectorKinematicsInfo.cpp
         
-        src/constraint/ZeroForceConstraint.cpp
-        src/constraint/ZeroWrenchConstraint.cpp
-        src/constraint/ForceFrictionConeConstraint.cpp
-        src/main.cpp
+        # src/constraint/ZeroForceConstraint.cpp
+        # src/constraint/ZeroWrenchConstraint.cpp
+        # src/constraint/ForceFrictionConeConstraint.cpp
+        # src/constraint/WrenchFrictionConeConstraint.cpp
+        # src/main.cpp
 )
 
 target_include_directories(${PROJECT_NAME}
@@ -92,6 +95,8 @@ install(
         LIBRARY DESTINATION lib
         RUNTIME DESTINATION bin
 )
+# install(TARGETS ${PROJECT_NAME}
+#     DESTINATION lib/${PROJECT_NAME})
 
 # install(
 #         DIRECTORY config
