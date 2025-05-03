@@ -46,6 +46,7 @@ add_library(${PROJECT_NAME}
         src/common/ModelSettings.cpp
         src/kinematics/PinocchioForwardEndEffectorKinematicsCppAd.cpp
         src/kinematics/ForwardEndEffectorKinematicsInfo.cpp
+        src/dynamics/LeggedDynamicsAD.cpp
         
         # src/constraint/ZeroForceConstraint.cpp
         # src/constraint/ZeroWrenchConstraint.cpp
