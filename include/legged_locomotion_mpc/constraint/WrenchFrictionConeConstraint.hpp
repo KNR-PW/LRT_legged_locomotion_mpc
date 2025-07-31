@@ -74,6 +74,12 @@ namespace legged_locomotion_mpc
        */
       void setSurfaceNormalInWorld(const vector3_t &surfaceNormalInWorld);
 
+      /**
+       * Set new friction coefficient for contact
+       * @param [in] frictionCoefficientParam: friction coefficient
+       */
+      void setFrictionCoefficient(const double frictionCoefficientParam);
+
     private:
 
       WrenchFrictionConeConstraint(const WrenchFrictionConeConstraint &other) = default;

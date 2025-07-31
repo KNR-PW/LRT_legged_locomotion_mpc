@@ -122,6 +122,12 @@ namespace legged_locomotion_mpc
        * @param [in] surfaceNormalInWorld: sufrace normal in world frame
        */
       void setSurfaceNormalInWorld(const vector3_t &surfaceNormalInWorld);
+      
+      /**
+       * Set new friction coefficient for contact
+       * @param [in] frictionCoefficientParam: friction coefficient
+       */
+      void setFrictionCoefficient(const double frictionCoefficientParam);
 
     private:
       
