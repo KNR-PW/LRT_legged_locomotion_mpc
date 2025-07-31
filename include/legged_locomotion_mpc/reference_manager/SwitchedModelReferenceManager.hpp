@@ -29,37 +29,41 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ******************************************************************************/
 
-#ifndef __UTILS_LEGGED_LOCOMOTION_MPC__
-#define __UTILS_LEGGED_LOCOMOTION_MPC__
+#pragma once
 
-#include <array>
-#include <floating_base_model/AccessHelperFunctions.hpp>
+#include <ocs2_core/thread_support/Synchronized.h>
+#include <ocs2_oc/synchronized_module/ReferenceManager.h>
 
-#include "legged_locomotion_mpc/common/Types.hpp"
+// #include "ocs2_legged_robot/foot_planner/SwingTrajectoryPlanner.h"
+// #include "ocs2_legged_robot/gait/GaitSchedule.h"
+// #include "ocs2_legged_robot/gait/MotionPhaseDefinition.h"
 
 namespace legged_locomotion_mpc
-{ 
-  namespace utils
-  {
+{
     /**
-      * Provides number of feet in contact.
-      * @param [in] contactFlags: std::vector with contact flags
-      * @return number of feet in contact
-      */
-    size_t numberOfClosedContacts(const contact_flags_t &contactFlags);
+    * Manages the ModeSchedule and the TargetTrajectories for switched model.
+    */
+    class SwitchedModelReferenceManager : public ReferenceManager {
+    public:
+        SwitchedModelReferenceManager(std::shared_ptr<GaitSchedule> gaitSchedulePtr,
+                                      std::shared_ptr<SwingTrajectoryPlanner> swingTrajectoryPtr);
 
+        ~SwitchedModelReferenceManager() override = default;
 
-    /**
-      * Computes an input with zero joint velocity and forces which 
-      *  equally distribute the robot weight between contact feet.
-      * @param [in] info: info of FloatingBase model
-      * @param [in] contactFlags: std::vector with contact flags
-      * @return input vector with calculated forces
-      */
-    ocs2::vector_t weightCompensatingInput(const floating_base_model::FloatingBaseModelInfo &info, 
-      const contact_flags_t &contactFlags);
+        void setModeSchedule(const ModeSchedule &modeSchedule) override;
 
-  }; // namespace utils
-}; // namespace legged_locomotion_mpc
+        contact_flag_t getContactFlags(scalar_t time) const;
 
-#endif
+        const std::shared_ptr<GaitSchedule> &getGaitSchedule() { return gaitSchedulePtr_; }
+
+        const std::shared_ptr<SwingTrajectoryPlanner> &getSwingTrajectoryPlanner() { return swingTrajectoryPtr_; }
+
+    private:
+        void modifyReferences(scalar_t initTime, scalar_t finalTime, const vector_t &initState,
+                              TargetTrajectories &targetTrajectories,
+                              ModeSchedule &modeSchedule) override;
+
+        std::shared_ptr<GaitSchedule> gaitSchedulePtr_;
+        std::shared_ptr<SwingTrajectoryPlanner> swingTrajectoryPtr_;
+    };
+} // namespace legged_locomotion_mpc
