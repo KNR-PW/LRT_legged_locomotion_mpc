@@ -45,75 +45,70 @@ namespace legged_locomotion_mpc
   namespace cost
   {
     /**
-     * State-input tracking cost used for intermediate times
+     * State tracking cost used for the final time
      */
-    class QuadraticTrackingCost final : public StateInputCost 
+    class QuadraticFinalTrackingCost final : public StateCost 
     {
       public:
-       /**
+
+        /**
         * Constructor for the quadratic cost function defined as the following:
-        * \f$ L = 0.5(x-x_{n})' Q (x-x_{n}) + 0.5(u-u_{n})' R (u-u_{n}) \f$
+        * \f$ L = 0.5(x-x_{n})' Q (x-x_{n}) \f$
         * @param [in] Q: \f$ Q \f$
-        * @param [in] R: \f$ R \f$
         * @param [in] info: floating base model info
         * @param [in] leggedSynchronizedModule: synchronized module 
         * @param [in] referenceManager: reference manager
         * 
         */
-        QuadraticTrackingCost(ocs2::vector_t Q, ocs2::vector_t R,
+        QuadraticFinalTrackingCost(vector_t Q,
           floating_base_model::FloatingBaseModelInfo& info,
-          const LeggedSynchronizedModule &leggedSynchronizedModule
-          const SwitchedModelReferenceManager& referenceManager);
+          const LeggedSynchronizedModule &leggedSynchronizedModule,
+          const SwitchedModelReferenceManager& referenceManager)
 
-        ~QuadraticTrackingCost() override = default;
+        ~QuadraticFinalTrackingCost() override = default;
 
-        QuadraticTrackingCost *clone() const override;
+        QuadraticFinalTrackingCost *clone() const override;
 
         /**
-         * Computes value for quadratic tracking cost
+         * Computes value for quadratic final tracking cost
          *
          * @param [in] time: time
          * @param [in] state: system state vector
-         * @param [in] input: system input vector
          * @param [in] targetTrajectories: target trajectories for desired state and input
          * @return cost value 
          */
         ocs2::scalar_t getValue(ocs2::scalar_t time, const ocs2::vector_t& state,
-          const ocs2::vector_t& input, const ocs2::TargetTrajectories& targetTrajectories,
+          const ocs2::TargetTrajectories& targetTrajectories,
           const ocs2::PreComputation&) final;
 
         /**
-         * Computes quadratic approximation for quadratic tracking cost
+         * Computes quadratic approximation for quadratic final tracking cost
          *
          * @param [in] time: time
          * @param [in] state: system state vector
-         * @param [in] input: system input vector
          * @param [in] targetTrajectories: target trajectories for desired state and input
          * @return quadratic approximation for cost  
          */
         ocs2::ScalarFunctionQuadraticApproximation getQuadraticApproximation(ocs2::scalar_t time,
-          const ocs2::vector_t& state, const ocs2::vector_t& input,
-          const ocs2::TargetTrajectories& targetTrajectories,
+          const ocs2::vector_t& state, const ocs2::TargetTrajectories& targetTrajectories,
           const ocs2::PreComputation&) final;
 
-    private:
+      private:
 
-        QuadraticTrackingCost(const QuadraticTrackingCost &rhs) = default;
+        QuadraticFinalTrackingCost(const QuadraticFinalTrackingCost &rhs) = default;
         
         /**
-         * Computes delta state and delta input
+         * Computes delta state
          *
          * @param [in] time: time
          * @param [in] state: system state vector
-         * @param [in] input: system input vector
          * @param [in] targetTrajectories: target trajectories for desired state and input
-         * @return delta state and delta input (desired vs actual) 
+         * @return delta state (desired vs actual) 
          */
-        std::pair<ocs2::vector_t, ocs2::vector_t> getStateInputDeviation(ocs2::scalar_t time,
-          const ocs2::vector_t &state, const ocs2::vector_t &input,
+        ocs2::vector_t getStateDeviation(ocs2::scalar_t time, const ocs2::vector_t &state,
           const ocs2::TargetTrajectories &targetTrajectories) const;
 
-        
+
         /** Floating Base Info */
         const floating_base_model::FloatingBaseModelInfo* info_;
 
@@ -123,10 +118,6 @@ namespace legged_locomotion_mpc
 
         /** Diagonal matrixes defined as vectors */
         ocs2::vector_t Q_;
-        ocs2::vector_t R_;
-        
     };
-  }; // namespace cost
+  }; //namespace cost
 }; //namespace legged_locomotion_mpc
-
-#endif
