@@ -69,6 +69,8 @@ namespace legged_locomotion_mpc
 
       floating_base_model::PinocchioFloatingBaseDynamicsAD dynamicsAd_;
       const LeggedSynchronizedModule* leggedSynchronizedModule_;
+
+      Eigen::Matrix<ocs2::scalar_t, 6, 1> floatingBaseDisturbance_ = Eigen::Matrix<ocs2::scalar_t, 6, 1>::Zero();
     };
 
 }; // namespace legged_locomotion_mpc

@@ -28,7 +28,7 @@ namespace legged_locomotion_mpc
 
     ocs2::vector_t newQ, newR;
 
-    if(leggedSynchronizedModulePtr_->newData())
+    if(leggedSynchronizedModulePtr_->newCostData())
     {
       std::tie(newQ, newR) = leggedSynchronizedModulePtr_->getQuadraticTrackingCoefficients();
       assert(inputDeviation.rows() == newR.rows());
@@ -54,7 +54,7 @@ namespace legged_locomotion_mpc
     ocs2::vector_t newQ, newR;
     ocs2::ScalarFunctionQuadraticApproximation L;
 
-    if(leggedSynchronizedModulePtr_->newData())
+    if(leggedSynchronizedModulePtr_->newCostData())
     {
       std::tie(newQ, newR) = leggedSynchronizedModulePtr_->getQuadraticTrackingCoefficients();
       assert(inputDeviation.rows() == newR.rows());
