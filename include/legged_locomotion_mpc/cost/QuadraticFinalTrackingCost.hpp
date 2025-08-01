@@ -118,6 +118,9 @@ namespace legged_locomotion_mpc
 
         /** Diagonal matrixes defined as vectors */
         ocs2::vector_t Q_;
+
+        /** Quadratic Aproxximation (precomputated) */
+        ocs2::ScalarFunctionQuadraticApproximation quadraticApprox_;
     };
   }; //namespace cost
 }; //namespace legged_locomotion_mpc

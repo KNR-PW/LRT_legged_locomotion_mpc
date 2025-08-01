@@ -18,7 +18,7 @@ namespace legged_locomotion_mpc
           info_(&info), leggedSynchronizedModulePtr_(&leggedSynchronizedModule),
           referenceManagerPtr_(&referenceManager)
     {
-    
+      quadraticApprox_.dfdux.setZero(input.size(), state.size());
     }
 
     /******************************************************************************************************/
@@ -67,7 +67,6 @@ namespace legged_locomotion_mpc
       std::tie(stateDeviation, inputDeviation) = getStateInputDeviation(time, state, input, targetTrajectories);
 
       vector_t newQ, newR;
-      ScalarFunctionQuadraticApproximation L;
 
       if(leggedSynchronizedModulePtr_->newCostData())
       {
@@ -75,24 +74,23 @@ namespace legged_locomotion_mpc
         assert(inputDeviation.rows() == newR.rows());
         assert(stateDeviation.rows() == newQ.rows());
 
-        L.dfdxx = Eigen::MatrixXd(newQ.asDiagonal());
-        L.dfduu = Eigen::MatrixXd(newR.asDiagonal());
-        L.dfdx.noalias() = newQ.asDiagonal() * stateDeviation;
-        L.dfdu.noalias() = newR.asDiagonal() * inputDeviation;
+        quadraticApprox_.dfdxx.noalias() = Eigen::MatrixXd(newQ.asDiagonal());
+        quadraticApprox_.dfduu.noalias() = Eigen::MatrixXd(newR.asDiagonal());
+        quadraticApprox_.dfdx.noalias() = newQ.asDiagonal() * stateDeviation;
+        quadraticApprox_.dfdu.noalias() = newR.asDiagonal() * inputDeviation;
       }
       else
       {
         assert(inputDeviation.rows() == R_.rows());
         assert(stateDeviation.rows() == Q_.rows());
 
-        L.dfdxx = Eigen::MatrixXd(Q_.asDiagonal());
-        L.dfduu = Eigen::MatrixXd(R_.asDiagonal());
-        L.dfdx.noalias() = Q_.asDiagonal() * stateDeviation;
-        L.dfdu.noalias() = R_.asDiagonal() * inputDeviation;
+        quadraticApprox_.dfdxx.noalias() = Eigen::MatrixXd(Q_.asDiagonal());
+        quadraticApprox_.dfduu.noalias() = Eigen::MatrixXd(R_.asDiagonal());
+        quadraticApprox_.dfdx.noalias() = Q_.asDiagonal() * stateDeviation;
+        quadraticApprox_.dfdu.noalias() = R_.asDiagonal() * inputDeviation;
       }
 
-      L.f = 0.5 * stateDeviation.dot(L.dfdx) + 0.5 * inputDeviation.dot(L.dfdu);
-      L.dfdux.setZero(input.size(), state.size());
+      quadraticApprox_.f = 0.5 * stateDeviation.dot(quadraticApprox_.dfdx) + 0.5 * inputDeviation.dot(quadraticApprox_.dfdu);
 
       return L;
     }

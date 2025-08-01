@@ -17,6 +17,9 @@ namespace legged_locomotion_mpc
         : StateCost(), Q_(std::move(Q)), info_(&info),
           leggedSynchronizedModulePtr_(&leggedSynchronizedModule),
           referenceManagerPtr_(&referenceManager)
+    {
+      
+    }
 
     QuadraticFinalTrackingCost::QuadraticFinalTrackingCost *clone() const
     {
@@ -59,31 +62,24 @@ namespace legged_locomotion_mpc
       stateDeviation = getStateInputDeviation(time, state, targetTrajectories);
 
       vector_t newQ;
-      ScalarFunctionQuadraticApproximation L;
 
       if(leggedSynchronizedModulePtr_->newCostData())
       {
         newQ = leggedSynchronizedModulePtr_->getQuadraticFinalTrackingCoefficients();
         assert(stateDeviation.rows() == newQ.rows());
-
-        L.dfdxx = Eigen::MatrixXd(newQ.asDiagonal());
-        L.dfduu.setZero(input.size(), input.size());
-        L.dfdx.noalias() = newQ.asDiagonal() * stateDeviation;
-        L.dfdu.noalias().setZero(input.size(), 1);
+        quadraticApprox_.dfdxx.noalias() = Eigen::MatrixXd(newQ.asDiagonal());
+        quadraticApprox_.dfdx.noalias() = newQ.asDiagonal() * stateDeviation;
       }
       else
       {
         assert(inputDeviation.rows() == R_.rows());
         assert(stateDeviation.rows() == Q_.rows());
 
-        L.dfdxx = Eigen::MatrixXd(Q_.asDiagonal());
-        L.dfduu.setZero(input.size(), input.size());
-        L.dfdx.noalias() = Q_.asDiagonal() * stateDeviation;
-        L.dfdu.noalias().setZero(input.size(), 1);
+        quadraticApprox_.dfdxx.noalias() = Eigen::MatrixXd(Q_.asDiagonal());
+        quadraticApprox_.dfdx.noalias() = Q_.asDiagonal() * stateDeviation;
       }
 
-      L.f = 0.5 * stateDeviation.dot(L.dfdx);
-      L.dfdux.setZero(input.size(), state.size());
+      quadraticApprox_.f = 0.5 * stateDeviation.dot(quadraticApprox_.dfdx);
 
       return L;
     }
