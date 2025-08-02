@@ -19,7 +19,7 @@ namespace floating_base_model
       auto& data = interface.getData();
       Eigen::Matrix<SCALAR_T, Eigen::Dynamic, 1> v = Eigen::Matrix<SCALAR_T, Eigen::Dynamic, 1>::Zero(model.nv);
       Eigen::Matrix<SCALAR_T, Eigen::Dynamic, 1> a = Eigen::Matrix<SCALAR_T, Eigen::Dynamic, 1>::Zero(model.nv);
-      return (pinocchio::rnea(model, data, q, v, a, fext) - pinocchio::rnea(model, data, q, v, a, fext)).block(6, 0, info.actuatedDofNum, 1);
+      return (pinocchio::computeStaticTorque(model, data, q, fext) - pinocchio::computeGeneralizedGravity(model, data, q)).block(6, 0, info.actuatedDofNum, 1);
     }
 
     /******************************************************************************************************/
