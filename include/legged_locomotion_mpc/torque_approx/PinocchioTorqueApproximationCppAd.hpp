@@ -40,12 +40,13 @@ namespace legged_locomotion_mpc
      * @param [in] verbose : print information.
      */
     PinocchioTorqueApproximationCppAd(
-        const ocs2::PinocchioInterface& pinocchioInterface,
-        const ocs2::PinocchioStateInputMapping<ocs2::ad_scalar_t>& mapping,
-        const floating_base_model::FloatingBaseModelInfo info,
-        const std::string& modelName,
-        const std::string& modelFolder = "/tmp/ocs2",
-        bool recompileLibraries = true, bool verbose = false);
+      const ocs2::vector& torqueDynamicsError,
+      const ocs2::PinocchioInterface& pinocchioInterface,
+      const ocs2::PinocchioStateInputMapping<ocs2::ad_scalar_t>& mapping,
+      const floating_base_model::FloatingBaseModelInfo info,
+      const std::string& modelName,
+      const std::string& modelFolder = "/tmp/ocs2",
+      bool recompileLibraries = true, bool verbose = false);
 
     ~PinocchioTorqueApproximationCppAd() = default;
 
@@ -68,6 +69,8 @@ namespace legged_locomotion_mpc
       const ocs2::ad_vector_t& input);
 
     std::unique_ptr<ocs2::CppAdInterface> torqueApproxCppAdInterfacePtr_;
+
+    const ocs2::vector torqueDynamicsError_;
 
     const floating_base_model::FloatingBaseModelInfo info_;
   };

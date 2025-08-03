@@ -4,13 +4,16 @@
 namespace legged_locomotion_mpc 
 {
   PinocchioTorqueApproximationCppAd::PinocchioTorqueApproximationCppAd(
+    const ocs2::vector& torqueDynamicsError,
     const ocs2::PinocchioInterface& pinocchioInterface,
     const floating_base_model::FloatingBaseModelInfo info,
     const std::string& modelName,
     const std::string& modelFolder = "/tmp/ocs2",
-    bool recompileLibraries = true, bool verbose = false): info_(info)
+    bool recompileLibraries = true, bool verbose = false): info_(info), torqueDynamicsError_(torqueDynamicsError)
   {
-
+    const auto& model = pinocchioInterface.getModel();
+    assert(torqueDynamicsError_.rows() == model.nv);
+    
     // torque approximation function
     auto torqueApproxFunc = [&, this](const ad_vector_t& x, ad_vector_t& y) {
 
@@ -50,7 +53,7 @@ namespace legged_locomotion_mpc
     const ocs2::vector_t& state, const ocs2::vector_t& input) const
   {
     const ocs2::vector_t stateInput = (ocs2::vector_t(state.rows() + input.rows()) << state, input).finished();
-    return torqueApproxCppAdInterfacePtr_->getFunctionValue(stateInput);
+    return torqueApproxCppAdInterfacePtr_->getFunctionValue(stateInput) + torqueDynamicsError_;
   }
 
   ocs2::VectorFunctionLinearApproximation PinocchioTorqueApproximationCppAd::getLinearApproximation(
