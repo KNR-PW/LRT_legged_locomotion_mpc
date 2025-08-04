@@ -59,6 +59,12 @@ namespace legged_locomotion_mpc
 
     ocs2::VectorFunctionLinearApproximation getLinearApproximation(const ocs2::vector_t& state,
       const ocs2::vector_t& input) const;
+
+    std::tuple<ocs2::matrix_t, ocs2::matrix_t, ocs2::matrix_t> getWeightedHessians(
+      const ocs2::vector_t& weights,
+      const ocs2::vector_t& state,
+      const ocs2::vector_t& input) const;
+
    private:
     PinocchioTorqueApproximationCppAd(
         const PinocchioTorqueApproximationCppAd& rhs);
