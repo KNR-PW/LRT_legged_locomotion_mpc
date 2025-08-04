@@ -87,7 +87,7 @@ namespace legged_locomotion_mpc
   /******************************************************************************************************/
   /******************************************************************************************************/
   /******************************************************************************************************/
-  std::tuple<matrix_t, matrix_t, matrix_t> PinocchioTorqueApproximationCppAd::getWeightedHessians(
+  std::pair<matrix_t, matrix_t> PinocchioTorqueApproximationCppAd::getWeightedHessians(
     const vector_t& weights,
     const vector_t& state,
     const vector_t& input) const
@@ -95,10 +95,10 @@ namespace legged_locomotion_mpc
     const vector_t stateInput = (vector_t(state.rows() + input.rows()) << state, input).finished();
     const matrix_t hessian = torqueApproxCppAdInterfacePtr_->getHessian(weights, stateInput);
     const matrix_t hessianStateState = hessian.block(0, 0, state.rows(), state.rows());
-    const matrix_t hessianInputInput = hessian.block(state.rows(), state.rows(), input.rows(), input.rows());
+    // const matrix_t hessianInputInput = hessian.block(state.rows(), state.rows(), input.rows(), input.rows());
     const matrix_t hessianInputState = hessian.block(state.rows(), 0, input.rows(), state.rows());
     
-    return {hessianStateState, hessianInputInput, hessianInputState};
+    return {hessianStateState, hessianInputState};
   }
 
   /******************************************************************************************************/

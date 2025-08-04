@@ -58,8 +58,8 @@ namespace legged_locomotion_mpc
     {
       const size_t forceSize = 3 * info_.numThreeDofContacts + 6 * info_.numSixDofContacts;
       const auto torqueApproxDerivative = torqueApproximatorPtr_->getLinearApproximation(state, input);
-      const matrix_t dTorquedQ = torqueApproxDerivative.dfdx.block(0, 12, info_.actuatedDofNum, info_.generalizedCoordinatesNum).transpose();
-      const matrix_t dTorquedF = torqueApproxDerivative.dfdu.block(0, 0, info_.actuatedDofNum, forceSize).transpose();
+      const matrix_t dTorquedQ = torqueApproxDerivative.dfdx.block(0, 12, info_.actuatedDofNum, info_.generalizedCoordinatesNum);
+      const matrix_t dTorquedF = torqueApproxDerivative.dfdu.block(0, 0, info_.actuatedDofNum, forceSize);
       const vector_t upperBoundTorqueOffset = torqueLimits_ - torqueApproxDerivative.f;
       const vector_t lowerBoundTorqueOffset = torqueLimits_ + torqueApproxDerivative.f;
 
@@ -83,24 +83,24 @@ namespace legged_locomotion_mpc
         return jointTorquePenalty_->getDerivative(0.0, hi); 
       });
 
-      const vector_t lowerPenaltySecondDerivatives = lowerBoundTorqueOffset.unaryExpr([&](scalar_t hi)
+      const vector_t penaltySecondDerivatives = lowerBoundTorqueOffset.unaryExpr([&](scalar_t hi)
       {
           return jointTorquePenalty_->getSecondDerivative(0.0, hi);
-      })
-      const vector_t upperPenaltySecondDerivatives = upperBoundTorqueOffset.unaryExpr([&](scalar_t hi)
+      }) + upperBoundTorqueOffset.unaryExpr([&](scalar_t hi)
       {
           return jointTorquePenalty_->getSecondDerivative(0.0, hi);
       });
 
-      matrix_t hessianStateState, hessianInputInput, hessianInputState;
-      const auto [hessianStateState, hessianInputInput, hessianInputState] = torqueApproximatorPtr_->getHessians(penaltyDerivatives, state, input);
-      
+      // matrix_t hessianStateState, hessianInputInput, hessianInputState;
+      // std::tie(hessianStateState, hessianInputInput, hessianInputState) = torqueApproximatorPtr_->getHessians(penaltyDerivatives, state, input);
+      matrix_t hessianStateState, hessianInputState;
+      std::tie(hessianStateState, hessianInputState) = torqueApproximatorPtr_->getHessians(penaltyDerivatives, state, input);
 
-      cost.dfdx.block(12, 0, info_.actuatedDofNum, 1).noalias() =  dTorquedQ * penaltyDerivatives;
-      cost.dfdu.block(0, 0, forceSize, 1).noalias() =  dTorquedF * penaltyDerivatives;
-      cost.dfdxx = hessianStateState;
-      cost.dfduu = hessianInputInput;
-      cost.dfdux = hessianInputState;
+      cost.dfdx.block(12, 0, info_.actuatedDofNum, 1).noalias() =  dTorquedQ.transpose() * penaltyDerivatives;
+      cost.dfdu.block(0, 0, forceSize, 1).noalias() =  dTorquedF.transpose() * penaltyDerivatives;
+      cost.dfdxx.noalias() = hessianStateState + dTorquedQ.transpose() * penaltySecondDerivatives.asDiagonal() * dTorquedQ;
+      cost.dfduu.noalias() = dTorquedF.transpose() * penaltySecondDerivatives.asDiagonal() * dTorquedF; // torque is linearly dependent on forces, so its hessian is zero
+      cost.dfdux.noalias() = hessianInputState + dTorquedF.transpose() * penaltySecondDerivatives.asDiagonal() * dTorquedQ;
 
       return cost;
     }
