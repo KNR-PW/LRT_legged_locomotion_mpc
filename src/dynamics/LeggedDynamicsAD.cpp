@@ -14,7 +14,7 @@ namespace legged_locmomtion_mpc
     const ModelSettings &modelSettings,
     const LeggedSynchronizedModule* synchronizedModule)
       : SystemDynamicsBase(), 
-        dynamicsAd_(pinocchioInterface, info, modelName, modelSettings.modelFolderCppAd,
+        dynamicsAdPtr_(pinocchioInterface, info, modelName, modelSettings.modelFolderCppAd,
                     modelSettings.recompileLibrariesCppAd, modelSettings.verboseCppAd),
         leggedSynchronizedModule_(&synchronizedModule)
   {
@@ -31,7 +31,7 @@ namespace legged_locmomtion_mpc
     {
       floatingBaseDisturbance_ = leggedSynchronizedModule_.getActiveFloatingBaseDisturbance();
     }
-    return dynamicsAd_.getValue(time, state, input, floatingBaseDisturbance_);
+    return dynamicsAdPtr_.getValue(time, state, input, floatingBaseDisturbance_);
 
   }
 
@@ -45,7 +45,7 @@ namespace legged_locmomtion_mpc
     {
       floatingBaseDisturbance_ = leggedSynchronizedModule_.getActiveFloatingBaseDisturbance();
     }
-    return dynamicsAd_.ggetLinearApproximation(time, state, input, floatingBaseDisturbance_);
+    return dynamicsAdPtr_.getLinearApproximation(time, state, input, floatingBaseDisturbance_);
   }
 
 } // namespace legged_locmomtion_mpc
