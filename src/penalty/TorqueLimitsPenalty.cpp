@@ -1,4 +1,4 @@
-#include <legged_locomotion_mpc/penalties/TorqueLimitsPenalty.hpp>
+#include <legged_locomotion_mpc/penalty/TorqueLimitsPenalty.hpp>
 
 namespace legged_locomotion_mpc
 {
