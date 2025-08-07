@@ -48,6 +48,8 @@ namespace legged_locomotion_mpc
           ocs2::RelaxedBarrierPenalty::Config settings,
           TorqueApproximatorAD& torqueApproximator);
 
+        TorqueLimitsPenalty *clone() const override;
+
         /** Get cost term value */
         ocs2::scalar_t getValue(ocs2::scalar_t time, const ocs2::vector_t& state,
           const ocs2::vector_t& input, const ocs2::TargetTrajectories& targetTrajectories,
@@ -61,6 +63,8 @@ namespace legged_locomotion_mpc
 
       private:
 
+        TorqueLimitsPenalty(const TorqueLimitsPenalty &rhs);
+
         floating_base_model::FloatingBaseModelInfo info_;
 
         std::unique_ptr<TorqueApproximatorAD> torqueApproximatorPtr_; // TODO DODAJ W PRECOMPUTATION
@@ -68,8 +72,6 @@ namespace legged_locomotion_mpc
         std::unique_ptr<ocs2::RelaxedBarrierPenalty> torqueRelaxedBarrierPenaltyPtr_;
 
         ocs2::vector_t torqueLimits_;
-
-        ocs2::ScalarFunctionQuadraticApproximation quadraticApproximation_;
     };
   }; //namespace penalty
 }; // namespace legged_locomotion_mpc

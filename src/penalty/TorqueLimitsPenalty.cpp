@@ -18,15 +18,22 @@ namespace legged_locomotion_mpc
         torqueApproximatorPtr_(torqueApproximator.clone()),
         torqueRelaxedBarrierPenaltyPtr_(new RelaxedBarrierPenalty(settings)),
         torqueLimits_(torqueLimits)
-      {
-        // checking size of torqueLimits vector (complicated way :/)
+    {
+      // checking size of torqueLimits vector (complicated way :/)
+      const vector_t sampleState = vector_t::Zero(info.stateDim);
+      const vector_t sampleInput = vector_t::Zero(info.inputDim);
 
-        const vector_t sampleState = vector_t::Zero(info.stateDim);
-        const vector_t sampleInput = vector_t::Zero(info.inputDim);
-        const vector_t sampleTorques = torqueApproximatorPtr_->getValue(sampleState, sampleInput);
-        assert(torqueLimits_.rows() == sampleTorques.rows());
+      const vector_t sampleTorques = torqueApproximatorPtr_->getValue(sampleState, sampleInput);
+      assert(torqueLimits_.rows() == sampleTorques.rows());
+    }
 
-      }
+     /******************************************************************************************************/
+    /******************************************************************************************************/
+    /******************************************************************************************************/
+    TorqueLimitsPenalty *TorqueLimitsPenalty::clone() const
+    {
+      return new TorqueLimitsPenalty(*this);
+    }
     
     /******************************************************************************************************/
     /******************************************************************************************************/
@@ -104,6 +111,18 @@ namespace legged_locomotion_mpc
 
       return cost;
     }
+
+    /******************************************************************************************************/
+    /******************************************************************************************************/
+    /******************************************************************************************************/
+    TorqueLimitsPenalty::TorqueLimitsPenalty(const TorqueLimitsPenalty &rhs):
+      info_(rhs.info_), torqueApproximatorPtr_(rhs.torqueApproximatorPtr_->clone()),
+      torqueRelaxedBarrierPenaltyPtr_(rhs.torqueRelaxedBarrierPenaltyPtr_->clone()),
+      torqueLimits_(rhs.torqueLimits_)
+    {
+      
+    }
+    
 
   } // namespace penalty
 } // namespace legged_locomotion_mpc

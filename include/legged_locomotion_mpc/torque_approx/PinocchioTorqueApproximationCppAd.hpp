@@ -22,7 +22,7 @@ namespace legged_locomotion_mpc
 {
 
   /**
-   * This class provides the CppAD implementation of the torque approximation
+   * This class provides the CppAD implementation of the joint torque approximation
    * based on pinocchio. No pre-computation is required. 
    */
   class PinocchioTorqueApproximationCppAd
@@ -76,7 +76,7 @@ namespace legged_locomotion_mpc
 
     std::unique_ptr<ocs2::CppAdInterface> torqueApproxCppAdInterfacePtr_;
 
-    const ocs2::vector torqueDynamicsError_;
+    const ocs2::vector_t torqueDynamicsError_;
 
     const floating_base_model::FloatingBaseModelInfo info_;
   };
