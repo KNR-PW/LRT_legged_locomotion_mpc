@@ -25,7 +25,7 @@
 
 namespace legged_locomotion_mpc
 {
-  namespace mode
+  namespace locomotion
   {
     /**
      * Contact modes used for passing information to OCS2 framework
