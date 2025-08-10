@@ -40,7 +40,7 @@ namespace legged_locomotion_mpc
      * @param [in] endEffectorNumber: Number of end effectors (legs)
      * @return Vector with contact flags
      */
-    inline contact_flags_t modeNumber2StanceLeg(const size_t modeNumber, const size_t endEffectorNumber)
+    inline contact_flags_t modeNumber2ContactFlags(const size_t modeNumber, const size_t endEffectorNumber)
     {
       contact_flags_t contactFlags(endEffectorNumber);
 
@@ -57,7 +57,7 @@ namespace legged_locomotion_mpc
      * @param [in] contactFlags : Vector with contact flags
      * @return Mode number
      */
-    inline size_t stanceLeg2ModeNumber(const contact_flag_t& contactFlags)
+    inline size_t contactFlags2ModeNumber(const contact_flag_t& contactFlags)
     {
       size_t modeNumber = 0;
       

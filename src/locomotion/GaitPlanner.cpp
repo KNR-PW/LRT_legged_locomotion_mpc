@@ -2,13 +2,16 @@
 #include <legged_locomotion_mpc/locomotion/MotionPhaseDefinitions.hpp>
 
 #include <algorithm>
+#include <limits>
+
+#include <ocs2_core/misc/Lookup.h>
 
 
 namespace legged_locomotion_mpc
 {
   namespace locomotion
   {
-    namespace ocs2;
+    using namespace ocs2;
 
     GaitPlanner::GaitPlanner(
       const GaitStaticInfo& staticInfo,
@@ -19,10 +22,12 @@ namespace legged_locomotion_mpc
       updatePrivateDynamicInfo(initDynamicInfo);
       updateCachedPhaseVector();
 
-      // Stand for 10000 seconds lmao
-      modeSchedule_.eventTimes.push_back(0.0);
-      modeSchedule_.eventTimes.push_back(10000.0);
-      modeSchedule_.modeSequence.puh_back(0);
+      // Start with standing forever
+      modeSchedule_.eventTimes.push_back(0.5);
+      const contact_flags_t stanceFlags(privateStaticInfo_.numEndEffectors, true);
+      const size_t stanceMode = modeNumber2ContactFlags(stanceFlags);
+      modeSchedule_.modeSequence.push_back(stanceMode);
+      modeSchedule_.modeSequence.push_back(stanceMode);
 
     }
 
@@ -33,6 +38,29 @@ namespace legged_locomotion_mpc
 
     ModeSchedule GaitPlanner::getModeSchedule(ocs2::scalar_t initTime, ocs2::scalar_t finalTime)
     {
+
+    }
+
+    void GaitPlanner::insertCurrentContacts(scalar_t time, contact_flags_t currentContacts)
+    {
+      const size_t realMode = contactFlags2ModeNumber(currentContacts);
+      const size_t plannedModeIndex = lookup::findIndexInTimeArray(eventTimes, time);
+
+      if(realMode == modeSequence[plannedModeIndex]) return; // As planned, early return
+
+      /* Not as planned, checking closest mode, that satisfies real contacts */
+
+      const auto& eventTimes = modeSchedule_.eventTimes;
+      const auto modeSequence = modeSchedule_.modeSequence;
+      const size_t closestRange = 2 * plannedModeIndex;
+      size_t currentIndex = plannedModeIndex;
+      for(size_t i = 1; closestRange; ++i)
+      {
+        /* Alternating iterateration, starting from planned mode index */
+        currentIndex += (2 * (i % 2) - 1) * i; // TODO SPRAWDZ TO
+        if(modeSequence[currentIndex] == realMode) break;
+      }
+      // TODO ZNALZAŁEM DOBRY INDEKS, ZUPDATUJ modeSchedule_
 
     }
 
@@ -58,7 +86,7 @@ namespace legged_locomotion_mpc
     GaitStaticPrivateInfo GaitPlanner::getPrivateStaticInfo(const GaitStaticInfo& info)
     {
       GaitStaticPrivateInfo privateStaticInfo;
-      privateStaticInfo.numEndEffectors = info.endEffectorNames.size();
+      privateStaticInfo.numEndEffectors = info.threeDofendEffectorNames.size() + info.sixDofendEffectorNames.size();
       privateStaticInfo.plannerDeltaTime = 1 / info.plannerFrequency;
       privateStaticInfo.timeHorizonLentgh = info.timeHorizion * info.plannerFrequency;
       return privateStaticInfo;

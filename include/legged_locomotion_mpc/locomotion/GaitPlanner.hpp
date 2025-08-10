@@ -26,6 +26,7 @@
 
 #include <ocs2_core/Types.h>
 #include <ocs2_core/reference/ModeSchedule.h>
+#include <legged_locomotion_mpc/locomotion/MotionPhaseDefinitions.hpp>
 
 namespace legged_locomotion_mpc
 {
@@ -38,7 +39,8 @@ namespace legged_locomotion_mpc
         {
           ocs2::scalar_t plannerFrequency;
           ocs2::scalar_t timeHorizion;
-          std::vector<std::string> endEffectorNames;
+          std::vector<std::string> threeDofendEffectorNames;
+          std::vector<std::string> sixDofendEffectorNames;
 
         };
 
@@ -46,7 +48,7 @@ namespace legged_locomotion_mpc
         {
           ocs2::scalar_t steppingFrequency;
           ocs2::scalar_t swingRatio; // val < swingRatio -> STANCE, else SWING
-          std::vector<bool> endEffectorsInContact;
+          contact_flags_t endEffectorsInContact;
           std::vector<ocs2::scalar_t> phaseOffsets;
         };
 
@@ -54,15 +56,15 @@ namespace legged_locomotion_mpc
 
         void setModeSchedule(const ocs2::ModeSchedule &modeSchedule);
 
-        ocs2::ModeSchedule getModeSchedule(ocs2::scalar_t initTime, ocs2::scalar_t finalTime);
+        ocs2::ModeSchedule getModeSchedule(ocs2::scalar_t startTime, ocs2::scalar_t finalTime);
 
-        void setDynamicInfo(const GaitDynamicInfo& dynamicInfo);
+        void insertNewWalkingData(scalar_t startTime, scalar_t finalTime, const GaitDynamicInfo& dynamicInfo);
+        
+        void insertCurrentContacts(scalar_t time, contact_flags_t currentContacts);
+
 
         const GaitStaticInfo& getStaticInfo();
         const GaitDynamicInfo& getDynamicInfo();
-
-        void updateState();
-
 
       private:
         struct GaitStaticPrivateInfo
@@ -77,7 +79,6 @@ namespace legged_locomotion_mpc
           size_t cacheLength; // 1 / (f * delta_t)
           size_t swingStartIndex;
           
-
           std::vector<size_t> phaseIndexOffsets;
         };
 
@@ -88,7 +89,6 @@ namespace legged_locomotion_mpc
 
 
         std::vector<bool> cachedPhaseVector_; // 0 index -> 0 (contact, true), max index -> 2pi (swing, false)
-        std::vector<bool> currentPlannedState_;
 
         const GaitStaticInfo publicStaticInfo_;
         GaitDynamicInfo publicDynamicInfo_;
