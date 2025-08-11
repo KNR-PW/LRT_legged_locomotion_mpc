@@ -34,11 +34,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <vector>
 #include <cstddef>
+#include <bitset>
 
 #include <ocs2_core/Types.h>
 namespace legged_locomotion_mpc
 {  
-  using contact_flags_t = std::vector<bool>;
+  const size_t MAX_LEG_NUMBER = 8;
+  using contact_flags_t = std::bitset<MAX_LEG_NUMBER>; // Dont expect for robot to have more than 8 legs
 
   using vector3_t = Eigen::Matrix<ocs2::scalar_t, 3, 1>;
   using matrix3_t = Eigen::Matrix<ocs2::scalar_t, 3, 3>;

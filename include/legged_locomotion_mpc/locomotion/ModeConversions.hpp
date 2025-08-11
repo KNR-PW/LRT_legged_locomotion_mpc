@@ -18,8 +18,8 @@
  */
 
 
-#ifndef __MOTION_PHASE_DEFINITIONS_LEGGED_LOCOMOTION_MPC__
-#define __MOTION_PHASE_DEFINITIONS_LEGGED_LOCOMOTION_MPC__
+#ifndef __MODE_CONVERSIONS_LEGGED_LOCOMOTION_MPC__
+#define __MODE_CONVERSIONS_LEGGED_LOCOMOTION_MPC__
 
 #include <legged_locomotion_mpc/common/Types.hpp>
 
@@ -31,6 +31,10 @@ namespace legged_locomotion_mpc
      * Contact modes used for passing information to OCS2 framework
      * Defined as `size_t` value, where each contact flag is represented as 1 bit in position 
      * corresponding to position in contact_flags_t (0 index -> LSB)
+     * 
+     * End effector order in std::bitset:
+     *  1. order in `threeDofEndEffectors` in `FloatingBaseModelInfo`
+     *  2. order in `sixDofEndEffectors` in `FloatingBaseModelInfo`
      *
      */
 
@@ -38,37 +42,37 @@ namespace legged_locomotion_mpc
      * Get contact flags from mode number
      * @param [in] modeNumber : Mode number
      * @param [in] endEffectorNumber: Number of end effectors (legs)
-     * @return Vector with contact flags
+     * @return std::bitset with contact flags
      */
-    inline contact_flags_t modeNumber2ContactFlags(const size_t modeNumber, const size_t endEffectorNumber)
+    inline contact_flags_t modeNumber2ContactFlags(const size_t modeNumber)
     {
-      contact_flags_t contactFlags(endEffectorNumber);
-
-      for(int i = 0; i < endEffectorNumber; ++i)
-      {
-        contactFlags[i] = (modeNumber >> i) & 0x01; 
-      }
-
+      contact_flags_t contactFlags(modeNumber);
       return contactFlags;
     };
 
     /**
      * Get mode number from contact flags
-     * @param [in] contactFlags : Vector with contact flags
+     * @param [in] contactFlags : Bitset with contact flags
      * @return Mode number
      */
-    inline size_t contactFlags2ModeNumber(const contact_flag_t& contactFlags)
+    inline size_t contactFlags2ModeNumber(const contact_flags_t& contactFlags)
     {
-      size_t modeNumber = 0;
-      
-      for(const auto& flag: contactFlags)
-      {
-        modeNumber |= 0x01 << static_cast<size_t>(flag);
-      }
-
-      return modeNumber;
+      return contactFlags.to_ulong();
     };
-  };
-};
+
+    /**
+     * Get bool contact flag from contact flags bitset
+     * @param [in] contactFlags : Bitset with contact flags
+     * @param [in] endEffectorIndex : Index of robots leg 
+     * @return 
+     */
+    inline bool getContactFlag(const contact_flags_t& contactFlags, size_t endEffectorIndex)
+    {
+      assert(endEffectorIndex < MAX_LEG_NUMBER);
+
+      return contactFlags[endEffectorIndex];
+    }
+  }; // namespace locomotion
+}; // namespace legged_locomotion_mpc
 
 #endif
