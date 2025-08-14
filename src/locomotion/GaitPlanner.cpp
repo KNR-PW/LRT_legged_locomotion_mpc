@@ -57,8 +57,20 @@ namespace legged_locomotion_mpc
       for(size_t i = 1; closestRange; ++i)
       {
         /* Alternating iterateration, starting from planned mode index */
-        currentIndex += (2 * (i % 2) - 1) * i; // TODO SPRAWDZ TO
+        if(i % 2 == 0)
+        {
+          currentIndex -= i; // TODO SPRAWDZ TO
+        }
+        else
+        {
+          currentIndex += i; // TODO SPRAWDZ TO
+        }
         if(modeSequence[currentIndex] == realMode) break;
+      }
+      
+      if(currentIndex == 0)
+      {
+
       }
       // TODO ZNALZAŁEM DOBRY INDEKS, ZUPDATUJ modeSchedule_
 
