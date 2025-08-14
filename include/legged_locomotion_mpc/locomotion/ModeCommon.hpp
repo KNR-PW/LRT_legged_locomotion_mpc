@@ -18,8 +18,8 @@
  */
 
 
-#ifndef __MODE_CONVERSIONS_LEGGED_LOCOMOTION_MPC__
-#define __MODE_CONVERSIONS_LEGGED_LOCOMOTION_MPC__
+#ifndef __MODE_COMMON_LEGGED_LOCOMOTION_MPC__
+#define __MODE_COMMON_LEGGED_LOCOMOTION_MPC__
 
 #include <legged_locomotion_mpc/common/Types.hpp>
 
@@ -71,7 +71,8 @@ namespace legged_locomotion_mpc
       assert(endEffectorIndex < MAX_LEG_NUMBER);
 
       return contactFlags[endEffectorIndex];
-    }
+    };
+
   }; // namespace locomotion
 }; // namespace legged_locomotion_mpc
 
