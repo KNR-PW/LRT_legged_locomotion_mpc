@@ -35,22 +35,6 @@ namespace legged_locomotion_mpc
     class GaitPlanner
     {
       public:
-        struct GaitStaticInfo
-        {
-          ocs2::scalar_t plannerFrequency;
-          ocs2::scalar_t timeHorizion;
-          std::vector<std::string> threeDofendEffectorNames;
-          std::vector<std::string> sixDofendEffectorNames;
-
-        };
-
-        struct GaitDynamicInfo
-        {
-          ocs2::scalar_t steppingFrequency;
-          ocs2::scalar_t swingRatio; // val < swingRatio -> STANCE, else SWING
-          contact_flags_t endEffectorsInContact;
-          std::vector<ocs2::scalar_t> phaseOffsets;
-        };
 
         GaitPlanner(const GaitStaticInfo& staticInfo, const GaitDynamicInfo& initDynamicInfo);
 
