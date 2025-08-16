@@ -74,7 +74,7 @@ namespace legged_locomotion_mpc
       std::vector<scalar_t> currentContactStates(staticParams.endEffectorNumber);
 
       currentContactStates[0] = normalizeState(currentPhase);
-      currentMode[0] = normalizeState(currentPhase) >= swingRatio;
+      currentMode[0] = currentContactStates[0] >= swingRatio;
       for(int i = 1; i < staticParams.endEffectorNumber; ++i)
       {
         currentContactStates[i] = normalizeState(currentPhase + phaseOffsets[i - 1]);
@@ -161,11 +161,10 @@ namespace legged_locomotion_mpc
           {
             timeEndEffectorIndexQueue.push({nextTime + timeStance, anothertIndex});
           }
-
-          modeSequence.push_back(currentMode.to_ulong());
-          switchingTimes.push_back(nextTime);
-          time = nextTime;
         }
+        modeSequence.push_back(currentMode.to_ulong());
+        switchingTimes.push_back(nextTime);
+        time = nextTime;
       }
       // Remove mode that starts from timeHorizon -> ?
       modeSequence.erase(modeSequence.end() - 1, modeSequence.end());
