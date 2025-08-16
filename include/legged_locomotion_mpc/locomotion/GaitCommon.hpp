@@ -18,8 +18,8 @@
  */
 
 
-#ifndef __MODE_COMMON_LEGGED_LOCOMOTION_MPC__
-#define __MODE_COMMON_LEGGED_LOCOMOTION_MPC__
+#ifndef __GAIT_COMMON_LEGGED_LOCOMOTION_MPC__
+#define __GAIT_COMMON_LEGGED_LOCOMOTION_MPC__
 
 #include <legged_locomotion_mpc/common/Types.hpp>
 
@@ -53,7 +53,7 @@ namespace legged_locomotion_mpc
     /**
      * Get mode number from contact flags
      * @param [in] contactFlags : Bitset with contact flags
-     * @return Mode number
+     * @return mode number
      */
     inline size_t contactFlags2ModeNumber(const contact_flags_t& contactFlags)
     {
@@ -64,13 +64,45 @@ namespace legged_locomotion_mpc
      * Get bool contact flag from contact flags bitset
      * @param [in] contactFlags : Bitset with contact flags
      * @param [in] endEffectorIndex : Index of robots leg 
-     * @return 
+     * @return contact flag
      */
     inline bool getContactFlag(const contact_flags_t& contactFlags, size_t endEffectorIndex)
     {
       assert(endEffectorIndex <= MAX_LEG_NUMBER);
 
       return contactFlags[endEffectorIndex];
+    };
+
+    /**
+     * Normalize phase value to [0, 1.0) 
+     * @param [in] value : Phase value to normalize
+     * @return  Normalized phase value to [0, 1.0)
+     */
+    inline double normalizePhase(double value)
+    {
+      return value - std::floor(value);
+    };
+
+    /**
+     * Get time to new end effector mode (STANCE -> SWING or SWING -> STANCE) 
+     * based on end effector phase value
+     * @param [in] currentPhaseState : Current normalized phase value
+     * @param [in] swingRatio: Swing ratio
+     * @param [in] gaitPeriod: Gait period (from dynamic gait parameters)
+     * @return  time to new mode 
+     */
+    inline double getTimeToNextMode(double currentPhaseState, double swingRatio, double gaitPeriod)
+    {
+      double timeToNextMode;
+      if(currentPhaseState < swingRatio)
+      {
+        timeToNextMode = (swingRatio - currentPhaseState) * gaitPeriod;
+      }
+      else
+      {
+        timeToNextMode = (1 - currentPhaseState) * gaitPeriod;
+      }
+      return timeToNextMode;
     };
 
   }; // namespace locomotion

@@ -6,7 +6,7 @@
 #include <unordered_map>
 #include <set>
 
-#include <legged_locomotion_mpc/locomotion/ModeCommon.hpp>
+#include <legged_locomotion_mpc/locomotion/GaitCommon.hpp>
 
 namespace legged_locomotion_mpc
 {
@@ -14,25 +14,6 @@ namespace legged_locomotion_mpc
   {
     using namespace ocs2;
     using namespace ocs2::legged_robot;
-
-    double normalizeState(double value)
-    {
-      return value - std::floor(value);
-    }
-
-    double getTimeToNextMode(double currentState, double swingRatio, double gaitPeriod)
-    {
-      double timeToNextMode = 0;
-      if(currentState < swingRatio)
-      {
-        timeToNextMode = (swingRatio - currentState) * gaitPeriod;
-      }
-      else
-      {
-        timeToNextMode = (1 - currentState) * gaitPeriod;
-      }
-      return timeToNextMode;
-    }
 
     // std::unordered_map<scalar_t, std::set<size_t>> getDuplicateIndexes(
     //   const std::vector<scalar_t>& vector)
@@ -73,11 +54,11 @@ namespace legged_locomotion_mpc
       contact_flags_t currentMode;
       std::vector<scalar_t> currentContactStates(staticParams.endEffectorNumber);
 
-      currentContactStates[0] = normalizeState(currentPhase);
+      currentContactStates[0] = normalizePhase(currentPhase);
       currentMode[0] = currentContactStates[0] >= swingRatio;
       for(int i = 1; i < staticParams.endEffectorNumber; ++i)
       {
-        currentContactStates[i] = normalizeState(currentPhase + phaseOffsets[i - 1]);
+        currentContactStates[i] = normalizePhase(currentPhase + phaseOffsets[i - 1]);
         currentMode[i] = currentContactStates[i] >= swingRatio;
       }
 

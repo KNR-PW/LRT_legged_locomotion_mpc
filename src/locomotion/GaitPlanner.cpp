@@ -1,5 +1,4 @@
 #include <legged_locomotion_mpc/locomotion/GaitPlanner.hpp>
-#include <legged_locomotion_mpc/locomotion/ModeCommon.hpp>
 
 #include <algorithm>
 #include <limits>
@@ -15,24 +14,17 @@ namespace legged_locomotion_mpc
     using namespace ocs2::legged_robot;
 
     GaitPlanner::GaitPlanner(const GaitStaticParameters& staticParams,
-      const GaitDynamicParameters initDynamicParams):
+      const GaitDynamicParameters initDynamicParams,
+      const ModeSequenceTemplate& initModeSequenceTemplate,
+      scalar_t initPhase):
         publicStaticParams_(staticParams),
-        privateStaticParams_(getPrivateStaticParams(staticParams)),
-        publicDynamicParams_(initDynamicParams)
+        publicDynamicParams_(initDynamicParams),
+        modeSequenceTemplate_(initModeSequenceTemplate)
     {
-      updatePrivateDynamicParams(initDynamicParams);
-
-      // Start with standing 
-      currentPhase_ = initDynamicParams.swingRatio;
-      scalar_t startTimeHorizon = 10.0;
-
-      modeSequenceTemplate_ = getDynamicModeSequenceTemplate(currentPhase_, startTimeHorizon,
-        publicStaticParams_, publicDynamicParams_);
-
-      currentPhase_ += startTimeHorizon / publicDynamicParams_.steppingFrequency;
+      currentPhase_ = initPhase;
       
-      insertModeSequenceTemplate(0.0, startTimeHorizon, modeSequenceTemplate_);
-
+      insertModeSequenceTemplate(0.0, modeSequenceTemplate_.switchingTimes.back(),
+        modeSequenceTemplate_);
     }
 
     void GaitPlanner::setModeSchedule(const ModeSchedule &modeSchedule)
@@ -48,13 +40,14 @@ namespace legged_locomotion_mpc
       const size_t index = std::lower_bound(eventTimes.begin(), eventTimes.end(),
        lowerBoundTime) - eventTimes.begin();
 
-      if (index > 0) 
+      if(index > 0) 
       {
+        // Update current phase value
+        currentPhase_ += (eventTimes[index - 1] - eventTimes[0]) / publicDynamicParams_.steppingFrequency;
         // delete the old logic from index and set the default start phase to stance
         eventTimes.erase(eventTimes.begin(), eventTimes.begin() + index - 1);
         // keep the one before the last to make it stance
         modeSequence.erase(modeSequence.begin(), modeSequence.begin() + index - 1);
-
       }
 
       // Start tiling at time
@@ -71,36 +64,18 @@ namespace legged_locomotion_mpc
 
     void GaitPlanner::updateCurrentContacts(scalar_t time, contact_flags_t currentContacts)
     {
+      const auto& eventTimes = modeSchedule_.eventTimes;
+      const auto& modeSequence = modeSchedule_.modeSequence;
       const size_t realMode = contactFlags2ModeNumber(currentContacts);
       const size_t plannedModeIndex = lookup::findIndexInTimeArray(eventTimes, time);
 
       if(realMode == modeSequence[plannedModeIndex]) return; // As planned, early return
 
-      /* Not as planned, checking closest mode, that satisfies real contacts */
+      /* Not as planned, generating new state */
+      std::vector<scalar_t> currentContactState = currentPhase_ + 
+        (time - eventTimes.front()) / publicDynamicParams_.steppingFrequency;
 
-      const auto& eventTimes = modeSchedule_.eventTimes;
-      const auto modeSequence = modeSchedule_.modeSequence;
-      const size_t closestRange = 2 * plannedModeIndex;
-      size_t currentIndex = plannedModeIndex;
-      for(size_t i = 1; closestRange; ++i)
-      {
-        /* Alternating iterateration, starting from planned mode index */
-        if(i % 2 == 0)
-        {
-          currentIndex -= i; // TODO SPRAWDZ TO
-        }
-        else
-        {
-          currentIndex += i; // TODO SPRAWDZ TO
-        }
-        if(modeSequence[currentIndex] == realMode) break;
-      }
       
-      if(currentIndex == 0)
-      {
-        return 0;
-      }
-      // TODO ZNALZAŁEM DOBRY INDEKS, ZUPDATUJ modeSchedule_
 
     }
 
@@ -114,24 +89,25 @@ namespace legged_locomotion_mpc
       const size_t index = std::lower_bound(eventTimes.begin(), eventTimes.end(),
        startTime) - eventTimes.begin();
 
-      // Change current phase 
+      scalar_t startingPhase = currentPhase_;
+
+      // Get starting phase for new template
       if (index < eventTimes.size()) 
       {
-         currentPhase_ -= (eventTimes.back() - startTime) / publicStaticParams_.plannerFrequency;
+        startingPhase += (startTime - eventTimes.front()) / publicDynamicParams_.steppingFrequency;
       }
       else
       {
-        currentPhase_ += (startTime - eventTimes.back()) / publicDynamicParams_.steppingFrequency;
+        startingPhase += (eventTimes.back() - eventTimes.front()) / publicDynamicParams_.steppingFrequency;
       }
 
-      // Update params
+      // Update dynamic parameters
       publicDynamicParams_ = dynamicParams;
-      ModeSequenceTemplate newModeSequenceTemplate = getDynamicModeSequenceTemplate(currentPhase_,
+
+      ModeSequenceTemplate newModeSequenceTemplate = getDynamicModeSequenceTemplate(startingPhase,
         finalTime - startTime, publicStaticParams_, publicDynamicParams_);
 
       insertModeSequenceTemplate(startTime, finalTime, newModeSequenceTemplate);
-
-      updateCurrentPhase(startTime, finalTime);
     }
 
     const GaitStaticParameters& GaitPlanner::getStaticParameters()
@@ -142,17 +118,6 @@ namespace legged_locomotion_mpc
     const GaitDynamicParameters& GaitPlanner::getDynamicParameters()
     {
       return publicDynamicParams_;
-    }
-
-    void GaitPlanner::updateState();
-
-    GaitStaticPrivateInfo GaitPlanner::getPrivateStaticParams(const GaitStaticParams& params)
-    {
-      GaitStaticParameters privateStaticParams;
-      privateStaticParams.numEndEffectors = Params.threeDofendEffectorNames.size() + Params.sixDofendEffectorNames.size();
-      privateStaticParams.plannerDeltaTime = 1 / Params.plannerFrequency;
-      privateStaticParams.timeHorizonLentgh = Params.timeHorizion * Params.plannerFrequency;
-      return privateStaticParams;
     }
 
     void GaitPlanner::insertModeSequenceTemplate(ocs2::scalar_t startTime,
@@ -214,24 +179,6 @@ namespace legged_locomotion_mpc
 
        // default final phase
       modeSequence.push_back(ModeNumber::STANCE);
-    }
-
-    void GaitPlanner::updateCurrentPhase(scalar_t startTime, scalar_t finalTime)
-    {
-      currentPhase_ += (finalTime - startTime) / publicDynamicParams_.steppingFrequency;
-    }
-
-    GaitPrivateDynamicParams GaitPlanner::updatePrivateDynamicParams(const GaitDynamicParameters& Params)
-    {
-      assert(privateDynamicParams_.phaseIndexOffsets.size() == Params.phaseOffsets.size());
-
-      privateDynamicParams_.cacheLength = 1 / (Params.steppingFrequency * privateStaticParams_.plannerDeltaTime);
-      privateDynamicParams_.swingStartIndex = Params.swingRatio * privateDynamicParams_.cacheLength;
-
-      for(int i = 0; i < privateStaticParams_.numEndEffectors; ++i)
-      {
-        privateDynamicParams_.phaseIndexOffsets[i] = static_cast<size_t>(Params.phaseOffsets[i] / (privateDynamicParams_.cacheLength * 2 * M_PI));
-      }
     }
   }
 }

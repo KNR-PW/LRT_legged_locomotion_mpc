@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include <legged_locomotion_mpc/locomotion/ModeCommon.hpp>
+#include <legged_locomotion_mpc/locomotion/GaitCommon.hpp>
 
 using namespace legged_locomotion_mpc;
 using namespace legged_locomotion_mpc::locomotion;

@@ -28,7 +28,7 @@
 #include <ocs2_core/reference/ModeSchedule.h>
 
 #include <legged_locomotion_mpc/locomotion/GaitParameters.hpp>
-#include <legged_locomotion_mpc/locomotion/MotionPhaseDefinitions.hpp>
+#include <legged_locomotion_mpc/locomotion/GaitCommon.hpp>
 #include <legged_locomotion_mpc/locomotion/ModeDynamicSequenceTemplate.hpp>
 
 namespace legged_locomotion_mpc
@@ -40,35 +40,32 @@ namespace legged_locomotion_mpc
       public:
 
         GaitPlanner(const GaitStaticParameters& staticParams,
-          const GaitDynamicParameters initDynamicParams);
+          const GaitDynamicParameters initDynamicParams,
+          const ocs2::legged_robot::ModeSequenceTemplate& initModeSequenceTemplate,
+          ocs2::scalar_t initPhase);
 
         void setModeSchedule(const ocs2::ModeSchedule &modeSchedule);
 
         ocs2::ModeSchedule getModeSchedule(ocs2::scalar_t startTime, ocs2::scalar_t finalTime);
 
-        void updateWalkingGait(scalar_t startTime,
-          scalar_t finalTime, 
+        void updateWalkingGait(ocs2::scalar_t startTime,
+          ocs2::scalar_t finalTime, 
           const GaitDynamicParameters& dynamicParams);
         
-        void updateCurrentContacts(scalar_t time, contact_flags_t currentContacts);
-
-        void insertModeSequenceTemplate(ocs2::scalar_t startTime,
-          ocs2::scalar_t finalTime,
-          const ocs2::legged_robot::ModeSequenceTemplate& modeSequenceTemplate);
-
+        void updateCurrentContacts(ocs2::scalar_t time, contact_flags_t currentContacts);
 
         const GaitStaticParameters& getStaticParameters();
         const GaitDynamicParameters& getDynamicParameters();
 
       private:
-        struct GaitStaticPrivateInfo
+        struct GaitStaticPrivateParameters
         {
           size_t numEndEffectors;
           size_t timeHorizonLentgh;
           ocs2::scalar_t plannerDeltaTime;
         };
 
-        struct GaitDynamicPrivateInfo
+        struct GaitPrivateDynamicParameters
         {
           size_t cacheLength; // 1 / (f * delta_t)
           size_t swingStartIndex;
@@ -76,25 +73,22 @@ namespace legged_locomotion_mpc
           std::vector<size_t> phaseIndexOffsets;
         };
 
-        GaitStaticPrivateInfo getPrivateStaticParams(const GaitStaticParams& params);
-
         /**
          * Extends the switch information from startTime to finalTime based on the internal template mode sequence.
          *
          * @param [in] startTime: The initial time from which the mode schedule should be appended with the template.
          * @param [in] finalTime: The final time to which the mode schedule should be appended with the template.
          */
-        void tileModeSequenceTemplate(scalar_t startTime, scalar_t finalTime);
+        void tileModeSequenceTemplate(ocs2::scalar_t startTime, ocs2::scalar_t finalTime);
 
-        void updateCurrentPhase(scalar_t startTime, scalar_t finalTime);
+        void insertModeSequenceTemplate(ocs2::scalar_t startTime, ocs2::scalar_t finalTime,
+          const ocs2::legged_robot::ModeSequenceTemplate& modeSequenceTemplate);
 
 
         ocs2::scalar_t currentPhase_;
         
         const GaitStaticParameters publicStaticParams_;
         GaitDynamicParameters publicDynamicParams_;
-        const GaitStaticPrivateInfo privateStaticParams_;
-        GaitDynamicPrivateInfo privateDynamicParams_;
 
         ocs2::ModeSchedule modeSchedule_;
         ocs2::legged_robot::ModeSequenceTemplate modeSequenceTemplate_;
