@@ -21,6 +21,8 @@
 #ifndef __GAIT_PARAMETERS_LEGGED_LOCOMOTION_MPC__
 #define __GAIT_PARAMETERS_LEGGED_LOCOMOTION_MPC__
 
+#include <legged_locomotion_mpc/common/Types.hpp>
+
 namespace legged_locomotion_mpc
 {
   namespace locomotion
@@ -28,8 +30,8 @@ namespace legged_locomotion_mpc
 
     namespace Definitions
     {
-      static const scalar_t MAX_STEPPING_FREQUENCY = 5.0;  // [Hz]
-      static const scalar_t MIN_STEPPING_FREQUENCY = 0.1; // [Hz]
+      static const ocs2::scalar_t MAX_STEPPING_FREQUENCY = 5.0;  // [Hz]
+      static const ocs2::scalar_t MIN_STEPPING_FREQUENCY = 0.1;  // [Hz]
     }
 
     struct GaitStaticParameters

@@ -68,7 +68,7 @@ namespace legged_locomotion_mpc
      */
     inline bool getContactFlag(const contact_flags_t& contactFlags, size_t endEffectorIndex)
     {
-      assert(endEffectorIndex < MAX_LEG_NUMBER);
+      assert(endEffectorIndex <= MAX_LEG_NUMBER);
 
       return contactFlags[endEffectorIndex];
     };

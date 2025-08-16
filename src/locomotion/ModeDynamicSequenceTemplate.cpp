@@ -65,9 +65,10 @@ namespace legged_locomotion_mpc
       const GaitStaticParameters& staticParams,
       const GaitDynamicParameters& dynamicParams)
     {
+      assert(staticParams.endEffectorNumber == (dynamicParams.phaseOffsets.size() + 1));
       const auto& phaseOffsets = dynamicParams.phaseOffsets;
       const scalar_t swingRatio = dynamicParams.swingRatio;
-      const scalar_t gaitPeriod = 1 / dynamicParams.steppingFrequency;
+      scalar_t frequency = dynamicParams.steppingFrequency;
 
       contact_flags_t currentMode;
       std::vector<scalar_t> currentContactStates(staticParams.endEffectorNumber);
@@ -112,6 +113,10 @@ namespace legged_locomotion_mpc
         std::vector<std::pair<scalar_t, size_t>>,
         std::greater<std::pair<scalar_t, size_t>>>;
 
+      const scalar_t gaitPeriod = 1 / dynamicParams.steppingFrequency;
+      const scalar_t timeStance = (1 - swingRatio) * gaitPeriod;
+      const scalar_t timeSwing = gaitPeriod - timeStance;
+
       timeIndexQueue timeEndEffectorIndexQueue;
 
       for(size_t i = 0; i < staticParams.endEffectorNumber; ++i)
@@ -120,8 +125,6 @@ namespace legged_locomotion_mpc
         timeEndEffectorIndexQueue.push({timeToNextMode, i});
       }
 
-      const scalar_t timeStance = (1 - swingRatio) * gaitPeriod;
-      const scalar_t timeSwing = gaitPeriod - timeStance;
 
       scalar_t time = 0;
 
@@ -161,9 +164,12 @@ namespace legged_locomotion_mpc
 
           modeSequence.push_back(currentMode.to_ulong());
           switchingTimes.push_back(nextTime);
-          time += nextTime;
+          time = nextTime;
         }
       }
+      // Remove mode that starts from timeHorizon -> ?
+      modeSequence.erase(modeSequence.end() - 1, modeSequence.end());
+
       return ModeSequenceTemplate(switchingTimes, modeSequence);
     }
   }
