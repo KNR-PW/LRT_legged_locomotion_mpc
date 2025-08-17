@@ -105,6 +105,23 @@ namespace legged_locomotion_mpc
       return timeToNextMode;
     };
 
+    inline size_t setContactFlag(size_t currentMode, size_t endEffectorIndex, bool newState)
+    {
+      assert(endEffectorIndex <= MAX_LEG_NUMBER);
+      size_t newMode;
+      if(newState)
+      {
+        // Set STANCE flag
+        newMode = currentMode | (newState << endEffectorIndex);
+      }
+      else
+      {
+        // Set SWING flag
+        newMode = currentMode & ~(!newState << endEffectorIndex);
+      }
+      return newMode;
+    };
+
   }; // namespace locomotion
 }; // namespace legged_locomotion_mpc
 
