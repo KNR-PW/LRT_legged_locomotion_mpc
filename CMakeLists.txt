@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.16)
 project(legged_locomotion_mpc LANGUAGES CXX)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  add_compile_options(-Wall -Wextra -Wpedantic)
+  add_compile_options(-g -Wall -Wextra -Wpedantic)
 endif()
 
 set(CMAKE_CXX_STANDARD 17)
@@ -25,12 +25,9 @@ set(THIS_PACKAGE_DEPENDS
     ocs2_mpc
     ocs2_sqp
     ocs2_ipm
+    ocs2_legged_robot
     floating_base_model
 )
-
-foreach(Dependency IN ITEMS ${THIS_PACKAGE_DEPENDS})
-  find_package(${Dependency} REQUIRED)
-endforeach()
 
 set(FLAGS
         ${OCS2_CXX_FLAGS}
@@ -41,18 +38,27 @@ set(FLAGS
         -DPINOCCHIO_URDFDOM_USE_STD_SHARED_PTR
 )
 
-add_library(${PROJECT_NAME}
-        src/common/Utils.cpp
-        src/common/ModelSettings.cpp
-        src/kinematics/PinocchioForwardEndEffectorKinematicsCppAd.cpp
-        src/kinematics/ForwardEndEffectorKinematicsInfo.cpp
-        src/dynamics/LeggedDynamicsAD.cpp
+foreach(Dependency IN ITEMS ${THIS_PACKAGE_DEPENDS})
+  find_package(${Dependency} REQUIRED)
+endforeach()
+
+# add_executable(${PROJECT_NAME}
+#         # src/common/Utils.cpp
+#         # src/common/ModelSettings.cpp
+#         # src/kinematics/PinocchioForwardEndEffectorKinematicsCppAd.cpp
+#         # src/kinematics/ForwardEndEffectorKinematicsInfo.cpp
+#         # src/dynamics/LeggedDynamicsAD.cpp
         
-        # src/constraint/ZeroForceConstraint.cpp
-        # src/constraint/ZeroWrenchConstraint.cpp
-        # src/constraint/ForceFrictionConeConstraint.cpp
-        # src/constraint/WrenchFrictionConeConstraint.cpp
-        # src/main.cpp
+#         # src/constraint/ZeroForceConstraint.cpp
+#         # src/constraint/ZeroWrenchConstraint.cpp
+#         # src/constraint/ForceFrictionConeConstraint.cpp
+#         # src/constraint/WrenchFrictionConeConstraint.cpp
+#         src/main.cpp
+# )
+
+add_library(${PROJECT_NAME}
+  src/locomotion/GaitPlanner.cpp
+  src/locomotion/ModeDynamicSequenceTemplate.cpp
 )
 
 target_include_directories(${PROJECT_NAME}
@@ -84,18 +90,34 @@ endif (cmake_clang_tools_FOUND)
 ## Install ##
 #############
 
-install(
-        DIRECTORY include/
-        DESTINATION include/${PROJECT_NAME}
+install(TARGETS
+  ${PROJECT_NAME}
+  EXPORT export_${PROJECT_NAME}
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION lib/${PROJECT_NAME}
 )
 
 install(
-        TARGETS ${PROJECT_NAME}
-        EXPORT export_${PROJECT_NAME}
-        ARCHIVE DESTINATION lib
-        LIBRARY DESTINATION lib
-        RUNTIME DESTINATION bin
+  DIRECTORY include/
+  DESTINATION include/${PROJECT_NAME}
 )
+
+ament_export_dependencies(${THIS_PACKAGE_DEPENDS})
+ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
+
+# install(
+#         DIRECTORY include/
+#         DESTINATION include/${PROJECT_NAME}
+# )
+
+# install(
+#         TARGETS ${PROJECT_NAME}
+#         EXPORT export_${PROJECT_NAME}
+#         ARCHIVE DESTINATION lib
+#         LIBRARY DESTINATION lib
+#         RUNTIME DESTINATION bin
+# )
 # install(TARGETS ${PROJECT_NAME}
 #     DESTINATION lib/${PROJECT_NAME})
 
@@ -104,19 +126,31 @@ install(
 #         DESTINATION share/${PROJECT_NAME}/
 # )
 
-ament_export_dependencies(${THIS_PACKAGE_DEPENDS})
-ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
+# ament_export_dependencies(${THIS_PACKAGE_DEPENDS})
+# ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
 
 if(BUILD_TESTING)
-  find_package(ament_lint_auto REQUIRED)
-  # the following line skips the linter which checks for copyrights
-  # comment the line when a copyright and license is added to all source files
-  set(ament_cmake_copyright_FOUND TRUE)
-  # the following line skips cpplint (only works in a git repo)
-  # comment the line when this package is in a git repo and when
-  # a copyright and license is added to all source files
-  set(ament_cmake_cpplint_FOUND TRUE)
-  ament_lint_auto_find_test_dependencies()
+  # # find_package(ament_lint_auto REQUIRED)
+  # # the following line skips the linter which checks for copyrights
+  # # comment the line when a copyright and license is added to all source files
+  # set(ament_cmake_copyright_FOUND TRUE)
+  # # the following line skips cpplint (only works in a git repo)
+  # # comment the line when this package is in a git repo and when
+  # # a copyright and license is added to all source files
+  # set(ament_cmake_cpplint_FOUND TRUE)
+  # ament_lint_auto_find_test_dependencies()
+  find_package(ament_cmake_gtest REQUIRED)
+
+  ament_add_gtest(${PROJECT_NAME}_test
+          test/locomotion/GaitCommonTest.cpp
+          test/locomotion/ModeDynamicSequenceTemplateTest.cpp
+          test/locomotion/GaitPlannerTest.cpp
+          
+  )
+  ament_target_dependencies(${PROJECT_NAME}_test ${THIS_PACKAGE_DEPENDS})
+  target_include_directories(${PROJECT_NAME}_test PRIVATE test/include)
+  target_link_libraries(${PROJECT_NAME}_test ${PROJECT_NAME})
+  target_compile_options(${PROJECT_NAME}_test PUBLIC ${FLAGS})
 endif()
 
 ament_package()

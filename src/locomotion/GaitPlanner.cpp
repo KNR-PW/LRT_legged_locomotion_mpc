@@ -22,6 +22,12 @@ namespace legged_locomotion_mpc
         modeSequenceTemplate_(initModeSequenceTemplate)
     {
       currentPhase_ = initPhase;
+
+      modeSchedule_.clear();
+
+      // First mode is STAND
+      size_t standMode = (0x01 << (staticParams.endEffectorNumber)) - 1;
+      modeSchedule_.modeSequence.push_back(standMode);
       
       insertModeSequenceTemplate(0.0, modeSequenceTemplate_.switchingTimes.back(),
         modeSequenceTemplate_);
@@ -65,18 +71,31 @@ namespace legged_locomotion_mpc
     void GaitPlanner::updateCurrentContacts(scalar_t time, contact_flags_t currentContacts)
     {
       const auto& eventTimes = modeSchedule_.eventTimes;
-      const auto& modeSequence = modeSchedule_.modeSequence;
+      auto& modeSequence = modeSchedule_.modeSequence;
       const size_t realMode = contactFlags2ModeNumber(currentContacts);
       const size_t plannedModeIndex = lookup::findIndexInTimeArray(eventTimes, time);
+      const scalar_t plannedContactTime = eventTimes[plannedModeIndex];
+      const size_t plannedMode = modeSequence[plannedModeIndex];
 
-      if(realMode == modeSequence[plannedModeIndex]) return; // As planned, early return
+      if(realMode == plannedMode) return; // As planned, early return
 
       /* Not as planned, generating new state */
-      std::vector<scalar_t> currentContactState = currentPhase_ + 
+      scalar_t currentContactState = currentPhase_ + 
         (time - eventTimes.front()) / publicDynamicParams_.steppingFrequency;
-
       
+      std::vector<size_t> wrongContactIndexes;
+      contact_flags_t plannedFlags = modeNumber2ContactFlags(plannedMode);
 
+      for(size_t i = 0; i < MAX_LEG_NUMBER; ++i)
+      {
+        if(plannedFlags[i] != currentContacts[i])
+        {
+          // Change end effector state to STANCE in next mode
+          modeSequence[plannedModeIndex + 1] = setContactFlag(plannedMode, i, 1);
+        }
+      }
+      // Update mode to real one
+      modeSequence[plannedModeIndex] = realMode;
     }
 
     void GaitPlanner::updateWalkingGait(scalar_t startTime,

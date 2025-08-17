@@ -5,7 +5,7 @@
 using namespace legged_locomotion_mpc;
 using namespace legged_locomotion_mpc::locomotion;
 
-TEST(ModeDynamicSequenceTemplate, getter)
+TEST(ModeDynamicSequenceTemplateTest, getter)
 {
 
   /* STANDING TROT */
