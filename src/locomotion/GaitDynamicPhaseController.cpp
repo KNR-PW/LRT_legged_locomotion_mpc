@@ -14,10 +14,11 @@ namespace legged_locomotion_mpc
       ocs2::scalar_t initTime,
       const GaitStaticParameters& initStaticParams,
       const GaitDynamicParameters& initDynamicParams)
-        : currentPhase_(initPhase), staticParams_(initStaticParams)
+        : staticParams_(initStaticParams)
     {
       eventTimes_.push_back(initTime);
       dynamicParamsVec_.push_back(initDynamicParams);
+      cachedPhase_.push_back(initPhase);
     }
 
     std::vector<ocs2::scalar_t> GaitDynamicPhaseController::getPhasesAtTime(scalar_t time)
@@ -25,20 +26,15 @@ namespace legged_locomotion_mpc
       assert(time > eventTimes_.front());
 
       std::vector<scalar_t> returnPhases(staticParams_.endEffectorNumber);
-      scalar_t returnPhase = currentPhase_;
 
       // Find index of time larger that query time
       const size_t index = std::lower_bound(eventTimes_.begin(), eventTimes_.end(),
        time) - eventTimes_.begin();
       
-      // Loop through fixed times
-      for(int i = 1; i < index; ++i)
-      {
-        returnPhase += (eventTimes_[i] - eventTimes_[i - 1]) * dynamicParamsVec_[i - 1].steppingFrequency;
-      }
-      // Add last time
-      returnPhase += (time - eventTimes_[index - 1]) * dynamicParamsVec_[index - 1].steppingFrequency;
-      std::cerr << "CALCULATED: " << returnPhase << std::endl;
+      // Add phase between index - 1 time and query time
+      const auto frequency = dynamicParamsVec_[index - 1].steppingFrequency;
+      scalar_t returnPhase = cachedPhase_[index - 1] + (time - eventTimes_[index - 1]) * frequency;
+
       returnPhases[0] = normalizePhase(returnPhase);
       const auto& offsets = dynamicParamsVec_[index - 1].phaseOffsets;
       for(int i = 1; i < staticParams_.endEffectorNumber; ++i)
@@ -54,19 +50,14 @@ namespace legged_locomotion_mpc
       assert(time > eventTimes_.front());
 
       contact_flags_t returnFlags(staticParams_.endEffectorNumber);
-      scalar_t returnPhase = currentPhase_;
 
       // Find index of time larger that query time
       const size_t index = std::lower_bound(eventTimes_.begin(), eventTimes_.end(),
        time) - eventTimes_.begin();
       
-      // Loop through fixed times
-      for(int i = 1; i < index; ++i)
-      {
-        returnPhase += (eventTimes_[i] - eventTimes_[i - 1]) * dynamicParamsVec_[i - 1].steppingFrequency;
-      }
-      // Add last time
-      returnPhase += (time - eventTimes_[index - 1]) * dynamicParamsVec_[index - 1].steppingFrequency;
+      // Add phase between index - 1 time and query time
+      const auto frequency = dynamicParamsVec_[index - 1].steppingFrequency;
+      scalar_t returnPhase = cachedPhase_[index - 1] + (time - eventTimes_[index - 1]) * frequency;
 
       const auto& offsets = dynamicParamsVec_[index - 1].phaseOffsets;
       const scalar_t swingRatio = dynamicParamsVec_[index - 1].swingRatio;
@@ -88,20 +79,13 @@ namespace legged_locomotion_mpc
 
       if(index == 0) return;
 
-      // Update current phase, so that it matches value in query time
-      // Loop through fixed times
-      for(int i = 1; i < index; ++i)
-      {
-        currentPhase_ += (eventTimes_[i] - eventTimes_[i - 1]) * dynamicParamsVec_[i - 1].steppingFrequency;
-      }
-      // Add last time
-      currentPhase_ += (time - eventTimes_[index - 1]) * dynamicParamsVec_[index - 1].steppingFrequency;
-
-      // delete the old time and frequency values to last time smaller than query time
+      // delete the old time and frequency values to time smaller than query time
       eventTimes_.erase(eventTimes_.begin(), eventTimes_.begin() + index - 1);
       dynamicParamsVec_.erase(dynamicParamsVec_.begin(), dynamicParamsVec_.begin() + index - 1);
+      cachedPhase_.erase(cachedPhase_.begin(), cachedPhase_.begin() + index - 1);
 
-      // Change last time smaller than query time to query time
+      // Change front time smaller than query time to query time and update front cached phase
+      cachedPhase_.front() += (time - eventTimes_.front()) * dynamicParamsVec_.front().steppingFrequency;
       eventTimes_.front() = time;
     }
 
@@ -110,8 +94,11 @@ namespace legged_locomotion_mpc
     {
       assert(newTime > eventTimes_.back());
 
+      // Calculate new cached phase
+      scalar_t newCachedPhase = cachedPhase_.back() + (newTime - eventTimes_.back()) * dynamicParamsVec_.back().steppingFrequency;
       eventTimes_.push_back(newTime);
       dynamicParamsVec_.push_back(newDynamicParams);
+      cachedPhase_.push_back(newCachedPhase);
     }
   }
 }

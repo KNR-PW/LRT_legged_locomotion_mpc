@@ -67,6 +67,7 @@ namespace legged_locomotion_mpc
          *  frequency:        f[0]     f[1]     f[2] ...    f[n-1]     f[n]
          *  offsets:        o[0]][:]  o[1]][:] o[2]][:]   o[n-1]][:]  o[n]][:]
          *  swing ratio:      s[0]     s[1]     s[2]        s[n-1]     s[n]
+         *  cached phase: p[0]     p[1]     p[2]       p[n-1]     p[n]
          *
          * Where t[0] should have same value as ModeSchedule.eventTimes[0]!
          */
@@ -74,9 +75,9 @@ namespace legged_locomotion_mpc
         std::vector<GaitDynamicParameters> dynamicParamsVec_;
         
         /**
-         * Phase value at time t[0] 
+         * Cached phase values, starting from value at time t[0]
          */
-        ocs2::scalar_t currentPhase_;
+        std::vector<ocs2::scalar_t> cachedPhase_;
     };
   }; // namespace locomotion
 }; // namespace legged_locomotion_mpc
