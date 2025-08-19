@@ -3,7 +3,7 @@
 #include <legged_locomotion_mpc/locomotion/GaitCommon.hpp>
 
 #include <algorithm>
-
+#include <iostream>
 namespace legged_locomotion_mpc
 {
   namespace locomotion
@@ -32,18 +32,18 @@ namespace legged_locomotion_mpc
        time) - eventTimes_.begin();
       
       // Loop through fixed times
-      for(int i = 1; i < index - 1; ++i)
+      for(int i = 1; i < index; ++i)
       {
         returnPhase += (eventTimes_[i] - eventTimes_[i - 1]) * dynamicParamsVec_[i - 1].steppingFrequency;
       }
       // Add last time
       returnPhase += (time - eventTimes_[index - 1]) * dynamicParamsVec_[index - 1].steppingFrequency;
-
+      std::cerr << "CALCULATED: " << returnPhase << std::endl;
       returnPhases[0] = normalizePhase(returnPhase);
       const auto& offsets = dynamicParamsVec_[index - 1].phaseOffsets;
       for(int i = 1; i < staticParams_.endEffectorNumber; ++i)
       {
-        returnPhases[i] = normalizePhase(returnPhase + offsets[i]);
+        returnPhases[i] = normalizePhase(returnPhase + offsets[i - 1]);
       }
 
       return returnPhases;
@@ -61,7 +61,7 @@ namespace legged_locomotion_mpc
        time) - eventTimes_.begin();
       
       // Loop through fixed times
-      for(int i = 1; i < index - 1; ++i)
+      for(int i = 1; i < index; ++i)
       {
         returnPhase += (eventTimes_[i] - eventTimes_[i - 1]) * dynamicParamsVec_[i - 1].steppingFrequency;
       }
@@ -74,7 +74,7 @@ namespace legged_locomotion_mpc
       returnFlags[0] = normalizePhase(returnPhase) >= swingRatio? 1 : 0;
       for(int i = 1; i < staticParams_.endEffectorNumber; ++i)
       {
-        returnFlags[i] = normalizePhase(returnPhase + offsets[i]) >= swingRatio? 1 : 0;
+        returnFlags[i] = normalizePhase(returnPhase + offsets[i - 1]) >= swingRatio? 1 : 0;
       }
 
       return returnFlags;
@@ -90,7 +90,7 @@ namespace legged_locomotion_mpc
 
       // Update current phase, so that it matches value in query time
       // Loop through fixed times
-      for(int i = 1; i < index - 1; ++i)
+      for(int i = 1; i < index; ++i)
       {
         currentPhase_ += (eventTimes_[i] - eventTimes_[i - 1]) * dynamicParamsVec_[i - 1].steppingFrequency;
       }
@@ -99,7 +99,7 @@ namespace legged_locomotion_mpc
 
       // delete the old time and frequency values to last time smaller than query time
       eventTimes_.erase(eventTimes_.begin(), eventTimes_.begin() + index - 1);
-      dynamicParamsVec_.erase(frequencies_.begin(), frequencies_.begin() + index - 1);
+      dynamicParamsVec_.erase(dynamicParamsVec_.begin(), dynamicParamsVec_.begin() + index - 1);
 
       // Change last time smaller than query time to query time
       eventTimes_.front() = time;

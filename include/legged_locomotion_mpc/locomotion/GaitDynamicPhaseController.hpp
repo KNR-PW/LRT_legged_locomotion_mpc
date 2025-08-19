@@ -54,6 +54,7 @@ namespace legged_locomotion_mpc
          * Add new frequency and offsets, starting from query time
          */
         void update(ocs2::scalar_t newTime, const GaitDynamicParameters& newDynamicParams);
+        
       private:
 
         GaitStaticParameters staticParams_;
