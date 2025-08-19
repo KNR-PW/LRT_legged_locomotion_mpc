@@ -16,6 +16,11 @@ namespace legged_locomotion_mpc
       const GaitDynamicParameters& initDynamicParams)
         : staticParams_(initStaticParams)
     {
+      // Allocate memory in advance 
+      eventTimes_.reserve(Definitions::DEFAULT_BUFFER_SIZE);
+      dynamicParamsVec_.reserve(Definitions::DEFAULT_BUFFER_SIZE);
+      cachedPhase_.reserve(Definitions::DEFAULT_BUFFER_SIZE);
+      
       eventTimes_.push_back(initTime);
       dynamicParamsVec_.push_back(initDynamicParams);
       cachedPhase_.push_back(initPhase);
@@ -98,6 +103,18 @@ namespace legged_locomotion_mpc
       scalar_t newCachedPhase = cachedPhase_.back() + (newTime - eventTimes_.back()) * dynamicParamsVec_.back().steppingFrequency;
       eventTimes_.push_back(newTime);
       dynamicParamsVec_.push_back(newDynamicParams);
+      cachedPhase_.push_back(newCachedPhase);
+    }
+
+    void GaitDynamicPhaseController::update(scalar_t newTime,
+      GaitDynamicParameters&& newDynamicParams)
+    {
+      assert(newTime > eventTimes_.back());
+
+      // Calculate new cached phase
+      scalar_t newCachedPhase = cachedPhase_.back() + (newTime - eventTimes_.back()) * dynamicParamsVec_.back().steppingFrequency;
+      eventTimes_.push_back(newTime);
+      dynamicParamsVec_.push_back(std::move(newDynamicParams));
       cachedPhase_.push_back(newCachedPhase);
     }
   }

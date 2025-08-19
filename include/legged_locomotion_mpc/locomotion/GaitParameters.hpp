@@ -32,6 +32,7 @@ namespace legged_locomotion_mpc
     {
       static const ocs2::scalar_t MAX_STEPPING_FREQUENCY = 5.0;  // [Hz]
       static const ocs2::scalar_t MIN_STEPPING_FREQUENCY = 0.1;  // [Hz]
+      static const size_t DEFAULT_BUFFER_SIZE = 10; 
     }
 
     struct GaitStaticParameters
