@@ -67,13 +67,27 @@ namespace legged_locomotion_mpc
       const auto& offsets = dynamicParamsVec_[index - 1].phaseOffsets;
       const scalar_t swingRatio = dynamicParamsVec_[index - 1].swingRatio;
 
-      returnFlags[0] = normalizePhase(returnPhase) >= swingRatio? 1 : 0;
+      returnFlags[0] = normalizePhase(returnPhase) >= swingRatio;
       for(int i = 1; i < staticParams_.endEffectorNumber; ++i)
       {
-        returnFlags[i] = normalizePhase(returnPhase + offsets[i - 1]) >= swingRatio? 1 : 0;
+        returnFlags[i] = normalizePhase(returnPhase + offsets[i - 1]) >= swingRatio;
       }
 
       return returnFlags;
+    }
+
+    const GaitDynamicParameters& GaitDynamicPhaseController::getDynamicParametersAtTime(
+      scalar_t time)
+    {
+      assert(time > eventTimes_.front());
+
+      contact_flags_t returnFlags(staticParams_.endEffectorNumber);
+
+      // Find index of time larger that query time
+      const size_t index = std::lower_bound(eventTimes_.begin(), eventTimes_.end(),
+       time) - eventTimes_.begin();
+
+      return dynamicParamsVec_[index - 1];
     }
 
     void GaitDynamicPhaseController::remove(scalar_t time)

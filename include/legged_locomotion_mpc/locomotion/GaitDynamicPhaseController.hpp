@@ -45,6 +45,8 @@ namespace legged_locomotion_mpc
          */
         contact_flags_t getContactFlagsAtTime(ocs2::scalar_t time);
 
+        const GaitDynamicParameters& getDynamicParametersAtTime(ocs2::scalar_t time);
+
         /**
          * Remove event times, frequencies and offsets before query time
          */
@@ -62,7 +64,8 @@ namespace legged_locomotion_mpc
 
         /**
          * 
-         *  Frequencies are counted as follows:
+         * Data is counted as follows:
+         * 
          *          ------ | ------ | ------ | ...  ------ | ------ | ------
          *  time:         t[0]     t[1]     t[2]       t[n-1]     t[n]
          *  frequency:        f[0]     f[1]     f[2] ...    f[n-1]     f[n]

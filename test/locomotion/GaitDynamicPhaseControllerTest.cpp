@@ -66,8 +66,6 @@ TEST(GaitDynamicPhaseController, update)
   scalar_t nextTime = 2.0;
 
   scalar_t trueNotNormalizedPhase = currentPhase + nextTime * dynamicParams.steppingFrequency;
-
-  std::cerr << "TRUE FIRST: " << trueNotNormalizedPhase << std::endl;
   
   /* FLYING TROT */
   staticParams.timeHorizion = 1.2;
@@ -85,9 +83,37 @@ TEST(GaitDynamicPhaseController, update)
 
   trueNotNormalizedPhase += (finalTime - nextTime) * dynamicParams.steppingFrequency;
 
-  std::cerr << "TRUE SECOND: " << trueNotNormalizedPhase << std::endl;
-
   std::vector<scalar_t> truePhases{normalizePhase(trueNotNormalizedPhase), 
+    normalizePhase(trueNotNormalizedPhase + dynamicParams.phaseOffsets[0]),
+    normalizePhase(trueNotNormalizedPhase + dynamicParams.phaseOffsets[1]),
+    normalizePhase(trueNotNormalizedPhase + dynamicParams.phaseOffsets[2])};
+
+  for(int i = 0; i < phases.size(); ++i)
+  {
+    ASSERT_NEAR(phases[i], truePhases[i], eps);
+  }
+
+
+  /* STANDING TROT AGAIN */
+  currentPhase = 3.5 / 7.0;
+
+  staticParams.endEffectorNumber = 4;
+  staticParams.plannerFrequency = 2.0;
+  staticParams.timeHorizion = 0.7;
+
+  dynamicParams.steppingFrequency = 1.0 / 0.7;
+  dynamicParams.swingRatio = 3.0 / 7.0;
+  
+  dynamicParams.phaseOffsets = {-currentPhase , -currentPhase , 0};
+
+  nextTime = 2.0;
+
+  trueNotNormalizedPhase = currentPhase + nextTime * dynamicParams.steppingFrequency;
+  
+  phases = gaitController.getPhasesAtTime(nextTime);
+
+  
+  truePhases = {normalizePhase(trueNotNormalizedPhase), 
     normalizePhase(trueNotNormalizedPhase + dynamicParams.phaseOffsets[0]),
     normalizePhase(trueNotNormalizedPhase + dynamicParams.phaseOffsets[1]),
     normalizePhase(trueNotNormalizedPhase + dynamicParams.phaseOffsets[2])};
@@ -205,5 +231,61 @@ TEST(GaitDynamicPhaseController, getContactFlagsAtTime)
   }
 
   ASSERT_TRUE(contacts == trueContacts);
+
+}
+
+
+TEST(GaitDynamicPhaseController, getDynamicParametersAtTime)
+{
+  /* STANDING TROT */
+  ocs2::scalar_t currentPhase = 3.5 / 7.0;
+
+  GaitStaticParameters staticParams1;
+  staticParams1.endEffectorNumber = 4;
+  staticParams1.plannerFrequency = 2.0;
+  staticParams1.timeHorizion = 0.7;
+
+  GaitDynamicParameters dynamicParams1;
+  dynamicParams1.steppingFrequency = 1.0 / 0.7;
+  dynamicParams1.swingRatio = 3.0 / 7.0;
+  
+  dynamicParams1.phaseOffsets = {-currentPhase , -currentPhase , 0};
+
+  GaitDynamicPhaseController gaitController(currentPhase,
+    0.0, staticParams1, dynamicParams1);
+
+  scalar_t nextTime = 2.0;
+  
+  /* FLYING TROT */
+  GaitDynamicParameters dynamicParams2;
+  dynamicParams2.swingRatio =  0.33 / 0.6;
+  dynamicParams2.steppingFrequency = 1.0 / 0.6;
+  currentPhase = dynamicParams2.swingRatio;
+
+  dynamicParams2.phaseOffsets = {-currentPhase + 0.03 / 0.6, -currentPhase + 0.03 / 0.6, 0};
+  
+  gaitController.update(2.0, dynamicParams2);
+
+  scalar_t finalTime = 5.0;
+
+  auto dynamicParamsTest1 = gaitController.getDynamicParametersAtTime(1.0);
+  auto dynamicParamsTest2 = gaitController.getDynamicParametersAtTime(3.0);
+  auto dynamicParamsTest3 = gaitController.getDynamicParametersAtTime(2.0);
+  auto dynamicParamsTest4 = gaitController.getDynamicParametersAtTime(100.0);
+
+  ASSERT_TRUE(dynamicParamsTest1.phaseOffsets == dynamicParams1.phaseOffsets);
+  ASSERT_TRUE(dynamicParamsTest2.phaseOffsets == dynamicParams2.phaseOffsets);
+  ASSERT_TRUE(dynamicParamsTest3.phaseOffsets == dynamicParams1.phaseOffsets);
+  ASSERT_TRUE(dynamicParamsTest4.phaseOffsets == dynamicParams2.phaseOffsets);
+
+  ASSERT_TRUE(dynamicParamsTest1.steppingFrequency == dynamicParams1.steppingFrequency);
+  ASSERT_TRUE(dynamicParamsTest2.steppingFrequency == dynamicParams2.steppingFrequency);
+  ASSERT_TRUE(dynamicParamsTest3.steppingFrequency == dynamicParams1.steppingFrequency);
+  ASSERT_TRUE(dynamicParamsTest4.steppingFrequency == dynamicParams2.steppingFrequency);
+
+  ASSERT_TRUE(dynamicParamsTest1.swingRatio == dynamicParams1.swingRatio);
+  ASSERT_TRUE(dynamicParamsTest2.swingRatio == dynamicParams2.swingRatio);
+  ASSERT_TRUE(dynamicParamsTest3.swingRatio == dynamicParams1.swingRatio);
+  ASSERT_TRUE(dynamicParamsTest4.swingRatio == dynamicParams2.swingRatio);
 
 }
