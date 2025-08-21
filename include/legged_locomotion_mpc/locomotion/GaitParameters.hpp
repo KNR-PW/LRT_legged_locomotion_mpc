@@ -33,7 +33,17 @@ namespace legged_locomotion_mpc
       static const ocs2::scalar_t MAX_STEPPING_FREQUENCY = 5.0;  // [Hz]
       static const ocs2::scalar_t MIN_STEPPING_FREQUENCY = 0.1;  // [Hz]
       static const size_t DEFAULT_BUFFER_SIZE = 10; 
+      static const ocs2::scalar_t TOUCH_DOWN_WINDOW = 0.1; // [s]
     }
+
+    enum class GaitFlags
+    {
+      OK = 0,
+      IN_THE_AIR = 1,
+      EARLY_TOUCHDOWN = 2,
+      EARLY_TOUCHDOWNS = 3,
+      ERROR = 4,
+    };
 
     struct GaitStaticParameters
     {

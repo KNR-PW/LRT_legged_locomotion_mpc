@@ -12,9 +12,9 @@ namespace legged_locomotion_mpc
 
     GaitDynamicPhaseController::GaitDynamicPhaseController(ocs2::scalar_t initPhase,
       ocs2::scalar_t initTime,
-      const GaitStaticParameters& initStaticParams,
+      const GaitStaticParameters& staticParams,
       const GaitDynamicParameters& initDynamicParams)
-        : staticParams_(initStaticParams)
+        : staticParams_(staticParams)
     {
       // Allocate memory in advance 
       eventTimes_.reserve(Definitions::DEFAULT_BUFFER_SIZE);
