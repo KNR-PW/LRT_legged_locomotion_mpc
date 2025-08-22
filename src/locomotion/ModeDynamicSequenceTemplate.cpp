@@ -13,7 +13,6 @@ namespace legged_locomotion_mpc
   namespace locomotion
   {
     using namespace ocs2;
-    using namespace ocs2::legged_robot;
 
     // If mode changes between modes are smaller than this, they are in same mode change!
     constexpr scalar_t MIN_TIME_BETWEEN_CHANGES = 1e-4;

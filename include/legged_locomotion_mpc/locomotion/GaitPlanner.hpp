@@ -42,7 +42,7 @@ namespace legged_locomotion_mpc
 
         GaitPlanner(const GaitStaticParameters& staticParams,
           const GaitDynamicParameters initDynamicParams,
-          const ocs2::legged_robot::ModeSequenceTemplate& initModeSequenceTemplate,
+          const ModeSequenceTemplate& initModeSequenceTemplate,
           ocs2::scalar_t initPhase,
           ocs2::scalar_t initTime);
 
@@ -73,14 +73,14 @@ namespace legged_locomotion_mpc
         void tileModeSequenceTemplate(ocs2::scalar_t startTime, ocs2::scalar_t finalTime);
 
         void insertModeSequenceTemplate(ocs2::scalar_t startTime, ocs2::scalar_t finalTime,
-          const ocs2::legged_robot::ModeSequenceTemplate& modeSequenceTemplate);
+          const ModeSequenceTemplate& modeSequenceTemplate);
 
         GaitDynamicPhaseController gaitPhaseController_;
         
         const GaitStaticParameters staticParams_;
 
         ocs2::ModeSchedule modeSchedule_;
-        ocs2::legged_robot::ModeSequenceTemplate modeSequenceTemplate_;
+        ModeSequenceTemplate modeSequenceTemplate_;
     };
   };
 };

@@ -11,7 +11,6 @@ namespace legged_locomotion_mpc
   namespace locomotion
   {
     using namespace ocs2;
-    using namespace legged_robot;
 
     GaitPlanner::GaitPlanner(const GaitStaticParameters& staticParams,
       const GaitDynamicParameters initDynamicParams,
@@ -123,7 +122,7 @@ namespace legged_locomotion_mpc
 
     void GaitPlanner::insertModeSequenceTemplate(scalar_t startTime,
       scalar_t finalTime,
-      const legged_robot::ModeSequenceTemplate& modeSequenceTemplate)
+      const ModeSequenceTemplate& modeSequenceTemplate)
     {
       modeSequenceTemplate_ = modeSequenceTemplate;
       auto &eventTimes = modeSchedule_.eventTimes;
@@ -179,8 +178,8 @@ namespace legged_locomotion_mpc
         } // end of i loop
       } // end of while loop
 
-       // default final phase
-      modeSequence.push_back(ModeNumber::STANCE);
+      // default final phase
+      modeSequence.push_back(((0x01 << (staticParams_.endEffectorNumber)) - 1));
     }
   }
 }

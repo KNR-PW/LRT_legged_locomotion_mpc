@@ -40,16 +40,15 @@
 #ifndef __MODE_DYNAMIC_SEQUENCE_TEMPLATE_LEGGED_LOCOMOTION_MPC__
 #define __MODE_DYNAMIC_SEQUENCE_TEMPLATE_LEGGED_LOCOMOTION_MPC__
 
-#include <ocs2_legged_robot/gait/ModeSequenceTemplate.h>
-
 #include <legged_locomotion_mpc/common/Types.hpp>
+#include <legged_locomotion_mpc/locomotion/ModeSequenceTemplate.hpp>
 #include <legged_locomotion_mpc/locomotion/GaitParameters.hpp>
 
 namespace legged_locomotion_mpc
 {
   namespace locomotion
   {
-    ocs2::legged_robot::ModeSequenceTemplate getDynamicModeSequenceTemplate(
+    ModeSequenceTemplate getDynamicModeSequenceTemplate(
       ocs2::scalar_t currentPhase,
       ocs2::scalar_t timeHorizon,
       const GaitStaticParameters& staticParams,
