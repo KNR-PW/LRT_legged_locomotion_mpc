@@ -187,11 +187,27 @@ TEST(GaitPlannerTest, updateDynamicParameters)
     ASSERT_GT(deltaTime, MIN_TIME_BETWEEN_CHANGES);
   }
 
+  for(int i = 0; i < 10; ++i)
+  {
+    scalar_t time = startTime + i * (firstTime - startTime)  / 10.0 + 1e-6;
+    auto contactFlags = gaitPlanner.getContactFlagsAtTime(time);
+    auto trueContactFlags = modeNumber2ContactFlags(modeSchedule.modeAtTime(time));
+    ASSERT_TRUE(contactFlags == trueContactFlags);
+  }
+
   scalar_t secondTime = 3.0; // Change mode template in 3 second, remove 7 seconds of first template 
   scalar_t thirdTime = 10.0;
   gaitPlanner.updateDynamicParameters(secondTime, thirdTime, dynamicParams2);
 
   modeSchedule = gaitPlanner.getModeSchedule(startTime, thirdTime);
+
+  for(int i = 0; i < 10; ++i)
+  {
+    scalar_t time = startTime + i * (thirdTime - startTime)  / 10.0 + 1e-6;
+    auto contactFlags = gaitPlanner.getContactFlagsAtTime(time);
+    auto trueContactFlags = modeNumber2ContactFlags(modeSchedule.modeAtTime(time));
+    ASSERT_TRUE(contactFlags == trueContactFlags);
+  }
 
   for(size_t i = 1; i < modeSchedule.eventTimes.size(); ++i)
   {
@@ -219,4 +235,17 @@ TEST(GaitPlannerTest, updateDynamicParameters)
     auto trueContactFlags = modeNumber2ContactFlags(modeSchedule.modeAtTime(time));
     ASSERT_TRUE(contactFlags == trueContactFlags);
   }
+
+  startTime = 7.4;
+
+  modeSchedule = gaitPlanner.getModeSchedule(startTime, fifthTime);
+
+  for(int i = 0; i < 10; ++i)
+  {
+    scalar_t time = startTime + i * (fifthTime - startTime)  / 10.0 + 1e-6;
+    auto contactFlags = gaitPlanner.getContactFlagsAtTime(time);
+    auto trueContactFlags = modeNumber2ContactFlags(modeSchedule.modeAtTime(time));
+    ASSERT_TRUE(contactFlags == trueContactFlags);
+  }
+
 }
