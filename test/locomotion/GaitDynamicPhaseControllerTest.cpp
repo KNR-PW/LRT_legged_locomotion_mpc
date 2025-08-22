@@ -38,7 +38,7 @@ TEST(GaitDynamicPhaseController, getPhaseAtTime)
     normalizePhase(trueNotNormalizedPhase + dynamicParams.phaseOffsets [1]),
     normalizePhase(trueNotNormalizedPhase + dynamicParams.phaseOffsets [2])};
   
-  for(int i = 0; i < phases.size(); ++i)
+  for(size_t i = 0; i < phases.size(); ++i)
   {
     ASSERT_NEAR(phases[i], truePhases[i], eps);
   }
@@ -88,7 +88,7 @@ TEST(GaitDynamicPhaseController, update)
     normalizePhase(trueNotNormalizedPhase + dynamicParams.phaseOffsets[1]),
     normalizePhase(trueNotNormalizedPhase + dynamicParams.phaseOffsets[2])};
 
-  for(int i = 0; i < phases.size(); ++i)
+  for(size_t i = 0; i < phases.size(); ++i)
   {
     ASSERT_NEAR(phases[i], truePhases[i], eps);
   }
@@ -118,7 +118,7 @@ TEST(GaitDynamicPhaseController, update)
     normalizePhase(trueNotNormalizedPhase + dynamicParams.phaseOffsets[1]),
     normalizePhase(trueNotNormalizedPhase + dynamicParams.phaseOffsets[2])};
 
-  for(int i = 0; i < phases.size(); ++i)
+  for(size_t i = 0; i < phases.size(); ++i)
   {
     ASSERT_NEAR(phases[i], truePhases[i], eps);
   }
@@ -171,7 +171,7 @@ TEST(GaitDynamicPhaseController, remove)
     normalizePhase(trueNotNormalizedPhase + dynamicParams.phaseOffsets [1]),
     normalizePhase(trueNotNormalizedPhase + dynamicParams.phaseOffsets [2])};
 
-  for(int i = 0; i < phases.size(); ++i)
+  for(size_t i = 0; i < phases.size(); ++i)
   {
     ASSERT_NEAR(phases[i], truePhases[i], eps);
   }
@@ -222,7 +222,7 @@ TEST(GaitDynamicPhaseController, getContactFlagsAtTime)
   {
     trueContacts[0] = true;
   }
-  for(int i = 1; i < staticParams.endEffectorNumber; ++i)
+  for(size_t i = 1; i < staticParams.endEffectorNumber; ++i)
   {
     if(normalizePhase(trueNotNormalizedPhase + dynamicParams.phaseOffsets[i - 1]) >= dynamicParams.swingRatio)
     {

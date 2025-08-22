@@ -4,13 +4,14 @@
 
 using namespace legged_locomotion_mpc;
 using namespace legged_locomotion_mpc::locomotion;
+using namespace ocs2;
 
 TEST(ModeDynamicSequenceTemplateTest, getter)
 {
 
   /* STANDING TROT */
 
-  ocs2::scalar_t currentPhase = 3.5 / 7.0;
+  scalar_t currentPhase = 3.5 / 7.0;
 
   GaitStaticParameters staticParams;
   staticParams.endEffectorNumber = 4;
@@ -27,7 +28,7 @@ TEST(ModeDynamicSequenceTemplateTest, getter)
     staticParams.timeHorizion, staticParams, dynamicParams);
 
   std::vector<size_t> goodSequence = {9, 15, 6, 15};
-  std::vector<ocs2::scalar_t> goodTiming = {0.0, 0.3, 0.35, 0.65, 0.7};
+  std::vector<scalar_t> goodTiming = {0.0, 0.3, 0.35, 0.65, 0.7};
 
   ASSERT_TRUE(modeSequenceTemplate.modeSequence == goodSequence);
 
@@ -79,5 +80,13 @@ TEST(ModeDynamicSequenceTemplateTest, getter)
   for(size_t i = 0; i < goodTiming.size(); ++i)
   {
     ASSERT_NEAR(modeSequenceTemplate.switchingTimes[i], goodTiming[i], 1e-6);
+  }
+
+  const scalar_t MIN_TIME_BETWEEN_CHANGES = 1e-4;
+
+  for(int i = 1; i < modeSequenceTemplate.switchingTimes.size(); ++i)
+  {
+    scalar_t deltaTime = modeSequenceTemplate.switchingTimes[i] - modeSequenceTemplate.switchingTimes[i - 1];
+    ASSERT_GT(deltaTime, MIN_TIME_BETWEEN_CHANGES);
   }
 }

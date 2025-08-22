@@ -15,6 +15,9 @@ namespace legged_locomotion_mpc
     using namespace ocs2;
     using namespace ocs2::legged_robot;
 
+    // If mode changes between modes are smaller than this, they are in same mode change!
+    constexpr scalar_t MIN_TIME_BETWEEN_CHANGES = 1e-4;
+
     // std::unordered_map<scalar_t, std::set<size_t>> getDuplicateIndexes(
     //   const std::vector<scalar_t>& vector)
     // {
@@ -127,9 +130,9 @@ namespace legged_locomotion_mpc
           timeEndEffectorIndexQueue.push({nextTime + timeStance, nextIndex});
         }
 
-        while(nextTime == timeEndEffectorIndexQueue.top().first)
+        while(std::abs(nextTime - timeEndEffectorIndexQueue.top().first) < MIN_TIME_BETWEEN_CHANGES)
         {
-          /* Found end effectors that have same offsets */
+          /* Found end effectors that have same time change */
           size_t anothertIndex = timeEndEffectorIndexQueue.top().second;
           timeEndEffectorIndexQueue.pop();
           currentMode[anothertIndex] = !currentMode[anothertIndex];

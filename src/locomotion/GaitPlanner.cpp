@@ -11,25 +11,24 @@ namespace legged_locomotion_mpc
   namespace locomotion
   {
     using namespace ocs2;
-    using namespace ocs2::legged_robot;
+    using namespace legged_robot;
 
     GaitPlanner::GaitPlanner(const GaitStaticParameters& staticParams,
       const GaitDynamicParameters initDynamicParams,
       const ModeSequenceTemplate& initModeSequenceTemplate,
-      scalar_t initPhase):
-        publicStaticParams_(staticParams),
-        publicDynamicParams_(initDynamicParams),
-        modeSequenceTemplate_(initModeSequenceTemplate)
+      scalar_t initPhase,
+      scalar_t initTime):
+        staticParams_(staticParams),
+        modeSequenceTemplate_(initModeSequenceTemplate),
+        gaitPhaseController_(initPhase, initTime, staticParams, initDynamicParams)
     {
-      currentPhase_ = initPhase;
-
       modeSchedule_.clear();
 
       // First mode is STAND
       size_t standMode = (0x01 << (staticParams.endEffectorNumber)) - 1;
       modeSchedule_.modeSequence.push_back(standMode);
       
-      insertModeSequenceTemplate(0.0, modeSequenceTemplate_.switchingTimes.back(),
+      insertModeSequenceTemplate(initTime, modeSequenceTemplate_.switchingTimes.back(),
         modeSequenceTemplate_);
     }
 
@@ -38,18 +37,18 @@ namespace legged_locomotion_mpc
       modeSchedule_ = modeSchedule; 
     }
 
-    ModeSchedule GaitPlanner::getModeSchedule(scalar_t lowerBoundTime,
-      scalar_t upperBoundTime) 
+    ModeSchedule GaitPlanner::getModeSchedule(scalar_t startTime,
+      scalar_t finalTime) 
     {
       auto &eventTimes = modeSchedule_.eventTimes;
       auto &modeSequence = modeSchedule_.modeSequence;
       const size_t index = std::lower_bound(eventTimes.begin(), eventTimes.end(),
-       lowerBoundTime) - eventTimes.begin();
+       startTime) - eventTimes.begin();
 
       if(index > 0) 
       {
-        // Update current phase value
-        currentPhase_ += (eventTimes[index - 1] - eventTimes[0]) / publicDynamicParams_.steppingFrequency;
+        // Update gait phase controller
+        gaitPhaseController_.remove(startTime);
         // delete the old logic from index and set the default start phase to stance
         eventTimes.erase(eventTimes.begin(), eventTimes.begin() + index - 1);
         // keep the one before the last to make it stance
@@ -57,91 +56,74 @@ namespace legged_locomotion_mpc
       }
 
       // Start tiling at time
-      const auto tilingStartTime = eventTimes.empty() ? lowerBoundTime : eventTimes.back();
+      const auto tilingStartTime = eventTimes.empty() ? startTime : eventTimes.back();
 
       // delete the last default stance phase
       eventTimes.erase(eventTimes.end() - 1, eventTimes.end());
       modeSequence.erase(modeSequence.end() - 1, modeSequence.end());
 
       // tile the template logic
-      tileModeSequenceTemplate(tilingStartTime, upperBoundTime);
+      tileModeSequenceTemplate(tilingStartTime, finalTime);
+
       return modeSchedule_;
     }
 
-    void GaitPlanner::updateCurrentContacts(scalar_t time, contact_flags_t currentContacts)
+    GaitFlags GaitPlanner::updateCurrentContacts(scalar_t time, contact_flags_t currentContacts)
     {
       const auto& eventTimes = modeSchedule_.eventTimes;
       auto& modeSequence = modeSchedule_.modeSequence;
-      const size_t realMode = contactFlags2ModeNumber(currentContacts);
-      const size_t plannedModeIndex = lookup::findIndexInTimeArray(eventTimes, time);
-      const scalar_t plannedContactTime = eventTimes[plannedModeIndex];
-      const size_t plannedMode = modeSequence[plannedModeIndex];
 
-      if(realMode == plannedMode) return; // As planned, early return
+      const contact_flags_t plannedFlags = gaitPhaseController_.getContactFlagsAtTime(time);
 
-      /* Not as planned, generating new state */
-      scalar_t currentContactState = currentPhase_ + 
-        (time - eventTimes.front()) / publicDynamicParams_.steppingFrequency;
-      
-      std::vector<size_t> wrongContactIndexes;
-      contact_flags_t plannedFlags = modeNumber2ContactFlags(plannedMode);
-
-      for(size_t i = 0; i < MAX_LEG_NUMBER; ++i)
+      if(plannedFlags == currentContacts)
       {
-        if(plannedFlags[i] != currentContacts[i])
-        {
-          // Change end effector state to STANCE in next mode
-          modeSequence[plannedModeIndex + 1] = setContactFlag(plannedMode, i, 1);
-        }
+        return GaitFlags::OK; // As planned, early return
+      } 
+
+      if(contactFlags2ModeNumber(currentContacts) == 0)
+      {
+        return GaitFlags::IN_THE_AIR; // Cricital error, robot is in the air!
       }
-      // Update mode to real one
-      modeSequence[plannedModeIndex] = realMode;
+
+      return GaitFlags::ERROR;
     }
 
-    void GaitPlanner::updateWalkingGait(scalar_t startTime,
+    void GaitPlanner::updateDynamicParameters(scalar_t startTime,
       scalar_t finalTime, 
       const GaitDynamicParameters& dynamicParams)
     {
       const auto &eventTimes = modeSchedule_.eventTimes;
 
-      // find the index on which the new gait should be added
-      const size_t index = std::lower_bound(eventTimes.begin(), eventTimes.end(),
-       startTime) - eventTimes.begin();
+      // Update gait phase controller
+      gaitPhaseController_.update(startTime, dynamicParams);
 
-      scalar_t startingPhase = currentPhase_;
-
-      // Get starting phase for new template
-      if (index < eventTimes.size()) 
-      {
-        startingPhase += (startTime - eventTimes.front()) / publicDynamicParams_.steppingFrequency;
-      }
-      else
-      {
-        startingPhase += (eventTimes.back() - eventTimes.front()) / publicDynamicParams_.steppingFrequency;
-      }
-
-      // Update dynamic parameters
-      publicDynamicParams_ = dynamicParams;
+      // Get current phase
+      scalar_t startingPhase = gaitPhaseController_.getPhasesAtTime(startTime)[0];
 
       ModeSequenceTemplate newModeSequenceTemplate = getDynamicModeSequenceTemplate(startingPhase,
-        finalTime - startTime, publicStaticParams_, publicDynamicParams_);
+        finalTime - startTime, staticParams_, dynamicParams);
 
       insertModeSequenceTemplate(startTime, finalTime, newModeSequenceTemplate);
     }
 
     const GaitStaticParameters& GaitPlanner::getStaticParameters()
     {
-      return publicStaticParams_;
+      return staticParams_;
     }
 
-    const GaitDynamicParameters& GaitPlanner::getDynamicParameters()
+    std::vector<scalar_t> GaitPlanner::getPhasesAtTime(scalar_t time)
     {
-      return publicDynamicParams_;
+      return gaitPhaseController_.getPhasesAtTime(time);
     }
 
-    void GaitPlanner::insertModeSequenceTemplate(ocs2::scalar_t startTime,
-      ocs2::scalar_t finalTime,
-      const ocs2::legged_robot::ModeSequenceTemplate& modeSequenceTemplate)
+    contact_flags_t GaitPlanner::getContactFlagsAtTime(scalar_t time)
+    {
+      return gaitPhaseController_.getContactFlagsAtTime(time);
+    }
+
+    void GaitPlanner::insertModeSequenceTemplate(scalar_t startTime,
+      scalar_t finalTime,
+      const legged_robot::ModeSequenceTemplate& modeSequenceTemplate)
     {
       modeSequenceTemplate_ = modeSequenceTemplate;
       auto &eventTimes = modeSchedule_.eventTimes;
@@ -158,7 +140,8 @@ namespace legged_locomotion_mpc
         modeSequence.erase(modeSequence.begin() + index + 1, modeSequence.end());
       }
 
-      // tile the mode sequence template from startTime to finalTime.
+      // tile the mode sequence template from last eventTime to finalTime.
+      // scalar_t tilingTime = eventTimes.empty() ? startTime : eventTimes.back();
       tileModeSequenceTemplate(startTime, finalTime);
     }
 

@@ -28,9 +28,22 @@ namespace legged_locomotion_mpc
 
     std::vector<ocs2::scalar_t> GaitDynamicPhaseController::getPhasesAtTime(scalar_t time)
     {
-      assert(time > eventTimes_.front());
+      assert(time >= eventTimes_.front());
 
       std::vector<scalar_t> returnPhases(staticParams_.endEffectorNumber);
+
+      if(time == eventTimes_.front())
+      {
+        const scalar_t returnPhase = cachedPhase_.front();
+        const auto& offsets = dynamicParamsVec_.front().phaseOffsets;
+
+        for(int i = 1; i < staticParams_.endEffectorNumber; ++i)
+        {
+          returnPhases[i] = normalizePhase(returnPhase + offsets[i - 1]);
+        }
+
+        return returnPhases;
+      }
 
       // Find index of time larger that query time
       const size_t index = std::lower_bound(eventTimes_.begin(), eventTimes_.end(),
@@ -52,9 +65,24 @@ namespace legged_locomotion_mpc
 
     contact_flags_t GaitDynamicPhaseController::getContactFlagsAtTime(scalar_t time)
     {
-      assert(time > eventTimes_.front());
+      assert(time >= eventTimes_.front());
 
       contact_flags_t returnFlags(staticParams_.endEffectorNumber);
+
+      if(time == eventTimes_.front())
+      {
+        const scalar_t returnPhase = cachedPhase_.front();
+        const scalar_t swingRatio = dynamicParamsVec_.front().swingRatio;
+        const auto& offsets = dynamicParamsVec_.front().phaseOffsets;
+
+        returnFlags[0] = normalizePhase(returnPhase) >= swingRatio;
+        for(int i = 1; i < staticParams_.endEffectorNumber; ++i)
+        {
+          returnFlags[i] = normalizePhase(returnPhase + offsets[i - 1]) >= swingRatio;
+        }
+
+        return returnFlags;
+      }
 
       // Find index of time larger that query time
       const size_t index = std::lower_bound(eventTimes_.begin(), eventTimes_.end(),
@@ -79,9 +107,12 @@ namespace legged_locomotion_mpc
     const GaitDynamicParameters& GaitDynamicPhaseController::getDynamicParametersAtTime(
       scalar_t time)
     {
-      assert(time > eventTimes_.front());
+      assert(time >= eventTimes_.front());
 
-      contact_flags_t returnFlags(staticParams_.endEffectorNumber);
+      if(time == eventTimes_.front())
+      {
+        return dynamicParamsVec_.front();
+      }
 
       // Find index of time larger that query time
       const size_t index = std::lower_bound(eventTimes_.begin(), eventTimes_.end(),
