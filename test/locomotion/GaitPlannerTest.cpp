@@ -195,7 +195,7 @@ TEST(GaitPlannerTest, updateDynamicParameters)
     ASSERT_TRUE(contactFlags == trueContactFlags);
   }
 
-  scalar_t secondTime = 3.0; // Change mode template in 3 second, remove 7 seconds of first template 
+  scalar_t secondTime = 2.075; // Change mode template in 3 second, remove 7 seconds of first template 
   scalar_t thirdTime = 10.0;
   gaitPlanner.updateDynamicParameters(secondTime, thirdTime, dynamicParams2);
 
