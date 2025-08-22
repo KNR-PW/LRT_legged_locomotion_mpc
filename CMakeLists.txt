@@ -25,7 +25,6 @@ set(THIS_PACKAGE_DEPENDS
     ocs2_mpc
     ocs2_sqp
     ocs2_ipm
-    ocs2_legged_robot
     floating_base_model
 )
 
@@ -57,8 +56,10 @@ endforeach()
 # )
 
 add_library(${PROJECT_NAME}
+  src/locomotion/ModeSequenceTemplate.cpp
   src/locomotion/GaitPlanner.cpp
   src/locomotion/ModeDynamicSequenceTemplate.cpp
+  src/locomotion/GaitDynamicPhaseController.cpp
 )
 
 target_include_directories(${PROJECT_NAME}
@@ -145,12 +146,19 @@ if(BUILD_TESTING)
           test/locomotion/GaitCommonTest.cpp
           test/locomotion/ModeDynamicSequenceTemplateTest.cpp
           test/locomotion/GaitPlannerTest.cpp
+          test/locomotion/GaitDynamicPhaseControllerTest.cpp
           
   )
   ament_target_dependencies(${PROJECT_NAME}_test ${THIS_PACKAGE_DEPENDS})
   target_include_directories(${PROJECT_NAME}_test PRIVATE test/include)
   target_link_libraries(${PROJECT_NAME}_test ${PROJECT_NAME})
   target_compile_options(${PROJECT_NAME}_test PUBLIC ${FLAGS})
+
+  find_package(ament_cmake_google_benchmark REQUIRED)
+  ament_add_google_benchmark(${PROJECT_NAME}_benchmark benchmark/GaitDynamicPhaseControllerBenchmark.cpp)
+  target_include_directories(${PROJECT_NAME}_benchmark PRIVATE benchmark/include)
+  target_link_libraries(${PROJECT_NAME}_benchmark ${PROJECT_NAME})
+  target_compile_options(${PROJECT_NAME}_benchmark PUBLIC ${FLAGS})
 endif()
 
 ament_package()
