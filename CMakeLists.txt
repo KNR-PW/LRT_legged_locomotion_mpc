@@ -26,6 +26,7 @@ set(THIS_PACKAGE_DEPENDS
     ocs2_sqp
     ocs2_ipm
     floating_base_model
+    terrain_model
 )
 
 set(FLAGS
