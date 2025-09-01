@@ -1,3 +1,4 @@
+
 #include <legged_locomotion_mpc/penalty/TorqueLimitsPenalty.hpp>
 
 namespace legged_locomotion_mpc
@@ -27,7 +28,7 @@ namespace legged_locomotion_mpc
       assert(torqueLimits_.rows() == sampleTorques.rows());
     }
 
-     /******************************************************************************************************/
+    /******************************************************************************************************/
     /******************************************************************************************************/
     /******************************************************************************************************/
     TorqueLimitsPenalty *TorqueLimitsPenalty::clone() const
@@ -118,11 +119,6 @@ namespace legged_locomotion_mpc
     TorqueLimitsPenalty::TorqueLimitsPenalty(const TorqueLimitsPenalty &rhs):
       info_(rhs.info_), torqueApproximatorPtr_(rhs.torqueApproximatorPtr_->clone()),
       torqueRelaxedBarrierPenaltyPtr_(rhs.torqueRelaxedBarrierPenaltyPtr_->clone()),
-      torqueLimits_(rhs.torqueLimits_)
-    {
-      
-    }
-    
-
+      torqueLimits_(rhs.torqueLimits_) {}
   } // namespace penalty
 } // namespace legged_locomotion_mpc
