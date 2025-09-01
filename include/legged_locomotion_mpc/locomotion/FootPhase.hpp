@@ -6,9 +6,11 @@
 #ifndef __FOOT_PHASE_LEGGED_LOCOMOTION_MPC__
 #define __FOOT_PHASE_LEGGED_LOCOMOTION_MPC__
 
-#include <legged_locomotion_mpc/common/Types.hpp>
+#include <memory>
 
-#include <legged_locomotion_mpc/locomotion/SwingSpline3d.h>
+#include <legged_locomotion_mpc/common/Types.hpp>
+#include <legged_locomotion_mpc/locomotion/SwingSpline3d.hpp>
+
 #include <terrain_model/core/ConvexTerrain.hpp>
 #include <terrain_model/core/TerrainPlane.hpp>
 #include <terrain_model/core/TerrainModel.hpp>
@@ -22,12 +24,12 @@ namespace legged_locomotion_mpc
      */
     struct FootTangentialConstraintMatrix 
     {
-      Eigen::Matrix<scalar_t, -1, 3> A;
-      vector_t b;
+      Eigen::Matrix<ocs2::scalar_t, -1, 3> A;
+      ocs2::vector_t b;
     };
 
     FootTangentialConstraintMatrix tangentialConstraintsFromConvexTerrain(
-      const terrain_model::ConvexTerrain &stanceTerrain, scalar_t margin);
+      const terrain_model::ConvexTerrain &stanceTerrain, ocs2::scalar_t margin);
 
     /**
      * Base class for a planned foot phase : Stance or Swing.
@@ -47,7 +49,7 @@ namespace legged_locomotion_mpc
         virtual bool contactFlag() const = 0;
 
         /** Returns the unit vector pointing in the normal direction */
-        virtual vector3_t normalDirectionInWorldFrame(scalar_t time) const = 0;
+        virtual vector3_t normalDirectionInWorldFrame(ocs2::scalar_t time) const = 0;
 
         /** Nominal foothold location (upcoming for swinglegs) */
         virtual vector3_t nominalFootholdLocation() const = 0;
@@ -56,13 +58,13 @@ namespace legged_locomotion_mpc
         virtual const terrain_model::ConvexTerrain *nominalFootholdConstraint() const { return nullptr; };
 
         /** Foot reference position in world frame */
-        virtual vector3_t getPositionInWorld(scalar_t time) const = 0;
+        virtual vector3_t getPositionInWorld(ocs2::scalar_t time) const = 0;
 
         /** Foot reference velocity in world frame */
-        virtual vector3_t getVelocityInWorld(scalar_t time) const = 0;
+        virtual vector3_t getVelocityInWorld(ocs2::scalar_t time) const = 0;
 
         /** Foot reference acceleration in world frame */
-        virtual vector3_t getAccelerationInWorld(scalar_t time) const = 0;
+        virtual vector3_t getAccelerationInWorld(ocs2::scalar_t time) const = 0;
 
         /** Returns the position inequality constraints formulated in the tangential direction */
         virtual const FootTangentialConstraintMatrix *getFootTangentialConstraintInWorldFrame() const 
@@ -70,7 +72,7 @@ namespace legged_locomotion_mpc
           return nullptr;
         };
 
-        virtual scalar_t getMinimumFootClearance(scalar_t time) const { return 0.0; };
+        virtual ocs2::scalar_t getMinimumFootClearance(ocs2::scalar_t time) const { return 0.0; };
     };
 
     /**
@@ -82,23 +84,23 @@ namespace legged_locomotion_mpc
       public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-        explicit StancePhase(terrain_model::ConvexTerrain stanceTerrain, scalar_t terrainMargin = 0.0);
+        explicit StancePhase(terrain_model::ConvexTerrain stanceTerrain, ocs2::scalar_t terrainMargin = 0.0);
 
         ~StancePhase() override = default;
 
         bool contactFlag() const override { return true; };
 
-        vector3_t normalDirectionInWorldFrame(scalar_t time) const override;
+        vector3_t normalDirectionInWorldFrame(ocs2::scalar_t time) const override;
 
         vector3_t nominalFootholdLocation() const override;
 
         const terrain_model::ConvexTerrain *nominalFootholdConstraint() const override;
 
-        vector3_t getPositionInWorld(scalar_t time) const override;
+        vector3_t getPositionInWorld(ocs2::scalar_t time) const override;
 
-        vector3_t getVelocityInWorld(scalar_t time) const override;
+        vector3_t getVelocityInWorld(ocs2::scalar_t time) const override;
 
-        vector3_t getAccelerationInWorld(scalar_t time) const override;
+        vector3_t getAccelerationInWorld(ocs2::scalar_t time) const override;
 
         const FootTangentialConstraintMatrix *getFootTangentialConstraintInWorldFrame() const override;
 
@@ -118,8 +120,8 @@ namespace legged_locomotion_mpc
       public:
         struct SwingEvent 
         {
-          scalar_t time;
-          scalar_t velocity;
+          ocs2::scalar_t time;
+          ocs2::scalar_t velocity;
           const terrain_model::TerrainPlane *terrainPlane;
         };
 
@@ -128,29 +130,29 @@ namespace legged_locomotion_mpc
           struct Node 
           {
            /** Time progress in the swing phase in [0, 1] */
-            scalar_t phase = 0.5;
+            ocs2::scalar_t phase = 0.5;
            /** Swing height in normal direction */
-            scalar_t swingHeight = 0.1;
+            ocs2::scalar_t swingHeight = 0.1;
            /** Velocity in normal direction */
-            scalar_t normalVelocity = 0.0;
+            ocs2::scalar_t normalVelocity = 0.0;
            /** Swing progress in tangential direction in [0, 1] */
-            scalar_t tangentialProgress = 0.5;
+            ocs2::scalar_t tangentialProgress = 0.5;
            /** Tangantial velocity as a factor of the average velocity.
             *  The tangential velocity will be: velocityFactor * swingdistance / dt 
             */
-            scalar_t tangentialVelocityFactor = 1.0;
+            ocs2::scalar_t tangentialVelocityFactor = 1.0;
           };
 
          /** Height / velocity profile */
           std::vector<Node> nodes;
          /** Desired SDF clearance at the middle of the swing phase. */
-          scalar_t sdfMidswingMargin = 0.0;
+          ocs2::scalar_t sdfMidswingMargin = 0.0;
          /** Desired SDF clearance at liftoff and touchdown.
           *  Slight negative margin allows a bit of ground penetration.
           */
-          scalar_t sdfStartEndMargin = -0.02;
+          ocs2::scalar_t sdfStartEndMargin = -0.02;
          /** Limits the amount of additional swing height from terrain adaptation. */
-          scalar_t maxSwingHeightAdaptation = 0.3;
+          ocs2::scalar_t maxSwingHeightAdaptation = 0.3;
         };
 
         /**
@@ -170,17 +172,17 @@ namespace legged_locomotion_mpc
 
         bool contactFlag() const override { return false; };
 
-        vector3_t normalDirectionInWorldFrame(scalar_t time) const override;
+        vector3_t normalDirectionInWorldFrame(ocs2::scalar_t time) const override;
 
         vector3_t nominalFootholdLocation() const override;
 
-        vector3_t getPositionInWorld(scalar_t time) const override;
+        vector3_t getPositionInWorld(ocs2::scalar_t time) const override;
 
-        vector3_t getVelocityInWorld(scalar_t time) const override;
+        vector3_t getVelocityInWorld(ocs2::scalar_t time) const override;
 
-        vector3_t getAccelerationInWorld(scalar_t time) const override;
+        vector3_t getAccelerationInWorld(ocs2::scalar_t time) const override;
 
-        scalar_t getMinimumFootClearance(scalar_t time) const override;
+        ocs2::scalar_t getMinimumFootClearance(ocs2::scalar_t time) const override;
 
       private:
         void setFullSwing(const SwingProfile &swingProfile,
@@ -189,7 +191,7 @@ namespace legged_locomotion_mpc
         void setHalveSwing(const SwingProfile &swingProfile, 
           const terrain_model::TerrainModel *terrainModel);
 
-        scalar_t getScaling(scalar_t time) const;
+        ocs2::scalar_t getScaling(ocs2::scalar_t time) const;
 
         SwingEvent liftOff_;
         SwingEvent touchDown_;
@@ -200,3 +202,4 @@ namespace legged_locomotion_mpc
   }; // namespace locomotion
 }; // namespace legged_locomotion_mpc
     
+#endif

@@ -15,7 +15,7 @@ namespace legged_locomotion_mpc
 		using namespace terrain_model;
 
 		FootTangentialConstraintMatrix tangentialConstraintsFromConvexTerrain(
-        const ConvexTerrain &stanceTerrain, scalar_t margin) 
+      const ConvexTerrain &stanceTerrain, scalar_t margin) 
 		{
       FootTangentialConstraintMatrix constraints{};
 
@@ -53,8 +53,8 @@ namespace legged_locomotion_mpc
 
     StancePhase::StancePhase(ConvexTerrain stanceTerrain, scalar_t terrainMargin)
       : stanceTerrain_(std::move(stanceTerrain)),
-        nominalFootholdLocation_(stanceTerrain_.plane.positionInWorld),
-        surfaceNormalInWorldFrame_(surfaceNormalInWorld(stanceTerrain_.plane)),
+        nominalFootholdLocation_(stanceTerrain_.getTerrainPlane().getPosition()),
+        surfaceNormalInWorldFrame_(stanceTerrain_.getTerrainPlane().getSurfaceNormalInWorld()),
         footTangentialConstraint_(tangentialConstraintsFromConvexTerrain(stanceTerrain_, terrainMargin)) {}
 
     vector3_t StancePhase::normalDirectionInWorldFrame(scalar_t time) const 
@@ -121,13 +121,13 @@ namespace legged_locomotion_mpc
       const scalar_t swingDuration = (touchDown_.time - liftOff_.time);
 
       // liftoff conditions: lifting off in vertical direction
-      const auto &liftOffPositionInWorld = liftOff_.terrainPlane->positionInWorld;
+      const auto &liftOffPositionInWorld = liftOff_.terrainPlane->getPosition();
       const vector3_t liftOffVelocityInWorld = {0.0, 0.0, liftOff_.velocity};
       const SwingNode3d start{liftOff_.time, liftOffPositionInWorld, liftOffVelocityInWorld};
 
       // touchdown conditions: touching down in surface normal direction
-      const auto &touchDownPositionInWorld = touchDown_.terrainPlane->positionInWorld;
-      const vector3_t touchDownVelocityInWorld = touchDown_.velocity * surfaceNormalInWorld(*touchDown_.terrainPlane);
+      const auto &touchDownPositionInWorld = touchDown_.terrainPlane->getPosition();
+      const vector3_t touchDownVelocityInWorld = touchDown_.velocity * touchDown_.terrainPlane->getSurfaceNormalInWorld();
       const SwingNode3d end{touchDown_.time, touchDownPositionInWorld, touchDownVelocityInWorld};
 
       // Apex
@@ -217,8 +217,8 @@ namespace legged_locomotion_mpc
       const scalar_t swingDuration = (touchDown_.time - liftOff_.time);
 
       // liftoff conditions
-      const auto &liftOffPositionInWorld = liftOff_.terrainPlane->positionInWorld;
-      const vector3_t liftOffVelocityInWorld = liftOff_.velocity * surfaceNormalInWorld(*liftOff_.terrainPlane);
+      const auto &liftOffPositionInWorld = liftOff_.terrainPlane->getPosition();
+      const vector3_t liftOffVelocityInWorld = liftOff_.velocity * liftOff_.terrainPlane->getSurfaceNormalInWorld();
       const SwingNode3d start{liftOff_.time, liftOffPositionInWorld, liftOffVelocityInWorld};
 
       // touchdown conditions
@@ -264,12 +264,12 @@ namespace legged_locomotion_mpc
     {
       // Returns "average" surface normal.
       const scalar_t scaling = getScaling(time);
-      return ((1.0 - scaling) * surfaceNormalInWorld(*liftOff_.terrainPlane) + scaling * surfaceNormalInWorld(*touchDown_.terrainPlane)).normalized();
+      return ((1.0 - scaling) * liftOff_.terrainPlane->getSurfaceNormalInWorld() + scaling * touchDown_.terrainPlane->getSurfaceNormalInWorld()).normalized();
     }
 
     vector3_t SwingPhase::nominalFootholdLocation() const 
     {
-      return touchDown_.terrainPlane->positionInWorld;
+      return touchDown_.terrainPlane->getPosition();
     }
 
     vector3_t SwingPhase::getPositionInWorld(scalar_t time) const 

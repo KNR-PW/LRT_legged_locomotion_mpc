@@ -61,6 +61,10 @@ add_library(${PROJECT_NAME}
   src/locomotion/GaitPlanner.cpp
   src/locomotion/ModeDynamicSequenceTemplate.cpp
   src/locomotion/GaitDynamicPhaseController.cpp
+  src/locomotion/QuinticSplineSwing.cpp
+  src/locomotion/SwingSpline3d.cpp
+  src/locomotion/SingleLegLogic.cpp
+  src/locomotion/FootPhase.cpp
 )
 
 target_include_directories(${PROJECT_NAME}
@@ -143,17 +147,19 @@ if(BUILD_TESTING)
   # ament_lint_auto_find_test_dependencies()
   find_package(ament_cmake_gtest REQUIRED)
 
-  ament_add_gtest(${PROJECT_NAME}_test
+  ament_add_gtest(${PROJECT_NAME}_test_locomotion
           test/locomotion/GaitCommonTest.cpp
           test/locomotion/ModeDynamicSequenceTemplateTest.cpp
           test/locomotion/GaitPlannerTest.cpp
           test/locomotion/GaitDynamicPhaseControllerTest.cpp
+          test/locomotion/FootPhaseTest.cpp
+          test/locomotion/SingleLegLogicTest.cpp
           
   )
-  ament_target_dependencies(${PROJECT_NAME}_test ${THIS_PACKAGE_DEPENDS})
-  target_include_directories(${PROJECT_NAME}_test PRIVATE test/include)
-  target_link_libraries(${PROJECT_NAME}_test ${PROJECT_NAME})
-  target_compile_options(${PROJECT_NAME}_test PUBLIC ${FLAGS})
+  ament_target_dependencies(${PROJECT_NAME}_test_locomotion ${THIS_PACKAGE_DEPENDS})
+  target_include_directories(${PROJECT_NAME}_test_locomotion PRIVATE test/include)
+  target_link_libraries(${PROJECT_NAME}_test_locomotion ${PROJECT_NAME})
+  target_compile_options(${PROJECT_NAME}_test_locomotion PUBLIC ${FLAGS})
 
   find_package(ament_cmake_google_benchmark REQUIRED)
   ament_add_google_benchmark(${PROJECT_NAME}_benchmark benchmark/GaitDynamicPhaseControllerBenchmark.cpp)
