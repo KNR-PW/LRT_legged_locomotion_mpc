@@ -14,7 +14,7 @@ namespace legged_locomotion_mpc
 
     using namespace ocs2;
 
-    std::vector<std::vector<ContactTiming> > extractContactTimingsPerLeg(
+    std::vector<std::vector<ContactTiming>> extractContactTimingsPerLeg(
       const ModeSchedule &modeSchedule, size_t endEffectorNum) 
     {
       std::vector<std::vector<ContactTiming>> contactTimingsPerLeg(endEffectorNum);

@@ -41,6 +41,28 @@ namespace legged_locomotion_mpc
 { 
   namespace utils
   {
+
+    /**
+     * Transform vector of robot state defined in file Types.hpp
+     * to ocs2 state and input vectors.
+     *
+     * @param [in] info: floating base model info
+     * @param [in] robotState: vector of real state of the robot
+     * @return ocs2 state and input vectors used in optimization
+     * 
+     * @remark: forces acting on end effectors are missing (value 0)
+     */
+    std::pair<ocs2::vector_t, ocs2::vector_t> robotStateToOptimizationStateAndInput(
+      const floating_base_model::FloatingBaseModelInfo& info,
+      const ocs2::vector_t& robotState)
+    {
+      size_t stateSize = 12 + info.actuatedDofNum;
+      size_t inputSize = info.actuatedDofNum;
+      ocs2::vector_t state = robotState.block(0, 0, stateSize, 1);
+      ocs2::vector_t input = robotState.block(stateSize, 0, inputSize, 1);
+      return {state, input};
+    }
+
     /**
       * Provides number of feet in contact.
       * @param [in] contactFlags: std::vector with contact flags

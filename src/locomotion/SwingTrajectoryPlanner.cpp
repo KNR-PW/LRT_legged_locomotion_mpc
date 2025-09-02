@@ -1,67 +1,92 @@
 //
 // Created by rgrandia on 13.03.20.
+// Modified by Bartłomiej Krajewski (https://github.com/BartlomiejK2) on 02.09.2025 
 //
 
-#include <ocs2_switched_model_interface/foot_planner/SwingTrajectoryPlanner.h>
+#include <legged_locomotion_mpc/locomotion/SwingTrajectoryPlanner.hpp>
 
 #include <ocs2_core/misc/LinearInterpolation.h>
 #include <ocs2_core/misc/Lookup.h>
+#include <ocs2_core/misc/LoadData.h>
 
-#include <ocs2_switched_model_interface/core/MotionPhaseDefinition.h>
-#include <ocs2_switched_model_interface/core/Rotations.h>
-#include <ocs2_switched_model_interface/foot_planner/KinematicFootPlacementPenalty.h>
+#include <ocs2_robotic_tools/common/RotationTransforms.h>
 
 #include <boost/property_tree/info_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
 
-#include <ocs2_core/misc/LoadData.h>
+namespace legged_locomotion_mpc
+{
+  namespace locomotion
+  {
+    using namespace ocs2;
+    using namespace terrain_model;
+    using namespace floating_base_model;
 
-namespace switched_model {
-    SwingTrajectoryPlanner::SwingTrajectoryPlanner(SwingTrajectoryPlannerSettings settings,
-                                                   const KinematicsModelBase<scalar_t> &kinematicsModel,
-                                                   const InverseKinematicsModelBase *inverseKinematicsModelPtr)
-        : settings_(std::move(settings)),
-          kinematicsModel_(kinematicsModel.clone()),
-          inverseKinematicsModelPtr_(nullptr),
-          terrainModel_(nullptr) {
-        if (inverseKinematicsModelPtr != nullptr) {
-            inverseKinematicsModelPtr_.reset(inverseKinematicsModelPtr->clone());
-        }
+    SwingTrajectoryPlanner::SwingTrajectoryPlanner(FloatingBaseModelInfo info,
+      StaticSettings staticSettings,
+      DynamicSettings initDynamicSettings,
+      const forwardKinematics &kinematicsModel): modelInfo_(std::move(info)),
+        staticSettings_(std::move(staticSettings)), 
+        dynamicSettings_(std::move(initDynamicSettings)),
+        kinematicsModel_(kinematicsModel)
+    {
+      lastContacts_.resize(modelInfo_.numThreeDofContacts + modelInfo_.numSixDofContacts);
+      feetNormalTrajectories_.resize(modelInfo_.numThreeDofContacts + modelInfo_.numSixDofContacts);
+      feetNormalTrajectoriesEvents_.resize(modelInfo_.numThreeDofContacts + modelInfo_.numSixDofContacts);
+
+      nominalFootholdsPerLeg_.resize(modelInfo_.numThreeDofContacts + modelInfo_.numSixDofContacts);
+      heuristicFootholdsPerLeg_.resize(modelInfo_.numThreeDofContacts + modelInfo_.numSixDofContacts);
     }
 
-    void SwingTrajectoryPlanner::updateTerrain(std::unique_ptr<TerrainModel> terrainModel) {
-        terrainModel_ = std::move(terrainModel);
+    void SwingTrajectoryPlanner::updateTerrain(std::unique_ptr<TerrainModel> terrainModel) 
+    {
+      terrainModel_ = std::move(terrainModel);
+    }
+    
+    void SwingTrajectoryPlanner::updateDynamicSettings(const DynamicSettings& newDynamicSettings)
+    {
+      dynamicSettings_ = newDynamicSettings;
     }
 
-    const SignedDistanceField *SwingTrajectoryPlanner::getSignedDistanceField() const {
-        if (terrainModel_) {
-            return terrainModel_->getSignedDistanceField();
-        } else {
-            return nullptr;
-        }
+    const SignedDistanceField* SwingTrajectoryPlanner::getSignedDistanceField() const 
+    {
+      if (terrainModel_) 
+      {
+        return terrainModel_->getSignedDistanceField();
+      } 
+      else 
+      {
+        return nullptr;
+      }
+    }
+
+    const ocs2::TargetTrajectories& SwingTrajectoryPlanner::getTargetTrajectories() const
+    { 
+      return internalTargetTrajectories_; 
     }
 
     void SwingTrajectoryPlanner::updateSwingMotions(scalar_t initTime, scalar_t finalTime,
-                                                    const comkino_state_t &currentState,
-                                                    const ocs2::TargetTrajectories &targetTrajectories,
-                                                    const ocs2::ModeSchedule &modeSchedule) {
-        if (!terrainModel_) {
-            throw std::runtime_error(
-                "[SwingTrajectoryPlanner] terrain cannot be null. Update the terrain before planning swing motions");
-        }
+     const ocs2::vector_t& currentState, const TargetTrajectories& targetTrajectories,
+      const ModeSchedule& modeSchedule) 
+    {
+      if (!terrainModel_) 
+      {
+        throw std::runtime_error("[SwingTrajectoryPlanner] terrain cannot be null. " 
+          "Update the terrain before planning swing motions");
+      }
 
-        // Need a copy to
-        // 1. possibly overwrite joint references later (adapted with inverse kinematics)
-        // 2. ensure a maximum interval between references points.
-        // 3. unsure we have samples at start and end of the MPC horizon.
-        subsampleReferenceTrajectory(targetTrajectories, initTime, finalTime);
+      // Need a copy to
+      // 1. possibly overwrite joint references later (adapted with inverse kinematics)
+      // 2. ensure a maximum interval between references points.
+      // 3. unsure we have samples at start and end of the MPC horizon.
+      subsampleReferenceTrajectory(targetTrajectories, initTime, finalTime);
 
-        const feet_array_t<std::vector<ContactTiming> > contactTimingsPerLeg =
-                extractContactTimingsPerLeg(modeSchedule);
+      const std::vector<std::vector<ContactTiming>> contactTimingsPerLeg =
+        extractContactTimingsPerLeg(modeSchedule);
 
-        const auto basePose = getBasePose(currentState);
-        const auto feetPositions = kinematicsModel_->feetPositionsInOriginFrame(
-            basePose, getJointPositions(currentState));
+      const auto basePose = getBasePose(currentState);
+      const auto feetPositions = kinematicsModel_->feetPositionsInOriginFrame(
+          basePose, getJointPositions(currentState));
 
         for (int leg = 0; leg < NUM_CONTACT_POINTS; leg++) {
             const auto &contactTimings = contactTimingsPerLeg[leg];
@@ -109,7 +134,7 @@ namespace switched_model {
     }
 
     const FootPhase &SwingTrajectoryPlanner::getFootPhase(size_t leg, scalar_t time) const {
-        const auto index = ocs2::lookup::findIndexInTimeArray(feetNormalTrajectoriesEvents_[leg], time);
+        const auto index = lookup::findIndexInTimeArray(feetNormalTrajectoriesEvents_[leg], time);
         return *feetNormalTrajectories_[leg][index];
     }
 
@@ -273,17 +298,17 @@ namespace switched_model {
         std::vector<vector3_t> positions;
         std::vector<vector3_t> velocities;
 
-        const auto liftoffIndex = ocs2::LinearInterpolation::timeSegment(
-            liftOffTime, targetTrajectories_.timeTrajectory);
-        const auto touchdownIndex = ocs2::LinearInterpolation::timeSegment(
-            touchDownTime, targetTrajectories_.timeTrajectory);
+        const auto liftoffIndex = LinearInterpolation::timeSegment(
+            liftOffTime, internalTargetTrajectories_.timeTrajectory);
+        const auto touchdownIndex = LinearInterpolation::timeSegment(
+            touchDownTime, internalTargetTrajectories_.timeTrajectory);
 
         // liftoff
-        if (liftOffTime < targetTrajectories_.timeTrajectory[liftoffIndex.first + 1]) {
-            const vector_t state = ocs2::LinearInterpolation::interpolate(
-                liftoffIndex, targetTrajectories_.stateTrajectory);
-            const vector_t input = ocs2::LinearInterpolation::interpolate(
-                liftoffIndex, targetTrajectories_.inputTrajectory);
+        if (liftOffTime < internalTargetTrajectories_.timeTrajectory[liftoffIndex.first + 1]) {
+            const vector_t state = LinearInterpolation::interpolate(
+                liftoffIndex, internalTargetTrajectories_.stateTrajectory);
+            const vector_t input = LinearInterpolation::interpolate(
+                liftoffIndex, internalTargetTrajectories_.inputTrajectory);
             time.push_back(liftOffTime);
             positions.push_back(
                 kinematicsModel_->footPositionInOriginFrame(leg, getBasePose(state), getJointPositions(state)));
@@ -294,22 +319,22 @@ namespace switched_model {
 
         // intermediate
         for (int k = liftoffIndex.first + 1; k < touchdownIndex.first; ++k) {
-            const auto &state = targetTrajectories_.stateTrajectory[k];
-            time.push_back(targetTrajectories_.timeTrajectory[k]);
+            const auto &state = internalTargetTrajectories_.stateTrajectory[k];
+            time.push_back(internalTargetTrajectories_.timeTrajectory[k]);
             positions.push_back(
                 kinematicsModel_->footPositionInOriginFrame(leg, getBasePose(state), getJointPositions(state)));
             velocities.push_back(kinematicsModel_->footVelocityInOriginFrame(
                 leg, getBasePose(state), getBaseLocalVelocities(state),
                 getJointPositions(state),
-                getJointVelocities(targetTrajectories_.inputTrajectory[k])));
+                getJointVelocities(internalTargetTrajectories_.inputTrajectory[k])));
         }
 
         // touchdown
         if (time.back() < touchDownTime) {
-            const vector_t state = ocs2::LinearInterpolation::interpolate(
-                touchdownIndex, targetTrajectories_.stateTrajectory);
-            const vector_t input = ocs2::LinearInterpolation::interpolate(
-                touchdownIndex, targetTrajectories_.inputTrajectory);
+            const vector_t state = LinearInterpolation::interpolate(
+                touchdownIndex, internalTargetTrajectories_.stateTrajectory);
+            const vector_t input = LinearInterpolation::interpolate(
+                touchdownIndex, internalTargetTrajectories_.inputTrajectory);
             time.push_back(touchDownTime);
             positions.push_back(
                 kinematicsModel_->footPositionInOriginFrame(leg, getBasePose(state), getJointPositions(state)));
@@ -324,7 +349,7 @@ namespace switched_model {
 
     std::vector<vector3_t> SwingTrajectoryPlanner::selectHeuristicFootholds(
         int leg, const std::vector<ContactTiming> &contactTimings,
-        const ocs2::TargetTrajectories &targetTrajectories,
+        const TargetTrajectories &targetTrajectories,
         scalar_t initTime, const comkino_state_t &currentState,
         scalar_t finalTime) const {
         // Zmp preparation : measured state
@@ -395,7 +420,7 @@ namespace switched_model {
     std::vector<ConvexTerrain> SwingTrajectoryPlanner::selectNominalFootholdTerrain(
         int leg, const std::vector<ContactTiming> &contactTimings,
         const std::vector<vector3_t> &heuristicFootholds,
-        const ocs2::TargetTrajectories &targetTrajectories,
+        const TargetTrajectories &targetTrajectories,
         scalar_t initTime, const comkino_state_t &currentState,
         scalar_t finalTime,
         const TerrainModel &terrainModel) const {
@@ -485,67 +510,90 @@ namespace switched_model {
         return nominalFootholdTerrain;
     }
 
-    void SwingTrajectoryPlanner::subsampleReferenceTrajectory(const ocs2::TargetTrajectories &targetTrajectories,
-                                                              scalar_t initTime,
-                                                              scalar_t finalTime) {
-        if (targetTrajectories.empty()) {
-            throw std::runtime_error("[SwingTrajectoryPlanner] provided target trajectory cannot be empty.");
-        }
+    void SwingTrajectoryPlanner::subsampleReferenceTrajectory(
+      const TargetTrajectories &targetTrajectories,
+      scalar_t initTime, scalar_t finalTime) 
+    {
+      if (targetTrajectories.empty()) 
+      {
+        throw std::runtime_error("[SwingTrajectoryPlanner] provided target "
+          "trajectory cannot be empty.");
+      }
 
-        targetTrajectories_.clear();
+      internalTargetTrajectories_.clear();
 
-        // Add first reference
+      // Add first reference
+      {
+        const auto initInterpIndex = LinearInterpolation::timeSegment(
+          initTime, targetTrajectories.timeTrajectory);
+
+        internalTargetTrajectories_.timeTrajectory.push_back(initTime);
+
+        internalTargetTrajectories_.stateTrajectory.push_back(
+          LinearInterpolation::interpolate(initInterpIndex, targetTrajectories.stateTrajectory));
+
+        internalTargetTrajectories_.inputTrajectory.push_back(
+          LinearInterpolation::interpolate(initInterpIndex, targetTrajectories.inputTrajectory));
+      }
+
+      bool finalTimeFlag = true;
+
+      for (int k = 0; k < targetTrajectories.timeTrajectory.size(); ++k) 
+      {
+        if (targetTrajectories.timeTrajectory[k] < initTime) 
         {
-            const auto initInterpIndex = ocs2::LinearInterpolation::timeSegment(
-                initTime, targetTrajectories.timeTrajectory);
-            targetTrajectories_.timeTrajectory.push_back(initTime);
-            targetTrajectories_.stateTrajectory.push_back(
-                ocs2::LinearInterpolation::interpolate(initInterpIndex, targetTrajectories.stateTrajectory));
-            targetTrajectories_.inputTrajectory.push_back(
-                ocs2::LinearInterpolation::interpolate(initInterpIndex, targetTrajectories.inputTrajectory));
+          continue; // Drop all samples before init time
+        } 
+        else if (targetTrajectories.timeTrajectory[k] > finalTime && finalTimeFlag) 
+        {
+          // Do it one time only!
+          finalTimeFlag = false;
+
+          // Add final time sample. Samples after final time are also kept for 
+          // touchdowns after the horizon.
+          const auto finalInterpIndex = LinearInterpolation::timeSegment(
+            finalTime, targetTrajectories.timeTrajectory);
+
+          internalTargetTrajectories_.timeTrajectory.push_back(finalTime);
+
+          internalTargetTrajectories_.stateTrajectory.push_back(
+            LinearInterpolation::interpolate(finalInterpIndex, targetTrajectories.stateTrajectory));
+
+          internalTargetTrajectories_.inputTrajectory.push_back(
+            LinearInterpolation::interpolate(finalInterpIndex, targetTrajectories.inputTrajectory));
         }
 
-        for (int k = 0; k < targetTrajectories.timeTrajectory.size(); ++k) {
-            if (targetTrajectories.timeTrajectory[k] < initTime) {
-                continue; // Drop all samples before init time
-            } else if (targetTrajectories.timeTrajectory[k] > finalTime) {
-                // Add final time sample. Samples after final time are also kept for touchdowns after the horizon.
-                const auto finalInterpIndex = ocs2::LinearInterpolation::timeSegment(
-                    finalTime, targetTrajectories.timeTrajectory);
-                targetTrajectories_.timeTrajectory.push_back(finalTime);
-                targetTrajectories_.stateTrajectory.push_back(
-                    ocs2::LinearInterpolation::interpolate(finalInterpIndex, targetTrajectories.stateTrajectory));
-                targetTrajectories_.inputTrajectory.push_back(
-                    ocs2::LinearInterpolation::interpolate(finalInterpIndex, targetTrajectories.inputTrajectory));
-            }
+        // Check if we need to add extra intermediate samples
+        while (internalTargetTrajectories_.timeTrajectory.back() + 
+          settings_.maximumReferenceSampleTime < targetTrajectories.timeTrajectory[k]) 
+        {
+          const scalar_t t = internalTargetTrajectories_.timeTrajectory.back() + settings_.maximumReferenceSampleTime;
 
-            // Check if we need to add extra intermediate samples
-            while (targetTrajectories_.timeTrajectory.back() + settings_.maximumReferenceSampleTime < targetTrajectories
-                   .timeTrajectory[k]) {
-                const scalar_t t = targetTrajectories_.timeTrajectory.back() + settings_.maximumReferenceSampleTime;
-                const auto interpIndex = ocs2::LinearInterpolation::timeSegment(t, targetTrajectories.timeTrajectory);
+          const auto interpIndex = LinearInterpolation::timeSegment(t, targetTrajectories.timeTrajectory);
 
-                targetTrajectories_.timeTrajectory.push_back(t);
-                targetTrajectories_.stateTrajectory.push_back(
-                    ocs2::LinearInterpolation::interpolate(interpIndex, targetTrajectories.stateTrajectory));
-                targetTrajectories_.inputTrajectory.push_back(
-                    ocs2::LinearInterpolation::interpolate(interpIndex, targetTrajectories.inputTrajectory));
-            }
+          internalTargetTrajectories_.timeTrajectory.push_back(t);
 
-            // Add the original reference sample
-            targetTrajectories_.timeTrajectory.push_back(targetTrajectories.timeTrajectory[k]);
-            targetTrajectories_.stateTrajectory.push_back(targetTrajectories.stateTrajectory[k]);
-            targetTrajectories_.inputTrajectory.push_back(targetTrajectories.inputTrajectory[k]);
+          internalTargetTrajectories_.stateTrajectory.push_back(
+            LinearInterpolation::interpolate(interpIndex, targetTrajectories.stateTrajectory));
+
+          internalTargetTrajectories_.inputTrajectory.push_back(
+            LinearInterpolation::interpolate(interpIndex, targetTrajectories.inputTrajectory));
         }
+
+        // Add the original reference sample
+        internalTargetTrajectories_.timeTrajectory.push_back(targetTrajectories.timeTrajectory[k]);
+        internalTargetTrajectories_.stateTrajectory.push_back(targetTrajectories.stateTrajectory[k]);
+        internalTargetTrajectories_.inputTrajectory.push_back(targetTrajectories.inputTrajectory[k]);
+      }
     }
 
     void SwingTrajectoryPlanner::adaptJointReferencesWithInverseKinematics(scalar_t finalTime) {
         const scalar_t damping = 0.01; // Quite some damping on the IK to get well conditions references.
 
-        for (int k = 0; k < targetTrajectories_.timeTrajectory.size(); ++k) {
-            const scalar_t t = targetTrajectories_.timeTrajectory[k];
+        for (int k = 0; k < internalTargetTrajectories_.timeTrajectory.size(); ++k) {
+            const scalar_t t = internalTargetTrajectories_.timeTrajectory[k];
 
-            const base_coordinate_t basePose = getBasePose(comkino_state_t(targetTrajectories_.stateTrajectory[k]));
+            const base_coordinate_t basePose = getBasePose(comkino_state_t(internalTargetTrajectories_.stateTrajectory[k]));
             const vector3_t basePositionInWorld = getPositionInOrigin(basePose);
             const vector3_t eulerXYZ = getOrientation(basePose);
 
@@ -558,13 +606,13 @@ namespace switched_model {
                     positionBaseToFootInWorldFrame, eulerXYZ);
 
                 const size_t stateOffset = 2 * BASE_COORDINATE_SIZE + 3 * leg;
-                targetTrajectories_.stateTrajectory[k].segment(stateOffset, 3) =
+                internalTargetTrajectories_.stateTrajectory[k].segment(stateOffset, 3) =
                         inverseKinematicsModelPtr_->getLimbJointPositionsFromPositionBaseToFootInBaseFrame(
                             leg, positionBaseToFootInBaseFrame);
 
                 // Joint velocities
-                auto jointPositions = getJointPositions(targetTrajectories_.stateTrajectory[k]);
-                auto baseTwistInBaseFrame = getBaseLocalVelocities(targetTrajectories_.stateTrajectory[k]);
+                auto jointPositions = getJointPositions(internalTargetTrajectories_.stateTrajectory[k]);
+                auto baseTwistInBaseFrame = getBaseLocalVelocities(internalTargetTrajectories_.stateTrajectory[k]);
 
                 const vector3_t b_baseToFoot = kinematicsModel_->positionBaseToFootInBaseFrame(leg, jointPositions);
                 const vector3_t footVelocityInBaseFrame = rotateVectorOriginToBase(
@@ -574,7 +622,7 @@ namespace switched_model {
                             baseTwistInBaseFrame).cross(b_baseToFoot);
 
                 const size_t inputOffset = 3 * NUM_CONTACT_POINTS + 3 * leg;
-                targetTrajectories_.inputTrajectory[k].segment(inputOffset, 3) =
+                internalTargetTrajectories_.inputTrajectory[k].segment(inputOffset, 3) =
                         inverseKinematicsModelPtr_->getLimbVelocitiesFromFootVelocityRelativeToBaseInBaseFrame(
                             leg, footRelativeVelocityInBaseFrame,
                             kinematicsModel_->baseToFootJacobianBlockInBaseFrame(leg, jointPositions), damping);
@@ -653,27 +701,27 @@ namespace switched_model {
             std::cerr << " #### ==================================================" << std::endl;
         }
 
-        ocs2::loadData::loadPtreeValue(pt, settings.liftOffVelocity, prefix + "liftOffVelocity", verbose);
-        ocs2::loadData::loadPtreeValue(pt, settings.touchDownVelocity, prefix + "touchDownVelocity", verbose);
-        ocs2::loadData::loadPtreeValue(pt, settings.swingHeight, prefix + "swingHeight", verbose);
-        ocs2::loadData::loadPtreeValue(pt, settings.errorGain, prefix + "errorGain", verbose);
-        ocs2::loadData::loadPtreeValue(pt, settings.swingTimeScale, prefix + "swingTimeScale", verbose);
-        ocs2::loadData::loadPtreeValue(pt, settings.sdfMidswingMargin, prefix + "sdfMidswingMargin", verbose);
-        ocs2::loadData::loadPtreeValue(pt, settings.terrainMargin, prefix + "terrainMargin", verbose);
-        ocs2::loadData::loadPtreeValue(pt, settings.previousFootholdFactor, prefix + "previousFootholdFactor", verbose);
-        ocs2::loadData::loadPtreeValue(pt, settings.previousFootholdDeadzone, prefix + "previousFootholdDeadzone",
+        loadData::loadPtreeValue(pt, settings.liftOffVelocity, prefix + "liftOffVelocity", verbose);
+        loadData::loadPtreeValue(pt, settings.touchDownVelocity, prefix + "touchDownVelocity", verbose);
+        loadData::loadPtreeValue(pt, settings.swingHeight, prefix + "swingHeight", verbose);
+        loadData::loadPtreeValue(pt, settings.errorGain, prefix + "errorGain", verbose);
+        loadData::loadPtreeValue(pt, settings.swingTimeScale, prefix + "swingTimeScale", verbose);
+        loadData::loadPtreeValue(pt, settings.sdfMidswingMargin, prefix + "sdfMidswingMargin", verbose);
+        loadData::loadPtreeValue(pt, settings.terrainMargin, prefix + "terrainMargin", verbose);
+        loadData::loadPtreeValue(pt, settings.previousFootholdFactor, prefix + "previousFootholdFactor", verbose);
+        loadData::loadPtreeValue(pt, settings.previousFootholdDeadzone, prefix + "previousFootholdDeadzone",
                                        verbose);
-        ocs2::loadData::loadPtreeValue(pt, settings.previousFootholdTimeDeadzone,
+        loadData::loadPtreeValue(pt, settings.previousFootholdTimeDeadzone,
                                        prefix + "previousFootholdTimeDeadzone", verbose);
-        ocs2::loadData::loadPtreeValue(pt, settings.invertedPendulumHeight, prefix + "invertedPendulumHeight", verbose);
-        ocs2::loadData::loadPtreeValue(pt, settings.nominalLegExtension, prefix + "nominalLegExtension", verbose);
-        ocs2::loadData::loadPtreeValue(pt, settings.legOverExtensionPenalty, prefix + "legOverExtensionPenalty",
+        loadData::loadPtreeValue(pt, settings.invertedPendulumHeight, prefix + "invertedPendulumHeight", verbose);
+        loadData::loadPtreeValue(pt, settings.nominalLegExtension, prefix + "nominalLegExtension", verbose);
+        loadData::loadPtreeValue(pt, settings.legOverExtensionPenalty, prefix + "legOverExtensionPenalty",
                                        verbose);
-        ocs2::loadData::loadPtreeValue(pt, settings.referenceExtensionAfterHorizon,
+        loadData::loadPtreeValue(pt, settings.referenceExtensionAfterHorizon,
                                        prefix + "referenceExtensionAfterHorizon", verbose);
-        ocs2::loadData::loadPtreeValue(pt, settings.maximumReferenceSampleTime, prefix + "maximumReferenceSampleTime",
+        loadData::loadPtreeValue(pt, settings.maximumReferenceSampleTime, prefix + "maximumReferenceSampleTime",
                                        verbose);
-        ocs2::loadData::loadPtreeValue(pt, settings.swingTrajectoryFromReference,
+        loadData::loadPtreeValue(pt, settings.swingTrajectoryFromReference,
                                        prefix + "swingTrajectoryFromReference", verbose);
 
         if (verbose) {
@@ -682,4 +730,6 @@ namespace switched_model {
 
         return settings;
     }
-} // namespace switched_model
+  } // namespace locomotion
+} // namespace legged_locomotion_mpc
+  
