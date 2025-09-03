@@ -21,6 +21,7 @@ namespace legged_locomotion_mpc
 {
   namespace access_helper_functions
   {
+    using namespace floating_base_model;
     /******************************************************************************************************/
     /******************************************************************************************************/
     /******************************************************************************************************/
@@ -38,7 +39,7 @@ namespace legged_locomotion_mpc
     /******************************************************************************************************/
     template <typename Derived, typename SCALAR_T>
     const Eigen::Block<const Derived, 3, 1> getBasePosition(
-      Eigen::MatrixBase<Derived>& robotState,
+      const Eigen::MatrixBase<Derived>& robotState,
       const FloatingBaseModelInfoTpl<SCALAR_T>& info)
     {
       assert(robotState.rows() == info.stateDim + info.actuatedDofNum);
@@ -50,7 +51,7 @@ namespace legged_locomotion_mpc
     /******************************************************************************************************/
     /******************************************************************************************************/
     template <typename Derived, typename SCALAR_T>
-    Eigen::Block<Derived, 3, 1> getBaseOrientation(Eigen::MatrixBase<Derived>& robotState,
+    Eigen::Block<Derived, 3, 1> getBaseOrientationZyx(Eigen::MatrixBase<Derived>& robotState,
       const FloatingBaseModelInfoTpl<SCALAR_T>& info)
     {
       assert(robotState.rows() == info.stateDim + info.actuatedDofNum);
@@ -62,8 +63,8 @@ namespace legged_locomotion_mpc
     /******************************************************************************************************/
     /******************************************************************************************************/
     template <typename Derived, typename SCALAR_T>
-    const Eigen::Block<const Derived, 3, 1> getBaseOrientation(
-      Eigen::MatrixBase<Derived>& robotState,
+    const Eigen::Block<const Derived, 3, 1> getBaseOrientationZyx(
+      const Eigen::MatrixBase<Derived>& robotState,
       const FloatingBaseModelInfoTpl<SCALAR_T>& info)
     {
       assert(robotState.rows() == info.stateDim + info.actuatedDofNum);
@@ -75,7 +76,7 @@ namespace legged_locomotion_mpc
     /******************************************************************************************************/
     /******************************************************************************************************/
     template <typename Derived, typename SCALAR_T>
-    Eigen::Block<Derived, 3, 1> getBasePose(Eigen::MatrixBase<Derived>& robotState,
+    Eigen::Block<Derived, 6, 1> getBasePose(Eigen::MatrixBase<Derived>& robotState,
       const FloatingBaseModelInfoTpl<SCALAR_T>& info)
     {
       assert(robotState.rows() == info.stateDim + info.actuatedDofNum);
@@ -87,7 +88,8 @@ namespace legged_locomotion_mpc
     /******************************************************************************************************/
     /******************************************************************************************************/
     template <typename Derived, typename SCALAR_T>
-    const Eigen::Block<const Derived, 3, 1> getBasePose(Eigen::MatrixBase<Derived>& robotState,
+    const Eigen::Block<const Derived, 6, 1> getBasePose(
+      const Eigen::MatrixBase<Derived>& robotState,
       const FloatingBaseModelInfoTpl<SCALAR_T>& info)
     {
       assert(robotState.rows() == info.stateDim + info.actuatedDofNum);
@@ -112,7 +114,7 @@ namespace legged_locomotion_mpc
     /******************************************************************************************************/
     template <typename Derived, typename SCALAR_T>
     const Eigen::Block<const Derived, 3, 1> getBaseLinearVelocity(
-      Eigen::MatrixBase<Derived>& robotState,
+      const Eigen::MatrixBase<Derived>& robotState,
       const FloatingBaseModelInfoTpl<SCALAR_T>& info)
     {
       assert(robotState.rows() == info.stateDim + info.actuatedDofNum);
@@ -137,7 +139,7 @@ namespace legged_locomotion_mpc
     /******************************************************************************************************/
     template <typename Derived, typename SCALAR_T>
     const Eigen::Block<const Derived, 3, 1> getBaseAngularVelocity(
-      Eigen::MatrixBase<Derived>& robotState,
+      const Eigen::MatrixBase<Derived>& robotState,
       const FloatingBaseModelInfoTpl<SCALAR_T>& info)
     {
       assert(robotState.rows() == info.stateDim + info.actuatedDofNum);
@@ -149,7 +151,7 @@ namespace legged_locomotion_mpc
     /******************************************************************************************************/
     /******************************************************************************************************/
     template <typename Derived, typename SCALAR_T>
-    Eigen::Block<Derived, 3, 1> getBaseVelocity(Eigen::MatrixBase<Derived>& robotState,
+    Eigen::Block<Derived, 6, 1> getBaseVelocity(Eigen::MatrixBase<Derived>& robotState,
       const FloatingBaseModelInfoTpl<SCALAR_T>& info)
     {
       assert(robotState.rows() == info.stateDim + info.actuatedDofNum);
@@ -161,8 +163,8 @@ namespace legged_locomotion_mpc
     /******************************************************************************************************/
     /******************************************************************************************************/
     template <typename Derived, typename SCALAR_T>
-    const Eigen::Block<const Derived, 3, 1> getBaseVelocity(
-      Eigen::MatrixBase<Derived>& robotState,
+    const Eigen::Block<const Derived, 6, 1> getBaseVelocity(
+      const Eigen::MatrixBase<Derived>& robotState,
       const FloatingBaseModelInfoTpl<SCALAR_T>& info)
     {
       assert(robotState.rows() == info.stateDim + info.actuatedDofNum);
@@ -174,56 +176,54 @@ namespace legged_locomotion_mpc
     /******************************************************************************************************/
     /******************************************************************************************************/
     template <typename Derived, typename SCALAR_T>
-    Eigen::Block<Derived, 3, 1> getJointPositions(Eigen::MatrixBase<Derived>& robotState,
+    Eigen::Block<Derived, Eigen::Dynamic, 1> getJointPositions(Eigen::MatrixBase<Derived>& robotState,
       const FloatingBaseModelInfoTpl<SCALAR_T>& info)
     {
       assert(robotState.rows() == info.stateDim + info.actuatedDofNum);
       assert(robotState.cols() == 1);
-      const size_t startRow = 3 * info.numThreeDofContacts + 6 * info.numSixDofContacts;
-      return Eigen::Block<Derived, -1, 1>(input.derived(), startRow, 0, info.actuatedDofNum, 1);
+      const size_t startRow = 12;
+      return Eigen::Block<Derived, Eigen::Dynamic, 1>(robotState.derived(), startRow, 0, info.actuatedDofNum, 1);
     }
 
     /******************************************************************************************************/
     /******************************************************************************************************/
     /******************************************************************************************************/
     template <typename Derived, typename SCALAR_T>
-    const Eigen::Block<const Derived, 3, 1> getJointPositions(
-      Eigen::MatrixBase<Derived>& robotState,
+    const Eigen::Block<const Derived, Eigen::Dynamic, 1> getJointPositions(
+      const Eigen::MatrixBase<Derived>& robotState,
       const FloatingBaseModelInfoTpl<SCALAR_T>& info)
     {
       assert(robotState.rows() == info.stateDim + info.actuatedDofNum);
       assert(robotState.cols() == 1);
-      const size_t startRow = 3 * info.numThreeDofContacts + 6 * info.numSixDofContacts;
-      return Eigen::Block<const Derived, -1, 1>(input.derived(), startRow, 0, info.actuatedDofNum, 1);
+      const size_t startRow = 12;
+      return Eigen::Block<const Derived, Eigen::Dynamic, 1>(robotState.derived(), startRow, 0, info.actuatedDofNum, 1);
     };
     
     /******************************************************************************************************/
     /******************************************************************************************************/
     /******************************************************************************************************/
     template <typename Derived, typename SCALAR_T>
-    Eigen::Block<Derived, 3, 1> getJointVelocities(Eigen::MatrixBase<Derived>& robotState,
+    Eigen::Block<Derived, Eigen::Dynamic, 1> getJointVelocities(Eigen::MatrixBase<Derived>& robotState,
       const FloatingBaseModelInfoTpl<SCALAR_T>& info)
     {
       assert(robotState.rows() == info.stateDim + info.actuatedDofNum);
       assert(robotState.cols() == 1);
-      const size_t startRow = 3 * info.numThreeDofContacts + 6 * info.numSixDofContacts
-        + info.actuatedDofNum;
-      return Eigen::Block<Derived, -1, 1>(input.derived(), startRow, 0, info.actuatedDofNum, 1);
+      const size_t startRow = 12 + info.actuatedDofNum;
+      return Eigen::Block<Derived, Eigen::Dynamic, 1>(robotState.derived(), startRow, 0, info.actuatedDofNum, 1);
     };
 
     /******************************************************************************************************/
     /******************************************************************************************************/
     /******************************************************************************************************/
     template <typename Derived, typename SCALAR_T>
-    const Eigen::Block<const Derived, 3, 1> getJointVelocities(
-      Eigen::MatrixBase<Derived>& robotState,
+    const Eigen::Block<const Derived, Eigen::Dynamic, 1> getJointVelocities(
+      const Eigen::MatrixBase<Derived>& robotState,
       const FloatingBaseModelInfoTpl<SCALAR_T>& info)
     {
       assert(robotState.rows() == info.stateDim + info.actuatedDofNum);
       assert(robotState.cols() == 1);
-      const size_t startRow = 3 * info.numThreeDofContacts + 6 * info.numSixDofContacts
-        + info.actuatedDofNum;
-      return Eigen::Block<const Derived, -1, 1>(input.derived(), startRow, 0, info.actuatedDofNum, 1);
+      const size_t startRow = 12 + info.actuatedDofNum;
+      return Eigen::Block<const Derived, Eigen::Dynamic, 1>(robotState.derived(), startRow, 0, info.actuatedDofNum, 1);
     };
   }; // namespace access_helper_functions
 }; // namespace legged_locomotion

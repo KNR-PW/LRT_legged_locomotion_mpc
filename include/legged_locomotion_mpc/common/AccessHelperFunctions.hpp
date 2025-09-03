@@ -43,7 +43,7 @@ namespace legged_locomotion_mpc
     */
     template <typename Derived, typename SCALAR_T>
     Eigen::Block<Derived, 3, 1> getBasePosition(Eigen::MatrixBase<Derived>& robotState,
-      const FloatingBaseModelInfoTpl<SCALAR_T>& info);
+      const floating_base_model::FloatingBaseModelInfoTpl<SCALAR_T>& info);
 
     /**
     * Provides read access to the base position.
@@ -53,8 +53,8 @@ namespace legged_locomotion_mpc
     */
     template <typename Derived, typename SCALAR_T>
     const Eigen::Block<const Derived, 3, 1> getBasePosition(
-      Eigen::MatrixBase<Derived>& robotState,
-      const FloatingBaseModelInfoTpl<SCALAR_T>& info);
+      const Eigen::MatrixBase<Derived>& robotState,
+      const floating_base_model::FloatingBaseModelInfoTpl<SCALAR_T>& info);
 
     /**
     * Provides read/write access to the base orientation.
@@ -63,8 +63,8 @@ namespace legged_locomotion_mpc
     * @return block with base orientation in world frame (euler angles)
     */
     template <typename Derived, typename SCALAR_T>
-    Eigen::Block<Derived, 3, 1> getBaseOrientation(Eigen::MatrixBase<Derived>& robotState,
-      const FloatingBaseModelInfoTpl<SCALAR_T>& info);
+    Eigen::Block<Derived, 3, 1> getBaseOrientationZyx(Eigen::MatrixBase<Derived>& robotState,
+      const floating_base_model::FloatingBaseModelInfoTpl<SCALAR_T>& info);
 
     /**
     * Provides read access to the base orientation.
@@ -73,9 +73,9 @@ namespace legged_locomotion_mpc
     * @return block with base orientation in world frame (euler angles)
     */
     template <typename Derived, typename SCALAR_T>
-    const Eigen::Block<const Derived, 3, 1> getBaseOrientation(
-      Eigen::MatrixBase<Derived>& robotState,
-      const FloatingBaseModelInfoTpl<SCALAR_T>& info);
+    const Eigen::Block<const Derived, 3, 1> getBaseOrientationZyx(
+      const Eigen::MatrixBase<Derived>& robotState,
+      const floating_base_model::FloatingBaseModelInfoTpl<SCALAR_T>& info);
 
     /**
     * Provides read/write access to the base position and orientation.
@@ -84,8 +84,8 @@ namespace legged_locomotion_mpc
     * @return block with base position and orientation in world frame (euler angles)
     */
     template <typename Derived, typename SCALAR_T>
-    Eigen::Block<Derived, 3, 1> getBasePose(Eigen::MatrixBase<Derived>& robotState,
-      const FloatingBaseModelInfoTpl<SCALAR_T>& info);
+    Eigen::Block<Derived, 6, 1> getBasePose(Eigen::MatrixBase<Derived>& robotState,
+      const floating_base_model::FloatingBaseModelInfoTpl<SCALAR_T>& info);
 
     /**
     * Provides read access to the base position and orientation.
@@ -94,8 +94,9 @@ namespace legged_locomotion_mpc
     * @return block with base position and orientation in world frame (euler angles)
     */
     template <typename Derived, typename SCALAR_T>
-    const Eigen::Block<const Derived, 3, 1> getBasePose(Eigen::MatrixBase<Derived>& robotState,
-      const FloatingBaseModelInfoTpl<SCALAR_T>& info);
+    const Eigen::Block<const Derived, 6, 1> getBasePose(
+      const Eigen::MatrixBase<Derived>& robotState,
+      const floating_base_model::FloatingBaseModelInfoTpl<SCALAR_T>& info);
 
     /**
     * Provides read/write access to the base linear velocity.
@@ -105,7 +106,7 @@ namespace legged_locomotion_mpc
     */
     template <typename Derived, typename SCALAR_T>
     Eigen::Block<Derived, 3, 1> getBaseLinearVelocity(Eigen::MatrixBase<Derived>& robotState,
-      const FloatingBaseModelInfoTpl<SCALAR_T>& info);
+      const floating_base_model::FloatingBaseModelInfoTpl<SCALAR_T>& info);
 
     /**
     * Provides read access to the base linear velocity.
@@ -115,8 +116,8 @@ namespace legged_locomotion_mpc
     */
     template <typename Derived, typename SCALAR_T>
     const Eigen::Block<const Derived, 3, 1> getBaseLinearVelocity(
-      Eigen::MatrixBase<Derived>& robotState,
-      const FloatingBaseModelInfoTpl<SCALAR_T>& info);
+      const Eigen::MatrixBase<Derived>& robotState,
+      const floating_base_model::FloatingBaseModelInfoTpl<SCALAR_T>& info);
     
     /**
     * Provides read/write access to the base angular velocity.
@@ -126,7 +127,7 @@ namespace legged_locomotion_mpc
     */
     template <typename Derived, typename SCALAR_T>
     Eigen::Block<Derived, 3, 1> getBaseAngularVelocity(Eigen::MatrixBase<Derived>& robotState,
-      const FloatingBaseModelInfoTpl<SCALAR_T>& info);
+      const floating_base_model::FloatingBaseModelInfoTpl<SCALAR_T>& info);
 
     /**
     * Provides read access to the base angular velocity.
@@ -136,8 +137,8 @@ namespace legged_locomotion_mpc
     */
     template <typename Derived, typename SCALAR_T>
     const Eigen::Block<const Derived, 3, 1> getBaseAngularVelocity(
-      Eigen::MatrixBase<Derived>& robotState,
-      const FloatingBaseModelInfoTpl<SCALAR_T>& info);
+      const Eigen::MatrixBase<Derived>& robotState,
+      const floating_base_model::FloatingBaseModelInfoTpl<SCALAR_T>& info);
 
     /**
     * Provides read/write access to the base velocity.
@@ -146,8 +147,8 @@ namespace legged_locomotion_mpc
     * @return block with base velocity in base frame
     */
     template <typename Derived, typename SCALAR_T>
-    Eigen::Block<Derived, 3, 1> getBaseVelocity(Eigen::MatrixBase<Derived>& robotState,
-      const FloatingBaseModelInfoTpl<SCALAR_T>& info);
+    Eigen::Block<Derived, 6, 1> getBaseVelocity(Eigen::MatrixBase<Derived>& robotState,
+      const floating_base_model::FloatingBaseModelInfoTpl<SCALAR_T>& info);
 
     /**
     * Provides read access to the base velocity.
@@ -156,9 +157,9 @@ namespace legged_locomotion_mpc
     * @return block with base velocity in base frame
     */
     template <typename Derived, typename SCALAR_T>
-    const Eigen::Block<const Derived, 3, 1> getBaseVelocity(
-      Eigen::MatrixBase<Derived>& robotState,
-      const FloatingBaseModelInfoTpl<SCALAR_T>& info);
+    const Eigen::Block<const Derived, 6, 1> getBaseVelocity(
+      const Eigen::MatrixBase<Derived>& robotState,
+      const floating_base_model::FloatingBaseModelInfoTpl<SCALAR_T>& info);
 
     /**
     * Provides read/write access to the actuated joint positions (angles or displecements).
@@ -167,8 +168,8 @@ namespace legged_locomotion_mpc
     * @return block with actuated joint positions
     */
     template <typename Derived, typename SCALAR_T>
-    Eigen::Block<Derived, 3, 1> getJointPositions(Eigen::MatrixBase<Derived>& robotState,
-      const FloatingBaseModelInfoTpl<SCALAR_T>& info);
+    Eigen::Block<Derived, Eigen::Dynamic, 1> getJointPositions(Eigen::MatrixBase<Derived>& robotState,
+      const floating_base_model::FloatingBaseModelInfoTpl<SCALAR_T>& info);
 
     /**
     * Provides read access to the actuated joint positions (angles or displecements).
@@ -177,9 +178,9 @@ namespace legged_locomotion_mpc
     * @return block with actuated joint positions
     */
     template <typename Derived, typename SCALAR_T>
-    const Eigen::Block<const Derived, 3, 1> getJointPositions(
-      Eigen::MatrixBase<Derived>& robotState,
-      const FloatingBaseModelInfoTpl<SCALAR_T>& info);
+    const Eigen::Block<const Derived, Eigen::Dynamic, 1> getJointPositions(
+      const Eigen::MatrixBase<Derived>& robotState,
+      const floating_base_model::FloatingBaseModelInfoTpl<SCALAR_T>& info);
     
     /**
     * Provides read/write access to the actuated joint velocities (angular or linear).
@@ -188,8 +189,8 @@ namespace legged_locomotion_mpc
     * @return block with actuated joint velocities
     */
     template <typename Derived, typename SCALAR_T>
-    Eigen::Block<Derived, 3, 1> getJointVelocities(Eigen::MatrixBase<Derived>& robotState,
-      const FloatingBaseModelInfoTpl<SCALAR_T>& info);
+    Eigen::Block<Derived, Eigen::Dynamic, 1> getJointVelocities(Eigen::MatrixBase<Derived>& robotState,
+      const floating_base_model::FloatingBaseModelInfoTpl<SCALAR_T>& info);
 
     /**
     * Provides read access to the actuated joint velocities (angular or linear).
@@ -197,14 +198,14 @@ namespace legged_locomotion_mpc
     * @param [in] info: info of FloatingBase model
     * @return block with actuated joint velocities
     */
-    template <typename Derived, typename SCALAR_T>
-    const Eigen::Block<const Derived, 3, 1> getJointVelocities(
-      Eigen::MatrixBase<Derived>& robotState,
-      const FloatingBaseModelInfoTpl<SCALAR_T>& info);
+    template <typename Derived, typename SCALAR_T> 
+    const Eigen::Block<const Derived, Eigen::Dynamic, 1> getJointVelocities(
+      const Eigen::MatrixBase<Derived>& robotState,
+      const floating_base_model::FloatingBaseModelInfoTpl<SCALAR_T>& info);
 
   }; // namespace access_helper_functions
 }; // namespace legged_locomotion
 
-#include "AccesHelperFunctions.hxx"
+#include "AccessHelperFunctions.hxx"
 
 #endif

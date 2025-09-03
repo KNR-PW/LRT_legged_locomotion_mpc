@@ -65,7 +65,7 @@ add_library(${PROJECT_NAME}
   src/locomotion/SwingSpline3d.cpp
   src/locomotion/SingleLegLogic.cpp
   src/locomotion/FootPhase.cpp
-  src/locomotion/SwingTrajectoryPlanner.cpp
+  # src/locomotion/SwingTrajectoryPlanner.cpp
 )
 
 target_include_directories(${PROJECT_NAME}
@@ -147,6 +147,15 @@ if(BUILD_TESTING)
   # set(ament_cmake_cpplint_FOUND TRUE)
   # ament_lint_auto_find_test_dependencies()
   find_package(ament_cmake_gtest REQUIRED)
+
+  ament_add_gtest(${PROJECT_NAME}_test_common
+          test/common/AccessHelperFunctionsTest.cpp
+          
+  )
+  ament_target_dependencies(${PROJECT_NAME}_test_common ${THIS_PACKAGE_DEPENDS})
+  target_include_directories(${PROJECT_NAME}_test_common PRIVATE test/include)
+  target_link_libraries(${PROJECT_NAME}_test_common ${PROJECT_NAME})
+  target_compile_options(${PROJECT_NAME}_test_common PUBLIC ${FLAGS})
 
   ament_add_gtest(${PROJECT_NAME}_test_locomotion
           test/locomotion/GaitCommonTest.cpp
