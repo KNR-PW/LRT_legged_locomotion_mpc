@@ -54,14 +54,7 @@ namespace legged_locomotion_mpc
      */
     std::pair<ocs2::vector_t, ocs2::vector_t> robotStateToOptimizationStateAndInput(
       const floating_base_model::FloatingBaseModelInfo& info,
-      const ocs2::vector_t& robotState)
-    {
-      size_t stateSize = 12 + info.actuatedDofNum;
-      size_t inputSize = info.actuatedDofNum;
-      ocs2::vector_t state = robotState.block(0, 0, stateSize, 1);
-      ocs2::vector_t input = robotState.block(stateSize, 0, inputSize, 1);
-      return {state, input};
-    }
+      const ocs2::vector_t& robotState);
 
     /**
       * Provides number of feet in contact.

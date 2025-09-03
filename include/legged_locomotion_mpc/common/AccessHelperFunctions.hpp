@@ -37,16 +37,174 @@ namespace legged_locomotion_mpc
   {
     /**
     * Provides read/write access to the base position.
-    * @param [in] input: system input vector
-    * @param [in] contactIndex: index of contact frame
+    * @param [in] robotState: robot state vector defined in Types.hpp
     * @param [in] info: info of FloatingBase model
-    * @return block with contact force
+    * @return block with base position in world frame
     */
     template <typename Derived, typename SCALAR_T>
-    Eigen::Block<Derived, 3, 1> getBasePosition(Eigen::MatrixBase<Derived>& input,
-      size_t contactIndex, 
+    Eigen::Block<Derived, 3, 1> getBasePosition(Eigen::MatrixBase<Derived>& robotState,
       const FloatingBaseModelInfoTpl<SCALAR_T>& info);
-  };
-};
+
+    /**
+    * Provides read access to the base position.
+    * @param [in] robotState: robot state vector defined in Types.hpp
+    * @param [in] info: info of FloatingBase model
+    * @return block with base position in world frame
+    */
+    template <typename Derived, typename SCALAR_T>
+    const Eigen::Block<const Derived, 3, 1> getBasePosition(
+      Eigen::MatrixBase<Derived>& robotState,
+      const FloatingBaseModelInfoTpl<SCALAR_T>& info);
+
+    /**
+    * Provides read/write access to the base orientation.
+    * @param [in] robotState: robot state vector defined in Types.hpp
+    * @param [in] info: info of FloatingBase model
+    * @return block with base orientation in world frame (euler angles)
+    */
+    template <typename Derived, typename SCALAR_T>
+    Eigen::Block<Derived, 3, 1> getBaseOrientation(Eigen::MatrixBase<Derived>& robotState,
+      const FloatingBaseModelInfoTpl<SCALAR_T>& info);
+
+    /**
+    * Provides read access to the base orientation.
+    * @param [in] robotState: robot state vector defined in Types.hpp
+    * @param [in] info: info of FloatingBase model
+    * @return block with base orientation in world frame (euler angles)
+    */
+    template <typename Derived, typename SCALAR_T>
+    const Eigen::Block<const Derived, 3, 1> getBaseOrientation(
+      Eigen::MatrixBase<Derived>& robotState,
+      const FloatingBaseModelInfoTpl<SCALAR_T>& info);
+
+    /**
+    * Provides read/write access to the base position and orientation.
+    * @param [in] robotState: robot state vector defined in Types.hpp
+    * @param [in] info: info of FloatingBase model
+    * @return block with base position and orientation in world frame (euler angles)
+    */
+    template <typename Derived, typename SCALAR_T>
+    Eigen::Block<Derived, 3, 1> getBasePose(Eigen::MatrixBase<Derived>& robotState,
+      const FloatingBaseModelInfoTpl<SCALAR_T>& info);
+
+    /**
+    * Provides read access to the base position and orientation.
+    * @param [in] robotState: robot state vector defined in Types.hpp
+    * @param [in] info: info of FloatingBase model
+    * @return block with base position and orientation in world frame (euler angles)
+    */
+    template <typename Derived, typename SCALAR_T>
+    const Eigen::Block<const Derived, 3, 1> getBasePose(Eigen::MatrixBase<Derived>& robotState,
+      const FloatingBaseModelInfoTpl<SCALAR_T>& info);
+
+    /**
+    * Provides read/write access to the base linear velocity.
+    * @param [in] robotState: robot state vector defined in Types.hpp
+    * @param [in] info: info of FloatingBase model
+    * @return block with base linear velocity in base frame
+    */
+    template <typename Derived, typename SCALAR_T>
+    Eigen::Block<Derived, 3, 1> getBaseLinearVelocity(Eigen::MatrixBase<Derived>& robotState,
+      const FloatingBaseModelInfoTpl<SCALAR_T>& info);
+
+    /**
+    * Provides read access to the base linear velocity.
+    * @param [in] robotState: robot state vector defined in Types.hpp
+    * @param [in] info: info of FloatingBase model
+    * @return block with base linear velocity in base frame
+    */
+    template <typename Derived, typename SCALAR_T>
+    const Eigen::Block<const Derived, 3, 1> getBaseLinearVelocity(
+      Eigen::MatrixBase<Derived>& robotState,
+      const FloatingBaseModelInfoTpl<SCALAR_T>& info);
+    
+    /**
+    * Provides read/write access to the base angular velocity.
+    * @param [in] robotState: robot state vector defined in Types.hpp
+    * @param [in] info: info of FloatingBase model
+    * @return block with base angular velocity in base frame
+    */
+    template <typename Derived, typename SCALAR_T>
+    Eigen::Block<Derived, 3, 1> getBaseAngularVelocity(Eigen::MatrixBase<Derived>& robotState,
+      const FloatingBaseModelInfoTpl<SCALAR_T>& info);
+
+    /**
+    * Provides read access to the base angular velocity.
+    * @param [in] robotState: robot state vector defined in Types.hpp
+    * @param [in] info: info of FloatingBase model
+    * @return block with base angular velocity in base frame
+    */
+    template <typename Derived, typename SCALAR_T>
+    const Eigen::Block<const Derived, 3, 1> getBaseAngularVelocity(
+      Eigen::MatrixBase<Derived>& robotState,
+      const FloatingBaseModelInfoTpl<SCALAR_T>& info);
+
+    /**
+    * Provides read/write access to the base velocity.
+    * @param [in] robotState: robot state vector defined in Types.hpp
+    * @param [in] info: info of FloatingBase model
+    * @return block with base velocity in base frame
+    */
+    template <typename Derived, typename SCALAR_T>
+    Eigen::Block<Derived, 3, 1> getBaseVelocity(Eigen::MatrixBase<Derived>& robotState,
+      const FloatingBaseModelInfoTpl<SCALAR_T>& info);
+
+    /**
+    * Provides read access to the base velocity.
+    * @param [in] robotState: robot state vector defined in Types.hpp
+    * @param [in] info: info of FloatingBase model
+    * @return block with base velocity in base frame
+    */
+    template <typename Derived, typename SCALAR_T>
+    const Eigen::Block<const Derived, 3, 1> getBaseVelocity(
+      Eigen::MatrixBase<Derived>& robotState,
+      const FloatingBaseModelInfoTpl<SCALAR_T>& info);
+
+    /**
+    * Provides read/write access to the actuated joint positions (angles or displecements).
+    * @param [in] robotState: robot state vector defined in Types.hpp
+    * @param [in] info: info of FloatingBase model
+    * @return block with actuated joint positions
+    */
+    template <typename Derived, typename SCALAR_T>
+    Eigen::Block<Derived, 3, 1> getJointPositions(Eigen::MatrixBase<Derived>& robotState,
+      const FloatingBaseModelInfoTpl<SCALAR_T>& info);
+
+    /**
+    * Provides read access to the actuated joint positions (angles or displecements).
+    * @param [in] robotState: robot state vector defined in Types.hpp
+    * @param [in] info: info of FloatingBase model
+    * @return block with actuated joint positions
+    */
+    template <typename Derived, typename SCALAR_T>
+    const Eigen::Block<const Derived, 3, 1> getJointPositions(
+      Eigen::MatrixBase<Derived>& robotState,
+      const FloatingBaseModelInfoTpl<SCALAR_T>& info);
+    
+    /**
+    * Provides read/write access to the actuated joint velocities (angular or linear).
+    * @param [in] robotState: robot state vector defined in Types.hpp
+    * @param [in] info: info of FloatingBase model
+    * @return block with actuated joint velocities
+    */
+    template <typename Derived, typename SCALAR_T>
+    Eigen::Block<Derived, 3, 1> getJointVelocities(Eigen::MatrixBase<Derived>& robotState,
+      const FloatingBaseModelInfoTpl<SCALAR_T>& info);
+
+    /**
+    * Provides read access to the actuated joint velocities (angular or linear).
+    * @param [in] robotState: robot state vector defined in Types.hpp
+    * @param [in] info: info of FloatingBase model
+    * @return block with actuated joint velocities
+    */
+    template <typename Derived, typename SCALAR_T>
+    const Eigen::Block<const Derived, 3, 1> getJointVelocities(
+      Eigen::MatrixBase<Derived>& robotState,
+      const FloatingBaseModelInfoTpl<SCALAR_T>& info);
+
+  }; // namespace access_helper_functions
+}; // namespace legged_locomotion
+
+#include "AccesHelperFunctions.hxx"
 
 #endif
