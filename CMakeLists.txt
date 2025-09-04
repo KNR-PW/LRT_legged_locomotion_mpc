@@ -66,7 +66,7 @@ add_library(${PROJECT_NAME}
   src/locomotion/SwingSpline3d.cpp
   src/locomotion/SingleLegLogic.cpp
   src/locomotion/FootPhase.cpp
-  # src/locomotion/SwingTrajectoryPlanner.cpp
+  src/locomotion/SwingTrajectoryPlanner.cpp
 )
 
 target_include_directories(${PROJECT_NAME}

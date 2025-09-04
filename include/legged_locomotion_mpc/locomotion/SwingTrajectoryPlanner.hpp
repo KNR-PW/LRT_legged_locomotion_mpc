@@ -78,12 +78,6 @@ namespace legged_locomotion_mpc
            * after the horizon ends. 
            */
           ocs2::scalar_t referenceExtensionAfterHorizon = 1.0;
-
-          /**  
-           * If the reference trajectory has samples with longer intervals,
-           * it will be subsampled. 
-           */
-          ocs2::scalar_t maximumReferenceSampleTime = 0.05;
         };
 
         struct DynamicSettings
@@ -104,11 +98,12 @@ namespace legged_locomotion_mpc
         void updateDynamicSettings(const DynamicSettings& newDynamicSettings);
 
         /** Access the SDF of the current terrain model */ 
-        const SignedDistanceField *getSignedDistanceField() const;
+        const SignedDistanceField* getSignedDistanceField() const;
 
         /** 
          * Main interface preparing all swing trajectories in cartesian
-         * space (called by reference manager).
+         * space (called by reference manager). 
+         * Target trajectories should be subssampled already.
          * */ 
         void updateSwingMotions(ocs2::scalar_t initTime,
           ocs2::scalar_t finalTime, const ocs2::vector_t& currentState,
@@ -116,7 +111,7 @@ namespace legged_locomotion_mpc
           const ocs2::ModeSchedule& modeSchedule);
 
         /** Main access method for the generated cartesian references. */ 
-        const FootPhase &getFootPhase(size_t endEffectorIndex, ocs2::scalar_t time) const;
+        const FootPhase& getFootPhase(size_t endEffectorIndex, ocs2::scalar_t time) const;
 
         /**
          * Accessed by precomputation to generate the motion reference, 
@@ -126,32 +121,30 @@ namespace legged_locomotion_mpc
         const ocs2::TargetTrajectories& getTargetTrajectories() const;
 
         /** Accessed by the controller for visualization */
-        std::vector<ConvexTerrain> getNominalFootholds(size_t endEffectorIndex) const { return nominalFootholdsPerLeg_[endEffectorIndex]; }
+        std::vector<ConvexTerrain> getNominalFootholds(size_t endEffectorIndex) const;
 
         /** Accessed by the controller for visualization */
-        std::vector<vector3_t> getHeuristicFootholds(size_t endEffectorIndex) const { return heuristicFootholdsPerLeg_[endEffectorIndex]; }
+        std::vector<vector3_t> getHeuristicFootholds(size_t endEffectorIndex) const;
 
         /** Read static settings */
-        const SwingTrajectoryPlannerSettings &settings() const { return settings_; }
+        const StaticSettings& getStaticSettings() const;
 
         /** Read dynamic settings */
-        const SwingTrajectoryPlannerSettings &settings() const { return settings_; }
+        const DynamicSettings& getDynamicSettings() const;
 
-    private:
-        void updateLastContact(size_t endEffectorIndex, ocs2::scalar_t expectedLiftOff, const vector3_t &currentFootPosition,
-                               const TerrainModel &terrainModel);
+      private:
 
-        std::pair<std::vector<ocs2::scalar_t>, std::vector<std::unique_ptr<FootPhase> > > generateSwingTrajectories(
-            size_t endEffectorIndex, const std::vector<ContactTiming> &contactTimings, ocs2::scalar_t finalTime) const;
+        void updateLastContact(size_t endEffectorIndex, ocs2::scalar_t expectedLiftOff,
+          const vector3_t& currentFootPosition, const TerrainModel& terrainModel);
+        
+        using FootPhasesStamped =  std::pair<std::vector<ocs2::scalar_t>, std::vector<std::unique_ptr<FootPhase>>>; 
+        FootPhasesStamped generateSwingTrajectories(size_t endEffectorIndex, 
+          const std::vector<ContactTiming> &contactTimings, ocs2::scalar_t finalTime) const;
 
-        std::pair<std::vector<ocs2::scalar_t>, std::vector<std::unique_ptr<FootPhase> > >
-        extractSwingTrajectoriesFromReference(
-            size_t endEffectorIndex, const std::vector<ContactTiming> &contactTimings, ocs2::scalar_t finalTime) const;
-
-        std::vector<vector3_t> selectHeuristicFootholds(size_t endEffectorIndex, const std::vector<ContactTiming> &contactTimings,
-                                                        const ocs2::TargetTrajectories &targetTrajectories,
-                                                        ocs2::scalar_t initTime,
-                                                        const comkino_state_t &currentState, ocs2::scalar_t finalTime) const;
+        std::vector<vector3_t> selectHeuristicFootholds(size_t endEffectorIndex,
+          const std::vector<ContactTiming> &contactTimings,
+          const ocs2::TargetTrajectories &targetTrajectories, ocs2::scalar_t initTime,
+          const comkino_state_t &currentState, ocs2::scalar_t finalTime) const;
 
         std::vector<ConvexTerrain> selectNominalFootholdTerrain(
             size_t endEffectorIndex, const std::vector<ContactTiming> &contactTimings,
@@ -160,32 +153,24 @@ namespace legged_locomotion_mpc
             const comkino_state_t &currentState, ocs2::scalar_t finalTime,
             const TerrainModel &terrainModel) const;
 
-        void applySwingMotionScaling(SwingPhase::SwingEvent &liftOff, SwingPhase::SwingEvent &touchDown,
-                                     SwingPhase::SwingProfile &swingProfile) const;
-
-        void subsampleReferenceTrajectory(const ocs2::TargetTrajectories &targetTrajectories, ocs2::scalar_t initTime,
-                                          ocs2::scalar_t finalTime);
-
-        // Apply IK to cartesian swing motion to update joint references
-        void adaptJointReferencesWithInverseKinematics(ocs2::scalar_t finalTime);
-
-        std::unique_ptr<ExternalSwingPhase> extractExternalSwingPhase(size_t endEffectorIndex, ocs2::scalar_t liftOffTime,
-                                                                      ocs2::scalar_t touchDownTime) const;
+        void applySwingMotionScaling(SwingPhase::SwingEvent &liftOff, 
+          SwingPhase::SwingEvent &touchDown, SwingPhase::SwingProfile &swingProfile) const;
 
         SwingPhase::SwingProfile getDefaultSwingProfile() const;
 
-        ocs2::scalar_t getContactEndTime(const ContactTiming &contactPhase, ocs2::scalar_t finalTime) const;
+        ocs2::scalar_t getContactEndTime(const ContactTiming &contactPhase,
+          ocs2::scalar_t finalTime) const;
 
-        const FootPhase *getFootPhaseIfInContact(size_t endEffectorIndex, ocs2::scalar_t time) const;
+        const FootPhase* getFootPhaseIfInContact(size_t endEffectorIndex, 
+          ocs2::scalar_t time) const;
 
-        vector3_t filterFoothold(const vector3_t &newFoothold, const vector3_t &previousFoothold) const;
+        vector3_t filterFoothold(const vector3_t &newFoothold,
+           const vector3_t &previousFoothold) const;
 
-        floating_base_model::FloatingBaseModelInfo modelInfo_;
-        StaticSettings staticSettings_;
+        const floating_base_model::FloatingBaseModelInfo modelInfo_;
+        const StaticSettings staticSettings_;
         DynamicSettings dynamicSettings_;
         const forwardKinematics* kinematicsModel_;
-
-        ocs2::TargetTrajectories internalTargetTrajectories_;
 
         std::vector<std::pair<ocs2::scalar_t, terrain_model::TerrainPlane> > lastContacts_;
         std::vector<std::vector<std::unique_ptr<FootPhase> > > feetNormalTrajectories_;
@@ -197,9 +182,10 @@ namespace legged_locomotion_mpc
     };
 
     /** Load static and dynamic settings from file */
-    SwingTrajectoryPlanner::StaticSettings loadSwingStaticTrajectorySettings(const std::string &filename, bool verbose = true);
-    SwingTrajectoryPlanner::DynamicSettings loadSwingDynamicTrajectorySettings(const std::string &filename, bool verbose = true);
-  
+    SwingTrajectoryPlanner::StaticSettings loadSwingStaticTrajectorySettings(
+      const std::string &filename, bool verbose = true);
+    SwingTrajectoryPlanner::DynamicSettings loadSwingDynamicTrajectorySettings(
+      const std::string &filename, bool verbose = true);
   }; // namespace locomotion
 }; //  namespace legged_locomotion_mpc
 
