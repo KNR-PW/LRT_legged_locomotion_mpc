@@ -34,7 +34,10 @@ namespace legged_locomotion_mpc
       scalar_t finalTime,
       scalar_t maximumReferenceSampleInterval)
     {
-
+      // Need a copy to
+      // 1. possibly overwrite joint references later (adapted with inverse kinematics)
+      // 2. ensure a maximum interval between references points.
+      // 3. unsure we have samples at start and end of the MPC horizon.
       if (targetTrajectories.empty()) 
       {
         throw std::runtime_error("[SwingTrajectoryPlanner] provided target "
