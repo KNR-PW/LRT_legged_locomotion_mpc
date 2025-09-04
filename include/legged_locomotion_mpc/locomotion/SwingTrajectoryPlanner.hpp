@@ -92,13 +92,13 @@ namespace legged_locomotion_mpc
           const forwardKinematics &kinematicsModel);
 
         /** Update terrain model */
-        void updateTerrain(std::unique_ptr<TerrainModel> terrainModel);
+        void updateTerrain(std::unique_ptr<terrain_model::TerrainModel> terrainModel);
         
         /** Update dynamic settings */
         void updateDynamicSettings(const DynamicSettings& newDynamicSettings);
 
         /** Access the SDF of the current terrain model */ 
-        const SignedDistanceField* getSignedDistanceField() const;
+        const terrain_model::SignedDistanceField* getSignedDistanceField() const;
 
         /** 
          * Main interface preparing all swing trajectories in cartesian
@@ -113,15 +113,9 @@ namespace legged_locomotion_mpc
         /** Main access method for the generated cartesian references. */ 
         const FootPhase& getFootPhase(size_t endEffectorIndex, ocs2::scalar_t time) const;
 
-        /**
-         * Accessed by precomputation to generate the motion reference, 
-         * used in the controller to visualize the generated references
-         * 
-         */
-        const ocs2::TargetTrajectories& getTargetTrajectories() const;
-
         /** Accessed by the controller for visualization */
-        std::vector<ConvexTerrain> getNominalFootholds(size_t endEffectorIndex) const;
+        std::vector<terrain_model::ConvexTerrain> getNominalFootholds(
+          size_t endEffectorIndex) const;
 
         /** Accessed by the controller for visualization */
         std::vector<vector3_t> getHeuristicFootholds(size_t endEffectorIndex) const;
@@ -135,7 +129,7 @@ namespace legged_locomotion_mpc
       private:
 
         void updateLastContact(size_t endEffectorIndex, ocs2::scalar_t expectedLiftOff,
-          const vector3_t& currentFootPosition, const TerrainModel& terrainModel);
+          const vector3_t& currentFootPosition, const terrain_model::TerrainModel& terrainModel);
         
         using FootPhasesStamped =  std::pair<std::vector<ocs2::scalar_t>, std::vector<std::unique_ptr<FootPhase>>>; 
         FootPhasesStamped generateSwingTrajectories(size_t endEffectorIndex, 
@@ -144,14 +138,14 @@ namespace legged_locomotion_mpc
         std::vector<vector3_t> selectHeuristicFootholds(size_t endEffectorIndex,
           const std::vector<ContactTiming> &contactTimings,
           const ocs2::TargetTrajectories &targetTrajectories, ocs2::scalar_t initTime,
-          const comkino_state_t &currentState, ocs2::scalar_t finalTime) const;
+          const state_vector_t& currentState, ocs2::scalar_t finalTime) const;
 
-        std::vector<ConvexTerrain> selectNominalFootholdTerrain(
-            size_t endEffectorIndex, const std::vector<ContactTiming> &contactTimings,
-            const std::vector<vector3_t> &heuristicFootholds,
-            const ocs2::TargetTrajectories &targetTrajectories, ocs2::scalar_t initTime,
-            const comkino_state_t &currentState, ocs2::scalar_t finalTime,
-            const TerrainModel &terrainModel) const;
+        std::vector<terrain_model::ConvexTerrain> selectNominalFootholdTerrain(
+          size_t endEffectorIndex, const std::vector<ContactTiming> &contactTimings,
+          const std::vector<vector3_t> &heuristicFootholds,
+          const ocs2::TargetTrajectories &targetTrajectories, ocs2::scalar_t initTime,
+          const state_vector_t &currentState, ocs2::scalar_t finalTime,
+          const terrain_model::TerrainModel &terrainModel) const;
 
         void applySwingMotionScaling(SwingPhase::SwingEvent &liftOff, 
           SwingPhase::SwingEvent &touchDown, SwingPhase::SwingProfile &swingProfile) const;
