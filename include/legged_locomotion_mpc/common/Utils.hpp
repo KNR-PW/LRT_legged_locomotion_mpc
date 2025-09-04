@@ -33,9 +33,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define __UTILS_LEGGED_LOCOMOTION_MPC__
 
 #include <array>
+
 #include <floating_base_model/AccessHelperFunctions.hpp>
 
-#include "legged_locomotion_mpc/common/Types.hpp"
+#include <legged_locomotion_mpc/common/Types.hpp>
+
+#include <ocs2_core/reference/TargetTrajectories.h>
 
 namespace legged_locomotion_mpc
 { 
@@ -57,11 +60,31 @@ namespace legged_locomotion_mpc
       const ocs2::vector_t& robotState);
 
     /**
+     * Subsample reference trajectory, so that maximum interval between 
+     * trajectories are less or equal maximumReferenceSampleInterval
+     *
+     * @param [in] targetTrajectories: target trajectories
+     * @param [in] initTime: initial time
+     * @param [in] finalTime: final time
+     * @param [in] maximumReferenceSampleInterval: maximum time between trajectory points
+     * @return subsampled target trajectories
+     * 
+     */
+    ocs2::TargetTrajectories subsampleReferenceTrajectory(
+      const ocs2::TargetTrajectories& targetTrajectories,
+      ocs2::scalar_t initTime,
+      ocs2::scalar_t finalTime,
+      ocs2::scalar_t maximumReferenceSampleInterval);
+
+    /**
       * Provides number of feet in contact.
+      * @param [in] info: info of FloatingBase model
       * @param [in] contactFlags: std::vector with contact flags
       * @return number of feet in contact
       */
-    size_t numberOfClosedContacts(const contact_flags_t &contactFlags);
+    size_t numberOfClosedContacts(
+      const floating_base_model::FloatingBaseModelInfo &info,
+      const contact_flags_t &contactFlags);
 
 
     /**
@@ -71,7 +94,8 @@ namespace legged_locomotion_mpc
       * @param [in] contactFlags: std::vector with contact flags
       * @return input vector with calculated forces
       */
-    ocs2::vector_t weightCompensatingInput(const floating_base_model::FloatingBaseModelInfo &info, 
+    ocs2::vector_t weightCompensatingInput(
+      const floating_base_model::FloatingBaseModelInfo &info, 
       const contact_flags_t &contactFlags);
 
   }; // namespace utils

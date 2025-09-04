@@ -1,5 +1,7 @@
 #include <legged_locomotion_mpc/common/Utils.hpp>
 
+#include <ocs2_core/misc/LinearInterpolation.h>
+
 
 namespace legged_locomotion_mpc
 { 
@@ -18,7 +20,7 @@ namespace legged_locomotion_mpc
       size_t stateSize = 12 + info.actuatedDofNum;
       vector_t state = robotState.block(0, 0, stateSize, 1);
       vector_t input = vector_t::Zero(3 * info.numThreeDofContacts + 6 * info.numSixDofContacts + info.actuatedDofNum);
-      vector_t input.block(3 * info.numThreeDofContacts + 6 * info.numSixDofContacts, 0
+      input.block(3 * info.numThreeDofContacts + 6 * info.numSixDofContacts, 0,
         info.actuatedDofNum, 1) = robotState.block(stateSize, 0, info.actuatedDofNum, 1);
       return {state, input};
     }
@@ -26,12 +28,97 @@ namespace legged_locomotion_mpc
     /******************************************************************************************************/
     /******************************************************************************************************/
     /******************************************************************************************************/
-    size_t numberOfClosedContacts(const contact_flags_t &contactFlags) 
+    TargetTrajectories subsampleReferenceTrajectory(
+      const TargetTrajectories& targetTrajectories,
+      scalar_t initTime,
+      scalar_t finalTime,
+      scalar_t maximumReferenceSampleInterval)
     {
-      size_t numStanceLegs = 0;
-      for (auto legInContact: contactFlags) 
+
+      if (targetTrajectories.empty()) 
       {
-        if (legInContact) 
+        throw std::runtime_error("[SwingTrajectoryPlanner] provided target "
+          "trajectory cannot be empty.");
+      }
+
+      TargetTrajectories newTargetTrajectories;
+
+      // Add first reference
+      {
+        const auto initInterpIndex = LinearInterpolation::timeSegment(
+          initTime, targetTrajectories.timeTrajectory);
+
+        newTargetTrajectories.timeTrajectory.push_back(initTime);
+
+        newTargetTrajectories.stateTrajectory.push_back(
+          LinearInterpolation::interpolate(initInterpIndex, targetTrajectories.stateTrajectory));
+
+        newTargetTrajectories.inputTrajectory.push_back(
+          LinearInterpolation::interpolate(initInterpIndex, targetTrajectories.inputTrajectory));
+      }
+
+      bool finalTimeFlag = true;
+
+      for (int k = 0; k < targetTrajectories.timeTrajectory.size(); ++k) 
+      {
+        if (targetTrajectories.timeTrajectory[k] < initTime) 
+        {
+          continue; // Drop all samples before init time
+        } 
+        else if (targetTrajectories.timeTrajectory[k] > finalTime && finalTimeFlag) 
+        {
+          // Do it one time only!
+          finalTimeFlag = false;
+
+          // Add final time sample. Samples after final time are also kept for 
+          // touchdowns after the horizon.
+          const auto finalInterpIndex = LinearInterpolation::timeSegment(
+            finalTime, targetTrajectories.timeTrajectory);
+
+          newTargetTrajectories.timeTrajectory.push_back(finalTime);
+
+          newTargetTrajectories.stateTrajectory.push_back(
+            LinearInterpolation::interpolate(finalInterpIndex, targetTrajectories.stateTrajectory));
+
+          newTargetTrajectories.inputTrajectory.push_back(
+            LinearInterpolation::interpolate(finalInterpIndex, targetTrajectories.inputTrajectory));
+        }
+
+        // Check if we need to add extra intermediate samples
+        while (newTargetTrajectories.timeTrajectory.back() + 
+          maximumReferenceSampleInterval < targetTrajectories.timeTrajectory[k]) 
+        {
+          const scalar_t t = newTargetTrajectories.timeTrajectory.back() + maximumReferenceSampleInterval;
+
+          const auto interpIndex = LinearInterpolation::timeSegment(t, targetTrajectories.timeTrajectory);
+
+          newTargetTrajectories.timeTrajectory.push_back(t);
+
+          newTargetTrajectories.stateTrajectory.push_back(
+            LinearInterpolation::interpolate(interpIndex, targetTrajectories.stateTrajectory));
+
+          newTargetTrajectories.inputTrajectory.push_back(
+            LinearInterpolation::interpolate(interpIndex, targetTrajectories.inputTrajectory));
+        }
+
+        // Add the original reference sample
+        newTargetTrajectories.timeTrajectory.push_back(targetTrajectories.timeTrajectory[k]);
+        newTargetTrajectories.stateTrajectory.push_back(targetTrajectories.stateTrajectory[k]);
+        newTargetTrajectories.inputTrajectory.push_back(targetTrajectories.inputTrajectory[k]);
+      }
+    }
+
+    /******************************************************************************************************/
+    /******************************************************************************************************/
+    /******************************************************************************************************/
+    size_t numberOfClosedContacts(const FloatingBaseModelInfo &info,
+      const contact_flags_t &contactFlags) 
+    {
+      size_t numEndEffectors = info.numThreeDofContacts + info.numSixDofContacts;
+      size_t numStanceLegs = 0;
+      for(size_t i = 0; i < numEndEffectors; ++i) 
+      {
+        if (contactFlags[i]) 
         {
           ++numStanceLegs;
         }
@@ -45,13 +132,14 @@ namespace legged_locomotion_mpc
     vector_t weightCompensatingInput(const FloatingBaseModelInfo &info, 
       const contact_flags_t &contactFlags)
     {
-      const auto numStanceLegs = numberOfClosedContacts(contactFlags);
+      const auto numStanceLegs = numberOfClosedContacts(info, contactFlags);
+      size_t numEndEffectors = info.numThreeDofContacts + info.numSixDofContacts;
       vector_t input = vector_t::Zero(info.inputDim);
       if (numStanceLegs > 0) 
       {
         const scalar_t totalWeight = info.robotMass * 9.81;
         const vector3_t forceInInertialFrame(0.0, 0.0, totalWeight / numStanceLegs);
-        for (size_t i = 0; i < contactFlags.size(); i++) 
+        for (size_t i = 0; i < numEndEffectors; i++) 
         {
           if (contactFlags[i]) {
             access_helper_functions::getContactForces(input, i, info) = forceInInertialFrame;

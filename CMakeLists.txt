@@ -57,6 +57,7 @@ endforeach()
 # )
 
 add_library(${PROJECT_NAME}
+  src/common/Utils.cpp
   src/locomotion/ModeSequenceTemplate.cpp
   src/locomotion/GaitPlanner.cpp
   src/locomotion/ModeDynamicSequenceTemplate.cpp
