@@ -144,6 +144,32 @@ namespace legged_locomotion_mpc
       return *feetNormalTrajectories_[endEffectorIndex][timeIndex];
     }
 
+    std::vector<vector3_t> SwingTrajectoryPlanner::getEndEffectorPositions(scalar_t time) const
+    {
+      size_t numEndEffectors = modelInfo_.numThreeDofContacts + modelInfo_.numSixDofContacts;
+      std::vector<vector3_t> positions(numEndEffectors);
+
+      for(size_t i = 0; i < numEndEffectors; ++i)
+      {
+        const auto& footPhase = getFootPhase(i, time);
+        positions[i] = footPhase.getPositionInWorld(time);
+      }
+      return positions;
+    }
+
+    std::vector<vector3_t> SwingTrajectoryPlanner::getEndEffectorVelocities(scalar_t time) const
+    {
+      size_t numEndEffectors = modelInfo_.numThreeDofContacts + modelInfo_.numSixDofContacts;
+      std::vector<vector3_t> velocities(numEndEffectors);
+
+      for(size_t i = 0; i < numEndEffectors; ++i)
+      {
+        const auto& footPhase = getFootPhase(i, time);
+        velocities[i] = footPhase.getVelocityInWorld(time);
+      }
+      return velocities;
+    }
+
     using FootPhasesStamped =  std::pair<std::vector<ocs2::scalar_t>, std::vector<std::unique_ptr<FootPhase>>>; 
     FootPhasesStamped SwingTrajectoryPlanner::generateSwingTrajectories(size_t endEffectorIndex, 
       const std::vector<ContactTiming> &contactTimings, 

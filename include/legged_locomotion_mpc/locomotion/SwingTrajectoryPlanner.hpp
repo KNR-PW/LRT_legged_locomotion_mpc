@@ -113,6 +113,12 @@ namespace legged_locomotion_mpc
         /** Main access method for the generated cartesian references. */ 
         const FootPhase& getFootPhase(size_t endEffectorIndex, ocs2::scalar_t time) const;
 
+        /** Main access method for generated cartesian reference positions */
+        std::vector<vector3_t> getEndEffectorPositions(ocs2::scalar_t time) const;
+
+        /** Main access method for generated cartesian reference velocities */
+        std::vector<vector3_t> getEndEffectorVelocities(ocs2::scalar_t time) const;
+
         /** Accessed by the controller for visualization */
         std::vector<terrain_model::ConvexTerrain> getNominalFootholds(
           size_t endEffectorIndex) const;
