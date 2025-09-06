@@ -172,12 +172,12 @@ namespace legged_locomotion_mpc
         DynamicSettings dynamicSettings_;
         const forwardKinematics* kinematicsModel_;
 
-        std::vector<std::pair<ocs2::scalar_t, terrain_model::TerrainPlane> > lastContacts_;
-        std::vector<std::vector<std::unique_ptr<FootPhase> > > feetNormalTrajectories_;
-        std::vector<std::vector<ocs2::scalar_t> > feetNormalTrajectoriesEvents_;
+        std::vector<std::pair<ocs2::scalar_t, terrain_model::TerrainPlane>> lastContacts_;
+        std::vector<std::vector<std::unique_ptr<FootPhase>>> feetNormalTrajectories_;
+        std::vector<std::vector<ocs2::scalar_t>> feetNormalTrajectoriesEvents_;
 
-        std::vector<std::vector<terrain_model::ConvexTerrain> > nominalFootholdsPerLeg_;
-        std::vector<std::vector<vector3_t> > heuristicFootholdsPerLeg_;
+        std::vector<std::vector<terrain_model::ConvexTerrain>> nominalFootholdsPerLeg_;
+        std::vector<std::vector<vector3_t>> heuristicFootholdsPerLeg_;
         std::unique_ptr<terrain_model::TerrainModel> terrainModel_;
     };
 

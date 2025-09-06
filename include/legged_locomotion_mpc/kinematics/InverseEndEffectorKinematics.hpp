@@ -22,6 +22,11 @@
 #define __INVERSE_END_EFFECTOR_KINEMATICS_LEGGED_LOCOMOTION_MPC__
 
 #include <legged_locomotion_mpc/common/Types.hpp>
+#include <legged_locomotion_mpc/locomotion/SwingTrajectoryPlanner.hpp>
+
+#include <floating_base_model/FloatingBaseModelInfo.hpp>
+
+#include <ocs2_core/reference/TargetTrajectories.h>
 
 #include <lrt_inverse_kinematics/InverseKinematics.hpp>
 
@@ -30,17 +35,25 @@ namespace legged_locomotion_mpc
   class InverseEndEffectorKinematics
   {
     public:
-      InverseEndEffectorKinematics(lrt_inverse_kinematics::InverseKinematics&& kinematicsSolver);
 
-      ocs2::vector_t getJointPositions(const ocs2::vector_t& actualJointPositions, 
-        const vector6_t basePose, 
+      InverseEndEffectorKinematics(floating_base_model::FloatingBaseModelInfo modelInfo,
+        lrt_inverse_kinematics::InverseKinematics&& kinematicsSolver);
+
+      void updateTrajectory(const state_vector_t& currentState,
+        ocs2::TargetTrajectories& targetTrajectories, 
+        const legged_locomotion_mpc::locomotion::SwingTrajectoryPlanner& swingTrajectoryPlannner);
+
+      ocs2::vector_t computeJointPositions(const ocs2::vector_t& actualJointPositions, 
+        const vector6_t& basePose, 
         const std::vector<vector3_t>& endEffectorPositions);
 
-      ocs2::vector_t getJointVelocities(const ocs2::vector_t& actualJointPositions,
-        const vector6_t basePose, const vector6_t baseVelocity,
+      ocs2::vector_t computeJointVelocities(const ocs2::vector_t& actualJointPositions,
+        const vector6_t& basePose, const vector6_t& baseVelocity,
         const std::vector<vector3_t>& endEffectorVelocities);
     
     private:
+      
+      floating_base_model::FloatingBaseModelInfo modelInfo_;
 
       lrt_inverse_kinematics::InverseKinematics kinematicsSolver_;
   };

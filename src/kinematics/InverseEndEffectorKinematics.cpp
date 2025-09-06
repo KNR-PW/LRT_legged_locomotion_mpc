@@ -1,5 +1,8 @@
 
 #include <legged_locomotion_mpc/kinematics/InverseEndEffectorKinematics.hpp>
+#include <legged_locomotion_mpc/common/AccessHelperFunctions.hpp>
+
+#include <floating_base_model/AccessHelperFunctions.hpp>
 
 #include <ocs2_core/misc/LoadData.h>
 
@@ -11,13 +14,67 @@
 namespace legged_locomotion_mpc
 {
   using namespace ocs2;
+  using namespace floating_base_model;
   using namespace lrt_inverse_kinematics;
+  using namespace legged_locomotion_mpc::locomotion;
   InverseEndEffectorKinematics::InverseEndEffectorKinematics(
-    InverseKinematics&& kinematicsSolver): kinematicsSolver_(std::move(kinematicsSolver)) {}
+    FloatingBaseModelInfo modelInfo,
+    InverseKinematics&& kinematicsSolver): modelInfo_(std::move(modelInfo)),
+      kinematicsSolver_(std::move(kinematicsSolver)) {}
+  
+  void InverseEndEffectorKinematics::updateTrajectory(const state_vector_t& currentState,
+    TargetTrajectories& targetTrajectories, 
+    const SwingTrajectoryPlanner& swingTrajectoryPlannner)
+  {
+    const size_t trajectorySize = targetTrajectories.timeTrajectory.size();
+    auto& currentOptimalState = targetTrajectories.stateTrajectory[0];
 
-  ocs2::vector_t InverseEndEffectorKinematics::getJointPositions(
+    floating_base_model::access_helper_functions::getJointAngles(currentOptimalState, modelInfo_) 
+      = legged_locomotion_mpc::access_helper_functions::getJointPositions(currentState, modelInfo_);
+
+    floating_base_model::access_helper_functions::getJointVelocities(currentOptimalState, modelInfo_) 
+      = legged_locomotion_mpc::access_helper_functions::getJointVelocities(currentState, modelInfo_);
+
+    for(size_t i = 1; i < trajectorySize; ++i)
+    {
+      const scalar_t currentTime = targetTrajectories.timeTrajectory[i];
+      const auto newEndEffectorPositions = swingTrajectoryPlannner.getEndEffectorPositions(
+        currentTime);
+      
+      const auto newEndEffectorVelocities = swingTrajectoryPlannner.getEndEffectorVelocities(
+        currentTime);
+    
+      const auto& previousState = targetTrajectories.stateTrajectory[i - 1];
+
+      const vector_t& previousJointPositions = 
+        floating_base_model::access_helper_functions::getJointAngles(previousState, modelInfo_);
+      
+      auto& newState = targetTrajectories.stateTrajectory[i];
+      auto& newInput = targetTrajectories.inputTrajectory[i];
+
+      const vector6_t& newBasePose = 
+        floating_base_model::access_helper_functions::getBasePose(newState, modelInfo_);
+
+      const vector6_t& newBaseVelocity = 
+        floating_base_model::access_helper_functions::getBasePose(newState, modelInfo_);
+
+      auto newJointPositions = 
+        floating_base_model::access_helper_functions::getJointAngles(newState, modelInfo_);
+
+      auto newJointVelocities = 
+        floating_base_model::access_helper_functions::getJointAngles(newInput, modelInfo_);
+      
+      newJointPositions = computeJointPositions(previousJointPositions, newBasePose, 
+        newEndEffectorPositions);
+
+      newJointVelocities = computeJointVelocities(previousJointPositions, newBasePose,
+        newBaseVelocity, newEndEffectorVelocities);
+    }
+  }
+  
+  ocs2::vector_t InverseEndEffectorKinematics::computeJointPositions(
     const ocs2::vector_t& actualJointPositions,
-    const vector6_t basePose,  
+    const vector6_t& basePose,  
     const std::vector<vector3_t>& endEffectorPositions)
   {
     const size_t numEndEffectors = kinematicsSolver_.getModelInternalInfo().numEndEffectors_;
@@ -66,9 +123,9 @@ namespace legged_locomotion_mpc
     }
   }
 
-  ocs2::vector_t InverseEndEffectorKinematics::getJointVelocities(
-    const ocs2::vector_t& actualJointPositions, const vector6_t basePose, 
-    const vector6_t baseVelocity, const std::vector<vector3_t>& endEffectorVelocities)
+  ocs2::vector_t InverseEndEffectorKinematics::computeJointVelocities(
+    const ocs2::vector_t& actualJointPositions, const vector6_t& basePose, 
+    const vector6_t& baseVelocity, const std::vector<vector3_t>& endEffectorVelocities)
   {
     const size_t numEndEffectors = kinematicsSolver_.getModelInternalInfo().numEndEffectors_;
 
