@@ -39,18 +39,19 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <ocs2_pinocchio_interface/PinocchioInterface.h>
 
 #include <legged_locomotion_mpc/common/ModelSettings.hpp>
-#include <legged_locomotion_mpc/logic/LeggedSynchronizedModule.hpp>
+#include <legged_locomotion_mpc/synchronization/DisturbanceSynchronizedModule.hpp>
 
 namespace legged_locomotion_mpc 
 {
   class LeggedDynamicsAD final : public ocs2::SystemDynamicsBase 
   {
+
     public:
       LeggedDynamicsAD(const ocs2::PinocchioInterface &pinocchioInterface,
         const floating_base_model::FloatingBaseModelInfo &info,
         const std::string &modelName,
         const ModelSettings &modelSettings,
-        const LeggedSynchronizedModule& synchronizedModule);
+        const synchronization::DisturbanceSynchronizedModule& disturbanceSynchronizedModule);
 
       ~LeggedDynamicsAD() override = default;
 
@@ -68,10 +69,8 @@ namespace legged_locomotion_mpc
       LeggedDynamicsAD(const LeggedDynamicsAD &rhs) = default;
 
       floating_base_model::PinocchioFloatingBaseDynamicsAD dynamicsAdPtr_;
-      const LeggedSynchronizedModule* leggedSynchronizedModule_;
-
-      Eigen::Matrix<ocs2::scalar_t, 6, 1> floatingBaseDisturbance_ = Eigen::Matrix<ocs2::scalar_t, 6, 1>::Zero();
-    };
+      const synchronization::DisturbanceSynchronizedModule* disturbanceSynchronizedModule_;
+  };
 
 }; // namespace legged_locomotion_mpc
 

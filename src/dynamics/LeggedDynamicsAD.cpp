@@ -1,25 +1,24 @@
+
 #include <legged_locomotion_mpc/dynamics/LeggedDynamicsAD.hpp>
 
-
-namespace legged_locmomtion_mpc
+namespace legged_locomotion_mpc
 {
-  
+
   using namespace ocs2;
+  using namespace floating_base_model;
+  using namespace synchronization;
   /******************************************************************************************************/
   /******************************************************************************************************/
   /******************************************************************************************************/
   LeggedDynamicsAD::LeggedDynamicsAD(const PinocchioInterface &pinocchioInterface,
-    const floating_base_model::FloatingBaseModelInfo &info,
+    const FloatingBaseModelInfo &info,
     const std::string &modelName,
     const ModelSettings &modelSettings,
-    const LeggedSynchronizedModule* synchronizedModule)
+    const DisturbanceSynchronizedModule& disturbanceSynchronizedModule)
       : SystemDynamicsBase(), 
         dynamicsAdPtr_(pinocchioInterface, info, modelName, modelSettings.modelFolderCppAd,
                     modelSettings.recompileLibrariesCppAd, modelSettings.verboseCppAd),
-        leggedSynchronizedModule_(&synchronizedModule)
-  {
-
-  }
+        disturbanceSynchronizedModule_(&disturbanceSynchronizedModule) {}
 
   /******************************************************************************************************/
   /******************************************************************************************************/
@@ -27,11 +26,9 @@ namespace legged_locmomtion_mpc
   vector_t LeggedDynamicsAD::computeFlowMap(scalar_t time, const vector_t &state,
     const vector_t &input, const PreComputation &preComp)
   {
-    if(leggedSynchronizedModule_->newDynamicsData())
-    {
-      floatingBaseDisturbance_ = leggedSynchronizedModule_.getActiveFloatingBaseDisturbance();
-    }
-    return dynamicsAdPtr_.getValue(time, state, input, floatingBaseDisturbance_);
+    const vector6_t floatingBaseDisturbance = disturbanceSynchronizedModule_->
+      getCurrentDisturbance().second;
+    return dynamicsAdPtr_.getValue(time, state, input, floatingBaseDisturbance);
 
   }
 
@@ -41,11 +38,9 @@ namespace legged_locmomtion_mpc
   VectorFunctionLinearApproximation LeggedDynamicsAD::linearApproximation(scalar_t time,
     const vector_t &state, const vector_t &input, const PreComputation &preComp)
   {
-    if(leggedSynchronizedModule_->newDynamicsData())
-    {
-      floatingBaseDisturbance_ = leggedSynchronizedModule_.getActiveFloatingBaseDisturbance();
-    }
-    return dynamicsAdPtr_.getLinearApproximation(time, state, input, floatingBaseDisturbance_);
+    const vector6_t floatingBaseDisturbance = disturbanceSynchronizedModule_->
+      getCurrentDisturbance().second;
+    return dynamicsAdPtr_.getLinearApproximation(time, state, input, floatingBaseDisturbance);
   }
 
-} // namespace legged_locmomtion_mpc
+} // namespace legged_locomotion_mpc

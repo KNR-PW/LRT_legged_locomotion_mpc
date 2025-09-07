@@ -77,6 +77,11 @@ add_library(${PROJECT_NAME}
   src/locomotion/SingleLegLogic.cpp
   src/locomotion/FootPhase.cpp
   src/locomotion/SwingTrajectoryPlanner.cpp
+
+  src/synchronization/GaitSynchronizedModule.cpp
+  src/synchronization/DisturbanceSynchronizedModule.cpp
+
+  src/dynamics/LeggedDynamicsAD.cpp
 )
 
 target_include_directories(${PROJECT_NAME}
