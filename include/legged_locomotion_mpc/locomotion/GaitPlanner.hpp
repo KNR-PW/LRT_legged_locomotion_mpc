@@ -50,8 +50,7 @@ namespace legged_locomotion_mpc
 
         ocs2::ModeSchedule getModeSchedule(ocs2::scalar_t startTime, ocs2::scalar_t finalTime);
 
-        void updateDynamicParameters(ocs2::scalar_t startTime,
-          ocs2::scalar_t finalTime, 
+        void updateDynamicParameters(ocs2::scalar_t time,
           const GaitDynamicParameters& dynamicParams);
         
         GaitFlags updateCurrentContacts(ocs2::scalar_t time, contact_flags_t currentContacts);

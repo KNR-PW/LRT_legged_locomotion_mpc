@@ -87,22 +87,23 @@ namespace legged_locomotion_mpc
       return GaitFlags::ERROR;
     }
 
-    void GaitPlanner::updateDynamicParameters(scalar_t startTime,
-      scalar_t finalTime, 
+    void GaitPlanner::updateDynamicParameters(scalar_t time,
       const GaitDynamicParameters& dynamicParams)
     {
       const auto &eventTimes = modeSchedule_.eventTimes;
 
       // Update gait phase controller
-      gaitPhaseController_.update(startTime, dynamicParams);
+      gaitPhaseController_.update(time, dynamicParams);
 
       // Get current phase
-      scalar_t startingPhase = gaitPhaseController_.getPhasesAtTime(startTime)[0];
+      scalar_t startingPhase = gaitPhaseController_.getPhasesAtTime(time)[0];
+
+      const scalar_t finalTime = eventTimes.back();
 
       ModeSequenceTemplate newModeSequenceTemplate = getDynamicModeSequenceTemplate(startingPhase,
-        finalTime - startTime, staticParams_, dynamicParams);
+        finalTime - time, staticParams_, dynamicParams);
 
-      insertModeSequenceTemplate(startTime, finalTime, newModeSequenceTemplate);
+      insertModeSequenceTemplate(time, finalTime, newModeSequenceTemplate);
     }
 
     const GaitStaticParameters& GaitPlanner::getStaticParameters()

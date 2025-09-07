@@ -197,7 +197,7 @@ TEST(GaitPlannerTest, updateDynamicParameters)
 
   scalar_t secondTime = 2.075; // Change mode template in 3 second, remove 7 seconds of first template 
   scalar_t thirdTime = 10.0;
-  gaitPlanner.updateDynamicParameters(secondTime, thirdTime, dynamicParams2);
+  gaitPlanner.updateDynamicParameters(secondTime, dynamicParams2);
 
   modeSchedule = gaitPlanner.getModeSchedule(startTime, thirdTime);
 
@@ -218,7 +218,7 @@ TEST(GaitPlannerTest, updateDynamicParameters)
   scalar_t forthTime = 5.0; // Change mode template in 5 second, remove 5 seconds of second template 
   scalar_t fifthTime = 10.0;
 
-  gaitPlanner.updateDynamicParameters(forthTime, fifthTime, dynamicParams3);
+  gaitPlanner.updateDynamicParameters(forthTime, dynamicParams3);
 
   modeSchedule = gaitPlanner.getModeSchedule(startTime, fifthTime);
 
