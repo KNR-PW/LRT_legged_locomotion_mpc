@@ -34,14 +34,16 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace legged_locomotion_mpc
 {
 
+  using namespace ocs2;
+  using namespace floating_base_model;
   /******************************************************************************************************/
   /******************************************************************************************************/
   /******************************************************************************************************/
   explicit ForceFrictionConeConstraint::Config::Config(
-    ocs2::scalar_t frictionCoefficientParam,
-    ocs2::scalar_t regularizationParam,
-    ocs2::scalar_t gripperForceParam,
-    ocs2::scalar_t hessianDiagonalShiftParam): 
+    scalar_t frictionCoefficientParam,
+    scalar_t regularizationParam,
+    scalar_t gripperForceParam,
+    scalar_t hessianDiagonalShiftParam): 
       frictionCoefficient_(frictionCoefficientParam),
       regularization_(regularizationParam),
       gripperForce_(gripperForceParam),
@@ -55,44 +57,21 @@ namespace legged_locomotion_mpc
   /******************************************************************************************************/
   /******************************************************************************************************/
   /******************************************************************************************************/
-  ForceFrictionConeConstraint::ForceFrictionConeConstraint(const SwitchedModelReferenceManager &referenceManager,
-    Config config,
-    size_t contactPointIndex,
-    FloatingBaseModelInfo& info): 
-      StateInputConstraint(ocs2::ConstraintOrder::Quadratic),
+  ForceFrictionConeConstraint::ForceFrictionConeConstraint(
+    const SwitchedModelReferenceManager &referenceManager, Config config,
+    size_t contactPointIndex, FloatingBaseModelInfo& info): 
+      StateInputConstraint(ConstraintOrder::Quadratic),
       referenceManagerPtr_(&referenceManager),
       config_(config),
       contactPointIndex_(contactPointIndex),
-      info_(&info) 
+      info_(&info) {}
+
+  /******************************************************************************************************/
+  /******************************************************************************************************/
+  /******************************************************************************************************/
+  void ForceFrictionConeConstraint::setRotationMatrixWorldToTerrain(matrix3_t rotationWorldToTerrain) 
   {
-
-    const size_t stateDim = info.stateDim.size();
-    const size_t inputDim = info.inputDim.size();
-
-    linearApproximation_.f = ocs2::matrix_t::Zero(1,1);
-    linearApproximation_.dfdx = ocs2::matrix_t::Zero(1, stateDim);
-    linearApproximation_.dfdu = ocs2::matrix_t::Zero(1, inputDim);
-
-    quadraticApproximation_.f = ocs2::matrix_t::Zero(1,1);
-    quadraticApproximation_.dfdx = ocs2::matrix_t::Zero(1, stateDim);
-    quadraticApproximation_.dfdu = ocs2::matrix_t::Zero(1, inputDim);
-
-    quadraticApproximation_.dfdxx.emplace_back(ocs2::matrix_t::Zero(stateDim, stateDim));
-    quadraticApproximation_.dfdxx.diagonal().array() -= config_.hessianDiagonalShift;
-
-    quadraticApproximation_.dfduu.emplace_back(ocs2::matrix_t::Zero(inputDim, inputDim));
-
-    quadraticApproximation_.dfdux.emplace_back(ocs2::matrix_t::Zero(inputDim, stateDim));
-  }
-
-  // TODO: Dodaj jak będzie ogarnięty interface od Kuby!
-  /******************************************************************************************************/
-  /******************************************************************************************************/
-  /******************************************************************************************************/
-  void ForceFrictionConeConstraint::setSurfaceNormalInWorld(const vector3_t &surfaceNormalInWorld) 
-  {
-    rotationWorldToTerrain_.setIdentity();
-    throw std::runtime_error("[ForceFrictionConeConstraint] setSurfaceNormalInWorld() is not implemented!");
+    rotationWorldToTerrain_ = std::move(rotationWorldToTerrain);
   }
 
   /******************************************************************************************************/
@@ -106,7 +85,7 @@ namespace legged_locomotion_mpc
   /******************************************************************************************************/
   /******************************************************************************************************/
   /******************************************************************************************************/
-  bool ForceFrictionConeConstraint::isActive(ocs2::scalar_t time) const 
+  bool ForceFrictionConeConstraint::isActive(scalar_t time) const 
   {
     return referenceManagerPtr_->getContactFlags(time)[contactPointIndex_];
   }
@@ -114,10 +93,10 @@ namespace legged_locomotion_mpc
   /******************************************************************************************************/
   /******************************************************************************************************/
   /******************************************************************************************************/
-  ocs2::vector_t ForceFrictionConeConstraint::getValue(scalar_t time,
-    const ocs2::vector_t &state,
-    const ocs2::vector_t &input,
-    const ocs2::PreComputation &preComp) const 
+  vector_t ForceFrictionConeConstraint::getValue(scalar_t time,
+    const vector_t &state,
+    const vector_t &input,
+    const PreComputation &preComp) const 
   {
     const auto forcesInWorldFrame = access_helper_functions::getContactForces(input, contactPointIndex_, *info_);
     const vector3_t localForce = rotationWorldToTerrain_ * forcesInWorldFrame;
@@ -127,11 +106,11 @@ namespace legged_locomotion_mpc
   /******************************************************************************************************/
   /******************************************************************************************************/
   /******************************************************************************************************/
-  ocs2::VectorFunctionLinearApproximation ForceFrictionConeConstraint::getLinearApproximation(
-    ocs2::scalar_t time,
-    const ocs2::vector_t &state,
-    const ocs2::vector_t &input,
-    const ocs2::PreComputation &preComp) const 
+  VectorFunctionLinearApproximation ForceFrictionConeConstraint::getLinearApproximation(
+    scalar_t time,
+    const vector_t &state,
+    const vector_t &input,
+    const PreComputation &preComp) const 
   {
     const vector3_t forcesInWorldFrame = access_helper_functions::getContactForces(input, contactPointIndex_, *info_);
     const vector3_t localForce = rotationWorldToTerrain_ * forcesInWorldFrame;
@@ -144,20 +123,28 @@ namespace legged_locomotion_mpc
     dConeDF(1) = -localForces.y() * tangentForceInverse;
     dConeDF(2) = config_.frictionCoefficient_;
 
-    linearApproximation_.f = coneConstraint(localForce);
-    linearApproximation_.dfdu.block<1, 3>(0, 3 * contactPointIndex_) = dConeDF.transpose() * rotationWorldToTerrain_;
+
+    VectorFunctionLinearApproximation linearApprox;
+
+    const size_t stateDim = info.stateDim.size();
+    const size_t inputDim = info.inputDim.size();
+    linearApprox.dfdx = matrix_t::Zero(1, stateDim);
+    linearApprox.dfdu = matrix_t::Zero(1, inputDim);
+
+    linearApprox.f = coneConstraint(localForce);
+    linearApprox.dfdu.block<1, 3>(0, 3 * contactPointIndex_) = dConeDF.transpose() * rotationWorldToTerrain_;
     
-    return linearApproximation_;
+    return linearApprox;
   }
 
   /******************************************************************************************************/
   /******************************************************************************************************/
   /******************************************************************************************************/
-  ocs2::VectorFunctionQuadraticApproximation ForceFrictionConeConstraint::getQuadraticApproximation(
-    ocs2::scalar_t time,
-    const ocs2::vector_t &state,
-    const ocs2::vector_t &input,
-    const ocs2::PreComputation &preComp) const 
+  VectorFunctionQuadraticApproximation ForceFrictionConeConstraint::getQuadraticApproximation(
+    scalar_t time,
+    const vector_t &state,
+    const vector_t &input,
+    const PreComputation &preComp) const 
   {
     const vector3_t forcesInWorldFrame = access_helper_functions::getContactForces(input, contactPointIndex_, *info_);
     const vector3_t localForce = rotationWorldToTerrain_ * forcesInWorldFrame;
@@ -183,24 +170,41 @@ namespace legged_locomotion_mpc
 
     d2ConeDF2(0, 0) = -(forceYSquared + config_.regularization_) * tangentForceInverse32;
     d2ConeDF2(1, 1) = -(forceXSquared + config_.regularization_) * tangentForceInverse32;
-    d2ConeDF2(0, 1) =  forceXforceY * * tangentForceInverse32;
+    d2ConeDF2(0, 1) =  forceXforceY * tangentForceInverse32;
     d2ConeDF2(1, 0) =  d2ConeDF2(0, 1);
-    
-    quadraticApproximation_.f = coneConstraint(localForce);
 
-    quadraticApproximation_.dfdu.block<1, 3>(0, 3 * contactPointIndex_) = dConeDF.transpose() * rotationWorldToTerrain_;
+
+    VectorFunctionQuadraticApproximation quadraticApprox;
+
+    quadraticApprox.f = coneConstraint(localForce);
+    
+    const size_t stateDim = info.stateDim.size();
+    const size_t inputDim = info.inputDim.size();
+
+    quadraticApprox.dfdx = matrix_t::Zero(1, stateDim);
+    quadraticApprox.dfdu = matrix_t::Zero(1, inputDim);
+
+    quadraticApprox.dfdxx.emplace_back(matrix_t::Zero(stateDim, stateDim));
+    quadraticApprox.dfdxx.diagonal().array() -= config_.hessianDiagonalShift;
+
+    quadraticApprox.dfduu.emplace_back(matrix_t::Zero(inputDim, inputDim));
+
+    quadraticApprox.dfdux.emplace_back(matrix_t::Zero(inputDim, stateDim));
+  
+
+    quadraticApprox.dfdu.block<1, 3>(0, 3 * contactPointIndex_) = dConeDF.transpose() * rotationWorldToTerrain_;
 
     const matrix3_t d2ConeD2u = rotationWorldToTerrain_.transpose() * d2ConeDF2 * rotationWorldToTerrain_;
-    quadraticApproximation_.dfduu[0].block<3, 3>(3 * contactPointIndex_, 3 * contactPointIndex_) = d2ConeD2u;
-    quadraticApproximation_.dfduu[0].diagonal().array() -= config_.hessianDiagonalShift_;
+    quadraticApprox.dfduu[0].block<3, 3>(3 * contactPointIndex_, 3 * contactPointIndex_) = d2ConeD2u;
+    quadraticApprox.dfduu[0].diagonal().array() -= config_.hessianDiagonalShift_;
 
-    return quadraticApproximation_;
+    return quadraticApprox;
   }
 
   /******************************************************************************************************/
   /******************************************************************************************************/
   /******************************************************************************************************/
-  ocs2::vector_t ForceFrictionConeConstraint::coneConstraint(const vector3_t &localForces) const 
+  vector_t ForceFrictionConeConstraint::coneConstraint(const vector3_t &localForces) const 
   {
     const scalar_t tangentForce = sqrt(localForces.x() * localForces.x() + 
       localForces.y() * localForces.y() + config_.regularization_);
@@ -209,7 +213,7 @@ namespace legged_locomotion_mpc
       * (localForces.z() + config_.gripperForce_);
       
     const scalar_t coneConstraint = frictionForce - tangentForce;
-    return (ocs2::vector_t(1) << coneConstraint).finished();
+    return (vector_t(1) << coneConstraint).finished();
   }
 
 } // namespace legged_locomotion_mpc

@@ -38,7 +38,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "legged_locomotion_mpc/common/Types.hpp"
 #include "legged_locomotion_mpc/reference_manager/SwitchedModelReferenceManager.hpp"
 
-using namespace floating_base_model;
 
 namespace legged_locomotion_mpc
 {
@@ -90,10 +89,10 @@ namespace legged_locomotion_mpc
        * @param [in] contactPointIndex : The 3 DoF contact index.
        * @param [in] info : The centroidal model information.
        */
-      ForceFrictionConeConstraint(const SwitchedModelReferenceManager &referenceManager,
+      ForceFrictionConeConstraint(const ocs2::SwitchedModelReferenceManager &referenceManager,
         Config config,
         size_t contactPointIndex,
-        FloatingBaseModelInfo& info);
+        floating_base_model::FloatingBaseModelInfo info);
 
       ~ForceFrictionConeConstraint() override = default;
 
@@ -103,25 +102,25 @@ namespace legged_locomotion_mpc
 
       size_t getNumConstraints(ocs2::scalar_t time) const override { return 1; };
 
-      ocs2::vector_t getValue(scalar_t time, const vector_t &state,
+      ocs2::vector_t getValue(ocs2::scalar_t time, const ocs2::vector_t &state,
         const ocs2::vector_t &input,
         const ocs2::PreComputation &preComp) const override;
 
-      ocs2::VectorFunctionLinearApproximation getLinearApproximation(scalar_t time,
+      ocs2::VectorFunctionLinearApproximation getLinearApproximation(ocs2::scalar_t time,
         const ocs2::vector_t &state,
         const ocs2::vector_t &input,
         const ocs2::PreComputation &preComp) const override;
 
-      ocs2::VectorFunctionQuadraticApproximation getQuadraticApproximation(scalar_t time, 
+      ocs2::VectorFunctionQuadraticApproximation getQuadraticApproximation(ocs2::scalar_t time, 
         const ocs2::vector_t &state,
         const ocs2::vector_t &input,
         const ocs2::PreComputation &preComp) const override;
 
       /**
-       * Set surface normal vector for contact
+       * Set rotation matrix ffor contact
        * @param [in] surfaceNormalInWorld: sufrace normal in world frame
        */
-      void setSurfaceNormalInWorld(const vector3_t &surfaceNormalInWorld);
+      void setRotationMatrixWorldToTerrain(matrix3_t rotationWorldToTerrain);
       
       /**
        * Set new friction coefficient for contact
@@ -139,10 +138,7 @@ namespace legged_locomotion_mpc
 
       const Config config_;
       const size_t contactPointIndex_;
-      const FloatingBaseModelInfo* info_;
-
-      ocs2::VectorFunctionLinearApproximation linearApproximation_;
-      ocs2::VectorFunctionQuadraticApproximation quadraticApproximation_;
+      const FloatingBaseModelInfo info_;
 
       // rotation world to terrain, normal to contact 
       matrix3_t rotationWorldToTerrain_ = matrix3_t::Identity();
