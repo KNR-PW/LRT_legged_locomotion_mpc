@@ -77,24 +77,35 @@ namespace legged_locomotion_mpc
       ocs2::scalar_t maximumReferenceSampleInterval);
 
     /**
-      * Provides number of feet in contact.
-      * @param [in] info: info of FloatingBase model
-      * @param [in] contactFlags: std::vector with contact flags
-      * @return number of feet in contact
-      */
+     * Provides number of feet in contact.
+     * @param [in] info: info of FloatingBase model
+     * @param [in] contactFlags: std::vector with contact flags
+     * @return number of feet in contact
+     */
     size_t numberOfClosedContacts(
       const floating_base_model::FloatingBaseModelInfo &info,
       const contact_flags_t &contactFlags);
 
 
     /**
-      * Computes an input with zero joint velocity and forces which 
-      *  equally distribute the robot weight between contact feet.
-      * @param [in] info: info of FloatingBase model
-      * @param [in] contactFlags: std::vector with contact flags
-      * @return input vector with calculated forces
-      */
+     * Computes an input with zero joint velocity and forces which 
+     *  equally distribute the robot weight between contact feet.
+     * @param [in] info: info of FloatingBase model
+     * @param [in] contactFlags: std::vector with contact flags
+     * @return input vector with calculated forces
+     */
     ocs2::vector_t weightCompensatingInput(
+      const floating_base_model::FloatingBaseModelInfo &info, 
+      const contact_flags_t &contactFlags);
+
+    /**
+     * Computes an input with zero joint velocity and forces which 
+     *  equally distribute the robot weight between contact feet.
+     * @param [in] info: info of FloatingBase model
+     * @param [in] contactFlags: std::vector with contact flags
+     * @param [out] input: input vector with new calculated forces
+     */
+    void weightCompensatingAppendInput(ocs2::vector_t& input,
       const floating_base_model::FloatingBaseModelInfo &info, 
       const contact_flags_t &contactFlags);
 

@@ -59,6 +59,10 @@ endforeach()
 
 add_library(${PROJECT_NAME}
   src/common/Utils.cpp
+  src/common/ModelSettings.cpp
+  src/common/ModelHelperFunctions.cpp
+  
+  
 
   src/kinematics/InverseEndEffectorKinematics.cpp
 

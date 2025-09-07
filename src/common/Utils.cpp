@@ -151,5 +151,27 @@ namespace legged_locomotion_mpc
       }
       return input;
     }
-  }
-}
+
+    /******************************************************************************************************/
+    /******************************************************************************************************/
+    /******************************************************************************************************/
+    void weightCompensatingAppendInput(vector_t& input, const FloatingBaseModelInfo &info, 
+      const contact_flags_t &contactFlags)
+    {
+      const auto numStanceLegs = numberOfClosedContacts(info, contactFlags);
+      size_t numEndEffectors = info.numThreeDofContacts + info.numSixDofContacts;
+      if (numStanceLegs > 0) 
+      {
+        const scalar_t totalWeight = info.robotMass * 9.81;
+        const vector3_t forceInInertialFrame(0.0, 0.0, totalWeight / numStanceLegs);
+        for (size_t i = 0; i < numEndEffectors; i++) 
+        {
+          if (contactFlags[i]) {
+            access_helper_functions::getContactForces(input, i, info) = forceInInertialFrame;
+          }
+        } 
+      }
+    }
+    
+  } // namsespace utils
+} // namespace legged_locomotiom_mpc
