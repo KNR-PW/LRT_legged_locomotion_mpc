@@ -58,6 +58,18 @@ namespace legged_locomotion_mpc
       ocs2::scalar_t swingRatio; // val < swingRatio -> SWING, else STANCE
       std::vector<ocs2::scalar_t> phaseOffsets; // len: endEffectorNumber - 1
     };
+
+    inline bool operator==(const GaitDynamicParameters& lhs, const GaitDynamicParameters& rhs) 
+    { 
+      return lhs.steppingFrequency == rhs.steppingFrequency && lhs.swingRatio == rhs.swingRatio 
+        && lhs.phaseOffsets == rhs.phaseOffsets;
+    };
+      
+    inline bool operator!=(const GaitDynamicParameters& lhs, const GaitDynamicParameters& rhs) 
+    { 
+      return !(lhs == rhs); 
+    };
+    
   }; // namespace locomotion
 }; // namespace legged_locomotion_mpc
 
