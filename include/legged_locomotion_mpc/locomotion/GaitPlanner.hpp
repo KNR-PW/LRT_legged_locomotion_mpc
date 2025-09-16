@@ -81,7 +81,7 @@ namespace legged_locomotion_mpc
         ocs2::ModeSchedule modeSchedule_;
         ModeSequenceTemplate modeSequenceTemplate_;
     };
-  };
-};
+  }; // namespace locomotion
+}; // namespace legged_locomotion_mpc
 
 #endif

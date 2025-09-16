@@ -41,9 +41,9 @@ namespace legged_locomotion_mpc
       heuristicFootholdsPerLeg_.resize(modelInfo_.numThreeDofContacts + modelInfo_.numSixDofContacts);
     }
 
-    void SwingTrajectoryPlanner::updateTerrain(std::unique_ptr<TerrainModel> terrainModel) 
+    void SwingTrajectoryPlanner::updateTerrain(const terrain_model::TerrainModel& terrainModel) 
     {
-      terrainModel_ = std::move(terrainModel);
+      terrainModel_ = &terrainModel;
     }
     
     void SwingTrajectoryPlanner::updateDynamicSettings(const DynamicSettings& newDynamicSettings)
@@ -64,7 +64,7 @@ namespace legged_locomotion_mpc
     }
 
     void SwingTrajectoryPlanner::updateSwingMotions(scalar_t initTime, scalar_t finalTime,
-     const ocs2::vector_t& currentState, const TargetTrajectories& targetTrajectories,
+     const state_vector_t& currentState, const TargetTrajectories& targetTrajectories,
       const ModeSchedule& modeSchedule) 
     {
       if (!terrainModel_) 
@@ -106,7 +106,7 @@ namespace legged_locomotion_mpc
           {
             /**
              * If currently in swing -> verify that liftoff was before the horizon.
-             *  If not, assume liftoff happened exactly at initTime 
+             * If not, assume liftoff happened exactly at initTime 
              */ 
             if (lastContacts_[i].first > initTime) 
             {

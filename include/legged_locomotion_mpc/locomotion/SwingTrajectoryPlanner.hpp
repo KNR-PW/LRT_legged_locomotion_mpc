@@ -92,7 +92,7 @@ namespace legged_locomotion_mpc
           const forwardKinematics &kinematicsModel);
 
         /** Update terrain model */
-        void updateTerrain(std::unique_ptr<terrain_model::TerrainModel> terrainModel);
+        void updateTerrain(const terrain_model::TerrainModel& terrainModel);
         
         /** Update dynamic settings */
         void updateDynamicSettings(const DynamicSettings& newDynamicSettings);
@@ -103,10 +103,10 @@ namespace legged_locomotion_mpc
         /** 
          * Main interface preparing all swing trajectories in cartesian
          * space (called by reference manager). 
-         * Target trajectories should be subssampled already.
+         * Target trajectories should be subsampled already.
          * */ 
         void updateSwingMotions(ocs2::scalar_t initTime,
-          ocs2::scalar_t finalTime, const ocs2::vector_t& currentState,
+          ocs2::scalar_t finalTime, const state_vector_t& currentState,
           const ocs2::TargetTrajectories& targetTrajectories,
           const ocs2::ModeSchedule& modeSchedule);
 
@@ -178,7 +178,7 @@ namespace legged_locomotion_mpc
 
         std::vector<std::vector<terrain_model::ConvexTerrain>> nominalFootholdsPerLeg_;
         std::vector<std::vector<vector3_t>> heuristicFootholdsPerLeg_;
-        std::unique_ptr<terrain_model::TerrainModel> terrainModel_;
+        const terrain_model::TerrainModel* terrainModel_;
     };
 
     /** Load static and dynamic settings from file */
