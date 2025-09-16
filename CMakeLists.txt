@@ -62,10 +62,6 @@ add_library(${PROJECT_NAME}
   src/common/ModelSettings.cpp
   src/common/ModelHelperFunctions.cpp
 
-  # src/constraint/ForceFrictionConeConstraint.cpp
-
-  
-
   src/kinematics/InverseEndEffectorKinematics.cpp
 
   src/locomotion/ModeSequenceTemplate.cpp
@@ -77,11 +73,14 @@ add_library(${PROJECT_NAME}
   src/locomotion/SingleLegLogic.cpp
   src/locomotion/FootPhase.cpp
   src/locomotion/SwingTrajectoryPlanner.cpp
+  src/locomotion/BaseTrajectoryPlanner.cpp
 
   src/synchronization/GaitSynchronizedModule.cpp
   src/synchronization/DisturbanceSynchronizedModule.cpp
 
   src/dynamics/LeggedDynamicsAD.cpp
+
+  # src/constraint/ForceFrictionConeConstraint.cpp
 )
 
 target_include_directories(${PROJECT_NAME}
