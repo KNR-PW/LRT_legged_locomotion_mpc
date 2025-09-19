@@ -126,10 +126,13 @@ namespace legged_locomotion_mpc
           baseReference.positionInWorld[i];
         getBaseOrientationZyx(currentState, modelInfo_) = 
           baseReference.eulerZyx[i];
+
+        const matrix3_t rotationMatrixToBase = getRotationMatrixFromZyxEulerAngles(
+          baseReference.eulerZyx[i]).transpose();
         getBaseLinearVelocity(currentState, modelInfo_) = 
-          baseReference.linearVelocityInWorld[i];
+          rotationMatrixToBase * baseReference.linearVelocityInWorld[i];
         getBaseAngularVelocity(currentState, modelInfo_) = 
-          baseReference.angularVelocityInWorld[i];
+          rotationMatrixToBase * baseReference.angularVelocityInWorld[i];
       }
     }
 
