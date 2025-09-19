@@ -55,8 +55,6 @@ namespace legged_locomotion_mpc
           // Maximumbase height
           ocs2::scalar_t maximumBaseHeight;
 
-          // Nominal base width
-
           // Nominal lateral base width
           ocs2::scalar_t nominalBaseWidtLateral;
 
@@ -66,11 +64,6 @@ namespace legged_locomotion_mpc
 
         struct BaseReferenceCommand
         {
-          /**
-           * IMPORTANT: baseVerticalVelocity is only taken into consideration if and 
-           * only if other velocities are 0!
-           *  
-           */ 
           ocs2::scalar_t baseHeadingVelocity;
           ocs2::scalar_t baseLateralVelocity;
           ocs2::scalar_t baseVerticalVelocity;
@@ -96,42 +89,77 @@ namespace legged_locomotion_mpc
           std::vector<vector3_t> angularVelocityInWorld;
         };
 
+        /**
+         * Constructor for a BaseTrajectoryPlanner.
+         * @param [in] modelInfo: FloatingBase model info
+         * @param [in] settings: Planner settings
+         */
         BaseTrajectoryPlanner(floating_base_model::FloatingBaseModelInfo modelInfo,
           StaticSettings settings);
 
-        /** Update terrain model */
+        /** 
+         * Update terrain model 
+         * @param [in] terrainModel: New terrain model
+         */
         void updateTerrain(const terrain_model::TerrainModel& terrainModel);
-
+        
+        /** 
+         * Update target trajectories with base trajectory:
+         * - time points from initTime to finalTime
+         * - 3D base position in world frame
+         * - ZYX euler base orientation in world frame
+         * - 3D linear base velocity in base frame
+         * - 3D angular base velocity in base frame
+         * @param [in] initTime: initial time
+         * @param [in] finalTime: final time
+         * @param [in] command: base command
+         * @param [in] initialState: current robot state (taken from sensors)
+         * @param [out] targetTrajectories: target trajectories
+         */
         void updateTargetTrajectory(ocs2::scalar_t initTime, 
           ocs2::scalar_t finalTime, const BaseReferenceCommand& command, 
           const state_vector_t& initialState, ocs2::TargetTrajectories& targetTrajectories);
 
       private:
-          
+
+        /** 
+         * map 2D velocity to world frame by rotating by yaw angle
+         * @param [in] headingVelocity: heading velocity
+         * @param [in] lateralVelocity: lateral velocity
+         * @param [in] yaw: angle
+         */
         vector2_t map2DVelocityCommandToWorld(ocs2::scalar_t headingVelocity, 
           ocs2::scalar_t lateralVelocity, ocs2::scalar_t yaw);
-
+        
+        /** 
+         * Generate 2D base reference (2D position + yaw orientation) in plane frame + 
+         * robot relative height reference
+         * @param [in] initTime: initial time
+         * @param [in] finalTime: final time
+         * @param [in] initialState: current robot state (taken from sensors)
+         * @param [in] command: base command
+         * @return 2D trajectory
+         */
         BaseFlatReferenceTrajectory generate2DExtrapolatedBaseReference(ocs2::scalar_t initTime, 
           ocs2::scalar_t finalTime, const state_vector_t& initialState,
           const BaseReferenceCommand& command);
-
+        
+        /** 
+         * Generate 3D base reference (3D position + ZYX euler orientation) in world frame
+         * @param [in] initTime: initial time
+         * @param [in] finalTime: final time
+         * @param [in] initialState: current robot state (taken from sensors)
+         * @param [in] command: base command
+         * @return 3D trajectory
+         */
         BaseReferenceTrajectory generateExtrapolatedBaseReference(ocs2::scalar_t initTime, 
           ocs2::scalar_t finalTime, const state_vector_t& initialState,
           const BaseReferenceCommand& command);
-
-        // BaseReferenceTrajectory generateExtrapolatedBaseReference(
-        //   const BaseReferenceHorizon& horizon, const BaseReferenceState& initialState,
-        //   const BaseReferenceCommand& command, const grid_map::GridMap& gridMap,
-        //   double nominalStanceWidthInHeading, double nominalStanceWidthLateral);
         
         ocs2::scalar_t currentBaseHeight_;
-
         floating_base_model::FloatingBaseModelInfo modelInfo_;
         StaticSettings settings_;
-        
         const terrain_model::TerrainModel* terrainModel_;
-
-
     };
   }; // namespace locomotion
 }; // namespace legged_locomotion_mpc
