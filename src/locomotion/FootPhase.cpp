@@ -44,7 +44,7 @@ namespace legged_locomotion_mpc
           // Gives:
           //    A_world = A_terrain * diag(1, 1, 0) * T_R_W
           //    b_world = b_terrain  - A_terrain * diag(1, 1, 0) * T_R_W * p_0 = b_terrain - A_world * p_0
-          constraints.A.row(i) = A_terrain.transpose() * stanceTerrain.getTerrainPlane().getOrientation().topRows<2>();
+          constraints.A.row(i) = A_terrain.transpose() * stanceTerrain.getTerrainPlane().getOrientationToTerrain().topRows<2>();
           constraints.b(i) = b_terrain - constraints.A.row(i) * stanceTerrain.getTerrainPlane().getPosition();
         }
       }

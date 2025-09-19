@@ -201,7 +201,7 @@ namespace legged_locomotion_mpc
         applySwingMotionScaling(liftOff, touchDown, swingProfile);
 
         footPhases.emplace_back(new SwingPhase(liftOff, touchDown, 
-          swingProfile, terrainModel_.get()));
+          swingProfile, terrainModel_));
       }
 
         // Loop through contact phases
@@ -251,7 +251,7 @@ namespace legged_locomotion_mpc
           applySwingMotionScaling(liftOff, touchDown, swingProfile);
 
           eventTimes.push_back(currentContactTiming.end);
-          footPhases.emplace_back(new SwingPhase(liftOff, touchDown, swingProfile, terrainModel_.get()));
+          footPhases.emplace_back(new SwingPhase(liftOff, touchDown, swingProfile, terrainModel_));
         }
       return std::make_pair(eventTimes, std::move(footPhases));
     }
@@ -539,7 +539,7 @@ namespace legged_locomotion_mpc
     {
       // Get orientation from terrain model, position from the kinematics
       const auto lastContactTerrain = terrainModel.getLocalTerrainAtPositionInWorldAlongGravity(currentFootPosition);
-      TerrainPlane newPlane(currentFootPosition, lastContactTerrain.getOrientation());
+      TerrainPlane newPlane(currentFootPosition, lastContactTerrain.getOrientationToTerrain());
       lastContacts_[endEffectorIndex] = {expectedLiftOff, lastContactTerrain};
     }
 

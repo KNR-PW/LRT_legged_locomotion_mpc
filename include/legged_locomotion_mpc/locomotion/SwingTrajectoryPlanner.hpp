@@ -1,6 +1,6 @@
 //
 // Created by rgrandia on 13.03.20.
-// Modified by Bartłomiej Krajewski (https://github.com/BartlomiejK2) on 01.09.2025 
+// Modified by Bartłomiej Krajewski (://github.com/BartlomiejK2) on 01.09.2025 
 //
 
 #ifndef __SWING_TRAJECTORY_PLANNER_LEGGED_LOCOMOTION_MPC__
