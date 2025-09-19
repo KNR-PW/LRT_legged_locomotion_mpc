@@ -15,7 +15,7 @@
 
 /*
  * Authors: Bartłomiej Krajewski (https://github.com/BartlomiejK2)
- * Based on rgrandia on 02.03.20.
+ * Based on rgrandia on 02.03.20 (https://github.com/leggedrobotics/ocs2)
  */
 
 
@@ -46,11 +46,22 @@ namespace legged_locomotion_mpc
           // Time between trajectory points
           ocs2::scalar_t deltaTime = 0.1;
 
+          // Initial base height
+          ocs2::scalar_t initialBaseHeight;
+
           // Minimum base height
-          ocs2::scalar_t minimumBaseHeight = 0.4;
+          ocs2::scalar_t minimumBaseHeight;
 
           // Maximumbase height
-          ocs2::scalar_t maximumBaseHeight = 0.6;
+          ocs2::scalar_t maximumBaseHeight;
+
+          // Nominal base width
+
+          // Nominal lateral base width
+          ocs2::scalar_t nominalBaseWidtLateral;
+
+          // Nominal heading base width
+          ocs2::scalar_t nominalBaseWidthHeading;
         };
 
         struct BaseReferenceCommand
@@ -71,7 +82,8 @@ namespace legged_locomotion_mpc
           EIGEN_MAKE_ALIGNED_OPERATOR_NEW
           std::vector<ocs2::scalar_t> time;
           std::vector<ocs2::scalar_t> yaw;
-          std::vector<vector3_t> positionInWorld;
+          std::vector<vector2_t> positionInWorld;
+          std::vector<ocs2::scalar_t> baseRelativeHeight;
         };
 
         struct BaseReferenceTrajectory 
@@ -96,8 +108,8 @@ namespace legged_locomotion_mpc
 
       private:
           
-        Eigen::Vector2d map2DVelocityCommandToWorld(ocs2::scalar_t headingVelocity, 
-          ocs2::scalar_t lateralVelocity, ocs2:scalar_t yaw);
+        vector2_t map2DVelocityCommandToWorld(ocs2::scalar_t headingVelocity, 
+          ocs2::scalar_t lateralVelocity, ocs2::scalar_t yaw);
 
         BaseFlatReferenceTrajectory generate2DExtrapolatedBaseReference(ocs2::scalar_t initTime, 
           ocs2::scalar_t finalTime, const state_vector_t& initialState,
@@ -112,6 +124,8 @@ namespace legged_locomotion_mpc
         //   const BaseReferenceCommand& command, const grid_map::GridMap& gridMap,
         //   double nominalStanceWidthInHeading, double nominalStanceWidthLateral);
         
+        ocs2::scalar_t currentBaseHeight_;
+
         floating_base_model::FloatingBaseModelInfo modelInfo_;
         StaticSettings settings_;
         
