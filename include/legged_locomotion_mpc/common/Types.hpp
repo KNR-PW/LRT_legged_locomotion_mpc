@@ -42,6 +42,7 @@ namespace legged_locomotion_mpc
   static const size_t MAX_LEG_NUMBER = 8;
   using contact_flags_t = std::bitset<MAX_LEG_NUMBER>; // Dont expect for robot to have more than 8 legs
 
+  using vector2_t = Eigen::Matrix<ocs2::scalar_t, 2, 1>;
   using vector3_t = Eigen::Matrix<ocs2::scalar_t, 3, 1>;
   using matrix3_t = Eigen::Matrix<ocs2::scalar_t, 3, 3>;
   using vector6_t = Eigen::Matrix<ocs2::scalar_t, 6, 1>;
