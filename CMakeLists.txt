@@ -27,7 +27,7 @@ set(THIS_PACKAGE_DEPENDS
     ocs2_ipm
     floating_base_model
     terrain_model
-    lrt_inverse_kinematics
+    multi_end_effector_kinematics
 )
 
 set(FLAGS
@@ -62,7 +62,7 @@ add_library(${PROJECT_NAME}
   src/common/ModelSettings.cpp
   src/common/ModelHelperFunctions.cpp
 
-  src/kinematics/InverseEndEffectorKinematics.cpp
+  # src/kinematics/InverseEndEffectorKinematics.cpp
 
   src/locomotion/ModeSequenceTemplate.cpp
   src/locomotion/GaitPlanner.cpp

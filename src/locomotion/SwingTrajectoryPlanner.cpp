@@ -170,6 +170,36 @@ namespace legged_locomotion_mpc
       return velocities;
     }
 
+    using position_trajectories = std::vector<std::vector<vector3_t>>;
+    position_trajectories SwingTrajectoryPlanner::getEndEffectorPositionTrajectories(
+      std::vector<ocs2::scalar_t> times) const
+    {
+      position_trajectories positions;
+      positions.reserve(times.size());
+
+      for(const auto time: times)
+      {
+        auto position = getEndEffectorPositions(time);
+        positions.emplace_back(std::move(position));
+      }
+      return positions;
+    }
+
+    using velocity_trajectories = std::vector<std::vector<vector3_t>>;
+      velocity_trajectories SwingTrajectoryPlanner::getEndEffectorVelocityTrajectories(
+      std::vector<ocs2::scalar_t> times) const
+    {
+      velocity_trajectories velocities;
+      velocities.reserve(times.size());
+
+      for(const auto time: times)
+      {
+        auto velocity = getEndEffectorVelocities(time);
+        velocities.emplace_back(std::move(velocity));
+      }
+      return velocities;
+    }
+
     using FootPhasesStamped =  std::pair<std::vector<ocs2::scalar_t>, std::vector<std::unique_ptr<FootPhase>>>; 
     FootPhasesStamped SwingTrajectoryPlanner::generateSwingTrajectories(size_t endEffectorIndex, 
       const std::vector<ContactTiming> &contactTimings, 

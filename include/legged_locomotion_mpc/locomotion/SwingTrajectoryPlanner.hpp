@@ -118,6 +118,20 @@ namespace legged_locomotion_mpc
 
         /** Main access method for generated cartesian reference velocities */
         std::vector<vector3_t> getEndEffectorVelocities(ocs2::scalar_t time) const;
+        
+        /** Main access method for generated cartesian reference position trajectories 
+         * 3D position of leg i in time t: pos[t][i]
+         */
+        using position_trajectories = std::vector<std::vector<vector3_t>>;
+        position_trajectories getEndEffectorPositionTrajectories(
+          std::vector<ocs2::scalar_t> times) const;
+
+        /** Main access method for generated cartesian reference velocity trajectories 
+         * 3D velocity of leg i in time t: vel[t][i]
+         */
+        using velocity_trajectories = std::vector<std::vector<vector3_t>>;
+        velocity_trajectories getEndEffectorVelocityTrajectories(
+          std::vector<ocs2::scalar_t> times) const;
 
         /** Accessed by the controller for visualization */
         std::vector<terrain_model::ConvexTerrain> getNominalFootholds(
