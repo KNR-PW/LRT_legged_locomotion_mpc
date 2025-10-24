@@ -28,7 +28,7 @@
 
 #include <ocs2_core/reference/TargetTrajectories.h>
 
-#include <lrt_inverse_kinematics/InverseKinematics.hpp>
+#include <multi_end_kinematics/MultEndEffectorKInematics.hpp>
 
 namespace legged_locomotion_mpc
 {

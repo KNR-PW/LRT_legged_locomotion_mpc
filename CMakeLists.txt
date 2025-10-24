@@ -62,8 +62,6 @@ add_library(${PROJECT_NAME}
   src/common/ModelSettings.cpp
   src/common/ModelHelperFunctions.cpp
 
-  # src/kinematics/InverseEndEffectorKinematics.cpp
-
   src/locomotion/ModeSequenceTemplate.cpp
   src/locomotion/GaitPlanner.cpp
   src/locomotion/ModeDynamicSequenceTemplate.cpp
@@ -73,7 +71,9 @@ add_library(${PROJECT_NAME}
   src/locomotion/SingleLegLogic.cpp
   src/locomotion/FootPhase.cpp
   src/locomotion/SwingTrajectoryPlanner.cpp
-  src/locomotion/BaseTrajectoryPlanner.cpp
+
+  src/trajectory_planners/BaseTrajectoryPlanner.cpp
+  src/trajectory_planners/JointTrajectoryPlanner.cpp
 
   src/synchronization/GaitSynchronizedModule.cpp
   src/synchronization/DisturbanceSynchronizedModule.cpp

@@ -35,7 +35,7 @@
 
 namespace legged_locomotion_mpc
 {
-  namespace locomotion
+  namespace planners
   {
     class BaseTrajectoryPlanner
     {
@@ -161,7 +161,7 @@ namespace legged_locomotion_mpc
         StaticSettings settings_;
         const terrain_model::TerrainModel* terrainModel_;
     };
-  }; // namespace locomotion
+  }; // namespace planners
 }; // namespace legged_locomotion_mpc
 
 #endif

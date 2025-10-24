@@ -1,5 +1,5 @@
 
-#include <legged_locomotion_mpc/locomotion/BaseTrajectoryPlanner.hpp>
+#include <legged_locomotion_mpc/trajectory_planners/BaseTrajectoryPlanner.hpp>
 
 #include <algorithm>
 
@@ -16,7 +16,7 @@
 
 namespace legged_locomotion_mpc
 {
-  namespace locomotion
+  namespace planners
   {
 
     using namespace ocs2;
@@ -268,6 +268,6 @@ namespace legged_locomotion_mpc
       addVelocitiesFromFiniteDifference(baseReference);
       return baseReference;
     }
-	} // namespace locomotion
+	} // namespace planners
 } // namespace legged_locomotion_mpc
 
