@@ -56,8 +56,8 @@ namespace legged_locomotion_mpc
    * 2. Base angular velocity (in base frame of reference): 3 - 5
    * 3. Base position (in world frame of reference): 6 - 8
    * 4. Base orientation (euler angles, in world frame of reference): 9 - 11
-   * 5. Actuated joint positions: 11 - (11 + number of actuated joints - 1)
-   * 6. Actuated joint velocities: (11 + number of actuated joints) - (11 + 2 * number of actuated joints - 1)
+   * 5. Actuated joint positions: 12 - (12 + number of actuated joints - 1)
+   * 6. Actuated joint velocities: (12 + number of actuated joints) - (12 + 2 * number of actuated joints - 1)
    */
   using state_vector_t = Eigen::Matrix<ocs2::scalar_t, Eigen::Dynamic, 1>;
 }
