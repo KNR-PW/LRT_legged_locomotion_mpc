@@ -13,7 +13,7 @@ using namespace access_helper_functions;
 
 TEST(AccessHelperFunctions, RobotStateConst)
 {
-  ocs2::PinocchioInterface interface = createPinocchioInterfaceFromUrdfFile(meldogWithBaseLinkUrdfFile, baseLink);
+  ocs2::PinocchioInterface interface = floating_base_model::createPinocchioInterfaceFromUrdfFile(meldogWithBaseLinkUrdfFile, baseLink);
   auto info = createFloatingBaseModelInfo(interface, meldog3DofContactNames, meldog6DofContactNames);
   const auto state = getAccessTestRobotState();
 

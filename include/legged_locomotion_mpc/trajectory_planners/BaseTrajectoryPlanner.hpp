@@ -96,6 +96,12 @@ namespace legged_locomotion_mpc
          */
         BaseTrajectoryPlanner(floating_base_model::FloatingBaseModelInfo modelInfo,
           StaticSettings settings);
+        
+        /** 
+         * Update terrain model 
+         * @param [in] baseHeight: New base height
+         */
+        void updateBaseHeight(ocs2::scalar_t baseHeight);
 
         /** 
          * Update terrain model 
@@ -104,7 +110,7 @@ namespace legged_locomotion_mpc
         void updateTerrain(const terrain_model::TerrainModel& terrainModel);
         
         /** 
-         * Update target trajectories with base trajectory:
+         * Update target trajectories with new base trajectory:
          * - time points from initTime to finalTime
          * - 3D base position in world frame
          * - ZYX euler base orientation in world frame
@@ -153,6 +159,10 @@ namespace legged_locomotion_mpc
          * @return 3D trajectory
          */
         BaseReferenceTrajectory generateExtrapolatedBaseReference(ocs2::scalar_t initTime, 
+          ocs2::scalar_t finalTime, const state_vector_t& initialState,
+          const BaseReferenceCommand& command);
+
+        BaseReferenceTrajectory generateExtrapolatedBaseReference2(ocs2::scalar_t initTime, 
           ocs2::scalar_t finalTime, const state_vector_t& initialState,
           const BaseReferenceCommand& command);
         

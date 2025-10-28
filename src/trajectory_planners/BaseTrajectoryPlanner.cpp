@@ -22,6 +22,7 @@ namespace legged_locomotion_mpc
     using namespace ocs2;
     using namespace terrain_model;
     using namespace floating_base_model;
+    using namespace quaterion_euler_transforms;
 
     void addVelocitiesFromFiniteDifference(
       BaseTrajectoryPlanner::BaseReferenceTrajectory& baseReference) 
@@ -53,6 +54,41 @@ namespace legged_locomotion_mpc
       baseReference.linearVelocityInWorld.push_back(baseReference.linearVelocityInWorld.back());
     }
 
+    void addVelocitiesFromFiniteDifference2(
+      BaseTrajectoryPlanner::BaseReferenceTrajectory& baseReference) 
+    {
+      const size_t referenceSize = baseReference.time.size();
+      if (referenceSize <= 1) 
+      {
+        return;
+      }
+
+      baseReference.linearVelocityInWorld.clear();
+      baseReference.angularVelocityInWorld.clear();
+      baseReference.linearVelocityInWorld.reserve(referenceSize);
+      baseReference.angularVelocityInWorld.reserve(referenceSize);
+
+      for (size_t i = 0; (i + 1) < referenceSize; ++i) 
+      {
+        scalar_t inv_dt = 1 / (baseReference.time[i + 1] - baseReference.time[i]);
+        const matrix3_t newRotationMatrix = getRotationMatrixFromZyxEulerAngles(baseReference.eulerZyx[i + 1]);
+        const matrix3_t oldRotationMatrix = getRotationMatrixFromZyxEulerAngles(baseReference.eulerZyx[i]);
+
+        const pinocchio::SE3 newTransform(newRotationMatrix, baseReference.positionInWorld[i + 1]);
+        const pinocchio::SE3 oldTransform(oldRotationMatrix, baseReference.positionInWorld[i]);
+
+        const pinocchio::Motion deltaTwist = pinocchio::log6(oldTransform.actInv(newTransform));
+        baseReference.angularVelocityInWorld.push_back(
+          deltaTwist.angular() * inv_dt);
+        baseReference.linearVelocityInWorld.push_back(
+          deltaTwist.linear() * inv_dt);
+      }
+
+      // Add last velocities same as previous ones
+      baseReference.angularVelocityInWorld.push_back(baseReference.angularVelocityInWorld.back());
+      baseReference.linearVelocityInWorld.push_back(baseReference.linearVelocityInWorld.back());
+    }
+
     matrix3_t projectRotationMatrixOnPlane(const matrix3_t& rotationMatrixToWorld, const TerrainPlane& plane)
     {
       const vector3_t headingVector = rotationMatrixToWorld.col(0);
@@ -76,7 +112,7 @@ namespace legged_locomotion_mpc
       const matrix3_t projectedRotation = projectRotationMatrixOnPlane(rotationMatrix, 
         plane);
         
-      vector3_t newEuler = quaterion_euler_transforms::getEulerAnglesFromRotationMatrix(
+      vector3_t newEuler = getEulerAnglesFromRotationMatrix(
         projectedRotation);
 
       makeEulerAnglesUnique(newEuler);
@@ -101,6 +137,11 @@ namespace legged_locomotion_mpc
     {
       currentBaseHeight_ = settings.initialBaseHeight;
     }
+
+    void BaseTrajectoryPlanner::updateBaseHeight(ocs2::scalar_t baseHeight)
+    {
+      currentBaseHeight_ = baseHeight;
+    }
       
     void BaseTrajectoryPlanner::updateTerrain(const terrain_model::TerrainModel& terrainModel)
     {
@@ -112,12 +153,16 @@ namespace legged_locomotion_mpc
       const state_vector_t& initialState,
       TargetTrajectories& targetTrajectories)
     {
-      BaseTrajectoryPlanner::BaseReferenceTrajectory baseReference = generateExtrapolatedBaseReference(
+      BaseTrajectoryPlanner::BaseReferenceTrajectory baseReference = generateExtrapolatedBaseReference2(
         initTime, finalTime, initialState, command);
       
       const size_t referenceSize = baseReference.time.size();
+      vector_t initStateVector = vector_t(modelInfo_.stateDim);
+      vector_t initInputVector = vector_t(modelInfo_.inputDim);
       targetTrajectories.timeTrajectory = std::move(baseReference.time);
-      
+      targetTrajectories.stateTrajectory.resize(referenceSize, initStateVector);
+      targetTrajectories.inputTrajectory.resize(referenceSize, initInputVector);
+
       for(size_t i = 0; i < referenceSize; ++i)
       {
         vector_t& currentState = targetTrajectories.stateTrajectory[i];
@@ -130,9 +175,11 @@ namespace legged_locomotion_mpc
         const matrix3_t rotationMatrixToBase = getRotationMatrixFromZyxEulerAngles(
           baseReference.eulerZyx[i]).transpose();
         getBaseLinearVelocity(currentState, modelInfo_) = 
-          rotationMatrixToBase * baseReference.linearVelocityInWorld[i];
+          //rotationMatrixToBase * baseReference.linearVelocityInWorld[i];
+          baseReference.linearVelocityInWorld[i];
         getBaseAngularVelocity(currentState, modelInfo_) = 
-          rotationMatrixToBase * baseReference.angularVelocityInWorld[i];
+          //rotationMatrixToBase * baseReference.angularVelocityInWorld[i];
+          baseReference.angularVelocityInWorld[i];
       }
     }
 
@@ -161,7 +208,8 @@ namespace legged_locomotion_mpc
       const vector3_t& currentBasePosition = getBasePosition(initialState, modelInfo_);
       reference.positionInWorld.emplace_back(currentBasePosition.x(), currentBasePosition.y());
       
-      reference.baseRelativeHeight.push_back(currentBaseHeight_); // Terrain height will be added later
+      // Terrain height will be added later
+      reference.baseRelativeHeight.push_back(currentBaseHeight_);
 
       reference.yaw.push_back(projectEulerZyxToFrame(
         getBaseOrientationZyx(initialState, modelInfo_), TerrainPlane()).x());
@@ -169,7 +217,6 @@ namespace legged_locomotion_mpc
       for(size_t i = 1; i < referenceSize; ++i)
       { 
         reference.time.push_back(reference.time.back() + settings_.deltaTime);
-
         const vector2_t commandedVelocityInWorld = map2DVelocityCommandToWorld(
           command.baseHeadingVelocity, command.baseLateralVelocity, 
           reference.yaw.back() + 0.5 * command.yawRate * settings_.deltaTime);
@@ -200,13 +247,13 @@ namespace legged_locomotion_mpc
       // Helper to get a projected heading frame derived from the terrain.
       auto projectedHeadingPlane = [&](const vector2_t& baseXYPosition, scalar_t yaw) 
       {
-        vector2_t lfOffsetLocal(settings_.nominalBaseWidthHeading / 2.0, 
+        const vector2_t lfOffsetLocal(settings_.nominalBaseWidthHeading / 2.0, 
           settings_.nominalBaseWidtLateral / 2.0);
-        vector2_t rfOffsetLocal(settings_.nominalBaseWidthHeading / 2.0, 
+        const vector2_t rfOffsetLocal(settings_.nominalBaseWidthHeading / 2.0, 
           -settings_.nominalBaseWidtLateral / 2.0);
-        vector2_t lhOffsetLocal(-settings_.nominalBaseWidthHeading / 2.0, 
+        const vector2_t lhOffsetLocal(-settings_.nominalBaseWidthHeading / 2.0, 
           settings_.nominalBaseWidtLateral / 2.0);
-        vector2_t rhOffsetLocal(-settings_.nominalBaseWidthHeading / 2.0, 
+        const vector2_t rhOffsetLocal(-settings_.nominalBaseWidthHeading / 2.0, 
           -settings_.nominalBaseWidtLateral / 2.0);
         
         // Rotate from heading to world frame
@@ -222,10 +269,10 @@ namespace legged_locomotion_mpc
         rhOffsetGlobal += baseXYPosition;
 
         // Get position with smoothed terrain height
-        vector3_t lfVerticalProjection = terrainModel_->getSmoothedPositon(lfOffsetGlobal);
-        vector3_t rfVerticalProjection = terrainModel_->getSmoothedPositon(rfOffsetGlobal);
-        vector3_t lhVerticalProjection = terrainModel_->getSmoothedPositon(lhOffsetGlobal);
-        vector3_t rhVerticalProjection = terrainModel_->getSmoothedPositon(rhOffsetGlobal);
+        const vector3_t lfVerticalProjection = terrainModel_->getSmoothedPositon(lfOffsetGlobal);
+        const vector3_t rfVerticalProjection = terrainModel_->getSmoothedPositon(rfOffsetGlobal);
+        const vector3_t lhVerticalProjection = terrainModel_->getSmoothedPositon(lhOffsetGlobal);
+        const vector3_t rhVerticalProjection = terrainModel_->getSmoothedPositon(rhOffsetGlobal);
 
         const TerrainPlane basePlane = computeTerrainPlane({lfVerticalProjection, 
           rfVerticalProjection, lhVerticalProjection, rhVerticalProjection});
@@ -255,17 +302,149 @@ namespace legged_locomotion_mpc
         const auto projectedHeadingFrame = projectedHeadingPlane(flatReference.positionInWorld[i], 
           flatReference.yaw[i]);
         
-        vector3_t basePosition = projectedHeadingFrame.projectPositionInWorldOntoPlaneAlongGravity(
-          flatReference.positionInWorld[i]);
-        basePosition.z() += flatReference.baseRelativeHeight[i];
+        vector3_t basePosition = projectedHeadingFrame.getPosition();
+        basePosition += projectedHeadingFrame.getSurfaceNormalInWorld() * flatReference.baseRelativeHeight[i];
+        // basePosition.z() += flatReference.baseRelativeHeight[i];
 
         baseReference.positionInWorld.push_back(std::move(basePosition));
-
-        baseReference.eulerZyx.emplace_back(projectEulerZyxToFrame(
+        
+        baseReference.eulerZyx.push_back(projectEulerZyxToFrame(
           {flatReference.yaw[i], 0.0, 0.0}, projectedHeadingFrame));
       }
 
       addVelocitiesFromFiniteDifference(baseReference);
+      return baseReference;
+    }
+
+    BaseTrajectoryPlanner::BaseReferenceTrajectory BaseTrajectoryPlanner::generateExtrapolatedBaseReference2(
+      scalar_t initTime, scalar_t finalTime, const state_vector_t& initialState,
+      const BaseReferenceCommand& command)
+    {
+      // Helper to get a projected heading frame derived from the terrain.
+      auto projectedHeadingPlane = [&](vector2_t baseXYPosition, scalar_t yaw) 
+      {
+        const vector2_t lfOffsetLocal(settings_.nominalBaseWidthHeading / 2.0, 
+          settings_.nominalBaseWidtLateral / 2.0);
+        const vector2_t rfOffsetLocal(settings_.nominalBaseWidthHeading / 2.0, 
+          -settings_.nominalBaseWidtLateral / 2.0);
+        const vector2_t lhOffsetLocal(-settings_.nominalBaseWidthHeading / 2.0, 
+          settings_.nominalBaseWidtLateral / 2.0);
+        const vector2_t rhOffsetLocal(-settings_.nominalBaseWidthHeading / 2.0, 
+          -settings_.nominalBaseWidtLateral / 2.0);
+        
+        // Rotate from heading to world frame
+        vector2_t lfOffsetGlobal = rotateVector2D(lfOffsetLocal, yaw);
+        vector2_t rfOffsetGlobal = rotateVector2D(rfOffsetLocal, yaw);
+        vector2_t lhOffsetGlobal = rotateVector2D(lhOffsetLocal, yaw);
+        vector2_t rhOffsetGlobal = rotateVector2D(rhOffsetLocal, yaw);
+
+        // shift by base center
+        lfOffsetGlobal += baseXYPosition;
+        rfOffsetGlobal += baseXYPosition;
+        lhOffsetGlobal += baseXYPosition;
+        rhOffsetGlobal += baseXYPosition;
+
+        // Get position with smoothed terrain height
+        const vector3_t lfVerticalProjection = terrainModel_->getSmoothedPositon(lfOffsetGlobal);
+        const vector3_t rfVerticalProjection = terrainModel_->getSmoothedPositon(rfOffsetGlobal);
+        const vector3_t lhVerticalProjection = terrainModel_->getSmoothedPositon(lhOffsetGlobal);
+        const vector3_t rhVerticalProjection = terrainModel_->getSmoothedPositon(rhOffsetGlobal);
+
+        const TerrainPlane basePlane = computeTerrainPlane({lfVerticalProjection, 
+          rfVerticalProjection, lhVerticalProjection, rhVerticalProjection});
+        
+        const vector3_t eulerAngles(yaw, 0.0, 0.0);
+        
+        const matrix3_t oldRotation = getRotationMatrixFromZyxEulerAngles(eulerAngles);
+
+        const matrix3_t newRotationMatrix = projectRotationMatrixOnPlane(oldRotation, basePlane);
+
+        return TerrainPlane(basePlane.getPosition(), newRotationMatrix.transpose());
+      };
+      const vector3_t linearDelta{
+        command.baseHeadingVelocity * settings_.deltaTime, 
+        command.baseLateralVelocity * settings_.deltaTime, 
+        command.baseVerticalVelocity * settings_.deltaTime};
+
+      const vector3_t angularDelta{0.0, 0.0, command.yawRate * settings_.deltaTime};
+
+      const pinocchio::Motion twistDelta(linearDelta, angularDelta);
+
+      const pinocchio::SE3 SE3Delta = pinocchio::exp6(
+        twistDelta);
+
+      BaseTrajectoryPlanner::BaseReferenceTrajectory baseReference;
+
+      const size_t referenceSize = (finalTime - initTime) / settings_.deltaTime + 1;
+      
+      baseReference.time.reserve(referenceSize);
+      baseReference.eulerZyx.reserve(referenceSize);
+      baseReference.positionInWorld.reserve(referenceSize);
+      
+      using namespace legged_locomotion_mpc::access_helper_functions;
+      const vector3_t& realBasePosition = getBasePosition(initialState, modelInfo_);
+      const vector3_t& realBaseOrientationZyx = getBaseOrientationZyx(initialState, 
+        modelInfo_);
+      const matrix3_t realBaseRotation = getRotationMatrixFromZyxEulerAngles(
+        realBaseOrientationZyx);
+      
+      const scalar_t realBaseYaw = projectEulerZyxToFrame(
+        realBaseOrientationZyx, TerrainPlane()).x();
+
+      TerrainPlane currentBaseTerrain = projectedHeadingPlane({realBasePosition.x(), 
+        realBasePosition.y()}, realBaseYaw);
+
+      vector3_t currentBasePosition = currentBaseTerrain.getPosition();
+      currentBasePosition.z() +=
+        currentBaseHeight_ / currentBaseTerrain.getSurfaceNormalInWorld().z();
+
+      matrix3_t currentBaseRotation = projectRotationMatrixOnPlane(realBaseRotation, 
+        currentBaseTerrain);
+
+      vector3_t currentEulerZyx = getEulerAnglesFromRotationMatrix(
+        currentBaseRotation);
+
+      baseReference.time.push_back(initTime);
+      baseReference.positionInWorld.push_back(currentBasePosition);
+      baseReference.eulerZyx.push_back(currentEulerZyx);
+
+      for (size_t i = 1; i < referenceSize; ++i) 
+      {
+        const pinocchio::SE3 currentTransform(currentBaseRotation, currentBasePosition);
+        
+        // Extrapolate new position and orientation
+        const pinocchio::SE3 newTransform = currentTransform * SE3Delta;
+
+        const vector3_t newBasePosition = newTransform.translation();
+        const matrix3_t newRotationMatrix = newTransform.rotation();
+
+        vector3_t newEulerZyx = getEulerAnglesFromRotationMatrix(
+          newRotationMatrix);
+
+        
+        // Get new position and orientation on new plane
+        currentBaseTerrain = projectedHeadingPlane({newBasePosition.x(), 
+          newBasePosition.y()}, newEulerZyx.x());
+
+        currentBaseRotation = projectRotationMatrixOnPlane(newRotationMatrix, 
+          currentBaseTerrain);
+
+        currentBasePosition = currentBaseTerrain.getPosition();
+        const scalar_t deltaHeight = (currentBaseHeight_ + command.baseVerticalVelocity * settings_.deltaTime) / currentBaseTerrain.getSurfaceNormalInWorld().z();
+        currentBasePosition.z() += deltaHeight;
+      
+
+        currentEulerZyx = getEulerAnglesFromRotationMatrix(
+          currentBaseRotation);
+
+
+        baseReference.time.push_back(baseReference.time.back() + settings_.deltaTime);
+        baseReference.positionInWorld.push_back(currentBasePosition);
+        baseReference.eulerZyx.push_back(currentEulerZyx);
+        currentBaseHeight_ += command.baseVerticalVelocity * settings_.deltaTime;
+      }
+
+      addVelocitiesFromFiniteDifference2(baseReference);
       return baseReference;
     }
 	} // namespace planners
