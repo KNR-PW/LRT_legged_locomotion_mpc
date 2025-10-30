@@ -24,71 +24,6 @@ namespace legged_locomotion_mpc
     using namespace floating_base_model;
     using namespace quaterion_euler_transforms;
 
-    void addVelocitiesFromFiniteDifference(
-      BaseTrajectoryPlanner::BaseReferenceTrajectory& baseReference) 
-    {
-      const size_t referenceSize = baseReference.time.size();
-      if (referenceSize <= 1) 
-      {
-        return;
-      }
-
-      baseReference.linearVelocityInWorld.clear();
-      baseReference.angularVelocityInWorld.clear();
-      baseReference.linearVelocityInWorld.reserve(referenceSize);
-      baseReference.angularVelocityInWorld.reserve(referenceSize);
-
-      for (size_t i = 0; (i + 1) < referenceSize; ++i) 
-      {
-        scalar_t inv_dt = 1 / (baseReference.time[i + 1] - baseReference.time[i]);
-        const matrix3_t newRotationMatrix = getRotationMatrixFromZyxEulerAngles(baseReference.eulerZyx[i + 1]);
-        const matrix3_t oldRotationMatrix = getRotationMatrixFromZyxEulerAngles(baseReference.eulerZyx[i]);
-        baseReference.angularVelocityInWorld.push_back(
-          rotationErrorInWorld(newRotationMatrix, oldRotationMatrix) * inv_dt);
-        baseReference.linearVelocityInWorld.push_back(
-          (baseReference.positionInWorld[i + 1] - baseReference.positionInWorld[i]) * inv_dt);
-      }
-
-      // Add last velocities same as previous ones
-      baseReference.angularVelocityInWorld.push_back(baseReference.angularVelocityInWorld.back());
-      baseReference.linearVelocityInWorld.push_back(baseReference.linearVelocityInWorld.back());
-    }
-
-    void addVelocitiesFromFiniteDifference2(
-      BaseTrajectoryPlanner::BaseReferenceTrajectory& baseReference) 
-    {
-      const size_t referenceSize = baseReference.time.size();
-      if (referenceSize <= 1) 
-      {
-        return;
-      }
-
-      baseReference.linearVelocityInWorld.clear();
-      baseReference.angularVelocityInWorld.clear();
-      baseReference.linearVelocityInWorld.reserve(referenceSize);
-      baseReference.angularVelocityInWorld.reserve(referenceSize);
-
-      for (size_t i = 0; (i + 1) < referenceSize; ++i) 
-      {
-        scalar_t inv_dt = 1 / (baseReference.time[i + 1] - baseReference.time[i]);
-        const matrix3_t newRotationMatrix = getRotationMatrixFromZyxEulerAngles(baseReference.eulerZyx[i + 1]);
-        const matrix3_t oldRotationMatrix = getRotationMatrixFromZyxEulerAngles(baseReference.eulerZyx[i]);
-
-        const pinocchio::SE3 newTransform(newRotationMatrix, baseReference.positionInWorld[i + 1]);
-        const pinocchio::SE3 oldTransform(oldRotationMatrix, baseReference.positionInWorld[i]);
-
-        const pinocchio::Motion deltaTwist = pinocchio::log6(oldTransform.actInv(newTransform));
-        baseReference.angularVelocityInWorld.push_back(
-          deltaTwist.angular() * inv_dt);
-        baseReference.linearVelocityInWorld.push_back(
-          deltaTwist.linear() * inv_dt);
-      }
-
-      // Add last velocities same as previous ones
-      baseReference.angularVelocityInWorld.push_back(baseReference.angularVelocityInWorld.back());
-      baseReference.linearVelocityInWorld.push_back(baseReference.linearVelocityInWorld.back());
-    }
-
     matrix3_t projectRotationMatrixOnPlane(const matrix3_t& rotationMatrixToWorld, const TerrainPlane& plane)
     {
       const vector3_t headingVector = rotationMatrixToWorld.col(0);
@@ -153,174 +88,30 @@ namespace legged_locomotion_mpc
       const state_vector_t& initialState,
       TargetTrajectories& targetTrajectories)
     {
-      BaseTrajectoryPlanner::BaseReferenceTrajectory baseReference = generateExtrapolatedBaseReference2(
-        initTime, finalTime, initialState, command);
-      
-      const size_t referenceSize = baseReference.time.size();
-      vector_t initStateVector = vector_t(modelInfo_.stateDim);
-      vector_t initInputVector = vector_t(modelInfo_.inputDim);
-      targetTrajectories.timeTrajectory = std::move(baseReference.time);
-      targetTrajectories.stateTrajectory.resize(referenceSize, initStateVector);
-      targetTrajectories.inputTrajectory.resize(referenceSize, initInputVector);
-
-      for(size_t i = 0; i < referenceSize; ++i)
-      {
-        vector_t& currentState = targetTrajectories.stateTrajectory[i];
-        using namespace floating_base_model::access_helper_functions;
-        getBasePosition(currentState, modelInfo_) = 
-          baseReference.positionInWorld[i];
-        getBaseOrientationZyx(currentState, modelInfo_) = 
-          baseReference.eulerZyx[i];
-
-        const matrix3_t rotationMatrixToBase = getRotationMatrixFromZyxEulerAngles(
-          baseReference.eulerZyx[i]).transpose();
-        getBaseLinearVelocity(currentState, modelInfo_) = 
-          //rotationMatrixToBase * baseReference.linearVelocityInWorld[i];
-          baseReference.linearVelocityInWorld[i];
-        getBaseAngularVelocity(currentState, modelInfo_) = 
-          //rotationMatrixToBase * baseReference.angularVelocityInWorld[i];
-          baseReference.angularVelocityInWorld[i];
-      }
-    }
-
-    vector2_t BaseTrajectoryPlanner::map2DVelocityCommandToWorld(
-      scalar_t headingVelocity, scalar_t lateralVelocity, scalar_t yaw)
-    {
-      return rotateVector2D({headingVelocity, lateralVelocity}, yaw);
-    }
-
-    BaseTrajectoryPlanner::BaseFlatReferenceTrajectory BaseTrajectoryPlanner::generate2DExtrapolatedBaseReference(
-      scalar_t initTime, scalar_t finalTime, const state_vector_t& initialState,
-      const BaseTrajectoryPlanner::BaseReferenceCommand& command)
-    {
       const size_t referenceSize = (finalTime - initTime) / settings_.deltaTime + 1;
 
-      BaseTrajectoryPlanner::BaseFlatReferenceTrajectory reference;
-      reference.time.reserve(referenceSize);
-      reference.positionInWorld.reserve(referenceSize);
-      reference.yaw.reserve(referenceSize);
-      
-      using namespace legged_locomotion_mpc::access_helper_functions;
+      targetTrajectories.timeTrajectory.reserve(referenceSize);
 
-      // Starting from real position and real projected yaw
-      reference.time.push_back(initTime);
+      targetTrajectories.stateTrajectory.resize(referenceSize, 
+        vector_t::Zero(modelInfo_.stateDim));
 
-      const vector3_t& currentBasePosition = getBasePosition(initialState, modelInfo_);
-      reference.positionInWorld.emplace_back(currentBasePosition.x(), currentBasePosition.y());
-      
-      // Terrain height will be added later
-      reference.baseRelativeHeight.push_back(currentBaseHeight_);
+      targetTrajectories.inputTrajectory.resize(referenceSize, 
+        vector_t::Zero(modelInfo_.inputDim));
 
-      reference.yaw.push_back(projectEulerZyxToFrame(
-        getBaseOrientationZyx(initialState, modelInfo_), TerrainPlane()).x());
+      const vector3_t linearDelta{
+        command.baseHeadingVelocity * settings_.deltaTime, 
+        command.baseLateralVelocity * settings_.deltaTime, 
+        command.baseVerticalVelocity * settings_.deltaTime};
 
-      for(size_t i = 1; i < referenceSize; ++i)
-      { 
-        reference.time.push_back(reference.time.back() + settings_.deltaTime);
-        const vector2_t commandedVelocityInWorld = map2DVelocityCommandToWorld(
-          command.baseHeadingVelocity, command.baseLateralVelocity, 
-          reference.yaw.back() + 0.5 * command.yawRate * settings_.deltaTime);
-        reference.positionInWorld.emplace_back(
-          reference.positionInWorld.back().x() + 
-            commandedVelocityInWorld.x() * settings_.deltaTime, 
-          reference.positionInWorld.back().y() + 
-            commandedVelocityInWorld.y() * settings_.deltaTime);
+      const vector3_t angularDelta{0.0, 0.0, command.yawRate * settings_.deltaTime};
 
-        reference.baseRelativeHeight.push_back(
-          std::clamp(reference.baseRelativeHeight.back() + 
-            command.baseVerticalVelocity * settings_.deltaTime, settings_.minimumBaseHeight, 
-            settings_.maximumBaseHeight));
+      const pinocchio::Motion twistDelta(linearDelta, angularDelta);
 
-        reference.yaw.push_back(reference.yaw.back() + command.yawRate * settings_.deltaTime);
-      }
+      const pinocchio::SE3 SE3Delta = pinocchio::exp6(
+        twistDelta);
 
-      // Update current base height
-      currentBaseHeight_ = reference.baseRelativeHeight.back();
-
-      return reference;
-    }
-
-    BaseTrajectoryPlanner::BaseReferenceTrajectory BaseTrajectoryPlanner::generateExtrapolatedBaseReference(
-      scalar_t initTime, scalar_t finalTime, const state_vector_t& initialState,
-      const BaseReferenceCommand& command)
-    {
       // Helper to get a projected heading frame derived from the terrain.
-      auto projectedHeadingPlane = [&](const vector2_t& baseXYPosition, scalar_t yaw) 
-      {
-        const vector2_t lfOffsetLocal(settings_.nominalBaseWidthHeading / 2.0, 
-          settings_.nominalBaseWidtLateral / 2.0);
-        const vector2_t rfOffsetLocal(settings_.nominalBaseWidthHeading / 2.0, 
-          -settings_.nominalBaseWidtLateral / 2.0);
-        const vector2_t lhOffsetLocal(-settings_.nominalBaseWidthHeading / 2.0, 
-          settings_.nominalBaseWidtLateral / 2.0);
-        const vector2_t rhOffsetLocal(-settings_.nominalBaseWidthHeading / 2.0, 
-          -settings_.nominalBaseWidtLateral / 2.0);
-        
-        // Rotate from heading to world frame
-        vector2_t lfOffsetGlobal = rotateVector2D(lfOffsetLocal, yaw);
-        vector2_t rfOffsetGlobal = rotateVector2D(rfOffsetLocal, yaw);
-        vector2_t lhOffsetGlobal = rotateVector2D(lhOffsetLocal, yaw);
-        vector2_t rhOffsetGlobal = rotateVector2D(rhOffsetLocal, yaw);
-
-        // shift by base center
-        lfOffsetGlobal += baseXYPosition;
-        rfOffsetGlobal += baseXYPosition;
-        lhOffsetGlobal += baseXYPosition;
-        rhOffsetGlobal += baseXYPosition;
-
-        // Get position with smoothed terrain height
-        const vector3_t lfVerticalProjection = terrainModel_->getSmoothedPositon(lfOffsetGlobal);
-        const vector3_t rfVerticalProjection = terrainModel_->getSmoothedPositon(rfOffsetGlobal);
-        const vector3_t lhVerticalProjection = terrainModel_->getSmoothedPositon(lhOffsetGlobal);
-        const vector3_t rhVerticalProjection = terrainModel_->getSmoothedPositon(rhOffsetGlobal);
-
-        const TerrainPlane basePlane = computeTerrainPlane({lfVerticalProjection, 
-          rfVerticalProjection, lhVerticalProjection, rhVerticalProjection});
-        
-        const vector3_t eulerAngles(yaw, 0.0, 0.0);
-        
-        const matrix3_t oldRotation = getRotationMatrixFromZyxEulerAngles(eulerAngles);
-
-        const matrix3_t newRotationMatrix = projectRotationMatrixOnPlane(oldRotation, basePlane);
-
-        return TerrainPlane(basePlane.getPosition(), newRotationMatrix.transpose());
-      };
-
-      const auto flatReference = generate2DExtrapolatedBaseReference(initTime, finalTime, 
-        initialState, command);
-
-      BaseTrajectoryPlanner::BaseReferenceTrajectory baseReference;
-      baseReference.time = std::move(flatReference.time);
-      size_t referenceSize = baseReference.time.size();
-
-      baseReference.eulerZyx.reserve(referenceSize);
-      baseReference.positionInWorld.reserve(referenceSize);
-
-      // Adapt poses
-      for (size_t i = 0; i < referenceSize; ++i) 
-      {
-        const auto projectedHeadingFrame = projectedHeadingPlane(flatReference.positionInWorld[i], 
-          flatReference.yaw[i]);
-        
-        vector3_t basePosition = projectedHeadingFrame.getPosition();
-        basePosition += projectedHeadingFrame.getSurfaceNormalInWorld() * flatReference.baseRelativeHeight[i];
-        // basePosition.z() += flatReference.baseRelativeHeight[i];
-
-        baseReference.positionInWorld.push_back(std::move(basePosition));
-        
-        baseReference.eulerZyx.push_back(projectEulerZyxToFrame(
-          {flatReference.yaw[i], 0.0, 0.0}, projectedHeadingFrame));
-      }
-
-      addVelocitiesFromFiniteDifference(baseReference);
-      return baseReference;
-    }
-
-    BaseTrajectoryPlanner::BaseReferenceTrajectory BaseTrajectoryPlanner::generateExtrapolatedBaseReference2(
-      scalar_t initTime, scalar_t finalTime, const state_vector_t& initialState,
-      const BaseReferenceCommand& command)
-    {
-      // Helper to get a projected heading frame derived from the terrain.
+      // TODO Think how to change it for robots with other number of legs
       auto projectedHeadingPlane = [&](vector2_t baseXYPosition, scalar_t yaw) 
       {
         const vector2_t lfOffsetLocal(settings_.nominalBaseWidthHeading / 2.0, 
@@ -361,91 +152,96 @@ namespace legged_locomotion_mpc
 
         return TerrainPlane(basePlane.getPosition(), newRotationMatrix.transpose());
       };
-      const vector3_t linearDelta{
-        command.baseHeadingVelocity * settings_.deltaTime, 
-        command.baseLateralVelocity * settings_.deltaTime, 
-        command.baseVerticalVelocity * settings_.deltaTime};
-
-      const vector3_t angularDelta{0.0, 0.0, command.yawRate * settings_.deltaTime};
-
-      const pinocchio::Motion twistDelta(linearDelta, angularDelta);
-
-      const pinocchio::SE3 SE3Delta = pinocchio::exp6(
-        twistDelta);
-
-      BaseTrajectoryPlanner::BaseReferenceTrajectory baseReference;
-
-      const size_t referenceSize = (finalTime - initTime) / settings_.deltaTime + 1;
       
-      baseReference.time.reserve(referenceSize);
-      baseReference.eulerZyx.reserve(referenceSize);
-      baseReference.positionInWorld.reserve(referenceSize);
-      
-      using namespace legged_locomotion_mpc::access_helper_functions;
-      const vector3_t& realBasePosition = getBasePosition(initialState, modelInfo_);
-      const vector3_t& realBaseOrientationZyx = getBaseOrientationZyx(initialState, 
+      const vector3_t currentBasePosition = legged_locomotion_mpc::
+        access_helper_functions::getBasePosition(initialState, modelInfo_);
+
+      const vector3_t currentBaseOrientationZyx = legged_locomotion_mpc::
+        access_helper_functions::getBaseOrientationZyx(initialState, 
         modelInfo_);
-      const matrix3_t realBaseRotation = getRotationMatrixFromZyxEulerAngles(
-        realBaseOrientationZyx);
-      
-      const scalar_t realBaseYaw = projectEulerZyxToFrame(
-        realBaseOrientationZyx, TerrainPlane()).x();
 
-      TerrainPlane currentBaseTerrain = projectedHeadingPlane({realBasePosition.x(), 
-        realBasePosition.y()}, realBaseYaw);
+      const matrix3_t currentBaseRotation = getRotationMatrixFromZyxEulerAngles(
+        currentBaseOrientationZyx);
 
-      vector3_t currentBasePosition = currentBaseTerrain.getPosition();
-      currentBasePosition.z() +=
-        currentBaseHeight_ / currentBaseTerrain.getSurfaceNormalInWorld().z();
+      const scalar_t invDeltaTime = 1 / settings_.deltaTime;
 
-      matrix3_t currentBaseRotation = projectRotationMatrixOnPlane(realBaseRotation, 
-        currentBaseTerrain);
+      pinocchio::SE3 currentTransform(currentBaseRotation, currentBasePosition);
 
-      vector3_t currentEulerZyx = getEulerAnglesFromRotationMatrix(
-        currentBaseRotation);
 
-      baseReference.time.push_back(initTime);
-      baseReference.positionInWorld.push_back(currentBasePosition);
-      baseReference.eulerZyx.push_back(currentEulerZyx);
+      targetTrajectories.timeTrajectory.push_back(initTime);
+
+      vector_t& initStateVector = targetTrajectories.stateTrajectory[0];
+
+      floating_base_model::access_helper_functions::
+        getBasePosition(initStateVector, modelInfo_) = currentBasePosition;
+
+      floating_base_model::access_helper_functions::
+        getBaseOrientationZyx(initStateVector, modelInfo_) = currentBaseOrientationZyx;
 
       for (size_t i = 1; i < referenceSize; ++i) 
       {
-        const pinocchio::SE3 currentTransform(currentBaseRotation, currentBasePosition);
-        
-        // Extrapolate new position and orientation
-        const pinocchio::SE3 newTransform = currentTransform * SE3Delta;
-
-        const vector3_t newBasePosition = newTransform.translation();
-        const matrix3_t newRotationMatrix = newTransform.rotation();
-
-        vector3_t newEulerZyx = getEulerAnglesFromRotationMatrix(
-          newRotationMatrix);
-
-        
-        // Get new position and orientation on new plane
-        currentBaseTerrain = projectedHeadingPlane({newBasePosition.x(), 
-          newBasePosition.y()}, newEulerZyx.x());
-
-        currentBaseRotation = projectRotationMatrixOnPlane(newRotationMatrix, 
-          currentBaseTerrain);
-
-        currentBasePosition = currentBaseTerrain.getPosition();
-        const scalar_t deltaHeight = (currentBaseHeight_ + command.baseVerticalVelocity * settings_.deltaTime) / currentBaseTerrain.getSurfaceNormalInWorld().z();
-        currentBasePosition.z() += deltaHeight;
-      
-
-        currentEulerZyx = getEulerAnglesFromRotationMatrix(
-          currentBaseRotation);
-
-
-        baseReference.time.push_back(baseReference.time.back() + settings_.deltaTime);
-        baseReference.positionInWorld.push_back(currentBasePosition);
-        baseReference.eulerZyx.push_back(currentEulerZyx);
+        // New base height normal to plane 
         currentBaseHeight_ += command.baseVerticalVelocity * settings_.deltaTime;
+        
+        // Get new position and orientation with current body velocities
+        pinocchio::SE3 newTransform = currentTransform * SE3Delta;
+
+        vector3_t newBasePosition = newTransform.translation();
+        matrix3_t newBaseRotation = newTransform.rotation();
+
+        vector3_t newBaseOrientationZyx = getEulerAnglesFromRotationMatrix(
+          newBaseRotation);
+
+        // Get new position and orientation on new plane
+        const TerrainPlane newBaseTerrain = projectedHeadingPlane({newBasePosition.x(), 
+          newBasePosition.y()}, newBaseOrientationZyx.x());
+
+        newBaseRotation = projectRotationMatrixOnPlane(newBaseRotation, 
+          newBaseTerrain);
+
+        newBasePosition = newBaseTerrain.getPosition();
+
+        // Add new height to position, taking into accoount fact that base is on terrain plane
+        newBasePosition.z() += currentBaseHeight_ / 
+          newBaseTerrain.getSurfaceNormalInWorld().z();;
+      
+        newBaseOrientationZyx = getEulerAnglesFromRotationMatrix(
+          newBaseRotation);
+        
+        // Make new transform from base and rotation on plane
+        newTransform = pinocchio::SE3(newBaseRotation, newBasePosition);
+        
+        // Get twist from current -> new transforms
+        const pinocchio::Motion newTwist = pinocchio::log6(
+          currentTransform.actInv(newTransform)) * invDeltaTime;
+
+        vector_t& currentStateVector = targetTrajectories.stateTrajectory[i];
+
+        floating_base_model::access_helper_functions::
+          getBasePosition(currentStateVector, modelInfo_) = newBasePosition;
+
+        floating_base_model::access_helper_functions::
+          getBaseOrientationZyx(currentStateVector, modelInfo_) = 
+          newBaseOrientationZyx;
+
+        vector_t& previousStateVector = targetTrajectories.stateTrajectory[i - 1];
+
+        floating_base_model::access_helper_functions::
+          getBaseVelocity(previousStateVector, modelInfo_) = newTwist.toVector();
+
+        targetTrajectories.timeTrajectory.push_back(
+          targetTrajectories.timeTrajectory.back() + settings_.deltaTime);
+        
+        currentTransform = newTransform;
       }
 
-      addVelocitiesFromFiniteDifference2(baseReference);
-      return baseReference;
+      const vector_t& almostLastStateVector = targetTrajectories.stateTrajectory[referenceSize - 2];
+      vector_t& lastStateVector = targetTrajectories.stateTrajectory[referenceSize - 1];
+
+      floating_base_model::access_helper_functions::
+        getBaseVelocity(lastStateVector, modelInfo_) = 
+        floating_base_model::access_helper_functions::
+        getBaseVelocity(almostLastStateVector, modelInfo_);
     }
 	} // namespace planners
 } // namespace legged_locomotion_mpc

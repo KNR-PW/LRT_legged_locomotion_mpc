@@ -70,25 +70,6 @@ namespace legged_locomotion_mpc
           ocs2::scalar_t yawRate;
         };
 
-        struct BaseFlatReferenceTrajectory 
-        {
-          EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-          std::vector<ocs2::scalar_t> time;
-          std::vector<ocs2::scalar_t> yaw;
-          std::vector<vector2_t> positionInWorld;
-          std::vector<ocs2::scalar_t> baseRelativeHeight;
-        };
-
-        struct BaseReferenceTrajectory 
-        {
-          EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-          std::vector<ocs2::scalar_t> time;
-          std::vector<vector3_t> eulerZyx;
-          std::vector<vector3_t> positionInWorld;
-          std::vector<vector3_t> linearVelocityInWorld;
-          std::vector<vector3_t> angularVelocityInWorld;
-        };
-
         /**
          * Constructor for a BaseTrajectoryPlanner.
          * @param [in] modelInfo: FloatingBase model info
@@ -127,44 +108,6 @@ namespace legged_locomotion_mpc
           const state_vector_t& initialState, ocs2::TargetTrajectories& targetTrajectories);
 
       private:
-
-        /** 
-         * map 2D velocity to world frame by rotating by yaw angle
-         * @param [in] headingVelocity: heading velocity
-         * @param [in] lateralVelocity: lateral velocity
-         * @param [in] yaw: angle
-         */
-        vector2_t map2DVelocityCommandToWorld(ocs2::scalar_t headingVelocity, 
-          ocs2::scalar_t lateralVelocity, ocs2::scalar_t yaw);
-        
-        /** 
-         * Generate 2D base reference (2D position + yaw orientation) in plane frame + 
-         * robot relative height reference
-         * @param [in] initTime: initial time
-         * @param [in] finalTime: final time
-         * @param [in] initialState: current robot state (taken from sensors)
-         * @param [in] command: base command
-         * @return 2D trajectory
-         */
-        BaseFlatReferenceTrajectory generate2DExtrapolatedBaseReference(ocs2::scalar_t initTime, 
-          ocs2::scalar_t finalTime, const state_vector_t& initialState,
-          const BaseReferenceCommand& command);
-        
-        /** 
-         * Generate 3D base reference (3D position + ZYX euler orientation) in world frame
-         * @param [in] initTime: initial time
-         * @param [in] finalTime: final time
-         * @param [in] initialState: current robot state (taken from sensors)
-         * @param [in] command: base command
-         * @return 3D trajectory
-         */
-        BaseReferenceTrajectory generateExtrapolatedBaseReference(ocs2::scalar_t initTime, 
-          ocs2::scalar_t finalTime, const state_vector_t& initialState,
-          const BaseReferenceCommand& command);
-
-        BaseReferenceTrajectory generateExtrapolatedBaseReference2(ocs2::scalar_t initTime, 
-          ocs2::scalar_t finalTime, const state_vector_t& initialState,
-          const BaseReferenceCommand& command);
         
         ocs2::scalar_t currentBaseHeight_;
         floating_base_model::FloatingBaseModelInfo modelInfo_;

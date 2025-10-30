@@ -21,7 +21,7 @@ using namespace ocs2;
 using namespace terrain_model;
 using namespace floating_base_model;
 
-static void BaseTrajectoryPlanner_OLD_UPDATE(benchmark::State & state)
+static void BaseTrajectoryPlanner_UPDATE(benchmark::State & state)
 {
 const scalar_t slope = -M_PI / 4;
   const vector3_t terrainEulerZyx{0.0, slope, 0.0};
@@ -40,7 +40,7 @@ const scalar_t slope = -M_PI / 4;
   modelInfo.numThreeDofContacts = 4;
 
   BaseTrajectoryPlanner::StaticSettings staticSettings;
-  staticSettings.deltaTime = 0.1;
+  staticSettings.deltaTime = 0.05;
   staticSettings.initialBaseHeight = 2.5;
   staticSettings.minimumBaseHeight = 0.1;
   staticSettings.maximumBaseHeight = 5.0;
@@ -50,8 +50,8 @@ const scalar_t slope = -M_PI / 4;
   BaseTrajectoryPlanner planner(modelInfo, staticSettings);
   planner.updateTerrain(terrainModel);
 
-  const scalar_t initTime = 0.5;
-  const scalar_t finalTime = 1.5;
+  const scalar_t initTime = 0.0;
+  const scalar_t finalTime = 1.0;
 
   BaseTrajectoryPlanner::BaseReferenceCommand command;
   command.baseHeadingVelocity = std::rand() / scalar_t(RAND_MAX);
@@ -69,6 +69,6 @@ const scalar_t slope = -M_PI / 4;
   }
 }
 
-BENCHMARK(BaseTrajectoryPlanner_OLD_UPDATE);
+BENCHMARK(BaseTrajectoryPlanner_UPDATE);
 
 BENCHMARK_MAIN();
