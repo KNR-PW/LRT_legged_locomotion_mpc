@@ -8,14 +8,13 @@
 
 
 #include <floating_base_model/QuaterionEulerTransforms.hpp>
+#include <floating_base_model/FloatingBaseModelInfo.hpp>
+#include <floating_base_model/FloatingBaseModelPinocchioMapping.hpp>
 
 #include <legged_locomotion_mpc/common/Types.hpp>
-#include <legged_locomotion_mpc/kinematics/ForwardEndEffectorKinematicsInfo.hpp>
 
 #include <ocs2_core/automatic_differentiation/CppAdInterface.h>
 #include <ocs2_pinocchio_interface/PinocchioInterface.h>
-#include <ocs2_pinocchio_interface/PinocchioStateInputMapping.h>
-
 
 #include <functional>
 #include <string>
@@ -54,30 +53,7 @@ namespace legged_locomotion_mpc
      */
     PinocchioForwardEndEffectorKinematicsCppAd(
         const ocs2::PinocchioInterface& pinocchioInterface,
-        const ocs2::PinocchioStateInputMapping<ocs2::ad_scalar_t>& mapping,
-        const ForwardEndEffectorKinematicsInfo info,
-        const std::string& modelName,
-        const std::string& modelFolder = "/tmp/ocs2",
-        bool recompileLibraries = true, bool verbose = false);
-
-    /** Constructor
-     * @param [in] pinocchioInterface pinocchio interface.
-     * @param [in] mapping mapping from OCS2 to pinocchio state.
-     * @param [in] info: info of kinematics model
-     * @param [in] updateCallback : In the cases that PinocchioStateInputMapping
-     * requires some additional update calls on PinocchioInterface, use this
-     * callback.
-     * @param [in] modelName : name of the generate model library
-     * @param [in] modelFolder : folder to save the model library files to
-     * @param [in] recompileLibraries : If true, the model library will be newly
-     * compiled. If false, an existing library will be loaded if available.
-     * @param [in] verbose : print information.
-     */
-    PinocchioForwardEndEffectorKinematicsCppAd(
-        const ocs2::PinocchioInterface& pinocchioInterface,
-        const ocs2::PinocchioStateInputMapping<ocs2::ad_scalar_t>& mapping,
-        const ForwardEndEffectorKinematicsInfo info,
-        update_pinocchio_interface_callback updateCallback,
+        const floating_base_model::FloatingBaseModelInfo info,
         const std::string& modelName,
         const std::string& modelFolder = "/tmp/ocs2",
         bool recompileLibraries = true, bool verbose = false);
@@ -87,7 +63,7 @@ namespace legged_locomotion_mpc
     PinocchioForwardEndEffectorKinematicsCppAd& operator =(
         const PinocchioForwardEndEffectorKinematicsCppAd&) = delete;
 
-    const ForwardEndEffectorKinematicsInfo& getInfo() const;
+    const floating_base_model::FloatingBaseModelInfo& getInfo() const;
 
     std::vector<vector3_t> getPosition(const ocs2::vector_t& state) const;
 
@@ -117,23 +93,23 @@ namespace legged_locomotion_mpc
 
     ocs2::ad_vector_t getPositionCppAd(
       ocs2::PinocchioInterfaceCppAd& pinocchioInterfaceCppAd,
-        const ocs2::PinocchioStateInputMapping<ocs2::ad_scalar_t>& mapping,
+        const floating_base_model::FloatingBaseModelPinocchioMappingCppAd& mapping,
         const ocs2::ad_vector_t& state);
     
     ocs2::ad_vector_t getOrientationCppAd(
       ocs2::PinocchioInterfaceCppAd& pinocchioInterfaceCppAd,
-        const ocs2::PinocchioStateInputMapping<ocs2::ad_scalar_t>& mapping,
+        const floating_base_model::FloatingBaseModelPinocchioMappingCppAd& mapping,
         const ocs2::ad_vector_t& state);
 
 
     ocs2::ad_vector_t getLinearVelocityCppAd(
       ocs2::PinocchioInterfaceCppAd& pinocchioInterfaceCppAd,
-        const ocs2::PinocchioStateInputMapping<ocs2::ad_scalar_t>& mapping,
+        const floating_base_model::FloatingBaseModelPinocchioMappingCppAd& mapping,
         const ocs2::ad_vector_t& state, const ocs2::ad_vector_t& input);
     
     ocs2::ad_vector_t getAngularVelocityCppAd(
       ocs2::PinocchioInterfaceCppAd& pinocchioInterfaceCppAd,
-        const ocs2::PinocchioStateInputMapping<ocs2::ad_scalar_t>& mapping,
+        const floating_base_model::FloatingBaseModelPinocchioMappingCppAd& mapping,
         const ocs2::ad_vector_t& state, const ocs2::ad_vector_t& input);
 
 
@@ -143,7 +119,8 @@ namespace legged_locomotion_mpc
     std::unique_ptr<ocs2::CppAdInterface> linearVelocityCppAdInterfacePtr_;
     std::unique_ptr<ocs2::CppAdInterface> angularVelocityCppAdInterfacePtr_;
 
-    const ForwardEndEffectorKinematicsInfo info_;
+    const floating_base_model::FloatingBaseModelInfo info_;
+    const size_t numEndEffectors_;
   };
 
 };  // namespace legged_locomotion_mpc

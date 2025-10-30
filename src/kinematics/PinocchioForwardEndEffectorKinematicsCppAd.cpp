@@ -1,78 +1,54 @@
 #include <legged_locomotion_mpc/kinematics/PinocchioForwardEndEffectorKinematicsCppAd.hpp>
 
-namespace 
-{
-  void defaultUpdatePinocchioInterface(const ocs2::ad_vector_t&,
-    ocs2::PinocchioInterfaceTpl<ocs2::ad_scalar_t>&) {}
-}  // unnamed namespace
 
 namespace legged_locomotion_mpc 
 {
 
   using namespace ocs2;
+  using namespace floating_base_model;
 
   /******************************************************************************************************/
   /******************************************************************************************************/
   /******************************************************************************************************/
   PinocchioForwardEndEffectorKinematicsCppAd::PinocchioForwardEndEffectorKinematicsCppAd(
     const PinocchioInterface& pinocchioInterface,
-    const PinocchioStateInputMapping<ad_scalar_t>& mapping,
-    const ForwardEndEffectorKinematicsInfo info, const std::string& modelName,
-    const std::string& modelFolder, bool recompileLibraries,
-    bool verbose)
-    :PinocchioForwardEndEffectorKinematicsCppAd(pinocchioInterface,
-      mapping, info, &defaultUpdatePinocchioInterface, modelName, modelFolder,
-      recompileLibraries, verbose) {}
-
-  /******************************************************************************************************/
-  /******************************************************************************************************/
-  /******************************************************************************************************/
-  PinocchioForwardEndEffectorKinematicsCppAd::PinocchioForwardEndEffectorKinematicsCppAd(
-    const PinocchioInterface& pinocchioInterface,
-    const PinocchioStateInputMapping<ad_scalar_t>& mapping,
-    const ForwardEndEffectorKinematicsInfo info,
-    update_pinocchio_interface_callback updateCallback,
-    const std::string& modelName, const std::string& modelFolder,
-    bool recompileLibraries, bool verbose)
-    :info_(info)
+    const FloatingBaseModelInfo info, const std::string& modelName,
+    const std::string& modelFolder, bool recompileLibraries, bool verbose): 
+      numEndEffectors_(info.numThreeDofContacts + info.numSixDofContacts), 
+      info_(std::move(info))
   {
-
     // initialize CppAD interface
     auto pinocchioInterfaceCppAd = pinocchioInterface.toCppAd();
-
-    // set pinocchioInterface to mapping
-    std::unique_ptr<PinocchioStateInputMapping<ad_scalar_t>> mappingPtr(mapping.clone());
-    mappingPtr->setPinocchioInterface(pinocchioInterfaceCppAd);
+  
+    // mapping
+    FloatingBaseModelPinocchioMappingCppAd mappingCppAd(info.toCppAd());
+     mappingCppAd.setPinocchioInterface(pinocchioInterfaceCppAd);
 
     // position function
-    auto positionFunc = [&, this](const ad_vector_t& x, ad_vector_t& y) {
-      updateCallback(x, pinocchioInterfaceCppAd);
-      y = getPositionCppAd(pinocchioInterfaceCppAd, *mappingPtr, x);
+    auto positionFunc = [&](const ad_vector_t& x, ad_vector_t& y) {
+      y = getPositionCppAd(pinocchioInterfaceCppAd, mappingCppAd, x);
     };
     positionCppAdInterfacePtr_.reset(new CppAdInterface(positionFunc, info_.stateDim, modelName + "_position", modelFolder));
 
     // orientation function
-    auto orientationFunc = [&, this](const ad_vector_t& x, ad_vector_t& y) {
-      updateCallback(x, pinocchioInterfaceCppAd);
-      y = getOrientationCppAd(pinocchioInterfaceCppAd, *mappingPtr, x);
+    auto orientationFunc = [&](const ad_vector_t& x, ad_vector_t& y) {
+      y = getOrientationCppAd(pinocchioInterfaceCppAd, mappingCppAd, x);
     };
     orientationCppAdInterfacePtr_.reset(new CppAdInterface(orientationFunc, info_.stateDim, modelName + "_orientation", modelFolder));
 
     // linear velocity function
-    auto linearVelocityFunc = [&, this](const ad_vector_t& x, ad_vector_t& y) {
+    auto linearVelocityFunc = [&](const ad_vector_t& x, ad_vector_t& y) {
       const ad_vector_t state = x.head(info_.stateDim);
       const ad_vector_t input = x.tail(info_.inputDim);
-      updateCallback(state, pinocchioInterfaceCppAd);
-      y = getLinearVelocityCppAd(pinocchioInterfaceCppAd, *mappingPtr, state, input);
+      y = getLinearVelocityCppAd(pinocchioInterfaceCppAd, mappingCppAd, state, input);
     };
     linearVelocityCppAdInterfacePtr_.reset(new CppAdInterface(linearVelocityFunc, info_.stateDim + info_.inputDim, modelName + "_linear_velocity", modelFolder));
 
     // angular velocity function
-    auto angularVelocityFunc = [&, this](const ad_vector_t& x, ad_vector_t& y) {
+    auto angularVelocityFunc = [&](const ad_vector_t& x, ad_vector_t& y) {
       const ad_vector_t state = x.head(info_.stateDim);
       const ad_vector_t input = x.tail(info_.inputDim);
-      updateCallback(state, pinocchioInterfaceCppAd);
-      y = getAngularVelocityCppAd(pinocchioInterfaceCppAd, *mappingPtr, state, input);
+      y = getAngularVelocityCppAd(pinocchioInterfaceCppAd, mappingCppAd, state, input);
     };
     angularVelocityCppAdInterfacePtr_.reset(new CppAdInterface(angularVelocityFunc, info_.stateDim + info_.inputDim, modelName + "_angular_velocity", modelFolder));
 
@@ -97,7 +73,7 @@ namespace legged_locomotion_mpc
     orientationCppAdInterfacePtr_(new CppAdInterface(*rhs.orientationCppAdInterfacePtr_)),
     linearVelocityCppAdInterfacePtr_(new CppAdInterface(*rhs.linearVelocityCppAdInterfacePtr_)),
     angularVelocityCppAdInterfacePtr_(new CppAdInterface(*rhs.angularVelocityCppAdInterfacePtr_)),
-
+    numEndEffectors_(rhs.numEndEffectors_),
     info_(rhs.info_) {}
 
   /******************************************************************************************************/
@@ -111,7 +87,7 @@ namespace legged_locomotion_mpc
   /******************************************************************************************************/
   /******************************************************************************************************/
   /******************************************************************************************************/
-  const ForwardEndEffectorKinematicsInfo& PinocchioForwardEndEffectorKinematicsCppAd::getInfo() const
+  const FloatingBaseModelInfo& PinocchioForwardEndEffectorKinematicsCppAd::getInfo() const
   {
     return info_;
   }
@@ -121,7 +97,7 @@ namespace legged_locomotion_mpc
   /******************************************************************************************************/
   ad_vector_t PinocchioForwardEndEffectorKinematicsCppAd::getPositionCppAd(
     PinocchioInterfaceCppAd& pinocchioInterfaceCppAd,
-    const PinocchioStateInputMapping<ad_scalar_t>& mapping,
+    const FloatingBaseModelPinocchioMappingCppAd& mapping,
     const ad_vector_t& state) 
   {
     const auto& model = pinocchioInterfaceCppAd.getModel();
@@ -131,8 +107,8 @@ namespace legged_locomotion_mpc
     pinocchio::forwardKinematics(model, data, q);
     pinocchio::updateFramePlacements(model, data);
 
-    ad_vector_t positions(3 * info_.numEndEffectors);
-    for (size_t i = 0; i < info_.numEndEffectors; i++) {
+    ad_vector_t positions(3 * numEndEffectors_);
+    for (size_t i = 0; i < numEndEffectors_; i++) {
       const size_t frameId = info_.endEffectorFrameIndices[i];
       positions.segment<3>(3 * i) = data.oMf[frameId].translation();
     }
@@ -147,7 +123,7 @@ namespace legged_locomotion_mpc
     const vector_t positionValues = positionCppAdInterfacePtr_->getFunctionValue(state);
 
     std::vector<vector3_t> positions;
-    for (size_t i = 0; i < info_.numEndEffectors; i++) {
+    for (size_t i = 0; i < numEndEffectors_; i++) {
       positions.emplace_back(positionValues.segment<3>(3 * i));
     }
     return positions;
@@ -163,7 +139,7 @@ namespace legged_locomotion_mpc
     const matrix_t positionJacobian = positionCppAdInterfacePtr_->getJacobian(state);
 
     std::vector<VectorFunctionLinearApproximation> positions;
-    for (size_t i = 0; i < info_.numEndEffectors; i++) {
+    for (size_t i = 0; i < numEndEffectors_; i++) {
       VectorFunctionLinearApproximation pos;
       pos.f = positionValues.segment<3>(3 * i);
       pos.dfdx = positionJacobian.block(3 * i, 0, 3, state.rows());
@@ -176,8 +152,9 @@ namespace legged_locomotion_mpc
   /******************************************************************************************************/
   /******************************************************************************************************/
   /******************************************************************************************************/
-  ad_vector_t PinocchioForwardEndEffectorKinematicsCppAd::getOrientationCppAd(PinocchioInterfaceCppAd& pinocchioInterfaceCppAd,
-    const PinocchioStateInputMapping<ad_scalar_t>& mapping,
+  ad_vector_t PinocchioForwardEndEffectorKinematicsCppAd::getOrientationCppAd(
+    PinocchioInterfaceCppAd& pinocchioInterfaceCppAd,
+    const FloatingBaseModelPinocchioMappingCppAd& mapping,
     const ad_vector_t& state) 
   {
     const auto& model = pinocchioInterfaceCppAd.getModel();
@@ -187,8 +164,8 @@ namespace legged_locomotion_mpc
     pinocchio::forwardKinematics(model, data, q);
     pinocchio::updateFramePlacements(model, data);
 
-    ad_vector_t orientations(3 * info_.numSixDofEndEffectors);
-    for (size_t i = info_.numThreeDofEndEffectors; i < info_.numEndEffectors; i++) 
+    ad_vector_t orientations(3 * info_.numSixDofContacts);
+    for (size_t i = info_.numThreeDofContacts; i < numEndEffectors_; i++) 
     {
       const size_t frameId = info_.endEffectorFrameIndices[i];
       orientations.segment<3>(3 * i) = quaterion_euler_transforms::getEulerAnglesFromRotationMatrix(data.oMf[frameId].rotation());
@@ -203,7 +180,7 @@ namespace legged_locomotion_mpc
   {
     const vector_t orientationValues = orientationCppAdInterfacePtr_->getFunctionValue(state);
     std::vector<vector3_t> orientations;
-    for (size_t i = 0; i < info_.numSixDofEndEffectors; i++) 
+    for (size_t i = 0; i < info_.numSixDofContacts; i++) 
     {
       orientations.emplace_back(orientationValues.segment<3>(3 * i));
     }
@@ -220,7 +197,7 @@ namespace legged_locomotion_mpc
     const matrix_t orientationJacobian = orientationCppAdInterfacePtr_->getJacobian(state);
 
     std::vector<VectorFunctionLinearApproximation> orientations;
-    for (size_t i = 0; i < info_.numSixDofEndEffectors; i++) 
+    for (size_t i = 0; i < info_.numSixDofContacts; i++) 
     {
       VectorFunctionLinearApproximation rot;
       rot.f = orientationValues.segment<3>(3 * i);
@@ -235,7 +212,7 @@ namespace legged_locomotion_mpc
   /******************************************************************************************************/
   ad_vector_t PinocchioForwardEndEffectorKinematicsCppAd::getLinearVelocityCppAd(
     PinocchioInterfaceCppAd& pinocchioInterfaceCppAd,
-    const PinocchioStateInputMapping<ad_scalar_t>& mapping,
+    const FloatingBaseModelPinocchioMappingCppAd& mapping,
     const ad_vector_t& state, const ad_vector_t& input) 
   {
     const pinocchio::ReferenceFrame rf = pinocchio::ReferenceFrame::LOCAL_WORLD_ALIGNED;
@@ -246,8 +223,8 @@ namespace legged_locomotion_mpc
 
     pinocchio::forwardKinematics(model, data, q, v);
 
-    ad_vector_t velocities(3 * info_.numEndEffectors);
-    for (size_t i = 0; i < info_.numEndEffectors; i++) 
+    ad_vector_t velocities(3 * numEndEffectors_);
+    for (size_t i = 0; i < numEndEffectors_; i++) 
     {
       const size_t frameId = info_.endEffectorFrameIndices[i];
       velocities.segment<3>(3 * i) = pinocchio::getFrameVelocity(model, data, frameId, rf).linear();
@@ -266,7 +243,7 @@ namespace legged_locomotion_mpc
     const vector_t velocityValues = linearVelocityCppAdInterfacePtr_->getFunctionValue(stateInput);
 
     std::vector<vector3_t> velocities;
-    for (size_t i = 0; i < info_.numEndEffectors; i++) 
+    for (size_t i = 0; i < numEndEffectors_; i++) 
     {
       velocities.emplace_back(velocityValues.segment<3>(3 * i));
     }
@@ -285,7 +262,7 @@ namespace legged_locomotion_mpc
     const matrix_t velocityJacobian = linearVelocityCppAdInterfacePtr_->getJacobian(stateInput);
 
     std::vector<VectorFunctionLinearApproximation> velocities;
-    for (size_t i = 0; i < info_.numEndEffectors; i++) 
+    for (size_t i = 0; i < numEndEffectors_; i++) 
     {
       VectorFunctionLinearApproximation vel;
       vel.f = velocityValues.segment<3>(3 * i);
@@ -301,7 +278,7 @@ namespace legged_locomotion_mpc
   /******************************************************************************************************/
   ad_vector_t PinocchioForwardEndEffectorKinematicsCppAd::getAngularVelocityCppAd(
     PinocchioInterfaceCppAd& pinocchioInterfaceCppAd,
-    const PinocchioStateInputMapping<ad_scalar_t>& mapping,
+    const FloatingBaseModelPinocchioMappingCppAd& mapping,
     const ad_vector_t& state, const ad_vector_t& input) 
   {
     const pinocchio::ReferenceFrame rf = pinocchio::ReferenceFrame::WORLD;
@@ -312,8 +289,8 @@ namespace legged_locomotion_mpc
 
     pinocchio::forwardKinematics(model, data, q, v);
 
-    ad_vector_t velocities(3 * info_.numSixDofEndEffectors);
-    for (size_t i = info_.numThreeDofEndEffectors; i < info_.numEndEffectors; i++) 
+    ad_vector_t velocities(3 * info_.numSixDofContacts);
+    for (size_t i = info_.numThreeDofContacts; i < numEndEffectors_; i++) 
     {
       const size_t frameId = info_.endEffectorFrameIndices[i];
       velocities.segment<3>(3 * i) = pinocchio::getFrameVelocity(model, data, frameId, rf).angular();
@@ -332,7 +309,7 @@ namespace legged_locomotion_mpc
     const vector_t velocityValues = angularVelocityCppAdInterfacePtr_->getFunctionValue(stateInput);
     
     std::vector<vector3_t> velocities;
-    for (size_t i = 0; i < info_.numSixDofEndEffectors; i++) 
+    for (size_t i = 0; i < info_.numSixDofContacts; i++) 
     {
       velocities.emplace_back(velocityValues.segment<3>(3 * i));
     }
@@ -351,7 +328,7 @@ namespace legged_locomotion_mpc
     const matrix_t velocityJacobian = angularVelocityCppAdInterfacePtr_->getJacobian(stateInput);
     
     std::vector<VectorFunctionLinearApproximation> velocities;
-    for (size_t i = 0; i < info_.numSixDofEndEffectors; i++) 
+    for (size_t i = 0; i < info_.numSixDofContacts; i++) 
     {
       VectorFunctionLinearApproximation vel;
       vel.f = velocityValues.segment<3>(3 * i);

@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <legged_locomotion_mpc/common/AccessHelperFunctions.hpp>
+#include <legged_locomotion_mpc/common/Types.hpp>
 #include "../include/definitions.hpp"
 
 #include <floating_base_model/FactoryFunctions.hpp>
