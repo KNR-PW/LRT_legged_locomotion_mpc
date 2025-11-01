@@ -40,7 +40,7 @@ const scalar_t slope = -M_PI / 4;
   modelInfo.numThreeDofContacts = 4;
 
   BaseTrajectoryPlanner::StaticSettings staticSettings;
-  staticSettings.deltaTime = 0.05;
+  staticSettings.deltaTime = 0.1;
   staticSettings.initialBaseHeight = 2.5;
   staticSettings.minimumBaseHeight = 0.1;
   staticSettings.maximumBaseHeight = 5.0;
@@ -65,7 +65,7 @@ const scalar_t slope = -M_PI / 4;
   TargetTrajectories trajectories;
   for (auto _ : state) {
     planner.updateTargetTrajectory(initTime, finalTime, command, 
-    initialState, trajectories);
+      initialState, trajectories);
   }
 }
 

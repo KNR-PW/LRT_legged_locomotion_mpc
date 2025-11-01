@@ -5,7 +5,7 @@
 #include <vector>
 
 #include <ocs2_core/Types.h>
-#include <floating_base_model/path_management/package_path.h>
+#include <legged_locomotion_mpc/path_management/package_path.h>
 
 namespace legged_locomotion_mpc 
 {
@@ -21,12 +21,12 @@ namespace legged_locomotion_mpc
   };
 
   // Contact frames
-  static const std::vector<std::string> meldog3DofContactNames = {"RFF_link", "RRF_link"};
-  static const std::vector<std::string> meldog6DofContactNames = {"LFF_link", "LRF_link"};
+  static const std::vector<std::string> meldog3DofContactNames = {"RFF_link", "RRF_link", "LFF_link", "LRF_link"};
+  static const std::vector<std::string> meldog6DofContactNames;
 
   // Two urdfs, one with additional link before base link (will be removed by factory function)
-  static const std::string meldogWithBaseLinkUrdfFile = floating_base_model::package_path::getPath() + "/test/test_models/meldog_base_link.urdf";
-  static const std::string meldogWithoutBaseLinkUrdfFile = floating_base_model::package_path::getPath() + "/test/test_models/meldog_no_base_link.urdf";
+  static const std::string meldogWithBaseLinkUrdfFile = legged_locomotion_mpc::package_path::getPath() + "/test/test_models/meldog_base_link.urdf";
+  static const std::string meldogWithoutBaseLinkUrdfFile = legged_locomotion_mpc::package_path::getPath() + "/test/test_models/meldog_no_base_link.urdf";
   
   // Base link name
   static const std::string baseLink = "trunk_link";
