@@ -59,6 +59,9 @@ namespace legged_locomotion_mpc
 
         contact_flags_t getContactFlagsAtTime(ocs2::scalar_t time);
 
+        std::vector<contact_flags_t> getContactFlagsAtTimes(
+          std::vector<ocs2::scalar_t> times);
+
         const GaitStaticParameters& getStaticParameters();
 
       private:

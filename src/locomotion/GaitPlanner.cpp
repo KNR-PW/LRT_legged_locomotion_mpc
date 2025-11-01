@@ -121,6 +121,20 @@ namespace legged_locomotion_mpc
       return gaitPhaseController_.getContactFlagsAtTime(time);
     }
 
+    std::vector<contact_flags_t> GaitPlanner::getContactFlagsAtTimes(
+      std::vector<scalar_t> times)
+    {
+      const size_t referenceSize = times.size();
+      std::vector<contact_flags_t> contactFlagsTrajectory;
+      contactFlagsTrajectory.reserve(referenceSize);
+      for(const auto time: times)
+      {
+        contact_flags_t currentFlags = getContactFlagsAtTime(time);
+        contactFlagsTrajectory.push_back(std::move(currentFlags));
+      }
+      return contactFlagsTrajectory;
+    }
+
     void GaitPlanner::insertModeSequenceTemplate(scalar_t startTime,
       scalar_t finalTime,
       const ModeSequenceTemplate& modeSequenceTemplate)

@@ -90,13 +90,23 @@ TEST(GaitPlannerTest, getModeSchedule)
   std::vector<size_t> goodSequence = {15, 6, 15, 9, 15, 6, 15, 9, 15, 6, 15, 15};
 
   ASSERT_TRUE(modeSchedule.modeSequence == goodSequence);
-
+  
+  std::vector<scalar_t> times;
   for(int i = 0; i < 10; ++i)
   {
     scalar_t time = startTime + i * (finalTime - startTime)  / 10.0 + 1e-6;
+    times.push_back(time);
     auto contactFlags = gaitPlanner.getContactFlagsAtTime(time);
     auto trueContactFlags = modeNumber2ContactFlags(modeSchedule.modeAtTime(time));
     ASSERT_TRUE(contactFlags == trueContactFlags);
+  }
+
+  std::vector<contact_flags_t> flagsTrajectory = gaitPlanner.getContactFlagsAtTimes(times);
+
+  for(size_t i = 0; i < 10; ++i)
+  {
+     auto trueContactFlags = modeNumber2ContactFlags(modeSchedule.modeAtTime(times[i]));
+    ASSERT_TRUE(flagsTrajectory[i] == trueContactFlags);
   }
 
   for(size_t i = 0; i < goodTimings.size(); ++i)
@@ -126,12 +136,22 @@ TEST(GaitPlannerTest, getModeSchedule)
     ASSERT_GT(deltaTime, MIN_TIME_BETWEEN_CHANGES);
   }
 
+  times.clear();
   for(int i = 0; i < 10; ++i)
   {
     scalar_t time = startTime + i * (finalTime - startTime)  / 10.0 + 1e-6;
+    times.push_back(time);
     auto contactFlags = gaitPlanner.getContactFlagsAtTime(time);
     auto trueContactFlags = modeNumber2ContactFlags(modeSchedule.modeAtTime(time));
     ASSERT_TRUE(contactFlags == trueContactFlags);
+  }
+
+  flagsTrajectory = gaitPlanner.getContactFlagsAtTimes(times);
+
+  for(size_t i = 0; i < 10; ++i)
+  {
+     auto trueContactFlags = modeNumber2ContactFlags(modeSchedule.modeAtTime(times[i]));
+    ASSERT_TRUE(flagsTrajectory[i] == trueContactFlags);
   }
 }
 
