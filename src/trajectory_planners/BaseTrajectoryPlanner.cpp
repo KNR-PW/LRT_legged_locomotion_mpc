@@ -39,23 +39,6 @@ namespace legged_locomotion_mpc
       return projectedRotationMatrix;
     }
 
-    vector3_t projectEulerZyxToFrame(const vector3_t& eulerZyx, 
-      const TerrainPlane& plane)
-    {
-      const matrix3_t rotationMatrix = getRotationMatrixFromZyxEulerAngles(eulerZyx);
-
-      const matrix3_t projectedRotation = projectRotationMatrixOnPlane(rotationMatrix, 
-        plane);
-        
-      vector3_t newEuler = getEulerAnglesFromRotationMatrix(
-        projectedRotation);
-
-      makeEulerAnglesUnique(newEuler);
-      newEuler.x() = moduloAngleWithReference(newEuler.x(), eulerZyx.x());
-
-      return newEuler;
-    }
-
     vector2_t rotateVector2D(const vector2_t& vector, scalar_t angle)
     {
       vector2_t returnVector;
@@ -109,49 +92,6 @@ namespace legged_locomotion_mpc
 
       const pinocchio::SE3 SE3Delta = pinocchio::exp6(
         twistDelta);
-
-      // Helper to get a projected heading frame derived from the terrain.
-      // TODO Think how to change it for robots with other number of legs
-      auto projectedHeadingPlane = [&](vector2_t baseXYPosition, scalar_t yaw) 
-      {
-        const vector2_t lfOffsetLocal(settings_.nominalBaseWidthHeading / 2.0, 
-          settings_.nominalBaseWidtLateral / 2.0);
-        const vector2_t rfOffsetLocal(settings_.nominalBaseWidthHeading / 2.0, 
-          -settings_.nominalBaseWidtLateral / 2.0);
-        const vector2_t lhOffsetLocal(-settings_.nominalBaseWidthHeading / 2.0, 
-          settings_.nominalBaseWidtLateral / 2.0);
-        const vector2_t rhOffsetLocal(-settings_.nominalBaseWidthHeading / 2.0, 
-          -settings_.nominalBaseWidtLateral / 2.0);
-        
-        // Rotate from heading to world frame
-        vector2_t lfOffsetGlobal = rotateVector2D(lfOffsetLocal, yaw);
-        vector2_t rfOffsetGlobal = rotateVector2D(rfOffsetLocal, yaw);
-        vector2_t lhOffsetGlobal = rotateVector2D(lhOffsetLocal, yaw);
-        vector2_t rhOffsetGlobal = rotateVector2D(rhOffsetLocal, yaw);
-
-        // shift by base center
-        lfOffsetGlobal += baseXYPosition;
-        rfOffsetGlobal += baseXYPosition;
-        lhOffsetGlobal += baseXYPosition;
-        rhOffsetGlobal += baseXYPosition;
-
-        // Get position with smoothed terrain height
-        const vector3_t lfVerticalProjection = terrainModel_->getSmoothedPositon(lfOffsetGlobal);
-        const vector3_t rfVerticalProjection = terrainModel_->getSmoothedPositon(rfOffsetGlobal);
-        const vector3_t lhVerticalProjection = terrainModel_->getSmoothedPositon(lhOffsetGlobal);
-        const vector3_t rhVerticalProjection = terrainModel_->getSmoothedPositon(rhOffsetGlobal);
-
-        const TerrainPlane basePlane = computeTerrainPlane({lfVerticalProjection, 
-          rfVerticalProjection, lhVerticalProjection, rhVerticalProjection});
-        
-        const vector3_t eulerAngles(yaw, 0.0, 0.0);
-        
-        const matrix3_t oldRotation = getRotationMatrixFromZyxEulerAngles(eulerAngles);
-
-        const matrix3_t newRotationMatrix = projectRotationMatrixOnPlane(oldRotation, basePlane);
-
-        return TerrainPlane(basePlane.getPosition(), newRotationMatrix.transpose());
-      };
       
       const vector3_t currentBasePosition = legged_locomotion_mpc::
         access_helper_functions::getBasePosition(initialState, modelInfo_);
@@ -203,7 +143,7 @@ namespace legged_locomotion_mpc
 
         // Add new height to position, taking into accoount fact that base is on terrain plane
         newBasePosition.z() += currentBaseHeight_ / 
-          newBaseTerrain.getSurfaceNormalInWorld().z();;
+          newBaseTerrain.getSurfaceNormalInWorld().z();
       
         newBaseOrientationZyx = getEulerAnglesFromRotationMatrix(
           newBaseRotation);
@@ -242,6 +182,48 @@ namespace legged_locomotion_mpc
         getBaseVelocity(lastStateVector, modelInfo_) = 
         floating_base_model::access_helper_functions::
         getBaseVelocity(almostLastStateVector, modelInfo_);
+    }
+
+    TerrainPlane BaseTrajectoryPlanner::projectedHeadingPlane(
+      vector2_t baseXYPositionInWorld, scalar_t yawOnPlane)
+    {
+      const vector2_t lfOffsetLocal(settings_.nominalBaseWidthHeading / 2.0, 
+          settings_.nominalBaseWidtLateral / 2.0);
+      const vector2_t rfOffsetLocal(settings_.nominalBaseWidthHeading / 2.0, 
+        -settings_.nominalBaseWidtLateral / 2.0);
+      const vector2_t lhOffsetLocal(-settings_.nominalBaseWidthHeading / 2.0, 
+        settings_.nominalBaseWidtLateral / 2.0);
+      const vector2_t rhOffsetLocal(-settings_.nominalBaseWidthHeading / 2.0, 
+        -settings_.nominalBaseWidtLateral / 2.0);
+        
+      // Rotate from heading to world frame
+      vector2_t lfOffsetGlobal = rotateVector2D(lfOffsetLocal, yawOnPlane);
+      vector2_t rfOffsetGlobal = rotateVector2D(rfOffsetLocal, yawOnPlane);
+      vector2_t lhOffsetGlobal = rotateVector2D(lhOffsetLocal, yawOnPlane);
+      vector2_t rhOffsetGlobal = rotateVector2D(rhOffsetLocal, yawOnPlane);
+
+      // shift by base center
+      lfOffsetGlobal += baseXYPositionInWorld;
+      rfOffsetGlobal += baseXYPositionInWorld;
+      lhOffsetGlobal += baseXYPositionInWorld;
+      rhOffsetGlobal += baseXYPositionInWorld;
+
+      // Get position with smoothed terrain height
+      const vector3_t lfVerticalProjection = terrainModel_->getSmoothedPositon(lfOffsetGlobal);
+      const vector3_t rfVerticalProjection = terrainModel_->getSmoothedPositon(rfOffsetGlobal);
+      const vector3_t lhVerticalProjection = terrainModel_->getSmoothedPositon(lhOffsetGlobal);
+      const vector3_t rhVerticalProjection = terrainModel_->getSmoothedPositon(rhOffsetGlobal);
+
+      const TerrainPlane basePlane = computeTerrainPlane({lfVerticalProjection, 
+        rfVerticalProjection, lhVerticalProjection, rhVerticalProjection});
+        
+      const vector3_t eulerAngles(yawOnPlane, 0.0, 0.0);
+        
+      const matrix3_t oldRotation = getRotationMatrixFromZyxEulerAngles(eulerAngles);
+
+      const matrix3_t newRotationMatrix = projectRotationMatrixOnPlane(oldRotation, basePlane);
+
+      return TerrainPlane(basePlane.getPosition(), newRotationMatrix.transpose());
     }
 	} // namespace planners
 } // namespace legged_locomotion_mpc

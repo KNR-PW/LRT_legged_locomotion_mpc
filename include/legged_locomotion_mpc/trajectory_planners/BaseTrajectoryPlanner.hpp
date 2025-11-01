@@ -29,7 +29,6 @@
 
 #include <legged_locomotion_mpc/common/Types.hpp>
 
-#include <terrain_model/core/ConvexTerrain.hpp>
 #include <terrain_model/core/TerrainModel.hpp>
 #include <terrain_model/core/TerrainPlane.hpp>
 
@@ -108,6 +107,9 @@ namespace legged_locomotion_mpc
           const state_vector_t& initialState, ocs2::TargetTrajectories& targetTrajectories);
 
       private:
+
+        terrain_model::TerrainPlane projectedHeadingPlane(vector2_t baseXYPositionInWorld, 
+          ocs2::scalar_t yawOnPlane);
         
         ocs2::scalar_t currentBaseHeight_;
         floating_base_model::FloatingBaseModelInfo modelInfo_;

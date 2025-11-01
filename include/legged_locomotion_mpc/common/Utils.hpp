@@ -108,7 +108,7 @@ namespace legged_locomotion_mpc
     void weightCompensatingAppendInput(ocs2::vector_t& input,
       const floating_base_model::FloatingBaseModelInfo &info, 
       const contact_flags_t &contactFlags);
-
+      
   }; // namespace utils
 }; // namespace legged_locomotion_mpc
 
