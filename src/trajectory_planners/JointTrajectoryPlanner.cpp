@@ -43,6 +43,9 @@ namespace legged_locomotion_mpc
       for(size_t i = 1; i < trajectorySize; ++i)
       {
         const scalar_t currentTime = targetTrajectories.timeTrajectory[i];
+        const scalar_t previousTime = targetTrajectories.timeTrajectory[i - 1];
+
+        const scalar_t deltaTime = currentTime - previousTime;
 
         const std::vector<vector3_t>& newEndEffectorPositions = 
           endEffectorPositionTrajectories[i];
@@ -52,12 +55,17 @@ namespace legged_locomotion_mpc
         const auto& previousState = targetTrajectories.stateTrajectory[i - 1];
         const auto& previousInput = targetTrajectories.inputTrajectory[i - 1];
 
-        const auto previousJointPositions = 
+        const vector_t previousJointPositions = 
           floating_base_model::access_helper_functions::getJointPositions(previousState, 
             modelInfo_);
 
-        const auto previousJointVelocities = 
-          floating_base_model::access_helper_functions::getJointVelocities(previousInput, modelInfo_);
+        const vector_t previousJointVelocities = 
+          floating_base_model::access_helper_functions::getJointVelocities(previousInput, 
+            modelInfo_);
+
+        // Extrapolate using previous joint velocity
+        const vector_t extrapolatedJointPositions = previousJointPositions + 
+            previousJointVelocities * deltaTime;
             
         vector_t& newState = targetTrajectories.stateTrajectory[i];
         vector_t& newInput = targetTrajectories.inputTrajectory[i];
@@ -74,7 +82,7 @@ namespace legged_locomotion_mpc
         auto newJointVelocities = 
           floating_base_model::access_helper_functions::getJointVelocities(newInput, modelInfo_);
         
-        newJointPositions = computeJointPositions(previousJointPositions, newBasePose, 
+        newJointPositions = computeJointPositions(extrapolatedJointPositions, newBasePose, 
           newEndEffectorPositions);
           
         newJointVelocities = computeJointVelocities(newJointPositions, newBasePose,
