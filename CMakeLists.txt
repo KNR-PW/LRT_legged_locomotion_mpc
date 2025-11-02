@@ -76,6 +76,7 @@ add_library(${PROJECT_NAME}
 
   src/trajectory_planners/BaseTrajectoryPlanner.cpp
   src/trajectory_planners/JointTrajectoryPlanner.cpp
+  src/trajectory_planners/ContactForceWrenchTrajectoryPlanner.cpp
 
   src/synchronization/GaitSynchronizedModule.cpp
   src/synchronization/DisturbanceSynchronizedModule.cpp
