@@ -17,11 +17,10 @@ namespace legged_locomotion_mpc
       const floating_base_model::FloatingBaseModelInfo& info,
       const vector_t& robotState)
     {
-      size_t stateSize = 12 + info.actuatedDofNum;
-      vector_t state = robotState.block(0, 0, stateSize, 1);
-      vector_t input = vector_t::Zero(3 * info.numThreeDofContacts + 6 * info.numSixDofContacts + info.actuatedDofNum);
+      const vector_t state = robotState.block(0, 0, info.stateDim, 1);
+      vector_t input = vector_t::Zero(info.inputDim);
       input.block(3 * info.numThreeDofContacts + 6 * info.numSixDofContacts, 0,
-        info.actuatedDofNum, 1) = robotState.block(stateSize, 0, info.actuatedDofNum, 1);
+        info.actuatedDofNum, 1) = robotState.block(info.stateDim, 0, info.actuatedDofNum, 1);
       return {state, input};
     }
 
@@ -45,7 +44,6 @@ namespace legged_locomotion_mpc
       }
 
       TargetTrajectories newTargetTrajectories;
-
       // Add first reference
       {
         const auto initInterpIndex = LinearInterpolation::timeSegment(
@@ -59,7 +57,6 @@ namespace legged_locomotion_mpc
         newTargetTrajectories.inputTrajectory.push_back(
           LinearInterpolation::interpolate(initInterpIndex, targetTrajectories.inputTrajectory));
       }
-
       bool finalTimeFlag = true;
 
       for (int k = 0; k < targetTrajectories.timeTrajectory.size(); ++k) 
@@ -103,12 +100,12 @@ namespace legged_locomotion_mpc
           newTargetTrajectories.inputTrajectory.push_back(
             LinearInterpolation::interpolate(interpIndex, targetTrajectories.inputTrajectory));
         }
-
         // Add the original reference sample
         newTargetTrajectories.timeTrajectory.push_back(targetTrajectories.timeTrajectory[k]);
         newTargetTrajectories.stateTrajectory.push_back(targetTrajectories.stateTrajectory[k]);
         newTargetTrajectories.inputTrajectory.push_back(targetTrajectories.inputTrajectory[k]);
       }
+      return newTargetTrajectories;
     }
 
     /******************************************************************************************************/
@@ -118,15 +115,8 @@ namespace legged_locomotion_mpc
       const contact_flags_t &contactFlags) 
     {
       size_t numEndEffectors = info.numThreeDofContacts + info.numSixDofContacts;
-      size_t numStanceLegs = 0;
-      for(size_t i = 0; i < numEndEffectors; ++i) 
-      {
-        if (contactFlags[i]) 
-        {
-          ++numStanceLegs;
-        }
-      }
-      return numStanceLegs;
+
+      return contactFlags.count() > numEndEffectors ? numEndEffectors : contactFlags.count();
     }
 
     /******************************************************************************************************/
@@ -140,7 +130,7 @@ namespace legged_locomotion_mpc
       vector_t input = vector_t::Zero(info.inputDim);
       if (numStanceLegs > 0) 
       {
-        const scalar_t totalWeight = info.robotMass * 9.81;
+        const scalar_t totalWeight = info.robotMass * PLUS_GRAVITY_VALUE;
         const vector3_t forceInInertialFrame(0.0, 0.0, totalWeight / numStanceLegs);
         for (size_t i = 0; i < numEndEffectors; i++) 
         {
@@ -162,7 +152,7 @@ namespace legged_locomotion_mpc
       size_t numEndEffectors = info.numThreeDofContacts + info.numSixDofContacts;
       if (numStanceLegs > 0) 
       {
-        const scalar_t totalWeight = info.robotMass * 9.81;
+        const scalar_t totalWeight = info.robotMass * PLUS_GRAVITY_VALUE;
         const vector3_t forceInInertialFrame(0.0, 0.0, totalWeight / numStanceLegs);
         for (size_t i = 0; i < numEndEffectors; i++) 
         {

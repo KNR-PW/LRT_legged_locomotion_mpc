@@ -139,7 +139,8 @@ if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
 
   ament_add_gtest(${PROJECT_NAME}_test_common
-          test/common/AccessHelperFunctionsTest.cpp  
+        test/common/AccessHelperFunctionsTest.cpp
+        test/common/UtilsTest.cpp
   )
   ament_target_dependencies(${PROJECT_NAME}_test_common ${THIS_PACKAGE_DEPENDS})
   target_include_directories(${PROJECT_NAME}_test_common PRIVATE test/include)
@@ -147,12 +148,12 @@ if(BUILD_TESTING)
   target_compile_options(${PROJECT_NAME}_test_common PUBLIC ${FLAGS})
 
   ament_add_gtest(${PROJECT_NAME}_test_locomotion
-          test/locomotion/GaitCommonTest.cpp
-          test/locomotion/ModeDynamicSequenceTemplateTest.cpp
-          test/locomotion/GaitPlannerTest.cpp
-          test/locomotion/GaitDynamicPhaseControllerTest.cpp
-          test/locomotion/FootPhaseTest.cpp
-          test/locomotion/SingleLegLogicTest.cpp
+        test/locomotion/GaitCommonTest.cpp
+        test/locomotion/ModeDynamicSequenceTemplateTest.cpp
+        test/locomotion/GaitPlannerTest.cpp
+        test/locomotion/GaitDynamicPhaseControllerTest.cpp
+        test/locomotion/FootPhaseTest.cpp
+        test/locomotion/SingleLegLogicTest.cpp
   )
   ament_target_dependencies(${PROJECT_NAME}_test_locomotion ${THIS_PACKAGE_DEPENDS})
   target_include_directories(${PROJECT_NAME}_test_locomotion PRIVATE test/include)
@@ -160,8 +161,8 @@ if(BUILD_TESTING)
   target_compile_options(${PROJECT_NAME}_test_locomotion PUBLIC ${FLAGS})
 
   ament_add_gtest(${PROJECT_NAME}_test_trajectory_planners
-          test/trajectory_planners/BaseTrajectoryPlannerTest.cpp  
-          test/trajectory_planners/JointTrajectoryPlannerTest.cpp        
+        test/trajectory_planners/BaseTrajectoryPlannerTest.cpp  
+        test/trajectory_planners/JointTrajectoryPlannerTest.cpp        
   )
   ament_target_dependencies(${PROJECT_NAME}_test_trajectory_planners ${THIS_PACKAGE_DEPENDS})
   target_include_directories(${PROJECT_NAME}_test_trajectory_planners PRIVATE test/include)
@@ -174,15 +175,15 @@ if(BUILD_TESTING)
   find_package(ament_cmake_google_benchmark REQUIRED)
 
   ament_add_google_benchmark(${PROJECT_NAME}_benchmark_locomotion 
-          benchmarks/GaitDynamicPhaseControllerBenchmark.cpp
+        benchmarks/GaitDynamicPhaseControllerBenchmark.cpp
   )
   target_include_directories(${PROJECT_NAME}_benchmark_locomotion PRIVATE benchmarks/include)
   target_link_libraries(${PROJECT_NAME}_benchmark_locomotion ${PROJECT_NAME})
   target_compile_options(${PROJECT_NAME}_benchmark_locomotion PUBLIC ${FLAGS})
 
   ament_add_google_benchmark(${PROJECT_NAME}_benchmark_trajectory_planners 
-          benchmarks/BaseTrajectoryPlannerBenchmark.cpp
-          benchmarks/JointTrajectoryPlannerBenchmark.cpp
+        benchmarks/BaseTrajectoryPlannerBenchmark.cpp
+        benchmarks/JointTrajectoryPlannerBenchmark.cpp
   )
   target_include_directories(${PROJECT_NAME}_benchmark_trajectory_planners PRIVATE benchmarks/include)
   target_link_libraries(${PROJECT_NAME}_benchmark_trajectory_planners ${PROJECT_NAME})

@@ -73,7 +73,6 @@ TEST(JointTrajectoryPlannerTest, computeJointPositions)
     const vector_t calculatedJointPositions = planner.computeJointPositions(
       currentJointPositions, currentBasePose, endEffectorPositions);
     
-    std::cerr << (calculatedJointPositions - jointPositionsTrue).norm() << std::endl;
     EXPECT_TRUE((calculatedJointPositions - jointPositionsTrue).norm() < positionTolerance);
   }
 }
@@ -293,12 +292,9 @@ TEST(JointTrajectoryPlannerTest, updateTrajectory)
     EXPECT_TRUE(std::abs(trajectory.timeTrajectory[i] - 
       trajectoryTrue.timeTrajectory[i]) < 1e-9);
     
-    std::cerr << (trajectory.stateTrajectory[i] - 
-      trajectoryTrue.stateTrajectory[i]).norm() << std::endl;
     EXPECT_TRUE((trajectory.stateTrajectory[i] - 
       trajectoryTrue.stateTrajectory[i]).norm() < stateTolerance);
-    std::cerr << (trajectory.inputTrajectory[i] - 
-      trajectoryTrue.inputTrajectory[i]).norm() << std::endl;
+      
     EXPECT_TRUE((trajectory.inputTrajectory[i] - 
       trajectoryTrue.inputTrajectory[i]).norm() < stateTolerance);
   }

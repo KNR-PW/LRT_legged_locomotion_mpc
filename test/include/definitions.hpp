@@ -84,4 +84,137 @@ namespace legged_locomotion_mpc
    
     return x;
   };
+
+  inline ocs2::vector_t getAccessTestRobotStateForOptimalState() 
+  {
+    ocs2::vector_t x = ocs2::vector_t::Zero(Meldog::ROBOT_STATE_DIM);
+    
+    // Base Velocitiy: [linear, angular]
+    x(0) = 0.0;  // vB_x
+    x(1) = 1.0;  // vB_y
+    x(2) = 2.0;  // vB_z
+    x(3) = 3.0;  // wB_x
+    x(4) = 4.0;  // wB_y
+    x(5) = 5.0;  // wB_z
+  
+    // Base Pose: [position, orientation]
+    x(6)  = 6.0;   // p_base_x
+    x(7)  = 7.0;   // p_base_y
+    x(8)  = 8.0;   // p_base_z
+    x(9)  = 9.0;   // theta_base_z
+    x(10) = 10.0;  // theta_base_y
+    x(11) = 11.0;  // theta_base_x
+  
+    // Leg Joint Positions: 
+    x(12) = 12.0;   
+    x(13) = 13.0;
+    x(14) = 14.0;
+    x(15) = 15.0;
+    x(16) = 16.0;
+    x(17) = 17.0;
+    x(18) = 18.0;
+    x(19) = 19.0;
+    x(20) = 20.0;    
+    x(21) = 21.0;
+    x(22) = 22.0;
+    x(23) = 23.0;
+
+    // Leg Joint Velocities: 
+    x(24) = 18.0;
+    x(25) = 19.0;
+    x(26) = 20.0;
+    x(27) = 21.0;
+    x(28) = 22.0;
+    x(29) = 23.0;
+    x(30) = 24.0;
+    x(31) = 25.0;    
+    x(32) = 26.0;
+    x(33) = 27.0;
+    x(34) = 28.0;
+    x(35) = 29.0;
+   
+    return x;
+  };
+
+  inline ocs2::vector_t getAccessTestRobotOptimalState() 
+  {
+    ocs2::vector_t x = ocs2::vector_t::Zero(Meldog::STATE_DIM);
+    
+    // Base Velocitiy: [linear, angular]
+    x(0) = 0.0;  // vB_x
+    x(1) = 1.0;  // vB_y
+    x(2) = 2.0;  // vB_z
+    x(3) = 3.0;  // wB_x
+    x(4) = 4.0;  // wB_y
+    x(5) = 5.0;  // wB_z
+  
+    // Base Pose: [position, orientation]
+    x(6)  = 6.0;   // p_base_x
+    x(7)  = 7.0;   // p_base_y
+    x(8)  = 8.0;   // p_base_z
+    x(9)  = 9.0;   // theta_base_z
+    x(10) = 10.0;  // theta_base_y
+    x(11) = 11.0;  // theta_base_x
+  
+    // Leg Joint Positions: 
+    x(12) = 12.0;   
+    x(13) = 13.0;
+    x(14) = 14.0;
+    x(15) = 15.0;
+    x(16) = 16.0;
+    x(17) = 17.0;
+    x(18) = 18.0;
+    x(19) = 19.0;
+    x(20) = 20.0;    
+    x(21) = 21.0;
+    x(22) = 22.0;
+    x(23) = 23.0;
+   
+    return x;
+  };
+
+  inline ocs2::vector_t getAccessTestRobotOptimalInput() 
+  {
+    ocs2::vector_t x = ocs2::vector_t::Zero(Meldog::INPUT_DIM);
+  
+    // Contact Forces:
+    x(0) = 0.0;   // F_x RFF_link
+    x(1) = 1.0;   // F_y RFF_link
+    x(2) = 2.0;   // F_z RFF_link
+
+    x(3) = 3.0;   // F_x RRF_link
+    x(4) = 4.0;   // F_y RRF_link
+    x(5) = 5.0;   // F_z RRF_link
+
+    x(6)  = 6.0;   // F_x LFF_link
+    x(7)  = 7.0;   // F_y LFF_link
+    x(8)  = 8.0;   // F_z LFF_link
+    x(9)  = 9.0;   // T_x LFF_link
+    x(10) = 10.0;  // T_y LFF_link
+    x(11) = 11.0;  // T_z LFF_link
+
+
+    x(12) = 12.0;  // F_x LRF_link
+    x(13) = 13.0;  // F_y LRF_link
+    x(14) = 14.0;  // F_z LRF_link
+    x(15) = 15.0;  // T_x LRF_link
+    x(16) = 16.0;  // T_y LRF_link
+    x(17) = 17.0;  // T_z LRF_link
+  
+    // Leg Joint Velocities: 
+    x(18) = 18.0;   
+    x(19) = 19.0;
+    x(20) = 20.0;    
+    x(21) = 21.0;
+    x(22) = 22.0;
+    x(23) = 23.0;
+    x(24) = 24.0;
+    x(25) = 25.0;
+    x(26) = 26.0;
+    x(27) = 27.0;
+    x(28) = 28.0;
+    x(29) = 29.0;
+   
+    return x;
+  };
 }  // namespace legged_locomotion_mpc
