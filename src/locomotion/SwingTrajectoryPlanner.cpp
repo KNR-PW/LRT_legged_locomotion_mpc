@@ -345,7 +345,7 @@ namespace legged_locomotion_mpc
        * Compute zmp / inverted pendulum foot placement offset: 
        * delta p = sqrt(h / g) * (v - v_des) 
        */ 
-      scalar_t pendulumFrequency = std::sqrt(dynamicSettings_.invertedPendulumHeight / 9.81);
+      scalar_t pendulumFrequency = std::sqrt(dynamicSettings_.invertedPendulumHeight / PLUS_GRAVITY_VALUE);
       scalar_t zmpX = pendulumFrequency * (initBaseLinearVelocityInWorld.x() 
         - initDesiredBaseLinearVelocityInWorld.x());
       scalar_t zmpY = pendulumFrequency * (initBaseLinearVelocityInWorld.y() 
