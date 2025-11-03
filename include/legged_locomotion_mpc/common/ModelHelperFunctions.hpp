@@ -46,7 +46,12 @@ namespace legged_locomotion_mpc
      * @return tau: generalized torques of actuated joints
      * 
      * @remark: This function also internally calls:
-     * pinocchio::rnea(model, data, q, 0, 0, fext) and pinocchio::rnea(model, data, q, 0, 0, 0)
+     * pinocchio::computeStaticTorque() and pinocchio::computeGeneralizedGravity()
+     * 
+     * @remark: to get fext vector call:
+     * pinocchio::forwardKinematics(model, data, q)
+     * floating_base_model::model_helper_functions::computeSpatialForces(interface, 
+     * info, input, fext)
      */
     template <typename SCALAR_T>
     Eigen::Matrix<SCALAR_T, Eigen::Dynamic, 1> computeApproxActuatedJointGeneralizedTorques(
@@ -68,7 +73,7 @@ namespace legged_locomotion_mpc
       const floating_base_model::FloatingBaseModelInfoTpl<ocs2::ad_scalar_t>& info,
       const Eigen::Matrix<ocs2::ad_scalar_t, Eigen::Dynamic, 1>& q,
       const pinocchio::container::aligned_vector<pinocchio::ForceTpl<ocs2::ad_scalar_t, 0>>& fext);
-  };
-};
+  } // model_helper_functions
+} // legged_locomotion_mpc
 
 #endif

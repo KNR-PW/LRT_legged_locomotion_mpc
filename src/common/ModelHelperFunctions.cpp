@@ -1,8 +1,8 @@
 #include <legged_locomotion_mpc/common/ModelHelperFunctions.hpp>
 
-namespace floating_base_model
+namespace legged_locomotion_mpc
 {
-  namespace model_helper_function
+  namespace model_helper_functions
   {
     using namespace ocs2;
     /******************************************************************************************************/
@@ -36,5 +36,5 @@ namespace floating_base_model
       const floating_base_model::FloatingBaseModelInfoTpl<ad_scalar_t>& info,
       const Eigen::Matrix<ad_scalar_t, Eigen::Dynamic, 1>& q,
       const pinocchio::container::aligned_vector<pinocchio::ForceTpl<ad_scalar_t, 0>>& fext);
-  }
-}
+  } // model_helper_functions
+} // legged_locomotion_mpc

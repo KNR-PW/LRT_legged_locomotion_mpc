@@ -141,6 +141,7 @@ if(BUILD_TESTING)
   ament_add_gtest(${PROJECT_NAME}_test_common
         test/common/AccessHelperFunctionsTest.cpp
         test/common/UtilsTest.cpp
+        test/common/ModelHelperFunctionsTest.cpp
   )
   ament_target_dependencies(${PROJECT_NAME}_test_common ${THIS_PACKAGE_DEPENDS})
   target_include_directories(${PROJECT_NAME}_test_common PRIVATE test/include)

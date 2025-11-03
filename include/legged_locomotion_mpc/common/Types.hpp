@@ -39,8 +39,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <ocs2_core/Types.h>
 namespace legged_locomotion_mpc
 { 
-  static const scalar_t PLUS_GRAVITY_VALUE = 9.81;
-  static const scalar_t MINUS_GRAVITY_VALUE = -PLUS_GRAVITY_VALUE;
+  static const ocs2::scalar_t PLUS_GRAVITY_VALUE = 9.81;
+  static const ocs2::scalar_t MINUS_GRAVITY_VALUE = -PLUS_GRAVITY_VALUE;
   static const size_t MAX_LEG_NUMBER = 8;
   using contact_flags_t = std::bitset<MAX_LEG_NUMBER>; // Dont expect for robot to have more than 8 legs
 
