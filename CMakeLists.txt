@@ -163,7 +163,8 @@ if(BUILD_TESTING)
 
   ament_add_gtest(${PROJECT_NAME}_test_trajectory_planners
         test/trajectory_planners/BaseTrajectoryPlannerTest.cpp  
-        test/trajectory_planners/JointTrajectoryPlannerTest.cpp        
+        test/trajectory_planners/JointTrajectoryPlannerTest.cpp   
+        test/trajectory_planners/ContactForceWrenchTrajectoryPlannerTest.cpp     
   )
   ament_target_dependencies(${PROJECT_NAME}_test_trajectory_planners ${THIS_PACKAGE_DEPENDS})
   target_include_directories(${PROJECT_NAME}_test_trajectory_planners PRIVATE test/include)

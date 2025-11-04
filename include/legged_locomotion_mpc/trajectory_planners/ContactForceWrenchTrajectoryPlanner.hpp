@@ -49,6 +49,12 @@ namespace legged_locomotion_mpc
          * Update target trajectories with force and wrench trajectory
          * @param [in] contactFlagsTrajectory: trajectory of contact flags
          * @param [out] targetTrajectories: target trajectories
+         * 
+         * @remark Every element of contactFlagsTrajectory should be generated at every 
+         * time point in targetTrajectories.timeTrajectory
+         * (contactFlagsTrajectory[i]  at targetTrajectories.timeTrajectory[i]).
+         * Generate contact trajectory with GaitPlanner::getContactFlagsAtTimes() 
+         * using targetTrajectories.timeTrajectory.
          */
         void updateTargetTrajectory(std::vector<contact_flags_t> contactFlagsTrajectory,
           ocs2::TargetTrajectories& targetTrajectories);
