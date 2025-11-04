@@ -43,6 +43,23 @@ namespace legged_locomotion_mpc
         
         using position_trajectories = std::vector<std::vector<vector3_t>>;
         using velocity_trajectories = std::vector<std::vector<vector3_t>>;
+
+        /** 
+         * Update target trajectories with force and wrench trajectory
+         * @param [in] currentState: current robot state
+         * @param [in] endEffectorPositionTrajectories: trajectory of end effector positions
+         * @param [in] endEffectorVelocityTrajectories: trajectory of end effector velocities
+         * @param [out] targetTrajectories: target trajectories
+         * 
+         * @remark Every element of endEffectorPositionTrajectories 
+         * and endEffectorVelocityTrajectories should be generated at every 
+         * time point in targetTrajectories.timeTrajectory 
+         * (endEffectorPositionTrajectories[i] at targetTrajectories.timeTrajectory[i]).
+         * Generate contact trajectory with 
+         * SwingTrajectoryPlanner::getEndEffectorPositionTrajectories()
+         * and SwingTrajectoryPlanner::getEndEffectorVelocityTrajectories()
+         * using targetTrajectories.timeTrajectory.
+         */
         void updateTrajectory(const state_vector_t& currentState,
           ocs2::TargetTrajectories& targetTrajectories, 
           const position_trajectories& endEffectorPositionTrajectories,

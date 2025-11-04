@@ -101,6 +101,9 @@ namespace legged_locomotion_mpc
          * @param [in] command: base command
          * @param [in] initialState: current robot state (taken from sensors)
          * @param [out] targetTrajectories: target trajectories
+         * 
+         * @remark target trajectories should be empty, planner generates 
+         * trajectory struct from scratch.
          */
         void updateTargetTrajectory(ocs2::scalar_t initTime, 
           ocs2::scalar_t finalTime, const BaseReferenceCommand& command, 
