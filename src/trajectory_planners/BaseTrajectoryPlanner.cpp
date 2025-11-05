@@ -71,6 +71,12 @@ namespace legged_locomotion_mpc
       const state_vector_t& initialState,
       TargetTrajectories& targetTrajectories)
     {
+      if (!terrainModel_) 
+      {
+        throw std::runtime_error("[BaseTrajectoryPlanner] terrain cannot be null. " 
+          "Update the terrain before planning base trajectory");
+      }
+
       const size_t referenceSize = (finalTime - initTime) / settings_.deltaTime + 1;
 
       targetTrajectories.timeTrajectory.reserve(referenceSize);

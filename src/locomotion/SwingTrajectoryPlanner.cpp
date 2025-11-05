@@ -371,13 +371,14 @@ namespace legged_locomotion_mpc
           const scalar_t middleContactTime = 0.5 * (contactEndTime + contactPhase.start);
 
           // Compute foot position from cost desired trajectory
-          const vector_t state = targetTrajectories.getDesiredState(middleContactTime);
+          vector_t state = targetTrajectories.getDesiredState(middleContactTime);
 
           /**
            * IMPORTANT: URDF NEEDS TO HAVE STRAIGHT LEGS WITH ZERO JOINT POSITIONS 
            * IN ORDER TO GET POSITIONS BELOW HIP HERE!!!!
            * ALSO JOINT POSITIONS IN THIS TARGET TRAJECTORIES NEEDS TO BE ZERO!!!
            */
+          floating_base_model::access_helper_functions::getJointPositions(state, modelInfo_).setZero();
           vector3_t referenceFootholdPositionInWorld = kinematicsModel_->getPosition(state)[endEffectorIndex];
 
           // Add ZMP offset to the first upcoming foothold.
