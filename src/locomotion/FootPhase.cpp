@@ -55,11 +55,17 @@ namespace legged_locomotion_mpc
       : stanceTerrain_(std::move(stanceTerrain)),
         nominalFootholdLocation_(stanceTerrain_.getTerrainPlane().getPosition()),
         surfaceNormalInWorldFrame_(stanceTerrain_.getTerrainPlane().getSurfaceNormalInWorld()),
+        rotationMatrixToTerrain_(stanceTerrain_.getTerrainPlane().getOrientationToTerrain()),
         footTangentialConstraint_(tangentialConstraintsFromConvexTerrain(stanceTerrain_, terrainMargin)) {}
 
     vector3_t StancePhase::normalDirectionInWorldFrame(scalar_t time) const 
     {
       return surfaceNormalInWorldFrame_;
+    }
+
+    matrix3_t StancePhase::rotationMatrixInTerrainFrame(ocs2::scalar_t time) const
+    {
+      return rotationMatrixToTerrain_;
     }
 
     vector3_t StancePhase::nominalFootholdLocation() const 
@@ -265,6 +271,11 @@ namespace legged_locomotion_mpc
       // Returns "average" surface normal.
       const scalar_t scaling = getScaling(time);
       return ((1.0 - scaling) * liftOff_.terrainPlane->getSurfaceNormalInWorld() + scaling * touchDown_.terrainPlane->getSurfaceNormalInWorld()).normalized();
+    }
+
+    matrix3_t SwingPhase::rotationMatrixInTerrainFrame(ocs2::scalar_t time) const
+    {
+      throw std::runtime_error("[SwingPhase] rotationMatrixInTerrainFrame() is does not make sense!");
     }
 
     vector3_t SwingPhase::nominalFootholdLocation() const 

@@ -48,8 +48,15 @@ namespace legged_locomotion_mpc
         /** Returns the contact flag for this phase. Stance phase: True, Swing phase: false */
         virtual bool contactFlag() const = 0;
 
-        /** Returns the unit vector pointing in the normal direction */
+        /** Returns the unit vector pointing in the normal direction 
+         * Call only when contactFlag() returns true!
+         */
         virtual vector3_t normalDirectionInWorldFrame(ocs2::scalar_t time) const = 0;
+
+        /** Returns rotation matrix from world to terrain frame 
+         * Call only when contactFlag() returns true!
+         */
+        virtual matrix3_t rotationMatrixInTerrainFrame(ocs2::scalar_t time) const = 0;
 
         /** Nominal foothold location (upcoming for swinglegs) */
         virtual vector3_t nominalFootholdLocation() const = 0;
@@ -92,6 +99,8 @@ namespace legged_locomotion_mpc
 
         vector3_t normalDirectionInWorldFrame(ocs2::scalar_t time) const override;
 
+        matrix3_t rotationMatrixInTerrainFrame(ocs2::scalar_t time) const override;
+
         vector3_t nominalFootholdLocation() const override;
 
         const terrain_model::ConvexTerrain *nominalFootholdConstraint() const override;
@@ -106,6 +115,7 @@ namespace legged_locomotion_mpc
 
       private:
         terrain_model::ConvexTerrain stanceTerrain_;
+        const matrix3_t rotationMatrixToTerrain_;
         const vector3_t nominalFootholdLocation_;
         const vector3_t surfaceNormalInWorldFrame_;
         const FootTangentialConstraintMatrix footTangentialConstraint_;
@@ -173,6 +183,8 @@ namespace legged_locomotion_mpc
         bool contactFlag() const override { return false; };
 
         vector3_t normalDirectionInWorldFrame(ocs2::scalar_t time) const override;
+
+        matrix3_t rotationMatrixInTerrainFrame(ocs2::scalar_t time) const override;
 
         vector3_t nominalFootholdLocation() const override;
 
