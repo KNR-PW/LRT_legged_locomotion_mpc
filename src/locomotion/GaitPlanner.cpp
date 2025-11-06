@@ -111,18 +111,32 @@ namespace legged_locomotion_mpc
       return staticParams_;
     }
 
-    std::vector<scalar_t> GaitPlanner::getPhasesAtTime(scalar_t time)
+    std::vector<scalar_t> GaitPlanner::getPhasesAtTime(scalar_t time) const
     {
       return gaitPhaseController_.getPhasesAtTime(time);
     }
 
-    contact_flags_t GaitPlanner::getContactFlagsAtTime(scalar_t time)
+    std::vector<std::vector<scalar_t>> GaitPlanner::getPhasesAtTimes(
+      std::vector<scalar_t> times) const
+    {
+      const size_t referenceSize = times.size();
+      std::vector<std::vector<scalar_t>> phasesTrajectory;
+      phasesTrajectory.reserve(referenceSize);
+      for(const auto time: times)
+      {
+        std::vector<scalar_t> currentPhases = getPhasesAtTime(time);
+        phasesTrajectory.push_back(std::move(currentPhases));
+      }
+      return phasesTrajectory;
+    }
+
+    contact_flags_t GaitPlanner::getContactFlagsAtTime(scalar_t time) const
     {
       return gaitPhaseController_.getContactFlagsAtTime(time);
     }
 
     std::vector<contact_flags_t> GaitPlanner::getContactFlagsAtTimes(
-      std::vector<scalar_t> times)
+      std::vector<scalar_t> times) const
     {
       const size_t referenceSize = times.size();
       std::vector<contact_flags_t> contactFlagsTrajectory;

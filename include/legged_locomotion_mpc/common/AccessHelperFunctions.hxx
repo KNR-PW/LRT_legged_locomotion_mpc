@@ -225,5 +225,5 @@ namespace legged_locomotion_mpc
       const size_t startRow = 12 + info.actuatedDofNum;
       return Eigen::Block<const Derived, Eigen::Dynamic, 1>(robotState.derived(), startRow, 0, info.actuatedDofNum, 1);
     };
-  }; // namespace access_helper_functions
-}; // namespace legged_locomotion
+  } // namespace access_helper_functions
+} // namespace legged_locomotion

@@ -46,7 +46,6 @@ namespace legged_locomotion_mpc
     scalar_t hessianDiagonalShiftParam): 
       frictionCoefficient_(frictionCoefficientParam),
       regularization_(regularizationParam),
-      gripperForce_(gripperForceParam),
       hessianDiagonalShift_(hessianDiagonalShiftParam) 
   {
     assert(frictionCoefficient_ > 0.0);
@@ -64,23 +63,7 @@ namespace legged_locomotion_mpc
       referenceManagerPtr_(&referenceManager),
       config_(config),
       contactPointIndex_(contactPointIndex),
-      info_(&info) {}
-
-  /******************************************************************************************************/
-  /******************************************************************************************************/
-  /******************************************************************************************************/
-  void ForceFrictionConeConstraint::setRotationMatrixWorldToTerrain(matrix3_t rotationWorldToTerrain) 
-  {
-    rotationWorldToTerrain_ = std::move(rotationWorldToTerrain);
-  }
-
-  /******************************************************************************************************/
-  /******************************************************************************************************/
-  /******************************************************************************************************/
-  void ForceFrictionConeConstraint::setFrictionCoefficient(const double frictionCoefficientParam)
-  {
-    config_.frictionCoefficient_ = frictionCoefficientParam;
-  }
+      info_(std::move(info)) {}
 
   /******************************************************************************************************/
   /******************************************************************************************************/
@@ -99,6 +82,7 @@ namespace legged_locomotion_mpc
     const PreComputation &preComp) const 
   {
     const auto forcesInWorldFrame = access_helper_functions::getContactForces(input, contactPointIndex_, *info_);
+    const matrix3_t rotationMatrixToTerrain = referenceManagerPtr_->
     const vector3_t localForce = rotationWorldToTerrain_ * forcesInWorldFrame;
     return coneConstraint(localForce);
   }

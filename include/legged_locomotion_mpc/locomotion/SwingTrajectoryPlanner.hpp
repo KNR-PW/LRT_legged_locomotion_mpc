@@ -77,7 +77,7 @@ namespace legged_locomotion_mpc
            * Base and foot references generated for this amount of seconds
            * after the horizon ends. 
            */
-          ocs2::scalar_t referenceExtensionAfterHorizon = 1.0;
+          ocs2::scalar_t referenceExtensionAfterHorizon = 0.2;
         };
 
         struct DynamicSettings
@@ -200,7 +200,7 @@ namespace legged_locomotion_mpc
       const std::string &filename, bool verbose = true);
     SwingTrajectoryPlanner::DynamicSettings loadSwingDynamicTrajectorySettings(
       const std::string &filename, bool verbose = true);
-  }; // namespace locomotion
-}; //  namespace legged_locomotion_mpc
+  } // namespace locomotion
+} //  namespace legged_locomotion_mpc
 
 #endif

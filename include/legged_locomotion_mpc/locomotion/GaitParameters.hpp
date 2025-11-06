@@ -70,7 +70,7 @@ namespace legged_locomotion_mpc
       return !(lhs == rhs); 
     };
     
-  }; // namespace locomotion
-}; // namespace legged_locomotion_mpc
+  } // namespace locomotion
+} // namespace legged_locomotion_mpc
 
 #endif

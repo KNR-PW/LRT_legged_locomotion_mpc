@@ -26,7 +26,7 @@ namespace legged_locomotion_mpc
       cachedPhase_.push_back(initPhase);
     }
 
-    std::vector<ocs2::scalar_t> GaitDynamicPhaseController::getPhasesAtTime(scalar_t time)
+    std::vector<ocs2::scalar_t> GaitDynamicPhaseController::getPhasesAtTime(scalar_t time) const
     {
       assert(time >= eventTimes_.front());
 
@@ -63,7 +63,7 @@ namespace legged_locomotion_mpc
       return returnPhases;
     }
 
-    contact_flags_t GaitDynamicPhaseController::getContactFlagsAtTime(scalar_t time)
+    contact_flags_t GaitDynamicPhaseController::getContactFlagsAtTime(scalar_t time) const
     {
       assert(time >= eventTimes_.front());
 
@@ -105,7 +105,7 @@ namespace legged_locomotion_mpc
     }
 
     const GaitDynamicParameters& GaitDynamicPhaseController::getDynamicParametersAtTime(
-      scalar_t time)
+      scalar_t time) const
     {
       assert(time >= eventTimes_.front());
 

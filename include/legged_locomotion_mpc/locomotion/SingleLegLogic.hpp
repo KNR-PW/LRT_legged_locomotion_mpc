@@ -90,7 +90,7 @@ namespace legged_locomotion_mpc
     std::vector<std::vector<bool>> extractContactFlags(
       const std::vector<size_t>& modeSequence, size_t endEffectorNum);
 
-  }; // locomotion
-}; // namespace legged_locomotion_mpc
+  } // locomotion
+} // namespace legged_locomotion_mpc
 
 #endif

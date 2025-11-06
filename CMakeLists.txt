@@ -68,6 +68,7 @@ add_library(${PROJECT_NAME}
   src/locomotion/GaitPlanner.cpp
   src/locomotion/ModeDynamicSequenceTemplate.cpp
   src/locomotion/GaitDynamicPhaseController.cpp
+  src/locomotion/CubicSpline.cpp
   src/locomotion/QuinticSplineSwing.cpp
   src/locomotion/SwingSpline3d.cpp
   src/locomotion/SingleLegLogic.cpp
@@ -178,6 +179,7 @@ if(BUILD_TESTING)
 
   ament_add_google_benchmark(${PROJECT_NAME}_benchmark_locomotion 
         benchmarks/GaitDynamicPhaseControllerBenchmark.cpp
+        benchmarks/SwingTrajectoryPlannerBenchmark.cpp
   )
   target_include_directories(${PROJECT_NAME}_benchmark_locomotion PRIVATE benchmarks/include)
   target_link_libraries(${PROJECT_NAME}_benchmark_locomotion ${PROJECT_NAME})

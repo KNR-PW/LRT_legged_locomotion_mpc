@@ -44,11 +44,7 @@ namespace legged_locomotion_mpc
   /**
    * Implements the constraint h(t,x,u) >= 0
    *
-   * frictionCoefficient * (Fz + gripperForce) - sqrt(Fx * Fx + Fy * Fy + regularization) >= 0
-   *
-   * The gripper force shifts the origin of the friction cone down in z-direction by the amount of gripping force available. This makes it
-   * possible to produce tangential forces without applying a regular normal force on that foot, or to "pull" on the foot with magnitude up to
-   * the gripping force.
+   * frictionCoefficient * Fz - sqrt(Fx * Fx + Fy * Fy + regularization) >= 0
    *
    * The regularization prevents the constraint gradient / hessian to go to infinity when Fx = Fz = 0. It also creates a parabolic safety
    * margin to the friction cone. For example: when Fx = Fy = 0 the constraint zero-crossing will be at Fz = 1/frictionCoefficient *
@@ -70,14 +66,12 @@ namespace legged_locomotion_mpc
       {
         ocs2::scalar_t frictionCoefficient_;
         ocs2::scalar_t regularization_;
-        ocs2::scalar_t gripperForce_;
         ocs2::scalar_t hessianDiagonalShift_;
 
 
         explicit Config(
           ocs2::scalar_t frictionCoefficientParam = 0.7,
           ocs2::scalar_t regularizationParam = 25.0,
-          ocs2::scalar_t gripperForceParam = 0.0,
           ocs2::scalar_t hessianDiagonalShiftParam = 1e-6);
 
       };
@@ -87,7 +81,7 @@ namespace legged_locomotion_mpc
        * @param [in] referenceManager : Switched model ReferenceManager.
        * @param [in] config : Friction model settings.
        * @param [in] contactPointIndex : The 3 DoF contact index.
-       * @param [in] info : The centroidal model information.
+       * @param [in] info : The floating base model information.
        */
       ForceFrictionConeConstraint(const ocs2::SwitchedModelReferenceManager &referenceManager,
         Config config,
@@ -116,34 +110,18 @@ namespace legged_locomotion_mpc
         const ocs2::vector_t &input,
         const ocs2::PreComputation &preComp) const override;
 
-      /**
-       * Set rotation matrix ffor contact
-       * @param [in] surfaceNormalInWorld: sufrace normal in world frame
-       */
-      void setRotationMatrixWorldToTerrain(matrix3_t rotationWorldToTerrain);
-      
-      /**
-       * Set new friction coefficient for contact
-       * @param [in] frictionCoefficientParam: friction coefficient
-       */
-      void setFrictionCoefficient(const double frictionCoefficientParam);
-
     private:
       
       ForceFrictionConeConstraint(const ForceFrictionConeConstraint&other) = default;
 
       ocs2::vector_t coneConstraint(const vector3_t &localForces) const;
 
-      const SwitchedModelReferenceManager *referenceManagerPtr_;
+      const SwitchedModelReferenceManager* referenceManagerPtr_;
 
       const Config config_;
       const size_t contactPointIndex_;
-      const FloatingBaseModelInfo info_;
-
-      // rotation world to terrain, normal to contact 
-      matrix3_t rotationWorldToTerrain_ = matrix3_t::Identity();
-
+      const floating_base_model::FloatingBaseModelInfo info_;
   };
-}; // namespace legged_locomotion_mpc
+} // namespace legged_locomotion_mpc
 
 #endif

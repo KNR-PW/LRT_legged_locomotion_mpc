@@ -88,6 +88,6 @@ namespace legged_locomotion_mpc
 
     std::string loadInverseSolverName(const std::string &filename, bool verbose = true);
   };
-}; // namespace legged_locomotion_mpc
+} // namespace legged_locomotion_mpc
 
 #endif

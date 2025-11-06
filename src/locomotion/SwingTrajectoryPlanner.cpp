@@ -137,10 +137,6 @@ namespace legged_locomotion_mpc
     {
       const auto timeIndex = lookup::findIndexInTimeArray(
         feetNormalTrajectoriesEvents_[endEffectorIndex], time);
-      if(timeIndex == feetNormalTrajectoriesEvents_.size())
-      {
-        throw std::runtime_error("[SwingTrajectoryPlanner]: Error looking for foot phase!");
-      }
       return *feetNormalTrajectories_[endEffectorIndex][timeIndex];
     }
 
@@ -201,8 +197,8 @@ namespace legged_locomotion_mpc
     }
 
     using FootPhasesStamped =  std::pair<std::vector<ocs2::scalar_t>, std::vector<std::unique_ptr<FootPhase>>>; 
-    FootPhasesStamped SwingTrajectoryPlanner::generateSwingTrajectories(size_t endEffectorIndex, 
-      const std::vector<ContactTiming> &contactTimings, 
+    FootPhasesStamped SwingTrajectoryPlanner::generateSwingTrajectories(
+      size_t endEffectorIndex, const std::vector<ContactTiming> &contactTimings, 
       scalar_t finalTime) const
     {
       std::vector<scalar_t> eventTimes;

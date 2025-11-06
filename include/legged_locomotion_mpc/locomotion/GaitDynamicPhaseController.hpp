@@ -38,14 +38,14 @@ namespace legged_locomotion_mpc
         /**
          * Get phase values at given query time
          */
-        std::vector<ocs2::scalar_t> getPhasesAtTime(ocs2::scalar_t time);
+        std::vector<ocs2::scalar_t> getPhasesAtTime(ocs2::scalar_t time) const;
 
         /**
          * Get contact flags at given query time
          */
-        contact_flags_t getContactFlagsAtTime(ocs2::scalar_t time);
+        contact_flags_t getContactFlagsAtTime(ocs2::scalar_t time) const;
 
-        const GaitDynamicParameters& getDynamicParametersAtTime(ocs2::scalar_t time);
+        const GaitDynamicParameters& getDynamicParametersAtTime(ocs2::scalar_t time) const;
 
         /**
          * Remove event times, frequencies and offsets before query time
@@ -83,7 +83,7 @@ namespace legged_locomotion_mpc
          */
         std::vector<ocs2::scalar_t> cachedPhase_;
     };
-  }; // namespace locomotion
-}; // namespace legged_locomotion_mpc
+  } // namespace locomotion
+} // namespace legged_locomotion_mpc
 
 #endif

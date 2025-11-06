@@ -63,7 +63,7 @@ namespace legged_locomotion_mpc
 
         floating_base_model::FloatingBaseModelInfo modelInfo_;
     };
-  }; // namespace planners
-}; // namespace legged_locomotion_mpc
+  } // namespace planners
+} // namespace legged_locomotion_mpc
 
 #endif

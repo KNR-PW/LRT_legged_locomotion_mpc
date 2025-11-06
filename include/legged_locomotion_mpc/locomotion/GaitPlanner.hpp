@@ -55,12 +55,15 @@ namespace legged_locomotion_mpc
         
         GaitFlags updateCurrentContacts(ocs2::scalar_t time, contact_flags_t currentContacts);
 
-        std::vector<ocs2::scalar_t> getPhasesAtTime(ocs2::scalar_t time);
+        std::vector<ocs2::scalar_t> getPhasesAtTime(ocs2::scalar_t time) const;
 
-        contact_flags_t getContactFlagsAtTime(ocs2::scalar_t time);
+        std::vector<std::vector<ocs2::scalar_t>> getPhasesAtTimes(
+          std::vector<ocs2::scalar_t> times) const;
+
+        contact_flags_t getContactFlagsAtTime(ocs2::scalar_t time) const;
 
         std::vector<contact_flags_t> getContactFlagsAtTimes(
-          std::vector<ocs2::scalar_t> times);
+          std::vector<ocs2::scalar_t> times) const;
 
         const GaitStaticParameters& getStaticParameters();
 
@@ -84,7 +87,7 @@ namespace legged_locomotion_mpc
         ocs2::ModeSchedule modeSchedule_;
         ModeSequenceTemplate modeSequenceTemplate_;
     };
-  }; // namespace locomotion
-}; // namespace legged_locomotion_mpc
+  } // namespace locomotion
+} // namespace legged_locomotion_mpc
 
 #endif

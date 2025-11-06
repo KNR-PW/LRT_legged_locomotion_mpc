@@ -73,7 +73,7 @@ namespace legged_locomotion_mpc
 
         ocs2::vector_t torqueLimits_;
     };
-  }; //namespace penalty
-}; // namespace legged_locomotion_mpc
+  } //namespace penalty
+} // namespace legged_locomotion_mpc
 
 #endif

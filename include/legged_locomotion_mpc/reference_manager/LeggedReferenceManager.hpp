@@ -34,36 +34,40 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <ocs2_core/thread_support/Synchronized.h>
 #include <ocs2_oc/synchronized_module/ReferenceManager.h>
 
-// #include "ocs2_legged_robot/foot_planner/SwingTrajectoryPlanner.h"
-// #include "ocs2_legged_robot/gait/GaitSchedule.h"
-// #include "ocs2_legged_robot/gait/MotionPhaseDefinition.h"
+#include <legged_locomotion_mpc/locomotion/GaitPlanner.hpp>
+#include <legged_locomotion_mpc/locomotion/SwingTrajectoryPlanner.hpp>
+
+#include <legged_locomotion_mpc/trajectory_planners/BaseTrajectoryPlanner.hpp>
+#include <legged_locomotion_mpc/trajectory_planners/JointTrajectoryPlanner.hpp>
+#include <legged_locomotion_mpc/trajectory_planners/ContactForceWrenchTrajectoryPlanner.hpp>
 
 namespace legged_locomotion_mpc
 {
-    /**
-    * Manages the ModeSchedule and the TargetTrajectories for switched model.
-    */
-    class SwitchedModelReferenceManager : public ReferenceManager {
+  /**
+  * Manages the ModeSchedule and the TargetTrajectories for switched model.
+  */
+  class LeggedReferenceManager : public ReferenceManager 
+  {
     public:
-        SwitchedModelReferenceManager(std::shared_ptr<GaitSchedule> gaitSchedulePtr,
-                                      std::shared_ptr<SwingTrajectoryPlanner> swingTrajectoryPtr);
+  
+    LeggedReferenceManager(std::shared_ptr<locomotion::GaitPlanner> gaitPlannerPtr,
+      std::shared_ptr<locomotion::SwingTrajectoryPlanner> swingTrajectoryPtr,
+      std::shared_ptr<planners::BaseTrajectoryPlanner> baseTrajectoryPtr,
+      std::shared_ptr<planners::JointTrajectoryPlanner> jointTrajectoryPtr,
+      std::shared_ptr<planners::ContactForceWrenchTrajectoryPlanner forceTrajectoryPtr);
 
-        ~SwitchedModelReferenceManager() override = default;
+    ~LeggedReferenceManager() override = default;
 
-        void setModeSchedule(const ModeSchedule &modeSchedule) override;
+    void set()
 
-        contact_flag_t getContactFlags(scalar_t time) const;
+    const std::shared_ptr<locomotion::GaitPlanner>& getGaitPlanner();
+    const std::shared_ptr<locomotion::SwingTrajectoryPlanner>& getSwingTrajectoryPlanner();
 
-        const std::shared_ptr<GaitSchedule> &getGaitSchedule() { return gaitSchedulePtr_; }
-
-        const std::shared_ptr<SwingTrajectoryPlanner> &getSwingTrajectoryPlanner() { return swingTrajectoryPtr_; }
-
-    private:
-        void modifyReferences(scalar_t initTime, scalar_t finalTime, const vector_t &initState,
-                              TargetTrajectories &targetTrajectories,
-                              ModeSchedule &modeSchedule) override;
-
-        std::shared_ptr<GaitSchedule> gaitSchedulePtr_;
-        std::shared_ptr<SwingTrajectoryPlanner> swingTrajectoryPtr_;
-    };
+  private:
+      void modifyReferences(scalar_t initTime, scalar_t finalTime, const vector_t &initState,
+                            TargetTrajectories &targetTrajectories,
+                            ModeSchedule &modeSchedule) override;
+      std::shared_ptr<GaitSchedule> gaitSchedulePtr_;
+      std::shared_ptr<SwingTrajectoryPlanner> swingTrajectoryPtr_;
+  };
 } // namespace legged_locomotion_mpc

@@ -109,7 +109,7 @@ namespace legged_locomotion_mpc
       const floating_base_model::FloatingBaseModelInfo &info, 
       const contact_flags_t &contactFlags);
       
-  }; // namespace utils
-}; // namespace legged_locomotion_mpc
+  } // namespace utils
+} // namespace legged_locomotion_mpc
 
 #endif

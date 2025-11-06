@@ -102,6 +102,6 @@ namespace legged_locomotion_mpc
       // reference is same as normal to terrain)
       matrix3_t rotationWorldToTerrain_;
   };
-}; // namespace legged_locomotion_mpc
+} // namespace legged_locomotion_mpc
 
 #endif

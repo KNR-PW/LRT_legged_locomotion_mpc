@@ -71,7 +71,7 @@ namespace legged_locomotion_mpc
   vector_t JointLimitsConstraint::getValue(scalar_t time, const vector_t &state,
     const vector_t &input, const PreComputation &preComp) const
   {
-    const vector_t jointPositions = access_helper_functions::getJointAngles(state, info_);
+    const vector_t jointPositions = access_helper_functions::getJointPositions(state, info_);
     const vector_t jointVelocities = access_helper_functions::getJointVelocities(input, info_);
     const vector_t upperBoundJointPositionOffset = jointPositionUpperLimits_ - jointPositions;
     const vector_t lowerBoundJointPositionOffset = jointPositions - jointPositionLowerLimits_;

@@ -49,6 +49,6 @@ namespace legged_locomotion_mpc
       const size_t contactFeetIndex_;
     };
 
-}; // namespace legged_locomotion_mpc
+} // namespace legged_locomotion_mpc
 
 #endif

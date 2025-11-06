@@ -211,7 +211,7 @@ namespace legged_locomotion_mpc
         std::unique_ptr<SwingSpline3d> motion_;
         std::unique_ptr<QuinticSwing> terrainClearanceMotion_;
     };
-  }; // namespace locomotion
-}; // namespace legged_locomotion_mpc
+  } // namespace locomotion
+} // namespace legged_locomotion_mpc
     
 #endif

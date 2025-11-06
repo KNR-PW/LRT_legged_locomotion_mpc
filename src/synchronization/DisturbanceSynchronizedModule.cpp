@@ -60,6 +60,6 @@ namespace legged_locomotion_mpc
       return {activeDisturbanceTime_, activeDisturbance_};
     }
 
-  }; // namespace synchronization
-}; // namespace legged_locomotion_mpc
+  } // namespace synchronization
+} // namespace legged_locomotion_mpc
 

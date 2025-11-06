@@ -4,6 +4,7 @@
 //
 
 #include <legged_locomotion_mpc/locomotion/FootPhase.hpp>
+#include <legged_locomotion_mpc/locomotion/CubicSpline.hpp>
 
 #include <ocs2_core/misc/LinearInterpolation.h>
 
@@ -263,6 +264,23 @@ namespace legged_locomotion_mpc
         {
           terrainClearanceMotion_.reset();
         }
+      }
+    }
+
+    scalar_t SwingPhase::getScaling(scalar_t time) const 
+    {
+      // Cubic scaling from 25% till 75% of swing duration
+      const scalar_t startInterpolation = 0.25;
+      const scalar_t endInterpolation = 0.75;
+      static const CubicSpline scalingSpline({startInterpolation, 0.0, 0.0}, {endInterpolation, 1.0, 0.0});
+
+      const scalar_t normalizedTime = (time - liftOff_.time) / (touchDown_.time - liftOff_.time);
+      if (normalizedTime < startInterpolation) {
+          return 0.0;
+      } else if (normalizedTime < endInterpolation) {
+          return scalingSpline.position(normalizedTime);
+      } else {
+          return 1.0;
       }
     }
 

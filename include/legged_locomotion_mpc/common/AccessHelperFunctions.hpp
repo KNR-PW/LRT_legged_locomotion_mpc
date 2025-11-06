@@ -203,8 +203,8 @@ namespace legged_locomotion_mpc
       const Eigen::MatrixBase<Derived>& robotState,
       const floating_base_model::FloatingBaseModelInfoTpl<SCALAR_T>& info);
 
-  }; // namespace access_helper_functions
-}; // namespace legged_locomotion
+  } // namespace access_helper_functions
+} // namespace legged_locomotion
 
 #include "AccessHelperFunctions.hxx"
 

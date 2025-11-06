@@ -58,7 +58,7 @@ namespace legged_locomotion_mpc
 
         std::mutex receivedDisturbanceMutex_; 
     };
-  }; // namespace synchronization
-}; // namespace legged_locomotion_mpc 
+  } // namespace synchronization
+} // namespace legged_locomotion_mpc 
 
 #endif

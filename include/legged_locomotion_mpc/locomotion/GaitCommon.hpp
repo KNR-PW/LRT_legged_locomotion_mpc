@@ -122,7 +122,7 @@ namespace legged_locomotion_mpc
       return newMode;
     };
 
-  }; // namespace locomotion
-}; // namespace legged_locomotion_mpc
+  } // namespace locomotion
+} // namespace legged_locomotion_mpc
 
 #endif

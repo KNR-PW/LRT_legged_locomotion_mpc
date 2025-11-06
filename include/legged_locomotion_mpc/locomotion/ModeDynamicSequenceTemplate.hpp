@@ -33,8 +33,8 @@ namespace legged_locomotion_mpc
       ocs2::scalar_t timeHorizon,
       const GaitStaticParameters& staticParams,
       const GaitDynamicParameters& dynamicParams);
-  }; // namespace locomotion
-}; // namespace legged_locomotion_mpc
+  } // namespace locomotion
+} // namespace legged_locomotion_mpc
 
 
 #endif

@@ -23,7 +23,7 @@ using namespace floating_base_model;
 
 static void BaseTrajectoryPlanner_UPDATE(benchmark::State & state)
 {
-const scalar_t slope = -M_PI / 4;
+  const scalar_t slope = -M_PI / 4;
   const vector3_t terrainEulerZyx{0.0, slope, 0.0};
   const matrix3_t terrainRotation = getRotationMatrixFromZyxEulerAngles(terrainEulerZyx); 
 

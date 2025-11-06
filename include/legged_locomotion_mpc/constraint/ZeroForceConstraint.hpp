@@ -85,6 +85,6 @@ namespace legged_locomotion_mpc
 
   };
 
-}; // namespace legged_locomotion_mpc
+} // namespace legged_locomotion_mpc
 
 #endif

@@ -119,7 +119,7 @@ namespace legged_locomotion_mpc
         StaticSettings settings_;
         const terrain_model::TerrainModel* terrainModel_;
     };
-  }; // namespace planners
-}; // namespace legged_locomotion_mpc
+  } // namespace planners
+} // namespace legged_locomotion_mpc
 
 #endif

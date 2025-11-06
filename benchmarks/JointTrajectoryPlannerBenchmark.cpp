@@ -32,7 +32,8 @@ static void JointTrajectoryPlanner_UPDATE(benchmark::State & state)
   modelSettings.threeDofEndEffectorNames = meldog3DofContactNames;
 
   InverseSolverSettings solverSettings;
-  solverSettings.tolerance = 1e-8;
+  // solverSettings.stepCoefficient = 0.1;
+  solverSettings.tolerance = 1e-3;
   MultiEndEffectorKinematics kinematicsSolver(urdfPathName, modelSettings, 
     solverSettings, solverName);
 
@@ -48,7 +49,7 @@ static void JointTrajectoryPlanner_UPDATE(benchmark::State & state)
   const scalar_t initTime = 0.0;
   const scalar_t endTime = 1.0;
   const scalar_t deltaTime = 0.1;
-  const size_t referenceSize = (endTime - initTime) / 0.1 + 1;
+  const size_t referenceSize = (endTime - initTime) / deltaTime + 1;
 
   TargetTrajectories trajectory;
   TargetTrajectories trajectoryTrue;

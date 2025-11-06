@@ -132,7 +132,7 @@ namespace legged_locomotion_mpc
         std::vector<ocs2::scalar_t> nodeTimes;
         std::vector<QuinticSpline> splines;
     };
-  }; // namespace locomotion
-}; // namespace legged_locomotion_mpc
+  } // namespace locomotion
+} // namespace legged_locomotion_mpc
 
 #endif

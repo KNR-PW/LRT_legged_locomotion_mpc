@@ -57,7 +57,7 @@ namespace legged_locomotion_mpc
         QuinticSwing y_;
         QuinticSwing z_;
     };  
-  }; // namespace locomotion
-}; //  namespace legged_locomotion_mpc
+  } // namespace locomotion
+} //  namespace legged_locomotion_mpc
     
 #endif

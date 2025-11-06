@@ -59,6 +59,6 @@ namespace legged_locomotion_mpc
       vector3_t surfaceNormalInWorld_ = vector3_t(0.0, 0.0, 1.0);
     };
 
-}; // namespace legged_locomotion_mpc
+} // namespace legged_locomotion_mpc
 
 #endif

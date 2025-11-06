@@ -72,6 +72,6 @@ namespace legged_locomotion_mpc
       const synchronization::DisturbanceSynchronizedModule* disturbanceSynchronizedModule_;
   };
 
-}; // namespace legged_locomotion_mpc
+} // namespace legged_locomotion_mpc
 
 #endif
