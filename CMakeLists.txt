@@ -82,6 +82,8 @@ add_library(${PROJECT_NAME}
   src/synchronization/GaitSynchronizedModule.cpp
   src/synchronization/DisturbanceSynchronizedModule.cpp
 
+  src/reference_manager/LeggedReferenceManager.cpp
+
   src/dynamics/LeggedDynamicsAD.cpp
 
   # src/constraint/ForceFrictionConeConstraint.cpp
@@ -192,6 +194,13 @@ if(BUILD_TESTING)
   target_include_directories(${PROJECT_NAME}_benchmark_trajectory_planners PRIVATE benchmarks/include)
   target_link_libraries(${PROJECT_NAME}_benchmark_trajectory_planners ${PROJECT_NAME})
   target_compile_options(${PROJECT_NAME}_benchmark_trajectory_planners PUBLIC ${FLAGS})
+
+  ament_add_google_benchmark(${PROJECT_NAME}_benchmark_reference
+        benchmarks/LeggedReferenceManagerBenchmark.cpp
+  )
+  target_include_directories(${PROJECT_NAME}_benchmark_reference PRIVATE benchmarks/include)
+  target_link_libraries(${PROJECT_NAME}_benchmark_reference ${PROJECT_NAME})
+  target_compile_options(${PROJECT_NAME}_benchmark_reference PUBLIC ${FLAGS})
 
 endif()
 

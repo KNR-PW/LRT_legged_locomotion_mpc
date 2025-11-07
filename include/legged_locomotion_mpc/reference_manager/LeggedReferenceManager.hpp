@@ -1,38 +1,32 @@
-/******************************************************************************
-Copyright (c) 2021, Farbod Farshidian. All rights reserved.
+// Copyright (c) 2025, Koło Naukowe Robotyków
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-Modified by Bartłomiej Krajewski (https://github.com/BartlomiejK2), 2025
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
- * Redistributions of source code must retain the above copyright notice, this
-  list of conditions and the following disclaimer.
+/*
+ * Authors: Bartłomiej Krajewski (https://github.com/BartlomiejK2)
+ */
 
- * Redistributions in binary form must reproduce the above copyright notice,
-  this list of conditions and the following disclaimer in the documentation
-  and/or other materials provided with the distribution.
 
- * Neither the name of the copyright holder nor the names of its
-  contributors may be used to endorse or promote products derived from
-  this software without specific prior written permission.
+#ifndef __LEGGED_REFERENCE_MANAGER_LEGGED_LOCOMOTION_MPC__
+#define __LEGGED_REFERENCE_MANAGER_LEGGED_LOCOMOTION_MPC__
 
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-******************************************************************************/
-
-#pragma once
+#include <future>
 
 #include <ocs2_core/thread_support/Synchronized.h>
 #include <ocs2_oc/synchronized_module/ReferenceManager.h>
+
+#include <legged_locomotion_mpc/common/Types.hpp>
 
 #include <legged_locomotion_mpc/locomotion/GaitPlanner.hpp>
 #include <legged_locomotion_mpc/locomotion/SwingTrajectoryPlanner.hpp>
@@ -46,28 +40,58 @@ namespace legged_locomotion_mpc
   /**
   * Manages the ModeSchedule and the TargetTrajectories for switched model.
   */
-  class LeggedReferenceManager : public ReferenceManager 
+  class LeggedReferenceManager : public ocs2::ReferenceManager
   {
     public:
+
+    struct Settings
+    {
+      ocs2::scalar_t maximumReferenceSampleInterval = 0.05;
+    };
   
-    LeggedReferenceManager(std::shared_ptr<locomotion::GaitPlanner> gaitPlannerPtr,
+    LeggedReferenceManager(LeggedReferenceManager::Settings settings,
+      std::shared_ptr<locomotion::GaitPlanner> gaitPlannerPtr,
       std::shared_ptr<locomotion::SwingTrajectoryPlanner> swingTrajectoryPtr,
       std::shared_ptr<planners::BaseTrajectoryPlanner> baseTrajectoryPtr,
       std::shared_ptr<planners::JointTrajectoryPlanner> jointTrajectoryPtr,
-      std::shared_ptr<planners::ContactForceWrenchTrajectoryPlanner forceTrajectoryPtr);
+      std::shared_ptr<planners::ContactForceWrenchTrajectoryPlanner> forceTrajectoryPtr);
 
     ~LeggedReferenceManager() override = default;
 
-    void set()
+    void init(ocs2::scalar_t initTime, ocs2::scalar_t finalTime);
 
-    const std::shared_ptr<locomotion::GaitPlanner>& getGaitPlanner();
-    const std::shared_ptr<locomotion::SwingTrajectoryPlanner>& getSwingTrajectoryPlanner();
+    void updateState(const state_vector_t& currenState);
+    void updateContactFlags(const contact_flags_t& currentContactFlags);
+    void updateCurrentGaitParemeters(
+      locomotion::GaitDynamicParameters&& currentGaitParameters);
+    void updateTerrainModel(
+      std::unique_ptr<terrain_model::TerrainModel> currentTerrainModel);
 
-  private:
-      void modifyReferences(scalar_t initTime, scalar_t finalTime, const vector_t &initState,
-                            TargetTrajectories &targetTrajectories,
-                            ModeSchedule &modeSchedule) override;
-      std::shared_ptr<GaitSchedule> gaitSchedulePtr_;
-      std::shared_ptr<SwingTrajectoryPlanner> swingTrajectoryPtr_;
+    void preSolverRun(ocs2::scalar_t initTime, ocs2::scalar_t finalTime, 
+      const ocs2::vector_t& initState) override;
+
+    contact_flags_t getContactFlags(ocs2::scalar_t time);
+
+    private:
+      void generateNewTargetTrajectories(ocs2::scalar_t initTime, 
+        ocs2::scalar_t finalTime);
+
+      Settings settings_;
+
+      std::future<void> newTrajectories_;
+
+      ocs2::BufferedValue<state_vector_t> currentState_;
+      ocs2::BufferedValue<contact_flags_t> currentContactFlags_;
+      ocs2::BufferedValue<locomotion::GaitDynamicParameters> currentGaitParameters_;
+      ocs2::BufferedValue<planners::BaseTrajectoryPlanner::BaseReferenceCommand> currentCommand_;
+      ocs2::Synchronized<terrain_model::TerrainModel> currentTerrainModel_;
+
+      std::shared_ptr<locomotion::GaitPlanner> gaitPlannerPtr_;
+      std::shared_ptr<locomotion::SwingTrajectoryPlanner> swingTrajectoryPtr_;
+      std::shared_ptr<planners::BaseTrajectoryPlanner> baseTrajectoryPtr_;
+      std::shared_ptr<planners::JointTrajectoryPlanner> jointTrajectoryPtr_;
+      std::shared_ptr<planners::ContactForceWrenchTrajectoryPlanner> forceTrajectoryPtr_;
   };
 } // namespace legged_locomotion_mpc
+
+#endif
