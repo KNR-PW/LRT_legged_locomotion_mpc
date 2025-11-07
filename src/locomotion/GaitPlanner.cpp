@@ -67,7 +67,8 @@ namespace legged_locomotion_mpc
       return modeSchedule_;
     }
 
-    GaitFlags GaitPlanner::updateCurrentContacts(scalar_t time, contact_flags_t currentContacts)
+    GaitFlags GaitPlanner::updateCurrentContacts(scalar_t time, 
+      const contact_flags_t& currentContacts)
     {
       const auto& eventTimes = modeSchedule_.eventTimes;
       auto& modeSequence = modeSchedule_.modeSequence;

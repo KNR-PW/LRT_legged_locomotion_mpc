@@ -53,7 +53,8 @@ namespace legged_locomotion_mpc
         void updateDynamicParameters(ocs2::scalar_t time,
           const GaitDynamicParameters& dynamicParams);
         
-        GaitFlags updateCurrentContacts(ocs2::scalar_t time, contact_flags_t currentContacts);
+        GaitFlags updateCurrentContacts(ocs2::scalar_t time, 
+          const contact_flags_t& currentContacts);
 
         std::vector<ocs2::scalar_t> getPhasesAtTime(ocs2::scalar_t time) const;
 
