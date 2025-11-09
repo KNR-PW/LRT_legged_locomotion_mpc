@@ -30,6 +30,7 @@ namespace legged_locomotion_mpc
   {
     newTrajectories_ = std::async(std::launch::async, [this, initTime, finalTime]()
       {return generateNewTargetTrajectories(initTime, finalTime);});
+    newTrajectories_.wait();
   }
 
   contact_flags_t LeggedReferenceManager::getContactFlags(ocs2::scalar_t time)
@@ -54,14 +55,19 @@ namespace legged_locomotion_mpc
     currentState_.updateFromBuffer();
     const state_vector_t& currentState = currentState_.get();
 
-    currentContactFlags_.updateFromBuffer();
-    const contact_flags_t& currentContactFlags = currentContactFlags_.get();
+    // no new gait parameters -> no update
+    if(currentGaitParameters_.updateFromBuffer())
+    {
+      const GaitDynamicParameters& currentGaitParameters = currentGaitParameters_.get();
+      gaitPlannerPtr_->updateDynamicParameters(initTime, currentGaitParameters);
+    }
 
-    currentGaitParameters_.updateFromBuffer();
-    const GaitDynamicParameters& currentGaitParameters = currentGaitParameters_.get();
-    
-    gaitPlannerPtr_->updateDynamicParameters(initTime, currentGaitParameters);
-    gaitPlannerPtr_->updateCurrentContacts(initTime, currentContactFlags);
+    // No new contact flag -> no update
+    if(currentContactFlags_.updateFromBuffer());
+    {
+      const contact_flags_t& currentContactFlags = currentContactFlags_.get();
+      gaitPlannerPtr_->updateCurrentContacts(initTime, currentContactFlags);
+    }
 
     const ModeSchedule newModeSchedule = gaitPlannerPtr_->getModeSchedule(initTime, 
       finalTime);
@@ -77,9 +83,19 @@ namespace legged_locomotion_mpc
 
     TargetTrajectories newTrajectory;
 
-    currentCommand_.updateFromBuffer();
-    const BaseTrajectoryPlanner::BaseReferenceCommand& currentCommand = 
-      currentCommand_.get();
+    // No new command -> stay in place
+    BaseTrajectoryPlanner::BaseReferenceCommand currentCommand;
+    if(currentCommand_.updateFromBuffer())
+    {
+      currentCommand = currentCommand_.get();
+    }
+    else
+    {
+      currentCommand.baseHeadingVelocity = 0.0;
+      currentCommand.baseLateralVelocity = 0.0;
+      currentCommand.baseVerticalVelocity = 0.0;
+      currentCommand.yawRate = 0.0;
+    }
 
     baseTrajectoryPtr_->updateTargetTrajectory(initTime, finalTime, currentCommand, 
       currentState, newTrajectory);

@@ -30,16 +30,19 @@ namespace legged_locomotion_mpc
       const position_trajectories& endEffectorPositionTrajectories,
       const velocity_trajectories& endEffectorVelocityTrajectories)
     {
+      assert(endEffectorPositionTrajectories.size() == endEffectorVelocityTrajectories.size());
+      assert(endEffectorPositionTrajectories.size() == targetTrajectories.timeTrajectory.size());
+      
       const size_t trajectorySize = targetTrajectories.timeTrajectory.size();
       auto& currentOptimalState = targetTrajectories.stateTrajectory[0];
       auto& currentOptimalInput = targetTrajectories.inputTrajectory[0];
 
       floating_base_model::access_helper_functions::getJointPositions(currentOptimalState, modelInfo_) 
         = legged_locomotion_mpc::access_helper_functions::getJointPositions(currentState, modelInfo_);
-
+      
       floating_base_model::access_helper_functions::getJointVelocities(currentOptimalInput, modelInfo_) 
         = legged_locomotion_mpc::access_helper_functions::getJointVelocities(currentState, modelInfo_);
-
+      
       for(size_t i = 1; i < trajectorySize; ++i)
       {
         const scalar_t currentTime = targetTrajectories.timeTrajectory[i];
@@ -51,7 +54,7 @@ namespace legged_locomotion_mpc
           endEffectorPositionTrajectories[i];
         const std::vector<vector3_t>& newEndEffectorVelocities = 
           endEffectorVelocityTrajectories[i];
-        
+
         const auto& previousState = targetTrajectories.stateTrajectory[i - 1];
         const auto& previousInput = targetTrajectories.inputTrajectory[i - 1];
 
@@ -72,7 +75,7 @@ namespace legged_locomotion_mpc
 
         const vector6_t& newBasePose = 
           floating_base_model::access_helper_functions::getBasePose(newState, modelInfo_);
-
+        
         const vector6_t& newBaseVelocity = 
           floating_base_model::access_helper_functions::getBaseVelocity(newState, modelInfo_);
 

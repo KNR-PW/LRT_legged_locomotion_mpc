@@ -43,7 +43,7 @@ namespace legged_locomotion_mpc
     void DisturbanceSynchronizedModule::updateDistrubance(ocs2::scalar_t time, 
       const vector6_t& disturbance)
     {
-      if(newDisturbance_ != disturbance)
+      if((newDisturbance_ - disturbance).norm() > 1e-3)
       {
         std::lock_guard<std::mutex> lock(receivedDisturbanceMutex_);
         newDisturbance_ = disturbance;

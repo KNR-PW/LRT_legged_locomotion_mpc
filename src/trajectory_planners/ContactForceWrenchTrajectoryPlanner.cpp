@@ -16,6 +16,8 @@ namespace legged_locomotion_mpc
       std::vector<contact_flags_t> contactFlagsTrajectory,
       TargetTrajectories& targetTrajectories)
     {
+      assert(contactFlagsTrajectory.size() == targetTrajectories.timeTrajectory.size());
+      
       const size_t referenceSize = targetTrajectories.timeTrajectory.size();
       for(size_t i = 0; i < referenceSize; ++i)
       {

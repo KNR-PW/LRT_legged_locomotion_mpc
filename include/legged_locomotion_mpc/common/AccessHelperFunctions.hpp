@@ -168,7 +168,8 @@ namespace legged_locomotion_mpc
     * @return block with actuated joint positions
     */
     template <typename Derived, typename SCALAR_T>
-    Eigen::Block<Derived, Eigen::Dynamic, 1> getJointPositions(Eigen::MatrixBase<Derived>& robotState,
+    Eigen::Block<Derived, Eigen::Dynamic, 1> getJointPositions(
+      Eigen::MatrixBase<Derived>& robotState,
       const floating_base_model::FloatingBaseModelInfoTpl<SCALAR_T>& info);
 
     /**

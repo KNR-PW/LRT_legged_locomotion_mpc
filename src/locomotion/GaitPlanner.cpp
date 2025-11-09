@@ -91,6 +91,7 @@ namespace legged_locomotion_mpc
     void GaitPlanner::updateDynamicParameters(scalar_t time,
       const GaitDynamicParameters& dynamicParams)
     {
+      if(dynamicParams == gaitPhaseController_.getDynamicParametersAtTime(time)) return;
       const auto &eventTimes = modeSchedule_.eventTimes;
 
       // Update gait phase controller

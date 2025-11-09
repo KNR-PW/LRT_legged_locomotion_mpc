@@ -127,7 +127,9 @@ namespace legged_locomotion_mpc
       for (size_t i = 1; i < referenceSize; ++i) 
       {
         // New base height normal to plane 
-        currentBaseHeight_ += command.baseVerticalVelocity * settings_.deltaTime;
+        currentBaseHeight_ = std::clamp(currentBaseHeight_ + 
+          command.baseVerticalVelocity * settings_.deltaTime, settings_.minimumBaseHeight, 
+          settings_.maximumBaseHeight);
         
         // Get new position and orientation with current body velocities
         pinocchio::SE3 newTransform = currentTransform * SE3Delta;

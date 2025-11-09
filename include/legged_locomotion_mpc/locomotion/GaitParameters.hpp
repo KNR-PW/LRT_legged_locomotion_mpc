@@ -23,6 +23,8 @@
 
 #include <legged_locomotion_mpc/common/Types.hpp>
 
+#include <cmath>
+
 namespace legged_locomotion_mpc
 {
   namespace locomotion
@@ -31,9 +33,10 @@ namespace legged_locomotion_mpc
     namespace Definitions
     {
       static const ocs2::scalar_t MAX_STEPPING_FREQUENCY = 5.0;  // [Hz]
-      static const ocs2::scalar_t MIN_STEPPING_FREQUENCY = 0.1;  // [Hz]
+      static const ocs2::scalar_t MIN_STEPPING_FREQUENCY = 0.05;  // [Hz]
       static const size_t DEFAULT_BUFFER_SIZE = 10; 
       static const ocs2::scalar_t TOUCH_DOWN_WINDOW = 0.1; // [s]
+      static const ocs2::scalar_t EPS = 1e-3;
     }
 
     enum class GaitFlags
@@ -61,8 +64,15 @@ namespace legged_locomotion_mpc
 
     inline bool operator==(const GaitDynamicParameters& lhs, const GaitDynamicParameters& rhs) 
     { 
-      return lhs.steppingFrequency == rhs.steppingFrequency && lhs.swingRatio == rhs.swingRatio 
-        && lhs.phaseOffsets == rhs.phaseOffsets;
+      ocs2::scalar_t phaseOffsetsDifference = 0.0;
+      for(size_t i = 0; i < lhs.phaseOffsets.size(); i++)
+      {
+        phaseOffsetsDifference += std::abs(lhs.phaseOffsets[i] - rhs.phaseOffsets[i]);
+      }
+      return std::abs(lhs.steppingFrequency - rhs.steppingFrequency) < Definitions::EPS
+        &&  std::abs(lhs.swingRatio - rhs.swingRatio ) < Definitions::EPS
+        &&  phaseOffsetsDifference < Definitions::EPS
+        && lhs.phaseOffsets.size() == rhs.phaseOffsets.size();
     };
       
     inline bool operator!=(const GaitDynamicParameters& lhs, const GaitDynamicParameters& rhs) 

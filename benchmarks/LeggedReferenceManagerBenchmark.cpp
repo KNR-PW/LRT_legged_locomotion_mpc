@@ -1,6 +1,7 @@
 #include <benchmark/benchmark.h>
 
 #include <legged_locomotion_mpc/reference_manager/LeggedReferenceManager.hpp>
+#include <legged_locomotion_mpc/common/AccessHelperFunctions.hpp>
 
 #include <floating_base_model/FactoryFunctions.hpp>
 
@@ -19,8 +20,10 @@ using namespace multi_end_effector_kinematics;
 
 static void LeggedReferenceManager_PRESOLVE(benchmark::State & state)
 {
+  const scalar_t defTime = 0.0;
   const scalar_t initTime = 0.0;
   const scalar_t finalTime = 1.0;
+  const scalar_t deltaTime = 0.01;
 
   /* STANDING TROT */
   scalar_t startingPhase = 3.5 / 7.0;
@@ -41,7 +44,7 @@ static void LeggedReferenceManager_PRESOLVE(benchmark::State & state)
   auto modeSequenceTemplate = getDynamicModeSequenceTemplate(startingPhase,
     finalTime, staticParams, dynamicParams);
 
-  const scalar_t slope = -M_PI / 4;
+  const scalar_t slope = 0.0;
   const vector3_t terrainEulerZyx{0.0, slope, 0.0};
   const matrix3_t terrainRotation = getRotationMatrixFromZyxEulerAngles(terrainEulerZyx); 
 
@@ -50,8 +53,8 @@ static void LeggedReferenceManager_PRESOLVE(benchmark::State & state)
   PlanarTerrainModel terrainModel(slopyTerrain);
 
   BaseTrajectoryPlanner::StaticSettings staticSettings;
-  staticSettings.deltaTime = 0.1;
-  staticSettings.initialBaseHeight = 2.5;
+  staticSettings.deltaTime = deltaTime;
+  staticSettings.initialBaseHeight = 0.4;
   staticSettings.minimumBaseHeight = 0.1;
   staticSettings.maximumBaseHeight = 5.0;
   staticSettings.nominalBaseWidthHeading = 0.2;
@@ -75,10 +78,10 @@ static void LeggedReferenceManager_PRESOLVE(benchmark::State & state)
   const FloatingBaseModelInfo modelInfo = createFloatingBaseModelInfo(interface, meldog3DofContactNames, meldog6DofContactNames);
 
   BaseTrajectoryPlanner::BaseReferenceCommand command;
-  command.baseHeadingVelocity = std::rand() / scalar_t(RAND_MAX);
-  command.baseLateralVelocity = std::rand() / scalar_t(RAND_MAX);
-  command.baseVerticalVelocity = std::rand() / scalar_t(RAND_MAX);
-  command.yawRate = std::rand() / scalar_t(RAND_MAX);
+  command.baseHeadingVelocity = std::rand() / scalar_t(RAND_MAX) / 100.0;
+  command.baseLateralVelocity = std::rand() / scalar_t(RAND_MAX) / 100.0;
+  command.baseVerticalVelocity = 0.0;
+  command.yawRate = std::rand() / scalar_t(RAND_MAX) / 100.0;
   
   std::string modelName = "meldogForwardKinematics";
   PinocchioForwardEndEffectorKinematicsCppAd forwardKinematics(interface, 
@@ -89,7 +92,7 @@ static void LeggedReferenceManager_PRESOLVE(benchmark::State & state)
 
   std::shared_ptr<GaitPlanner> gaitPlanner = 
     std::make_shared<GaitPlanner>(staticParams, dynamicParams, modeSequenceTemplate, 
-      startingPhase, initTime);
+      startingPhase, defTime);
 
   std::shared_ptr<BaseTrajectoryPlanner> basePlanner = 
     std::make_shared<BaseTrajectoryPlanner>(modelInfo, staticSettings);
@@ -141,6 +144,8 @@ static void LeggedReferenceManager_PRESOLVE(benchmark::State & state)
   initialState.block<3,1>(6, 0) = initialBasePosition;
   initialState.block<3,1>(9, 0) = initEulerZyx;
 
+  legged_locomotion_mpc::access_helper_functions::getJointPositions(initialState, modelInfo) << 0, -0.52359877559, 1.0471975512, 0, -0.52359877559, 1.0471975512, 0, -0.52359877559, 1.0471975512, 0, -0.52359877559, 1.0471975512;
+  
   contact_flags_t contactFlag = modeSchedule.modeAtTime(initTime);
 
   std::unique_ptr<TerrainModel> terrainModelPtr = 
@@ -154,6 +159,7 @@ static void LeggedReferenceManager_PRESOLVE(benchmark::State & state)
 
    for (auto _ : state) {
     manager.preSolverRun(initTime, finalTime, initialState);
+    //manager.generateNewTargetTrajectories(initTime, finalTime);
   }
 }
 

@@ -142,7 +142,7 @@ namespace legged_locomotion_mpc
            /** Time progress in the swing phase in [0, 1] */
             ocs2::scalar_t phase = 0.5;
            /** Swing height in normal direction */
-            ocs2::scalar_t swingHeight = 0.1;
+            ocs2::scalar_t swingHeight = 0.75;
            /** Velocity in normal direction */
             ocs2::scalar_t normalVelocity = 0.0;
            /** Swing progress in tangential direction in [0, 1] */

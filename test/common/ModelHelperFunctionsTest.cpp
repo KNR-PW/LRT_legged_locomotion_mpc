@@ -86,7 +86,6 @@ TEST(ModelHelperFunctions, GeneralizedTorques)
       pinocchio::computeFrameJacobian(modelTrue, dataTrue, q, contactFrameIndex, pinocchio::LOCAL_WORLD_ALIGNED, J);
       tauStaticTrue += -J.transpose() * wrenchWorldFrame;
     }
-    std::cerr << (tauStatic - tauStaticTrue.block(6, 0, info.actuatedDofNum, 1)).norm() << std::endl;
     EXPECT_TRUE((tauStatic - tauStaticTrue.block(6, 0, info.actuatedDofNum, 1)).norm() < tolerance);
   }
 }

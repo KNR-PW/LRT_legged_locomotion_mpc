@@ -39,7 +39,7 @@ namespace legged_locomotion_mpc
           ocs2::scalar_t touchDownVelocity = 0.0;
 
           /** Maximum height of foot at midpoint of swing phase */
-          ocs2::scalar_t swingHeight = 0.1;
+          ocs2::scalar_t swingHeight = 0.075;
           
           /** 
            * Proportional gain for returning to the planned swing trajectory.
@@ -83,7 +83,7 @@ namespace legged_locomotion_mpc
         struct DynamicSettings
         {
           /** Height used for the inverted pendulum foothold adjustment */
-          ocs2::scalar_t invertedPendulumHeight = 0.5;
+          ocs2::scalar_t invertedPendulumHeight = 0.35;
         };
 
         SwingTrajectoryPlanner(floating_base_model::FloatingBaseModelInfo info,

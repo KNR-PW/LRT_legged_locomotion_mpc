@@ -176,7 +176,8 @@ namespace legged_locomotion_mpc
     /******************************************************************************************************/
     /******************************************************************************************************/
     template <typename Derived, typename SCALAR_T>
-    Eigen::Block<Derived, Eigen::Dynamic, 1> getJointPositions(Eigen::MatrixBase<Derived>& robotState,
+    Eigen::Block<Derived, Eigen::Dynamic, 1> getJointPositions(
+      Eigen::MatrixBase<Derived>& robotState,
       const FloatingBaseModelInfoTpl<SCALAR_T>& info)
     {
       assert(robotState.rows() == info.stateDim + info.actuatedDofNum);
