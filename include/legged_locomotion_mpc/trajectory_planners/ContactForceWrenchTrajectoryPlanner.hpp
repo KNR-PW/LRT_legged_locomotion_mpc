@@ -46,7 +46,8 @@ namespace legged_locomotion_mpc
           floating_base_model::FloatingBaseModelInfo modelInfo);
         
         /** 
-         * Update target trajectories with force and wrench trajectory
+         * Update target trajectories with force and wrench trajectory.
+         * Call BaseTrajectoryPlanner::updateTrajectory() before calling this function.
          * @param [in] contactFlagsTrajectory: trajectory of contact flags
          * @param [out] targetTrajectories: target trajectories
          * 

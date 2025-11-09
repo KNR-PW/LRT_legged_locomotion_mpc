@@ -6,11 +6,10 @@
 
 #include <floating_base_model/AccessHelperFunctions.hpp>
 #include <floating_base_model/FloatingBaseModelPinocchioMapping.hpp>
-
-#include <ocs2_robotic_tools/common/RotationTransforms.h>
-
 #include <floating_base_model/QuaterionEulerTransforms.hpp>
 #include <floating_base_model/FactoryFunctions.hpp>
+
+#include <ocs2_robotic_tools/common/RotationTransforms.h>
 
 #include "../include/definitions.hpp"
 

@@ -63,6 +63,7 @@ add_library(${PROJECT_NAME}
   src/common/ModelHelperFunctions.cpp
 
   src/kinematics/PinocchioForwardEndEffectorKinematicsCppAd.cpp
+  src/torque_approx/PinocchioTorqueApproximationCppAd.cpp
 
   src/locomotion/ModeSequenceTemplate.cpp
   src/locomotion/GaitPlanner.cpp
@@ -173,6 +174,14 @@ if(BUILD_TESTING)
   target_include_directories(${PROJECT_NAME}_test_trajectory_planners PRIVATE test/include)
   target_link_libraries(${PROJECT_NAME}_test_trajectory_planners ${PROJECT_NAME})
   target_compile_options(${PROJECT_NAME}_test_trajectory_planners PUBLIC ${FLAGS})
+
+  ament_add_gtest(${PROJECT_NAME}_test_torque_approx
+        test/torque_approx/PinocchioTorqueApproximationCppAdTest.cpp     
+  )
+  ament_target_dependencies(${PROJECT_NAME}_test_torque_approx ${THIS_PACKAGE_DEPENDS})
+  target_include_directories(${PROJECT_NAME}_test_torque_approx PRIVATE test/include)
+  target_link_libraries(${PROJECT_NAME}_test_torque_approx ${PROJECT_NAME})
+  target_compile_options(${PROJECT_NAME}_test_torque_approx PUBLIC ${FLAGS})
 
   ################
   ## Benchmarks ##

@@ -45,7 +45,8 @@ namespace legged_locomotion_mpc
         using velocity_trajectories = std::vector<std::vector<vector3_t>>;
 
         /** 
-         * Update target trajectories with force and wrench trajectory
+         * Update target trajectories with force and wrench trajectory.
+         * Call BaseTrajectoryPlanner::updateTrajectory() before calling this function.
          * @param [in] currentState: current robot state
          * @param [in] endEffectorPositionTrajectories: trajectory of end effector positions
          * @param [in] endEffectorVelocityTrajectories: trajectory of end effector velocities

@@ -26,13 +26,7 @@ namespace legged_locomotion_mpc
   /**
    * This class provides the CppAD implementation of the forward 3 and 6 DoF
    * end-effector Kinematics based on pinocchio. No pre-computation is required. 
-   * The class has two constructors. The constructor with an additional argument,
-   * "updateCallback", is meant for cases where PinocchioStateInputMapping requires some extra
-   * update calls on PinocchioInterface, such as the centroidal model mapping
-   * (refer to CentroidalModelPinocchioMapping).
-   *
-   * See also PinocchioEndEffectorKinematics, which uses analytical computation
-   * and caching.
+   * Position and velocities are expressed with respect to the world inertial frame.
    */
   class PinocchioForwardEndEffectorKinematicsCppAd
   {
@@ -43,7 +37,6 @@ namespace legged_locomotion_mpc
 
     /** Constructor
      * @param [in] pinocchioInterface: pinocchio interface.
-     * @param [in] mapping: mapping from OCS2 to pinocchio state.
      * @param [in] info: info of kinematics model
      * @param [in] modelName: name of the generate model library
      * @param [in] modelFolder: folder to save the model library files to

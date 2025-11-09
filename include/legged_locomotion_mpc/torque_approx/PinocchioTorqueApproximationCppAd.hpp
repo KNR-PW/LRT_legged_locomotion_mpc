@@ -1,20 +1,33 @@
-#ifndef __PINOCCHIO_TORQUE_APPROXIMATION_CPP_AD__
-#define __PINOCCHIO_TORQUE_APPROXIMATION_CPP_AD__
+// Copyright (c) 2025, Koło Naukowe Robotyków
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-#include <floating_base_model/FloatingBaseModelInfo.hpp>
-#include <floating_base_model/AccessHelperFunctions.hpp>
-#include <floating_base_model/ModelHelperFunctions.hpp>
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+/*
+ * Authors: Bartłomiej Krajewski (https://github.com/BartlomiejK2)
+ */
+
+#ifndef __PINOCCHIO_TORQUE_APPROXIMATION_CPP_AD_LEGGED_LOCOMOTION_MPC__
+#define __PINOCCHIO_TORQUE_APPROXIMATION_CPP_AD_LEGGED_LOCOMOTION_MPC__
 
 #include <legged_locomotion_mpc/common/Types.hpp>
-#include <legged_locomotion_mpc/common/ModelHelperFunctions.hpp>
+
+#include <floating_base_model/FloatingBaseModelInfo.hpp>
 
 #include <ocs2_core/automatic_differentiation/CppAdInterface.h>
 #include <ocs2_pinocchio_interface/PinocchioInterface.h>
 #include <ocs2_pinocchio_interface/PinocchioStateInputMapping.h>
 
-
-#include <functional>
 #include <string>
 #include <vector>
 
@@ -24,6 +37,7 @@ namespace legged_locomotion_mpc
   /**
    * This class provides the CppAD implementation of the joint torque approximation
    * based on pinocchio. No pre-computation is required. 
+   * Torque is calculated using transpose jacobian matrix: τ = -J^T * Fext
    */
   class PinocchioTorqueApproximationCppAd
   {
@@ -31,8 +45,9 @@ namespace legged_locomotion_mpc
 
     /** Constructor
      * @param [in] pinocchioInterface: pinocchio interface.
-     * @param [in] mapping: mapping from OCS2 to pinocchio state.
      * @param [in] info: info of kinematics model
+     * @param [in] torqueDynamicsError: constant torque error between real 
+     * and aproximated value
      * @param [in] modelName: name of the generate model library
      * @param [in] modelFolder: folder to save the model library files to
      * @param [in] recompileLibraries: If true, the model library will be newly
@@ -40,10 +55,9 @@ namespace legged_locomotion_mpc
      * @param [in] verbose : print information.
      */
     PinocchioTorqueApproximationCppAd(
-      const ocs2::vector& torqueDynamicsError,
       const ocs2::PinocchioInterface& pinocchioInterface,
-      const ocs2::PinocchioStateInputMapping<ocs2::ad_scalar_t>& mapping,
       const floating_base_model::FloatingBaseModelInfo info,
+      const ocs2::vector_t torqueDynamicsError,
       const std::string& modelName,
       const std::string& modelFolder = "/tmp/ocs2",
       bool recompileLibraries = true, bool verbose = false);

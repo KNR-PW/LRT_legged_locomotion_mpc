@@ -25,19 +25,22 @@ namespace legged_locomotion_mpc
      mappingCppAd.setPinocchioInterface(pinocchioInterfaceCppAd);
 
     // position function
-    auto positionFunc = [&](const ad_vector_t& x, ad_vector_t& y) {
+    auto positionFunc = [&, this](const ad_vector_t& x, ad_vector_t& y) 
+    {
       y = getPositionCppAd(pinocchioInterfaceCppAd, mappingCppAd, x);
     };
     positionCppAdInterfacePtr_.reset(new CppAdInterface(positionFunc, info_.stateDim, modelName + "_position", modelFolder));
 
     // orientation function
-    auto orientationFunc = [&](const ad_vector_t& x, ad_vector_t& y) {
+    auto orientationFunc = [&](const ad_vector_t& x, ad_vector_t& y) 
+    {
       y = getOrientationCppAd(pinocchioInterfaceCppAd, mappingCppAd, x);
     };
     orientationCppAdInterfacePtr_.reset(new CppAdInterface(orientationFunc, info_.stateDim, modelName + "_orientation", modelFolder));
 
     // linear velocity function
-    auto linearVelocityFunc = [&](const ad_vector_t& x, ad_vector_t& y) {
+    auto linearVelocityFunc = [&](const ad_vector_t& x, ad_vector_t& y) 
+    {
       const ad_vector_t state = x.head(info_.stateDim);
       const ad_vector_t input = x.tail(info_.inputDim);
       y = getLinearVelocityCppAd(pinocchioInterfaceCppAd, mappingCppAd, state, input);
@@ -45,19 +48,23 @@ namespace legged_locomotion_mpc
     linearVelocityCppAdInterfacePtr_.reset(new CppAdInterface(linearVelocityFunc, info_.stateDim + info_.inputDim, modelName + "_linear_velocity", modelFolder));
 
     // angular velocity function
-    auto angularVelocityFunc = [&](const ad_vector_t& x, ad_vector_t& y) {
+    auto angularVelocityFunc = [&](const ad_vector_t& x, ad_vector_t& y) 
+    {
       const ad_vector_t state = x.head(info_.stateDim);
       const ad_vector_t input = x.tail(info_.inputDim);
       y = getAngularVelocityCppAd(pinocchioInterfaceCppAd, mappingCppAd, state, input);
     };
     angularVelocityCppAdInterfacePtr_.reset(new CppAdInterface(angularVelocityFunc, info_.stateDim + info_.inputDim, modelName + "_angular_velocity", modelFolder));
 
-    if (recompileLibraries) {
+    if (recompileLibraries) 
+    {
       positionCppAdInterfacePtr_->createModels(CppAdInterface::ApproximationOrder::First, verbose);
       orientationCppAdInterfacePtr_->createModels(CppAdInterface::ApproximationOrder::First, verbose);
       linearVelocityCppAdInterfacePtr_->createModels(CppAdInterface::ApproximationOrder::First, verbose);
       angularVelocityCppAdInterfacePtr_->createModels(CppAdInterface::ApproximationOrder::First, verbose);
-    } else {
+    } 
+    else 
+    {
       positionCppAdInterfacePtr_->loadModelsIfAvailable(CppAdInterface::ApproximationOrder::First, verbose);
       orientationCppAdInterfacePtr_->loadModelsIfAvailable(CppAdInterface::ApproximationOrder::First, verbose);
       linearVelocityCppAdInterfacePtr_->loadModelsIfAvailable(CppAdInterface::ApproximationOrder::First, verbose);
