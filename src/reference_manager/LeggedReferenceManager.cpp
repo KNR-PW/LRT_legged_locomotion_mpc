@@ -26,8 +26,16 @@ namespace legged_locomotion_mpc
       currentGaitParameters_(GaitDynamicParameters()),
       currentCommand_(BaseTrajectoryPlanner::BaseReferenceCommand()) {}
 
-  void LeggedReferenceManager::init(scalar_t initTime, scalar_t finalTime)
+  void LeggedReferenceManager::initalize(ocs2::scalar_t initTime, ocs2::scalar_t finalTime, 
+    const state_vector_t& currenState, const contact_flags_t& currentContactFlags,
+    locomotion::GaitDynamicParameters&& currentGaitParameters,
+    std::unique_ptr<terrain_model::TerrainModel> currentTerrainModel)
   {
+    updateState(currenState);
+    updateContactFlags(currentContactFlags);
+    updateGaitParemeters(std::move(currentGaitParameters));
+    updateTerrainModel(std::move(currentTerrainModel));
+    
     newTrajectories_ = std::async(std::launch::async, [this, initTime, finalTime]()
       {return generateNewTargetTrajectories(initTime, finalTime);});
     newTrajectories_.wait();
@@ -137,7 +145,7 @@ namespace legged_locomotion_mpc
     currentContactFlags_.setBuffer(currentContactFlags);
   }
 
-  void LeggedReferenceManager::updateCurrentGaitParemeters(
+  void LeggedReferenceManager::updateGaitParemeters(
     GaitDynamicParameters&& currentGaitParameters)
   {
     currentGaitParameters_.setBuffer(std::move(currentGaitParameters));

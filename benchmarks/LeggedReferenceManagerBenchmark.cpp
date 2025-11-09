@@ -151,11 +151,8 @@ static void LeggedReferenceManager_PRESOLVE(benchmark::State & state)
   std::unique_ptr<TerrainModel> terrainModelPtr = 
     std::make_unique<PlanarTerrainModel>(slopyTerrain);
 
-  manager.updateContactFlags(contactFlag);
-  manager.updateCurrentGaitParemeters(std::move(dynamicParams));
-  manager.updateState(initialState);
-  manager.updateTerrainModel(std::move(terrainModelPtr));
-  manager.init(initTime, finalTime);
+  manager.initalize(initTime, finalTime, initialState, contactFlag, 
+    std::move(dynamicParams), std::move(terrainModelPtr));
 
    for (auto _ : state) {
     manager.preSolverRun(initTime, finalTime, initialState);
