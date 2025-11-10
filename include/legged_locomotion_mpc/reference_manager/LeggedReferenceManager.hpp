@@ -64,9 +64,12 @@ namespace legged_locomotion_mpc
       std::unique_ptr<terrain_model::TerrainModel> currentTerrainModel);
 
     void updateState(const state_vector_t& currenState);
+
     void updateContactFlags(const contact_flags_t& currentContactFlags);
+
     void updateGaitParemeters(
       locomotion::GaitDynamicParameters&& currentGaitParameters);
+
     void updateTerrainModel(
       std::unique_ptr<terrain_model::TerrainModel> currentTerrainModel);
 
@@ -76,6 +79,7 @@ namespace legged_locomotion_mpc
     contact_flags_t getContactFlags(ocs2::scalar_t time);
 
     private:
+    
       void generateNewTargetTrajectories(ocs2::scalar_t initTime, 
         ocs2::scalar_t finalTime);
 
@@ -94,6 +98,7 @@ namespace legged_locomotion_mpc
       std::shared_ptr<planners::BaseTrajectoryPlanner> baseTrajectoryPtr_;
       std::shared_ptr<planners::JointTrajectoryPlanner> jointTrajectoryPtr_;
       std::shared_ptr<planners::ContactForceWrenchTrajectoryPlanner> forceTrajectoryPtr_;
+
   };
 } // namespace legged_locomotion_mpc
 

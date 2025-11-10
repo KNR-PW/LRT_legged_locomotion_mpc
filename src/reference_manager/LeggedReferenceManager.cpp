@@ -107,7 +107,7 @@ namespace legged_locomotion_mpc
 
     baseTrajectoryPtr_->updateTargetTrajectory(initTime, finalTime, currentCommand, 
       currentState, newTrajectory);
-
+    
     swingTrajectoryPtr_->updateSwingMotions(initTime, finalTime, currentState, 
       newTrajectory, newModeSchedule);
 
