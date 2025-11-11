@@ -85,6 +85,8 @@ add_library(${PROJECT_NAME}
 
   src/reference_manager/LeggedReferenceManager.cpp
 
+  src/precomputation/LeggedPrecomputation.cpp
+
   src/dynamics/LeggedDynamicsAD.cpp
 
   # src/constraint/ForceFrictionConeConstraint.cpp

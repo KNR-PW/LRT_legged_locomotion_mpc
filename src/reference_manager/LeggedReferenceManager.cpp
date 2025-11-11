@@ -41,9 +41,14 @@ namespace legged_locomotion_mpc
     newTrajectories_.wait();
   }
 
-  contact_flags_t LeggedReferenceManager::getContactFlags(ocs2::scalar_t time)
+  contact_flags_t LeggedReferenceManager::getContactFlags(ocs2::scalar_t time) const
   {
     return contact_flags_t(this->getModeSchedule().modeAtTime(time));
+  }
+
+  LockedConstPtr<terrain_model::TerrainModel> LeggedReferenceManager::getTerrainModel() const
+  {
+    return currentTerrainModel_.lock();
   }
 
   void LeggedReferenceManager::preSolverRun(scalar_t initTime, scalar_t finalTime, 
@@ -79,37 +84,37 @@ namespace legged_locomotion_mpc
 
     const ModeSchedule newModeSchedule = gaitPlannerPtr_->getModeSchedule(initTime, 
       finalTime);
+
+    TargetTrajectories newTrajectory;
     
-    // get terrain model via lock
+    // get terrain model via lock and update base and swing trajectories
     {
       const auto lockedTerrain = currentTerrainModel_.lock();
       const TerrainModel& currentTerrainModel = *lockedTerrain;
       baseTrajectoryPtr_->updateTerrain(currentTerrainModel);
     
       swingTrajectoryPtr_->updateTerrain(currentTerrainModel);
-    }
 
-    TargetTrajectories newTrajectory;
+      // No new command -> stay in place
+      BaseTrajectoryPlanner::BaseReferenceCommand currentCommand;
+      if(currentCommand_.updateFromBuffer())
+      {
+        currentCommand = currentCommand_.get();
+      }
+      else
+      {
+        currentCommand.baseHeadingVelocity = 0.0;
+        currentCommand.baseLateralVelocity = 0.0;
+        currentCommand.baseVerticalVelocity = 0.0;
+        currentCommand.yawRate = 0.0;
+      }
 
-    // No new command -> stay in place
-    BaseTrajectoryPlanner::BaseReferenceCommand currentCommand;
-    if(currentCommand_.updateFromBuffer())
-    {
-      currentCommand = currentCommand_.get();
-    }
-    else
-    {
-      currentCommand.baseHeadingVelocity = 0.0;
-      currentCommand.baseLateralVelocity = 0.0;
-      currentCommand.baseVerticalVelocity = 0.0;
-      currentCommand.yawRate = 0.0;
-    }
-
-    baseTrajectoryPtr_->updateTargetTrajectory(initTime, finalTime, currentCommand, 
-      currentState, newTrajectory);
+      baseTrajectoryPtr_->updateTargetTrajectory(initTime, finalTime, currentCommand, 
+        currentState, newTrajectory);
     
-    swingTrajectoryPtr_->updateSwingMotions(initTime, finalTime, currentState, 
-      newTrajectory, newModeSchedule);
+      swingTrajectoryPtr_->updateSwingMotions(initTime, finalTime, currentState, 
+        newTrajectory, newModeSchedule);
+    }
 
     using EndEffectorTrajectories = std::vector<std::vector<vector3_t>>;
 

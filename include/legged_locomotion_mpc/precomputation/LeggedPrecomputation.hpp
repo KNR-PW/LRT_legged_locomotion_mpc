@@ -43,9 +43,10 @@ namespace legged_locomotion_mpc
 
     ~LeggedPrecomputation() override = default;
 
-    LeggedPrecomputation *clone() const override { return new LeggedPrecomputation(*this); }
+    LeggedPrecomputation* clone() const override;
 
-    void request(ocs2::RequestSet request, scalar_t t, const vector_t &x, const vector_t &u) override;
+    void request(ocs2::RequestSet request, ocs2::scalar_t t, const ocs2::vector_t &x, 
+      const ocs2::vector_t &u) override;
 
     const vector3_t& getEndEffectorPosition(size_t endEffectorIndex);
 
@@ -57,11 +58,9 @@ namespace legged_locomotion_mpc
     const ocs2::VectorFunctionLinearApproximation& getEndEffectorVelocityDerivatives(
       size_t endEffectorIndex);
 
-    const vector_t& getApproximatedJointTorques();
+    const ocs2::vector_t& getApproximatedJointTorques();
 
     const ocs2::VectorFunctionLinearApproximation& getApproximatedJointTorquesDerivatives();
-
-    bool getContactFlag(size_t endEffectorIndex);
 
     const matrix3_t& getRotationWorldToTerrain(size_t endEffectorIndex);
 
@@ -71,11 +70,20 @@ namespace legged_locomotion_mpc
 
       LeggedPrecomputation(const LeggedPrecomputation& other);
 
-      void updateSwingData(ocs2::scalar_t time);
+      void updateContactData(ocs2::scalar_t time, const ocs2::vector_t& state, 
+        const ocs2::vector_t& input);
 
-      void updateEndEffectorKinematics(ocs2::scalar_t time);
+      void updateEndEffectorKinematicsData(ocs2::scalar_t time, const ocs2::vector_t& state, 
+        const ocs2::vector_t& input);
+      
+      void updateEndEffectorKinematicsDerivatives(ocs2::scalar_t time, 
+        const ocs2::vector_t& state, const ocs2::vector_t& input);
 
-      floating_base_model::FloatingBaseModelInfo modelInfo_;
+      void updateApproximatedTorquesData(ocs2::scalar_t time, const ocs2::vector_t& state, 
+        const ocs2::vector_t& input);
+
+      const floating_base_model::FloatingBaseModelInfo modelInfo_;
+      const size_t endEffectorNumber_;
 
       const LeggedReferenceManager& referenceManager_;
       const PinocchioForwardEndEffectorKinematicsCppAd& forwardKinematics_;
@@ -85,16 +93,13 @@ namespace legged_locomotion_mpc
       std::vector<ocs2::VectorFunctionLinearApproximation> endEffectorPositionDerivaties_;
 
       std::vector<vector3_t> endEffectorVelocities_;
-      std::vector<ocs2::VectorFunctionLinearApproximation> endEffectorVelocitynDerivaties_;
-
-      contact_flags_t contactFlags_;
+      std::vector<ocs2::VectorFunctionLinearApproximation> endEffectorVelocityDerivaties_;
 
       std::vector<matrix3_t> rotationWorldToTerrains_;
       std::vector<vector3_t> surfaceNormals_;
 
       ocs2::vector_t torqueApproximation_;
       ocs2::VectorFunctionLinearApproximation torqueApproximationDerivatives_;
-
   };
 } // namespace legged_locomotion_mpc
 
