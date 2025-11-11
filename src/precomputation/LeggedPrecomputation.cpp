@@ -16,24 +16,7 @@ namespace legged_locomotion_mpc
       endEffectorNumber_(modelInfo.numThreeDofContacts + modelInfo.numSixDofContacts),
       modelInfo_(std::move(modelInfo)), 
       referenceManager_(referenceManager),forwardKinematics_(forwardKinematics), 
-      torqueApproximator_(torqueApproximator)
-  {
-    endEffectorPositions_.resize(endEffectorNumber_);
-    endEffectorPositionDerivaties_.resize(endEffectorNumber_);
-
-    endEffectorVelocities_.resize(endEffectorNumber_);
-    endEffectorVelocityDerivaties_.resize(endEffectorNumber_);
-
-    rotationWorldToTerrains_.resize(endEffectorNumber_);
-    surfaceNormals_.resize(endEffectorNumber_);
-
-    torqueApproximation_ = vector_t::Zero(modelInfo_.actuatedDofNum);
-    torqueApproximationDerivatives_.f = vector_t::Zero(modelInfo_.actuatedDofNum);
-    torqueApproximationDerivatives_.dfdx = matrix_t::Zero(modelInfo_.actuatedDofNum, 
-      modelInfo_.stateDim);
-    torqueApproximationDerivatives_.dfdu = matrix_t::Zero(modelInfo_.actuatedDofNum, 
-      modelInfo_.inputDim);
-  }
+      torqueApproximator_(torqueApproximator) { }
 
   LeggedPrecomputation* LeggedPrecomputation::clone() const
   { 
@@ -111,15 +94,7 @@ namespace legged_locomotion_mpc
     modelInfo_(other.modelInfo_), 
     referenceManager_(other.referenceManager_), 
     forwardKinematics_(other.forwardKinematics_),
-    torqueApproximator_(other.torqueApproximator_),
-    endEffectorPositions_(other.endEffectorPositions_),
-    endEffectorPositionDerivaties_(other.endEffectorPositionDerivaties_),
-    endEffectorVelocities_(other.endEffectorVelocities_),
-    endEffectorVelocityDerivaties_(other.endEffectorVelocityDerivaties_),
-    rotationWorldToTerrains_(other.rotationWorldToTerrains_),
-    surfaceNormals_(other.surfaceNormals_),
-    torqueApproximation_(other.torqueApproximation_),
-    torqueApproximationDerivatives_(other.torqueApproximationDerivatives_) {}
+    torqueApproximator_(other.torqueApproximator_) {}
 
   void LeggedPrecomputation::updateContactData(scalar_t time,
     const vector_t& state, const vector_t& input)
