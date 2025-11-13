@@ -24,7 +24,8 @@ namespace legged_locomotion_mpc
       currentState_(state_vector_t()),
       currentContactFlags_(contact_flags_t()),
       currentGaitParameters_(GaitDynamicParameters()),
-      currentCommand_(BaseTrajectoryPlanner::BaseReferenceCommand()) {}
+      currentCommand_(BaseTrajectoryPlanner::BaseReferenceCommand()),
+      currentTerrainModel_(nullptr) {}
 
   void LeggedReferenceManager::initalize(ocs2::scalar_t initTime, ocs2::scalar_t finalTime, 
     const state_vector_t& currenState, const contact_flags_t& currentContactFlags,
@@ -46,9 +47,9 @@ namespace legged_locomotion_mpc
     return contact_flags_t(this->getModeSchedule().modeAtTime(time));
   }
 
-  LockedConstPtr<terrain_model::TerrainModel> LeggedReferenceManager::getTerrainModel() const
+  const TerrainModel& LeggedReferenceManager::getTerrainModel() const
   {
-    return currentTerrainModel_.lock();
+    return currentTerrainModel_.get();
   }
 
   void LeggedReferenceManager::preSolverRun(scalar_t initTime, scalar_t finalTime, 
@@ -85,36 +86,37 @@ namespace legged_locomotion_mpc
     const ModeSchedule newModeSchedule = gaitPlannerPtr_->getModeSchedule(initTime, 
       finalTime);
 
-    TargetTrajectories newTrajectory;
-    
-    // get terrain model via lock and update base and swing trajectories
+    // No new terrain model -> no update
+    if(currentTerrainModel_.updateFromBuffer());
     {
-      const auto lockedTerrain = currentTerrainModel_.lock();
-      const TerrainModel& currentTerrainModel = *lockedTerrain;
+      const TerrainModel& currentTerrainModel = currentTerrainModel_.get();
+
       baseTrajectoryPtr_->updateTerrain(currentTerrainModel);
     
       swingTrajectoryPtr_->updateTerrain(currentTerrainModel);
-
-      // No new command -> stay in place
-      BaseTrajectoryPlanner::BaseReferenceCommand currentCommand;
-      if(currentCommand_.updateFromBuffer())
-      {
-        currentCommand = currentCommand_.get();
-      }
-      else
-      {
-        currentCommand.baseHeadingVelocity = 0.0;
-        currentCommand.baseLateralVelocity = 0.0;
-        currentCommand.baseVerticalVelocity = 0.0;
-        currentCommand.yawRate = 0.0;
-      }
-
-      baseTrajectoryPtr_->updateTargetTrajectory(initTime, finalTime, currentCommand, 
-        currentState, newTrajectory);
-    
-      swingTrajectoryPtr_->updateSwingMotions(initTime, finalTime, currentState, 
-        newTrajectory, newModeSchedule);
     }
+    
+    // No new command -> stay in place
+    BaseTrajectoryPlanner::BaseReferenceCommand currentCommand;
+    if(currentCommand_.updateFromBuffer())
+    {
+      currentCommand = currentCommand_.get();
+    }
+    else
+    {
+      currentCommand.baseHeadingVelocity = 0.0;
+      currentCommand.baseLateralVelocity = 0.0;
+      currentCommand.baseVerticalVelocity = 0.0;
+      currentCommand.yawRate = 0.0;
+    }
+
+    TargetTrajectories newTrajectory;
+
+    baseTrajectoryPtr_->updateTargetTrajectory(initTime, finalTime, currentCommand, 
+      currentState, newTrajectory);
+    
+    swingTrajectoryPtr_->updateSwingMotions(initTime, finalTime, currentState, 
+      newTrajectory, newModeSchedule);
 
     using EndEffectorTrajectories = std::vector<std::vector<vector3_t>>;
 
@@ -159,6 +161,11 @@ namespace legged_locomotion_mpc
   void LeggedReferenceManager::updateTerrainModel(
     std::unique_ptr<TerrainModel> currentTerrainModel)
   {
-    currentTerrainModel_.swap(currentTerrainModel);
+    currentTerrainModel_.setBuffer(std::move(currentTerrainModel));
+  }
+
+  LeggedReferenceManager::~LeggedReferenceManager()
+  {
+    newTrajectories_.wait();
   }
 } // namespace legged_locomotion_mpc

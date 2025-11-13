@@ -156,7 +156,6 @@ static void LeggedReferenceManager_PRESOLVE(benchmark::State & state)
 
    for (auto _ : state) {
     manager.preSolverRun(initTime, finalTime, initialState);
-    //manager.generateNewTargetTrajectories(initTime, finalTime);
   }
 }
 

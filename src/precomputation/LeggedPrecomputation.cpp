@@ -99,11 +99,11 @@ namespace legged_locomotion_mpc
   void LeggedPrecomputation::updateContactData(scalar_t time,
     const vector_t& state, const vector_t& input)
   {
-    const auto terrainModel = referenceManager_.getTerrainModel();
+    const TerrainModel& terrainModel = referenceManager_.getTerrainModel();
 
     for(size_t i = 0; i < endEffectorNumber_; ++i)
     {
-      const TerrainPlane terrainPlane = terrainModel->getLocalTerrainAtPositionInWorldAlongGravity(
+      const TerrainPlane terrainPlane = terrainModel.getLocalTerrainAtPositionInWorldAlongGravity(
         endEffectorPositions_[i]);
 
       rotationWorldToTerrains_[i] = terrainPlane.getOrientationToTerrain();

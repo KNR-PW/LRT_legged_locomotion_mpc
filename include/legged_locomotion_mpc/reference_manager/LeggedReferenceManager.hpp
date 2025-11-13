@@ -24,6 +24,7 @@
 #include <future>
 
 #include <ocs2_core/thread_support/Synchronized.h>
+#include <ocs2_core/thread_support/BufferedPointer.h>
 #include <ocs2_oc/synchronized_module/ReferenceManager.h>
 
 #include <legged_locomotion_mpc/common/Types.hpp>
@@ -56,7 +57,7 @@ namespace legged_locomotion_mpc
       std::shared_ptr<planners::JointTrajectoryPlanner> jointTrajectoryPtr,
       std::shared_ptr<planners::ContactForceWrenchTrajectoryPlanner> forceTrajectoryPtr);
 
-    ~LeggedReferenceManager() override = default;
+    ~LeggedReferenceManager() override;
 
     void initalize(ocs2::scalar_t initTime, ocs2::scalar_t finalTime, 
       const state_vector_t& currenState, const contact_flags_t& currentContactFlags,
@@ -78,7 +79,7 @@ namespace legged_locomotion_mpc
 
     contact_flags_t getContactFlags(ocs2::scalar_t time) const;
 
-    ocs2::LockedConstPtr<terrain_model::TerrainModel> getTerrainModel() const;
+    const terrain_model::TerrainModel& getTerrainModel() const;
 
     private:
     
@@ -93,7 +94,7 @@ namespace legged_locomotion_mpc
       ocs2::BufferedValue<contact_flags_t> currentContactFlags_;
       ocs2::BufferedValue<locomotion::GaitDynamicParameters> currentGaitParameters_;
       ocs2::BufferedValue<planners::BaseTrajectoryPlanner::BaseReferenceCommand> currentCommand_;
-      ocs2::Synchronized<terrain_model::TerrainModel> currentTerrainModel_;
+      ocs2::BufferedPointer<terrain_model::TerrainModel> currentTerrainModel_;
 
       std::shared_ptr<locomotion::GaitPlanner> gaitPlannerPtr_;
       std::shared_ptr<locomotion::SwingTrajectoryPlanner> swingTrajectoryPtr_;
