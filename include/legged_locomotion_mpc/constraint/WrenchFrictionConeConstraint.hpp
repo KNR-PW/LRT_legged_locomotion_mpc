@@ -2,18 +2,20 @@
 #ifndef __FORCE_WRENCH_CONSTRAINT_LEGGED_LOCOMOTION_MPC__
 #define __FORCE_WRENCH_CONSTRAINT_LEGGED_LOCOMOTION_MPC__
 
-#include <floating_base_model/FloatingBaseModelInfo.hpp>
-#include <floating_base_model/AccessHelperFunctions.hpp>
+#include <ocs2_core/constraint/StateInputConstraint.h>
 
-#include "legged_locomotion_mpc/common/Types.hpp"
-#include "legged_locomotion_mpc/reference_manager/SwitchedModelReferenceManager.hpp"
+#include <floating_base_model/FloatingBaseModelInfo.hpp>
+
+#include <legged_locomotion_mpc/common/Types.hpp>
+#include <legged_locomotion_mpc/reference_manager/LeggedReferenceManager.hpp>
 
 using namespace floating_base_model;
 
 namespace legged_locomotion_mpc
 {
   /**
-   * Implements the linear wrench cone constraint h(t,x,u) >= 0: (https://hal.science/hal-02108449/document)
+   * Implements the linear wrench cone constraint h(t,x,u) >= 0: 
+   * (https://hal.science/hal-02108449/document)
    */
   class WrenchFrictionConeConstraint final : public ocs2::StateInputConstraint 
   {
@@ -29,78 +31,57 @@ namespace legged_locomotion_mpc
       */
       struct Config 
       {
-        ocs2::scalar_t frictionCoefficient_;
-        ocs2::scalar_t footHalfLengthX_;
-        ocs2::scalar_t footHalfLengthY_;
+        ocs2::scalar_t frictionCoefficient;
+        ocs2::scalar_t footHalfLengthX;
+        ocs2::scalar_t footHalfLengthY;
 
-        explicit Config(ocs2::scalar_t frictionCoefficientParam = 0.7,
+        explicit Config(
           ocs2::scalar_t footLengthX,
-          ocs2::scalar_t footLengthY);
-
+          ocs2::scalar_t footLengthY,
+          ocs2::scalar_t frictionCoefficientParam = 0.7);
       };
 
       /**
        * Constructor
        * @param [in] referenceManager : Switched model ReferenceManager.
        * @param [in] config : Friction model settings.
-       * @param [in] contactFeetIndex : The 6 DoF contact index.
        * @param [in] info : The centroidal model information.
+       * @param [in] endEffectorIndex : The 6 DoF contact index.
        */
-      WrenchFrictionConeConstraint(const SwitchedModelReferenceManager &referenceManager,
+      WrenchFrictionConeConstraint(const LeggedReferenceManager& referenceManager,
         Config config,
-        size_t contactFeetIndex,
-        FloatingBaseModelInfo& info);
+        floating_base_model::FloatingBaseModelInfo info,
+        size_t endEffectorIndex);
 
       ~WrenchFrictionConeConstraint() override = default;
 
-      ForceWrenchFrictionConeConstraint* clone() const override { return new WrenchFrictionConeConstraint(*this); }
+      WrenchFrictionConeConstraint* clone() const override;
 
       bool isActive(ocs2::scalar_t time) const override;
 
-      size_t getNumConstraints(ocs2::scalar_t time) const override { return 16; };
+      size_t getNumConstraints(ocs2::scalar_t time) const override;
 
-      ocs2::vector_t getValue(scalar_t time, const vector_t &state,
-        const ocs2::vector_t &input,
+      ocs2::vector_t getValue(ocs2::scalar_t time, const ocs2::vector_t &state,
+        const ocs2::vector_t &input, const ocs2::PreComputation &preComp) const override;
+
+      ocs2::VectorFunctionLinearApproximation getLinearApproximation(ocs2::scalar_t time,
+        const ocs2::vector_t &state, const ocs2::vector_t &input,
         const ocs2::PreComputation &preComp) const override;
-
-      ocs2::VectorFunctionLinearApproximation getLinearApproximation(scalar_t time,
-        const ocs2::vector_t &state,
-        const ocs2::vector_t &input,
-        const ocs2::PreComputation &preComp) const override;
-
-      /**
-       * Set surface normal vector for contact
-       * @param [in] surfaceNormalInWorld: sufrace normal in world frame
-       */
-      void setSurfaceNormalInWorld(const vector3_t &surfaceNormalInWorld);
-
-      /**
-       * Set new friction coefficient for contact
-       * @param [in] frictionCoefficientParam: friction coefficient
-       */
-      void setFrictionCoefficient(const double frictionCoefficientParam);
 
     private:
-
       WrenchFrictionConeConstraint(const WrenchFrictionConeConstraint &other) = default;
 
-      Eigen::Matrix<ocs2::scalar_t, 16, 6> generateConeConstraintMatrix(const Config& config);
+      Eigen::Matrix<ocs2::scalar_t, 16, 6> generateConeConstraintMatrix(
+        const Config& config);
 
-      const SwitchedModelReferenceManager *referenceManagerPtr_;
+      const LeggedReferenceManager& referenceManager_;
 
       const Config config_;
-      const size_t contactFeetIndex_;
-      const FloatingBaseModelInfo* info_;
-
-      ocs2::VectorFunctionLinearApproximation linearApproximation_;
+      const size_t endEffectorIndex_;
+      const size_t startIndex_;
+      const floating_base_model::FloatingBaseModelInfo info_;
 
       Eigen::Matrix<ocs2::scalar_t, 16, 6> coneConstraintMatrix_;
-
-      // rotation world to terrain, normal to contact 
-      // for 6D contact is the same as rotation matrix from world to foot 
-      // (when foot is in contact, it has to lay flat on terrain, so foot frame of r
-      // reference is same as normal to terrain)
-      matrix3_t rotationWorldToTerrain_;
   };
 } // namespace legged_locomotion_mpc
 

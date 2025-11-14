@@ -35,7 +35,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <ocs2_core/constraint/StateInputConstraint.h>
 
 #include <floating_base_model/FloatingBaseModelInfo.hpp>
-#include <floating_base_model/AccessHelperFunctions.hpp>
 
 #include <legged_locomotion_mpc/common/Types.hpp>
 #include <legged_locomotion_mpc/reference_manager/LeggedReferenceManager.hpp>
@@ -81,8 +80,8 @@ namespace legged_locomotion_mpc
        * Constructor
        * @param [in] referenceManager : Legged model ReferenceManager.
        * @param [in] config : Friction model settings.
-       * @param [in] endEffectorIndex : The 3 DoF end effector index.
        * @param [in] info : The floating base model information.
+       * @param [in] endEffectorIndex : The 3 DoF end effector index.
        */
       ForceFrictionConeConstraint(
         const LeggedReferenceManager& referenceManager,

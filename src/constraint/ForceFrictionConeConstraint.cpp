@@ -31,6 +31,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <legged_locomotion_mpc/constraint/ForceFrictionConeConstraint.hpp>
 
+#include <floating_base_model/AccessHelperFunctions.hpp>
+
 #include <legged_locomotion_mpc/precomputation/LeggedPrecomputation.hpp>
 
 namespace legged_locomotion_mpc

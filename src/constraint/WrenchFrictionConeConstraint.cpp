@@ -1,93 +1,117 @@
+// Copyright (c) 2025, Koło Naukowe Robotyków
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-#include "legged_locomotion_mpc/constraint/WrenchFrictionConeConstraint.hpp"
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+/*
+ * Authors: Bartłomiej Krajewski (https://github.com/BartlomiejK2)
+ */
 
+#include <legged_locomotion_mpc/constraint/WrenchFrictionConeConstraint.hpp>
+
+#include <ocs2_robotic_tools/common/RotationTransforms.h>
+
+#include <floating_base_model/AccessHelperFunctions.hpp>
+
+#include <legged_locomotion_mpc/precomputation/LeggedPrecomputation.hpp>
 
 namespace legged_locomotion_mpc
 {
+
+  using namespace ocs2;
+  using namespace floating_base_model;
   /******************************************************************************************************/
   /******************************************************************************************************/
   /******************************************************************************************************/
-  explicit WrenchFrictionConeConstraint::Config::Config(
-    ocs2::scalar_t frictionCoefficientParam,
-    ocs2::scalar_t footLengthX,
-    ocs2::scalar_t footLengthY): 
-      frictionCoefficient_(frictionCoefficientParam),
-      footHalfLengthX_(footLengthX / 2),
-      footHalfLengthY_(footLengthY / 2),
+  WrenchFrictionConeConstraint::Config::Config(
+    scalar_t footLengthX,
+    scalar_t footLengthY,
+    scalar_t frictionCoefficientParam):
+      footHalfLengthX(footLengthX / 2.0),
+      footHalfLengthY(footLengthY / 2.0),
+      frictionCoefficient(frictionCoefficientParam)
   {
-    assert(frictionCoefficient_ > 0.0);
-    assert(footHalfLengthX_ > 0.0);
-    assert(footHalfLengthY_>= 0.0);
+    assert(frictionCoefficient > 0.0);
+    assert(footHalfLengthX > 0.0);
+    assert(footHalfLengthY > 0.0);
   }
 
   /******************************************************************************************************/
   /******************************************************************************************************/
   /******************************************************************************************************/
-  WrenchFrictionConeConstraint::WrenchFrictionConeConstraint(const SwitchedModelReferenceManager &referenceManager,
+  WrenchFrictionConeConstraint::WrenchFrictionConeConstraint(
+    const LeggedReferenceManager &referenceManager,
     Config config,
-    size_t contactFeetIndex,
-    FloatingBaseModelInfo& info): 
-      StateInputConstraint(ocs2::ConstraintOrder::Linear),
-      referenceManagerPtr_(&referenceManager),
-      config_(config),
-      contactFeetIndex_(contactFeetIndex),
-      info_(&info) 
+    FloatingBaseModelInfo info,
+    size_t endEffectorIndex): 
+      StateInputConstraint(ConstraintOrder::Linear),
+      referenceManager_(referenceManager),
+      config_(std::move(config)),
+      info_(std::move(info)) ,
+      endEffectorIndex_(endEffectorIndex),
+      startIndex_(3 * info.numThreeDofContacts + 6 * (endEffectorIndex - info.numThreeDofContacts))
   {
-
-    const size_t stateDim = info.stateDim.size();
-    const size_t inputDim = info.inputDim.size();
-
-    linearApproximation_.f = ocs2::matrix_t::Zero(16,1);
-    linearApproximation_.dfdx = ocs2::matrix_t::Zero(16, stateDim);
-    linearApproximation_.dfdu = ocs2::matrix_t::Zero(16, inputDim);
-
     coneConstraintMatrix_ = generateConeConstraintMatrix(config_);
-
-  }
-
-  // TODO: Dodaj jak będzie ogarnięty interface od Kuby!
-  /******************************************************************************************************/
-  /******************************************************************************************************/
-  /******************************************************************************************************/
-  void WrenchFrictionConeConstraint::setSurfaceNormalInWorld(const vector3_t &surfaceNormalInWorld) 
-  {
-    rotationWorldToTerrain_.setIdentity();
-    throw std::runtime_error("[WrenchFrictionConeConstraint] setSurfaceNormalInWorld() is not implemented!");
   }
 
   /******************************************************************************************************/
   /******************************************************************************************************/
   /******************************************************************************************************/
-  void WrenchFrictionConeConstraint::setFrictionCoefficient(const double frictionCoefficientParam)
-  {
-    config_.frictionCoefficient_ = frictionCoefficientParam;
+  WrenchFrictionConeConstraint* WrenchFrictionConeConstraint::clone() const
+  { 
+    return new WrenchFrictionConeConstraint(*this); 
   }
 
   /******************************************************************************************************/
   /******************************************************************************************************/
   /******************************************************************************************************/
-  bool WrenchFrictionConeConstraint::isActive(ocs2::scalar_t time) const 
+  size_t WrenchFrictionConeConstraint::getNumConstraints(scalar_t time) const 
+  { 
+    return 16; 
+  };
+
+  /******************************************************************************************************/
+  /******************************************************************************************************/
+  /******************************************************************************************************/
+  bool WrenchFrictionConeConstraint::isActive(scalar_t time) const 
   {
-    return referenceManagerPtr_->getContactFlags(time)[contactFeetIndex_];
+    return referenceManager_.getContactFlags(time)[endEffectorIndex_];
   }
 
   /******************************************************************************************************/
   /******************************************************************************************************/
   /******************************************************************************************************/
-  ocs2::vector_t WrenchFrictionConeConstraint::getValue(scalar_t time,
-    const ocs2::vector_t &state,
-    const ocs2::vector_t &input,
-    const ocs2::PreComputation &preComp) const 
+  vector_t WrenchFrictionConeConstraint::getValue(scalar_t time,
+    const vector_t &state,
+    const vector_t &input,
+    const PreComputation &preComp) const 
   {
-    const auto wrenchInWorldFrame = access_helper_functions::getContactWrenches(input, contactFeetIndex_, *info_);
+    const auto wrenchInWorldFrame = access_helper_functions::getContactWrenches(input, 
+      endEffectorIndex_, info_);
+
+    const auto& leggedPrecomputation = cast<LeggedPrecomputation>(preComp);
+
+    // Get rotation matrix to foot frame because the axes are consistent with the leg lengths
+    const vector3_t eulerAngles = leggedPrecomputation.getEndEffectorOrientation(
+      endEffectorIndex_);
+    const matrix3_t rotationMatrixToTerrain = getRotationMatrixFromZyxEulerAngles(
+      eulerAngles).transpose();
     
-    const vector6_t localWrench;
-    localWrench << rotationWorldToTerrain_ * wrenchInWorldFrame.block<3, 1>(0, 0),
-      rotationWorldToTerrain_ * wrenchInWorldFrame.block<3, 1>(3, 0);
+    vector6_t localWrench;
+    localWrench.block<3, 1>(0, 0) = rotationMatrixToTerrain * wrenchInWorldFrame.block<3, 1>(0, 0);
+    localWrench.block<3, 1>(3, 0) = rotationMatrixToTerrain * wrenchInWorldFrame.block<3, 1>(3, 0);
 
-    ocs2::vector_t coneConstraint = coneConstraintMatrix_ * localWrench;
+    const vector_t coneConstraint = coneConstraintMatrix_ * localWrench;
 
     return coneConstraint;
   }
@@ -95,136 +119,146 @@ namespace legged_locomotion_mpc
   /******************************************************************************************************/
   /******************************************************************************************************/
   /******************************************************************************************************/
-  ocs2::VectorFunctionLinearApproximation WrenchFrictionConeConstraint::getLinearApproximation(
-    ocs2::scalar_t time,
-    const ocs2::vector_t &state,
-    const ocs2::vector_t &input,
-    const ocs2::PreComputation &preComp) const 
+  VectorFunctionLinearApproximation WrenchFrictionConeConstraint::getLinearApproximation(
+    scalar_t time,
+    const vector_t &state,
+    const vector_t &input,
+    const PreComputation &preComp) const 
   {
-    const auto& info = *info_;
-
-    const auto wrenchInWorldFrame = access_helper_functions::getContactWrenches(input, contactFeetIndex_, *info_);
+    const auto wrenchInWorldFrame = access_helper_functions::getContactWrenches(input, 
+      endEffectorIndex_, info_);
     
-    const vector6_t localWrench;
-    localWrench << rotationWorldToTerrain_ * wrenchInWorldFrame.block<3, 1>(0, 0),
-      rotationWorldToTerrain_ * wrenchInWorldFrame.block<3, 1>(3, 0);
+    const auto& leggedPrecomputation = cast<LeggedPrecomputation>(preComp);
 
-    ocs2::vector_t coneConstraint = coneConstraintMatrix_ * localWrench;
+    // Get rotation matrix to foot frame because the axes are consistent with the leg lengths
+    const vector3_t eulerAngles = leggedPrecomputation.getEndEffectorOrientation(
+      endEffectorIndex_);
+    const matrix3_t rotationMatrixToTerrain = getRotationMatrixFromZyxEulerAngles(
+      eulerAngles).transpose();
 
-    linearApproximation_.f = coneConstraint;
+    vector6_t localWrench;
+    localWrench.block<3, 1>(0, 0) = rotationMatrixToTerrain * wrenchInWorldFrame.block<3, 1>(0, 0);
+    localWrench.block<3, 1>(3, 0) = rotationMatrixToTerrain * wrenchInWorldFrame.block<3, 1>(3, 0);
 
-    const size_t startIndex = 3 * info.numThreeDofContacts + 6 * (contactFeetIndex_ - info.numThreeDofContacts);
+    const vector_t coneConstraint = coneConstraintMatrix_ * localWrench;
+
+    VectorFunctionLinearApproximation linearApproximation;
+
+    linearApproximation.f = coneConstraint;
+    linearApproximation.dfdx = matrix_t::Zero(16, info_.stateDim);
+    linearApproximation.dfdu = matrix_t::Zero(16, info_.inputDim);
 
     matrix6_t rotation6x6 = matrix6_t::Zero();
-    rotation6x6.block<3, 3>(0, 0) = rotationWorldToTerrain_;
-    rotation6x6.block<3, 3>(3, 3) = rotationWorldToTerrain_;
+    rotation6x6.block<3, 3>(0, 0) = rotationMatrixToTerrain;
+    rotation6x6.block<3, 3>(3, 3) = rotationMatrixToTerrain;
 
-    linearApproximation_.dfdu.block<16, 6>(0, startIndex) = coneConstraintMatrix_ * rotation6x6;
+    linearApproximation.dfdu.block<16, 6>(0, startIndex_) = coneConstraintMatrix_ * rotation6x6;
     
-    return linearApproximation_;
+    return linearApproximation;
   }
 
   /******************************************************************************************************/
   /******************************************************************************************************/
   /******************************************************************************************************/
-  Eigen::Matrix<ocs2::scalar_t, 16, 6> WrenchFrictionConeConstraint::generateConeConstraintMatrix(const Config& config)
+  Eigen::Matrix<scalar_t, 16, 6> WrenchFrictionConeConstraint::generateConeConstraintMatrix(
+    const Config& config)
   {
-    Eigen::Matrix<ocs2::scalar_t, 16, 6> coneConstraintMatrix;
+    Eigen::Matrix<scalar_t, 16, 6> coneConstraintMatrix;
 
     // u * f_z + f_x >= 0
     coneConstraintMatrix(0, 0) = 1.0;
-    coneConstraintMatrix(0, 2) = config.frictionCoefficient_;
+    coneConstraintMatrix(0, 2) = config.frictionCoefficient;
 
     // u * f_z - f_x >= 0
     coneConstraintMatrix(1, 0) = -1.0;
-    coneConstraintMatrix(1, 2) = config.frictionCoefficient_;
+    coneConstraintMatrix(1, 2) = config.frictionCoefficient;
 
     // u * f_z + f_y >= 0
     coneConstraintMatrix(2, 1) = 1.0;
-    coneConstraintMatrix(2, 2) = config.frictionCoefficient_;
+    coneConstraintMatrix(2, 2) = config.frictionCoefficient;
 
     // u * f_z - f_y >= 0
     coneConstraintMatrix(3, 1) = -1.0;
-    coneConstraintMatrix(3, 2) = config.frictionCoefficient_;
+    coneConstraintMatrix(3, 2) = config.frictionCoefficient;
 
     // Y * f_z + tau_x >= 0
-    coneConstraintMatrix(4, 2) = config.footHalfLengthY_;
-    coneConstraintMatrix(4, 3) = config.frictionCoefficient_;
+    coneConstraintMatrix(4, 2) = config.footHalfLengthY;
+    coneConstraintMatrix(4, 3) = config.frictionCoefficient;
 
     // Y * f_z - tau_x >= 0
-    coneConstraintMatrix(5, 2) = config.footHalfLengthY_;
-    coneConstraintMatrix(5, 3) = -config.frictionCoefficient_;
+    coneConstraintMatrix(5, 2) = config.footHalfLengthY;
+    coneConstraintMatrix(5, 3) = -config.frictionCoefficient;
 
     // X * f_z + tau_y >= 0
-    coneConstraintMatrix(6, 2) = config.footHalfLengthX_;
-    coneConstraintMatrix(7, 4) = config.frictionCoefficient_;
+    coneConstraintMatrix(6, 2) = config.footHalfLengthX;
+    coneConstraintMatrix(7, 4) = config.frictionCoefficient;
 
     // X * f_z - tau_y >= 0
-    coneConstraintMatrix(7, 2) = config.footHalfLengthX_;
-    coneConstraintMatrix(7, 4) = -config.frictionCoefficient_;
+    coneConstraintMatrix(7, 2) = config.footHalfLengthX;
+    coneConstraintMatrix(7, 4) = -config.frictionCoefficient;
 
     // Y * f_x + X * f_y + u * (X + Y) * f_z - u * tau_x - u * tau_y + tau_z >= 0
-    coneConstraintMatrix(8, 0) = config.footHalfLengthY_;
-    coneConstraintMatrix(8, 1) = config.footHalfLengthX_;
-    coneConstraintMatrix(8, 2) = (config.footHalfLengthY_ + config.foothHalfLengthX_) * config.frictionCoefficient_;
-    coneConstraintMatrix(8, 3) = -config.frictionCoefficient_;
-    coneConstraintMatrix(8, 4) = -config.frictionCoefficient_;
+    coneConstraintMatrix(8, 0) = config.footHalfLengthY;
+    coneConstraintMatrix(8, 1) = config.footHalfLengthX;
+    coneConstraintMatrix(8, 2) = (config.footHalfLengthY + config.footHalfLengthX) * config.frictionCoefficient;
+    coneConstraintMatrix(8, 3) = -config.frictionCoefficient;
+    coneConstraintMatrix(8, 4) = -config.frictionCoefficient;
     coneConstraintMatrix(8, 5) = 1;
 
     // Y * f_x - X * f_y + u * (X + Y) * f_z - u * tau_x + u * tau_y + tau_z >= 0
-    coneConstraintMatrix(9, 0) = config.footHalfLengthY_;
-    coneConstraintMatrix(9, 1) = -config.footHalfLengthX_;
-    coneConstraintMatrix(9, 2) = (config.footHalfLengthY_ + config.foothHalfLengthX_) * config.frictionCoefficient_;
-    coneConstraintMatrix(9, 3) = -config.frictionCoefficient_;
-    coneConstraintMatrix(9, 4) = config.frictionCoefficient_;
+    coneConstraintMatrix(9, 0) = config.footHalfLengthY;
+    coneConstraintMatrix(9, 1) = -config.footHalfLengthX;
+    coneConstraintMatrix(9, 2) = (config.footHalfLengthY + config.footHalfLengthX) * config.frictionCoefficient;
+    coneConstraintMatrix(9, 3) = -config.frictionCoefficient;
+    coneConstraintMatrix(9, 4) = config.frictionCoefficient;
     coneConstraintMatrix(9, 5) = 1;
 
     // -Y * f_x + X * f_y + u * (X + Y) * f_z - u * tau_x - u * tau_y + tau_z >= 0
-    coneConstraintMatrix(10, 0) = -config.footHalfLengthY_;
-    coneConstraintMatrix(10, 1) = config.footHalfLengthX_;
-    coneConstraintMatrix(10, 2) = (config.footHalfLengthY_ + config.foothHalfLengthX_) * config.frictionCoefficient_;
-    coneConstraintMatrix(10, 3) = config.frictionCoefficient_;
-    coneConstraintMatrix(10, 4) = -config.frictionCoefficient_;
+    coneConstraintMatrix(10, 0) = -config.footHalfLengthY;
+    coneConstraintMatrix(10, 1) = config.footHalfLengthX;
+    coneConstraintMatrix(10, 2) = (config.footHalfLengthY + config.footHalfLengthX) * config.frictionCoefficient;
+    coneConstraintMatrix(10, 3) = config.frictionCoefficient;
+    coneConstraintMatrix(10, 4) = -config.frictionCoefficient;
     coneConstraintMatrix(10, 5) = 1;
 
     // -Y * f_x - X * f_y + u * (X + Y) * f_z + u * tau_x + u * tau_y + tau_z >= 0
-    coneConstraintMatrix(11, 0) = -config.footHalfLengthY_;
-    coneConstraintMatrix(11, 1) = -config.footHalfLengthX_;
-    coneConstraintMatrix(11, 2) = (config.footHalfLengthY_ + config.foothHalfLengthX_) * config.frictionCoefficient_;
-    coneConstraintMatrix(11, 3) = config.frictionCoefficient_;
-    coneConstraintMatrix(11, 4) = config.frictionCoefficient_;
+    coneConstraintMatrix(11, 0) = -config.footHalfLengthY;
+    coneConstraintMatrix(11, 1) = -config.footHalfLengthX;
+    coneConstraintMatrix(11, 2) = (config.footHalfLengthY + config.footHalfLengthX) * config.frictionCoefficient;
+    coneConstraintMatrix(11, 3) = config.frictionCoefficient;
+    coneConstraintMatrix(11, 4) = config.frictionCoefficient;
     coneConstraintMatrix(11, 5) = 1;
 
     // -Y * f_x - X * f_y + u * (X + Y) * f_z - u * tau_x - u * tau_y - tau_z >= 0
-    coneConstraintMatrix(12, 0) = -config.footHalfLengthY_;
-    coneConstraintMatrix(12, 1) = -config.footHalfLengthX_;
-    coneConstraintMatrix(12, 2) = (config.footHalfLengthY_ + config.foothHalfLengthX_) * config.frictionCoefficient_;
-    coneConstraintMatrix(12, 3) = -config.frictionCoefficient_;
-    coneConstraintMatrix(12, 4) = -config.frictionCoefficient_;
+    coneConstraintMatrix(12, 0) = -config.footHalfLengthY;
+    coneConstraintMatrix(12, 1) = -config.footHalfLengthX;
+    coneConstraintMatrix(12, 2) = (config.footHalfLengthY + config.footHalfLengthX) * config.frictionCoefficient;
+    coneConstraintMatrix(12, 3) = -config.frictionCoefficient;
+    coneConstraintMatrix(12, 4) = -config.frictionCoefficient;
     coneConstraintMatrix(12, 5) = -1;
 
     // -Y * f_x + X * f_y + u * (X + Y) * f_z - u * tau_x + u * tau_y - tau_z >= 0
-    coneConstraintMatrix(13, 0) = -config.footHalfLengthY_;
-    coneConstraintMatrix(13, 1) = config.footHalfLengthX_;
-    coneConstraintMatrix(13, 2) = (config.footHalfLengthY_ + config.foothHalfLengthX_) * config.frictionCoefficient_;
-    coneConstraintMatrix(13, 3) = -config.frictionCoefficient_;
-    coneConstraintMatrix(13, 4) = config.frictionCoefficient_;
+    coneConstraintMatrix(13, 0) = -config.footHalfLengthY;
+    coneConstraintMatrix(13, 1) = config.footHalfLengthX;
+    coneConstraintMatrix(13, 2) = (config.footHalfLengthY + config.footHalfLengthX) * config.frictionCoefficient;
+    coneConstraintMatrix(13, 3) = -config.frictionCoefficient;
+    coneConstraintMatrix(13, 4) = config.frictionCoefficient;
     coneConstraintMatrix(13, 5) = -1;
 
     // Y * f_x - X * f_y + u * (X + Y) * f_z + u * tau_x - u * tau_y - tau_z >= 0
-    coneConstraintMatrix(14, 0) = config.footHalfLengthY_;
-    coneConstraintMatrix(14, 1) = -config.footHalfLengthX_;
-    coneConstraintMatrix(14, 2) = (config.footHalfLengthY_ + config.foothHalfLengthX_) * config.frictionCoefficient_;
-    coneConstraintMatrix(14, 3) = config.frictionCoefficient_;
-    coneConstraintMatrix(14, 4) = -config.frictionCoefficient_;
+    coneConstraintMatrix(14, 0) = config.footHalfLengthY;
+    coneConstraintMatrix(14, 1) = -config.footHalfLengthX;
+    coneConstraintMatrix(14, 2) = (config.footHalfLengthY + config.footHalfLengthX) * config.frictionCoefficient;
+    coneConstraintMatrix(14, 3) = config.frictionCoefficient;
+    coneConstraintMatrix(14, 4) = -config.frictionCoefficient;
     coneConstraintMatrix(14, 5) = -1;
 
     // Y * f_x + X * f_y + u * (X + Y) * f_z + u * tau_x + u * tau_y - tau_z >= 0
-    coneConstraintMatrix(15, 0) = config.footHalfLengthY_;
-    coneConstraintMatrix(15, 1) = config.footHalfLengthX_;
-    coneConstraintMatrix(15, 2) = (config.footHalfLengthY_ + config.foothHalfLengthX_) * config.frictionCoefficient_;
-    coneConstraintMatrix(15, 3) = config.frictionCoefficient_;
-    coneConstraintMatrix(15, 4) = config.frictionCoefficient_;
+    coneConstraintMatrix(15, 0) = config.footHalfLengthY;
+    coneConstraintMatrix(15, 1) = config.footHalfLengthX;
+    coneConstraintMatrix(15, 2) = (config.footHalfLengthY + config.footHalfLengthX) * config.frictionCoefficient;
+    coneConstraintMatrix(15, 3) = config.frictionCoefficient;
+    coneConstraintMatrix(15, 4) = config.frictionCoefficient;
     coneConstraintMatrix(15, 5) = -1;
 
     return coneConstraintMatrix;
