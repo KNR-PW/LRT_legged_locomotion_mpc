@@ -81,7 +81,7 @@ namespace legged_locomotion_mpc
 
       /**
        * Constructor
-       * @param [in] referenceManager : Switched model ReferenceManager.
+       * @param [in] referenceManager : Legged model ReferenceManager.
        * @param [in] config : Friction model settings.
        * @param [in] endEffectorIndex : The 3 DoF end effector index.
        * @param [in] info : The floating base model information.
