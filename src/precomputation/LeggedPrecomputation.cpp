@@ -61,15 +61,19 @@ namespace legged_locomotion_mpc
 
   const vector3_t& LeggedPrecomputation::getEndEffectorOrientation(size_t endEffectorIndex) const
   {
-    return endEffectorEulerAngles_[endEffectorIndex];
+    assert(endEffectorIndex < endEffectorNumber_);
+    assert(endEffectorIndex >= modelInfo_.numThreeDofContacts);
+
+    return endEffectorEulerAngles_[endEffectorIndex - modelInfo_.numThreeDofContacts];
   }
 
   const ocs2::VectorFunctionLinearApproximation& LeggedPrecomputation::getEndEffectorOrientationDerivatives(
     size_t endEffectorIndex) const
   {
     assert(endEffectorIndex < endEffectorNumber_);
+    assert(endEffectorIndex >= modelInfo_.numThreeDofContacts);
 
-    return endEffectorEulerAngleDerivaties_[endEffectorIndex];
+    return endEffectorEulerAngleDerivaties_[endEffectorIndex - modelInfo_.numThreeDofContacts];
   }
 
   const vector3_t& LeggedPrecomputation::getEndEffectorLinearVelocity(size_t endEffectorIndex) const
@@ -91,16 +95,18 @@ namespace legged_locomotion_mpc
     size_t endEffectorIndex) const
   {
     assert(endEffectorIndex < endEffectorNumber_);
+    assert(endEffectorIndex >= modelInfo_.numThreeDofContacts);
     
-    return endEffectorAngularVelocities_[endEffectorIndex];
+    return endEffectorAngularVelocities_[endEffectorIndex - modelInfo_.numThreeDofContacts];
   }
 
   const ocs2::VectorFunctionLinearApproximation& LeggedPrecomputation::getEndEffectorAngularVelocityDerivatives(
     size_t endEffectorIndex) const
   {
     assert(endEffectorIndex < endEffectorNumber_);
+    assert(endEffectorIndex >= modelInfo_.numThreeDofContacts);
 
-    return endEffectorAngularVelocityDerivaties_[endEffectorIndex];
+    return endEffectorAngularVelocityDerivaties_[endEffectorIndex  - modelInfo_.numThreeDofContacts];
   }
 
   const vector_t& LeggedPrecomputation::getApproximatedJointTorques() const
@@ -125,7 +131,7 @@ namespace legged_locomotion_mpc
     size_t endEffectorIndex) const
   {
     assert(endEffectorIndex < endEffectorNumber_);
-    
+
     return surfaceNormals_[endEffectorIndex];
   }
 
