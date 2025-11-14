@@ -39,8 +39,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <legged_locomotion_mpc/common/Types.hpp>
 #include <legged_locomotion_mpc/reference_manager/LeggedReferenceManager.hpp>
-#include <legged_locomotion_mpc/precomputation/LeggedPrecomputation.hpp>
-
 
 namespace legged_locomotion_mpc
 {

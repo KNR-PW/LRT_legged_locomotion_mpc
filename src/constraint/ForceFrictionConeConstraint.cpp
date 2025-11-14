@@ -31,6 +31,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <legged_locomotion_mpc/constraint/ForceFrictionConeConstraint.hpp>
 
+#include <legged_locomotion_mpc/precomputation/LeggedPrecomputation.hpp>
+
 namespace legged_locomotion_mpc
 {
 
@@ -83,7 +85,7 @@ namespace legged_locomotion_mpc
   /******************************************************************************************************/
   /******************************************************************************************************/
   /******************************************************************************************************/
-  size_t ForceFrictionConeConstraint::getNumConstraints(ocs2::scalar_t time) const
+  size_t ForceFrictionConeConstraint::getNumConstraints(scalar_t time) const
   {
     return 1;
   }
@@ -99,7 +101,7 @@ namespace legged_locomotion_mpc
     const auto forcesInWorldFrame = access_helper_functions::getContactForces(input, 
       endEffectorIndex_, info_);
 
-    const auto& leggedPrecomputation = ocs2::cast<LeggedPrecomputation>(preComp);
+    const auto& leggedPrecomputation = cast<LeggedPrecomputation>(preComp);
     const matrix3_t& rotationMatrixToTerrain = 
       leggedPrecomputation.getRotationWorldToTerrain(endEffectorIndex_);
 
@@ -120,7 +122,7 @@ namespace legged_locomotion_mpc
     const auto forcesInWorldFrame = access_helper_functions::getContactForces(input, 
       endEffectorIndex_, info_);
 
-    const auto& leggedPrecomputation = ocs2::cast<LeggedPrecomputation>(preComp);
+    const auto& leggedPrecomputation = cast<LeggedPrecomputation>(preComp);
     const matrix3_t& rotationMatrixToTerrain = 
       leggedPrecomputation.getRotationWorldToTerrain(endEffectorIndex_);
 
@@ -160,7 +162,7 @@ namespace legged_locomotion_mpc
     const auto forcesInWorldFrame = access_helper_functions::getContactForces(input, 
       endEffectorIndex_, info_);
 
-    const auto& leggedPrecomputation = ocs2::cast<LeggedPrecomputation>(preComp);
+    const auto& leggedPrecomputation = cast<LeggedPrecomputation>(preComp);
     const matrix3_t& rotationMatrixToTerrain = 
       leggedPrecomputation.getRotationWorldToTerrain(endEffectorIndex_);
 
@@ -236,5 +238,4 @@ namespace legged_locomotion_mpc
     const scalar_t coneConstraint = frictionForce - tangentForce;
     return (vector_t(1) << coneConstraint).finished();
   }
-
 } // namespace legged_locomotion_mpc

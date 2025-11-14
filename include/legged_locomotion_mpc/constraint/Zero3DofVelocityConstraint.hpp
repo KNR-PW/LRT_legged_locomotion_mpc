@@ -23,8 +23,6 @@
 #include <ocs2_core/constraint/StateInputConstraint.h>
 
 #include <legged_locomotion_mpc/common/Types.hpp>
-#include <legged_locomotion_mpc/common/ModelSettings.hpp>
-#include <legged_locomotion_mpc/kinematics/PinocchioForwardEndEffectorKinematicsCppAd.hpp>
 #include <legged_locomotion_mpc/reference_manager/LeggedReferenceManager.hpp>
 
 namespace legged_locomotion_mpc
@@ -34,7 +32,7 @@ namespace legged_locomotion_mpc
 
       /**
        * Constructor
-       * @param [in] referenceManager : Switched model ReferenceManager
+       * @param [in] referenceManager : Legged model ReferenceManager
        * @param [in] endEffectorIndex : The 3 DoF contact index.
        */
       Zero3DofVelocityConstraint(const LeggedReferenceManager& referenceManager,
@@ -52,12 +50,12 @@ namespace legged_locomotion_mpc
         const ocs2::vector_t &state, const ocs2::vector_t &input,
         const ocs2::PreComputation &preComp) const override;
 
-        ocs2::VectorFunctionLinearApproximation getLinearApproximation(ocs2::scalar_t time,
+      ocs2::VectorFunctionLinearApproximation getLinearApproximation(ocs2::scalar_t time,
         const ocs2::vector_t &state, const ocs2::vector_t &input,
         const ocs2::PreComputation &preComp) const override;
 
     private:
-      Zero3DofVelocityConstraint(const Zero3DofVelocityConstraint &rhs);
+      Zero3DofVelocityConstraint(const Zero3DofVelocityConstraint &rhs) = default;
 
       const LeggedReferenceManager& referenceManager_;
       const size_t endEffectorIndex_;

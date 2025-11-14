@@ -66,7 +66,7 @@ namespace legged_locomotion_mpc
     const PreComputation &preComp) const
   {
     const auto& leggedPrecomputation = cast<LeggedPrecomputation>(preComp);
-    return leggedPrecomputation.getEndEffectorPosition(endEffectorIndex_);
+    return leggedPrecomputation.getEndEffectorLinearVelocity(endEffectorIndex_);
   }
 
   /******************************************************************************************************/
@@ -78,16 +78,6 @@ namespace legged_locomotion_mpc
     const PreComputation &preComp) const
   {
     const auto& leggedPrecomputation = cast<LeggedPrecomputation>(preComp);
-    return leggedPrecomputation.getEndEffectorPositionDerivatives(endEffectorIndex_);
+    return leggedPrecomputation.getEndEffectorLinearVelocityDerivatives(endEffectorIndex_);
   }
-
-  /******************************************************************************************************/
-  /******************************************************************************************************/
-  /******************************************************************************************************/
-  Zero3DofVelocityConstraint::Zero3DofVelocityConstraint(
-    const Zero3DofVelocityConstraint &rhs):
-    StateInputConstraint(rhs),
-    referenceManager_(rhs.referenceManager_),
-    endEffectorIndex_(rhs.endEffectorIndex_) {}
-    
 } // namespace legged_locomotion_mpc

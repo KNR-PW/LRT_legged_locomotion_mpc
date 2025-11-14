@@ -1,11 +1,29 @@
+// Copyright (c) 2025, Koło Naukowe Robotyków
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+/*
+ * Authors: Bartłomiej Krajewski (https://github.com/BartlomiejK2)
+ */
+
 #ifndef __ZERO_6_DOF_VELOCITY_CONSTRAINT_LEGGED_LOCOMOTION_MPC__
 #define __ZERO_6_DOF_VELOCITY_CONSTRAINT_LEGGED_LOCOMOTION_MPC__
 
 #include <ocs2_core/constraint/StateInputConstraint.h>
 
-#include <legged_locomotion_mpc/common/ModelSettings.hpp>
-#include <legged_locomotion_mpc/common/Pinocchio6DofEndEffectorKinematicsCppAd.hpp>
-#include <legged_locomotion_mpc/reference_manager/SwitchedModelReferenceManager.hpp>
+#include <legged_locomotion_mpc/common/Types.hpp>
+#include <legged_locomotion_mpc/reference_manager/LeggedReferenceManager.hpp>
 
 namespace legged_locomotion_mpc
 {
@@ -17,36 +35,33 @@ namespace legged_locomotion_mpc
 
       /**
        * Constructor
-       * @param [in] referenceManager : Switched model ReferenceManager
-       * @param [in] endEffectorKinematics: The kinematic interface to the target end-effector.
-       * @param [in] contactFeetIndex : The 6 DoF contact index.
+       * @param [in] referenceManager : Legged model ReferenceManager
+       * @param [in] endEffectorIndex : The 6 DoF contact index.
        */
-      Zero6DofVelocityConstraint(const SwitchedModelReferenceManager& referenceManager,
-        const ocs2::Pinocchio6DofEndEffectorKinematicsCppAd& endEffectorKinematics,
-        size_t contactFeetIndex);
+      Zero6DofVelocityConstraint(const LeggedReferenceManager& referenceManager,
+        size_t endEffectorIndex);
 
       ~Zero6DofVelocityConstraint() override = default;
 
-      Zero6DofVelocityConstraint *clone() const override { return new Zero6DofVelocityConstraint(*this); }
+      Zero6DofVelocityConstraint* clone() const override;
 
       bool isActive(ocs2::scalar_t time) const override;
 
-      size_t getNumConstraints(ocs2::scalar_t time) const override { return 6; }
+      size_t getNumConstraints(ocs2::scalar_t time) const override;
 
       ocs2::vector_t getValue(ocs2::scalar_t time, const ocs2::vector_t &state,
         const ocs2::vector_t& input,
-        const PreComputation& preComp) const override;
+        const ocs2::PreComputation& preComp) const override;
 
-        ocs2::VectorFunctionLinearApproximation getLinearApproximation(ocs2::scalar_t time,
+      ocs2::VectorFunctionLinearApproximation getLinearApproximation(ocs2::scalar_t time,
         const ocs2::vector_t& state, const ocs2::vector_t& input,
         const ocs2::PreComputation& preComp) const override;
 
     private:
-      Zero6DofVelocityConstraint(const Zero6DofVelocityConstraint &rhs);
+      Zero6DofVelocityConstraint(const Zero6DofVelocityConstraint &rhs) = default;
 
-      const SwitchedModelReferenceManager *referenceManagerPtr_;
-      std::unique_ptr<Pinocchio6DofEndEffectorKinematicsCppAd> endEffectorKinematicsPtr_;
-      const size_t contactFeetIndex_;
+      const LeggedReferenceManager& referenceManager_;
+      const size_t endEffectorIndex_;
     };
 
 } // namespace legged_locomotion_mpc
