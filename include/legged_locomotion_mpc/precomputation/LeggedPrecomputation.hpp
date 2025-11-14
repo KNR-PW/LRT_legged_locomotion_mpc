@@ -36,35 +36,37 @@ namespace legged_locomotion_mpc
 {
   class LeggedPrecomputation: public ocs2::PreComputation
   {
-    LeggedPrecomputation(floating_base_model::FloatingBaseModelInfo modelInfo,
-      const LeggedReferenceManager& referenceManager,
-      const PinocchioForwardEndEffectorKinematicsCppAd& forwardKinematics,
-      const PinocchioTorqueApproximationCppAd& torqueApproximator);
+    public:
 
-    ~LeggedPrecomputation() override = default;
+      LeggedPrecomputation(floating_base_model::FloatingBaseModelInfo modelInfo,
+        const LeggedReferenceManager& referenceManager,
+        const PinocchioForwardEndEffectorKinematicsCppAd& forwardKinematics,
+        const PinocchioTorqueApproximationCppAd& torqueApproximator);
 
-    LeggedPrecomputation* clone() const override;
+      ~LeggedPrecomputation() override = default;
 
-    void request(ocs2::RequestSet request, ocs2::scalar_t t, const ocs2::vector_t &x, 
-      const ocs2::vector_t &u) override;
+      LeggedPrecomputation* clone() const override;
 
-    const vector3_t& getEndEffectorPosition(size_t endEffectorIndex);
+      void request(ocs2::RequestSet request, ocs2::scalar_t t, const ocs2::vector_t &x, 
+        const ocs2::vector_t &u) override;
 
-    const ocs2::VectorFunctionLinearApproximation& getEndEffectorPositionDerivatives(
-      size_t endEffectorIndex);
+      const vector3_t& getEndEffectorPosition(size_t endEffectorIndex) const;
 
-    const vector3_t& getEndEffectorVelocity(size_t endEffectorIndex);
+      const ocs2::VectorFunctionLinearApproximation& getEndEffectorPositionDerivatives(
+        size_t endEffectorIndex) const;
 
-    const ocs2::VectorFunctionLinearApproximation& getEndEffectorVelocityDerivatives(
-      size_t endEffectorIndex);
+      const vector3_t& getEndEffectorVelocity(size_t endEffectorIndex) const;
 
-    const ocs2::vector_t& getApproximatedJointTorques();
+      const ocs2::VectorFunctionLinearApproximation& getEndEffectorVelocityDerivatives(
+        size_t endEffectorIndex) const;
 
-    const ocs2::VectorFunctionLinearApproximation& getApproximatedJointTorquesDerivatives();
+      const ocs2::vector_t& getApproximatedJointTorques() const;
 
-    const matrix3_t& getRotationWorldToTerrain(size_t endEffectorIndex);
+      const ocs2::VectorFunctionLinearApproximation& getApproximatedJointTorquesDerivatives() const;
 
-    const vector3_t& getSurfaceNormal(size_t endEffectorIndex);
+      const matrix3_t& getRotationWorldToTerrain(size_t endEffectorIndex) const;
+
+      const vector3_t& getSurfaceNormal(size_t endEffectorIndex) const;
 
     private:
 

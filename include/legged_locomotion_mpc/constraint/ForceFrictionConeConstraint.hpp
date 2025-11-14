@@ -32,11 +32,14 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef __FORCE_FRICTION_CONSTRAINT_LEGGED_LOCOMOTION_MPC__
 #define __FORCE_FRICTION_CONSTRAINT_LEGGED_LOCOMOTION_MPC__
 
+#include <ocs2_core/constraint/StateInputConstraint.h>
+
 #include <floating_base_model/FloatingBaseModelInfo.hpp>
 #include <floating_base_model/AccessHelperFunctions.hpp>
 
-#include "legged_locomotion_mpc/common/Types.hpp"
-#include "legged_locomotion_mpc/reference_manager/SwitchedModelReferenceManager.hpp"
+#include <legged_locomotion_mpc/common/Types.hpp>
+#include <legged_locomotion_mpc/reference_manager/LeggedReferenceManager.hpp>
+#include <legged_locomotion_mpc/precomputation/LeggedPrecomputation.hpp>
 
 
 namespace legged_locomotion_mpc
@@ -64,9 +67,9 @@ namespace legged_locomotion_mpc
       */
       struct Config 
       {
-        ocs2::scalar_t frictionCoefficient_;
-        ocs2::scalar_t regularization_;
-        ocs2::scalar_t hessianDiagonalShift_;
+        ocs2::scalar_t frictionCoefficient;
+        ocs2::scalar_t regularization;
+        ocs2::scalar_t hessianDiagonalShift;
 
 
         explicit Config(
@@ -80,21 +83,22 @@ namespace legged_locomotion_mpc
        * Constructor
        * @param [in] referenceManager : Switched model ReferenceManager.
        * @param [in] config : Friction model settings.
-       * @param [in] contactPointIndex : The 3 DoF contact index.
+       * @param [in] endEffectorIndex : The 3 DoF end effector index.
        * @param [in] info : The floating base model information.
        */
-      ForceFrictionConeConstraint(const ocs2::SwitchedModelReferenceManager &referenceManager,
+      ForceFrictionConeConstraint(
+        const LeggedReferenceManager& referenceManager,
         Config config,
-        size_t contactPointIndex,
-        floating_base_model::FloatingBaseModelInfo info);
+        floating_base_model::FloatingBaseModelInfo info,
+        size_t endEffectorIndex);
 
       ~ForceFrictionConeConstraint() override = default;
 
-      ForceForceFrictionConeConstraint* clone() const override { return new ForceFrictionConeConstraint(*this); }
+      ForceFrictionConeConstraint* clone() const override;
 
       bool isActive(ocs2::scalar_t time) const override;
 
-      size_t getNumConstraints(ocs2::scalar_t time) const override { return 1; };
+      size_t getNumConstraints(ocs2::scalar_t time) const override;
 
       ocs2::vector_t getValue(ocs2::scalar_t time, const ocs2::vector_t &state,
         const ocs2::vector_t &input,
@@ -114,12 +118,12 @@ namespace legged_locomotion_mpc
       
       ForceFrictionConeConstraint(const ForceFrictionConeConstraint&other) = default;
 
-      ocs2::vector_t coneConstraint(const vector3_t &localForces) const;
+      ocs2::vector_t coneConstraint(const vector3_t &localForce) const;
 
-      const SwitchedModelReferenceManager* referenceManagerPtr_;
+      const LeggedReferenceManager& referenceManager_;
 
       const Config config_;
-      const size_t contactPointIndex_;
+      const size_t endEffectorIndex_;
       const floating_base_model::FloatingBaseModelInfo info_;
   };
 } // namespace legged_locomotion_mpc

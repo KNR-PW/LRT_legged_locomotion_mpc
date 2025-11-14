@@ -44,46 +44,46 @@ namespace legged_locomotion_mpc
     }
   }
 
-  const vector3_t& LeggedPrecomputation::getEndEffectorPosition(size_t endEffectorIndex)
+  const vector3_t& LeggedPrecomputation::getEndEffectorPosition(size_t endEffectorIndex) const
   {
     return endEffectorPositions_[endEffectorIndex];
   }
 
   const VectorFunctionLinearApproximation& LeggedPrecomputation::getEndEffectorPositionDerivatives(
-    size_t endEffectorIndex)
+    size_t endEffectorIndex) const
   {
     return endEffectorPositionDerivaties_[endEffectorIndex];
   }
 
-  const vector3_t& LeggedPrecomputation::getEndEffectorVelocity(size_t endEffectorIndex)
+  const vector3_t& LeggedPrecomputation::getEndEffectorVelocity(size_t endEffectorIndex) const
   {
     return endEffectorVelocities_[endEffectorIndex];
   }
 
   const VectorFunctionLinearApproximation& LeggedPrecomputation::getEndEffectorVelocityDerivatives(
-    size_t endEffectorIndex)
+    size_t endEffectorIndex) const
   {
     return endEffectorVelocityDerivaties_[endEffectorIndex];
   }
 
-  const vector_t& LeggedPrecomputation::getApproximatedJointTorques()
+  const vector_t& LeggedPrecomputation::getApproximatedJointTorques() const
   {
     return torqueApproximation_;
   }
 
-  const VectorFunctionLinearApproximation& LeggedPrecomputation::getApproximatedJointTorquesDerivatives()
+  const VectorFunctionLinearApproximation& LeggedPrecomputation::getApproximatedJointTorquesDerivatives() const
   {
     return torqueApproximationDerivatives_;
   }
 
   const matrix3_t& LeggedPrecomputation::getRotationWorldToTerrain(
-    size_t endEffectorIndex)
+    size_t endEffectorIndex) const
   {
     return rotationWorldToTerrains_[endEffectorIndex];
   }
 
   const vector3_t& LeggedPrecomputation::getSurfaceNormal(
-    size_t endEffectorIndex)
+    size_t endEffectorIndex) const
   {
     return surfaceNormals_[endEffectorIndex];
   }

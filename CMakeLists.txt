@@ -89,7 +89,7 @@ add_library(${PROJECT_NAME}
 
   src/dynamics/LeggedDynamicsAD.cpp
 
-  # src/constraint/ForceFrictionConeConstraint.cpp
+  src/constraint/ForceFrictionConeConstraint.cpp
 )
 
 target_include_directories(${PROJECT_NAME}

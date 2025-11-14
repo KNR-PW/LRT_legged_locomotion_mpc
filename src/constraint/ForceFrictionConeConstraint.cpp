@@ -29,7 +29,7 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ******************************************************************************/
 
-#include "legged_locomotion_mpc/constraint/ForceFrictionConeConstraint.hpp"
+#include <legged_locomotion_mpc/constraint/ForceFrictionConeConstraint.hpp>
 
 namespace legged_locomotion_mpc
 {
@@ -39,30 +39,29 @@ namespace legged_locomotion_mpc
   /******************************************************************************************************/
   /******************************************************************************************************/
   /******************************************************************************************************/
-  explicit ForceFrictionConeConstraint::Config::Config(
+  ForceFrictionConeConstraint::Config::Config(
     scalar_t frictionCoefficientParam,
     scalar_t regularizationParam,
-    scalar_t gripperForceParam,
     scalar_t hessianDiagonalShiftParam): 
-      frictionCoefficient_(frictionCoefficientParam),
-      regularization_(regularizationParam),
-      hessianDiagonalShift_(hessianDiagonalShiftParam) 
+      frictionCoefficient(frictionCoefficientParam),
+      regularization(regularizationParam),
+      hessianDiagonalShift(hessianDiagonalShiftParam) 
   {
-    assert(frictionCoefficient_ > 0.0);
-    assert(regularization_ > 0.0);
-    assert(hessianDiagonalShift_ >= 0.0);
+    assert(frictionCoefficient > 0.0);
+    assert(regularization > 0.0);
+    assert(hessianDiagonalShift >= 0.0);
   }
 
   /******************************************************************************************************/
   /******************************************************************************************************/
   /******************************************************************************************************/
   ForceFrictionConeConstraint::ForceFrictionConeConstraint(
-    const SwitchedModelReferenceManager &referenceManager, Config config,
-    size_t contactPointIndex, FloatingBaseModelInfo& info): 
+    const LeggedReferenceManager &referenceManager, Config config,
+    floating_base_model::FloatingBaseModelInfo info, size_t endEffectorIndex): 
       StateInputConstraint(ConstraintOrder::Quadratic),
-      referenceManagerPtr_(&referenceManager),
-      config_(config),
-      contactPointIndex_(contactPointIndex),
+      referenceManager_(referenceManager),
+      config_(std::move(config)),
+      endEffectorIndex_(endEffectorIndex),
       info_(std::move(info)) {}
 
   /******************************************************************************************************/
@@ -70,7 +69,23 @@ namespace legged_locomotion_mpc
   /******************************************************************************************************/
   bool ForceFrictionConeConstraint::isActive(scalar_t time) const 
   {
-    return referenceManagerPtr_->getContactFlags(time)[contactPointIndex_];
+    return referenceManager_.getContactFlags(time)[endEffectorIndex_];
+  }
+
+  /******************************************************************************************************/
+  /******************************************************************************************************/
+  /******************************************************************************************************/
+  ForceFrictionConeConstraint* ForceFrictionConeConstraint::clone() const
+  { 
+    return new ForceFrictionConeConstraint(*this); 
+  }
+
+  /******************************************************************************************************/
+  /******************************************************************************************************/
+  /******************************************************************************************************/
+  size_t ForceFrictionConeConstraint::getNumConstraints(ocs2::scalar_t time) const
+  {
+    return 1;
   }
 
   /******************************************************************************************************/
@@ -81,9 +96,15 @@ namespace legged_locomotion_mpc
     const vector_t &input,
     const PreComputation &preComp) const 
   {
-    const auto forcesInWorldFrame = access_helper_functions::getContactForces(input, contactPointIndex_, *info_);
-    const matrix3_t rotationMatrixToTerrain = referenceManagerPtr_->
-    const vector3_t localForce = rotationWorldToTerrain_ * forcesInWorldFrame;
+    const auto forcesInWorldFrame = access_helper_functions::getContactForces(input, 
+      endEffectorIndex_, info_);
+
+    const auto& leggedPrecomputation = ocs2::cast<LeggedPrecomputation>(preComp);
+    const matrix3_t& rotationMatrixToTerrain = 
+      leggedPrecomputation.getRotationWorldToTerrain(endEffectorIndex_);
+
+    const vector3_t localForce = rotationMatrixToTerrain * forcesInWorldFrame;
+
     return coneConstraint(localForce);
   }
 
@@ -96,27 +117,33 @@ namespace legged_locomotion_mpc
     const vector_t &input,
     const PreComputation &preComp) const 
   {
-    const vector3_t forcesInWorldFrame = access_helper_functions::getContactForces(input, contactPointIndex_, *info_);
-    const vector3_t localForce = rotationWorldToTerrain_ * forcesInWorldFrame;
+    const auto forcesInWorldFrame = access_helper_functions::getContactForces(input, 
+      endEffectorIndex_, info_);
 
-    const scalar_t tangentForceInverse = 1 / (sqrt(localForces.x() * localForces.x() + 
-      localForces.y() * localForces.y() + config_.regularization_));
+    const auto& leggedPrecomputation = ocs2::cast<LeggedPrecomputation>(preComp);
+    const matrix3_t& rotationMatrixToTerrain = 
+      leggedPrecomputation.getRotationWorldToTerrain(endEffectorIndex_);
 
-    const vector3_t dConeDF;
-    dConeDF(0) = -localForces.x() * tangentForceInverse;
-    dConeDF(1) = -localForces.y() * tangentForceInverse;
-    dConeDF(2) = config_.frictionCoefficient_;
+    const vector3_t localForce = rotationMatrixToTerrain * forcesInWorldFrame;
+
+    const scalar_t tangentForceInverse = 1 / (sqrt(localForce.x() * localForce.x() + 
+      localForce.y() * localForce.y() + config_.regularization));
+
+    vector3_t dConeDF;
+    dConeDF(0) = -localForce.x() * tangentForceInverse;
+    dConeDF(1) = -localForce.y() * tangentForceInverse;
+    dConeDF(2) = config_.frictionCoefficient;
 
 
     VectorFunctionLinearApproximation linearApprox;
 
-    const size_t stateDim = info.stateDim.size();
-    const size_t inputDim = info.inputDim.size();
+    const size_t stateDim = info_.stateDim;
+    const size_t inputDim = info_.inputDim;
     linearApprox.dfdx = matrix_t::Zero(1, stateDim);
     linearApprox.dfdu = matrix_t::Zero(1, inputDim);
 
     linearApprox.f = coneConstraint(localForce);
-    linearApprox.dfdu.block<1, 3>(0, 3 * contactPointIndex_) = dConeDF.transpose() * rotationWorldToTerrain_;
+    linearApprox.dfdu.block<1, 3>(0, 3 * endEffectorIndex_) = dConeDF.transpose() * rotationMatrixToTerrain;
     
     return linearApprox;
   }
@@ -130,30 +157,36 @@ namespace legged_locomotion_mpc
     const vector_t &input,
     const PreComputation &preComp) const 
   {
-    const vector3_t forcesInWorldFrame = access_helper_functions::getContactForces(input, contactPointIndex_, *info_);
-    const vector3_t localForce = rotationWorldToTerrain_ * forcesInWorldFrame;
+    const auto forcesInWorldFrame = access_helper_functions::getContactForces(input, 
+      endEffectorIndex_, info_);
 
-    const scalar_t forceXSquared = localForces.x() * localForces.x();
-    const scalar_t forceYSquared = localForces.y() * localForces.y();
-    const scalar_t forceXforceY  = localForces.x() * localForces.y();
+    const auto& leggedPrecomputation = ocs2::cast<LeggedPrecomputation>(preComp);
+    const matrix3_t& rotationMatrixToTerrain = 
+      leggedPrecomputation.getRotationWorldToTerrain(endEffectorIndex_);
 
-    const scalar_t tangentForceSuaredInverse = 1 / (forceXSquared + 
-      forceYSquared + config_.regularization_);
+    const vector3_t localForce = rotationMatrixToTerrain * forcesInWorldFrame;
+
+    const scalar_t forceXSquared = localForce.x() * localForce.x();
+    const scalar_t forceYSquared = localForce.y() * localForce.y();
+    const scalar_t forceXforceY  = localForce.x() * localForce.y();
+
+    const scalar_t tangentForceSquaredInverse = 1 / (forceXSquared + 
+      forceYSquared + config_.regularization);
+
+    const scalar_t tangentForceInverse = sqrt(tangentForceSquaredInverse);
     
-    const scalar_t tangentForceInverse32 = tangentForceSuaredInverse * sqrt(tangentForceSuaredInverse);
+    const scalar_t tangentForceInverse32 = tangentForceSquaredInverse * tangentForceInverse;
 
-
-
-    const vector3_t dConeDF;
-    dConeDF(0) = -localForces.x() * tangentForceInverse;
-    dConeDF(1) = -localForces.y() * tangentForceInverse;
-    dConeDF(2) = config_.frictionCoefficient_;
+    vector3_t dConeDF;
+    dConeDF(0) = -localForce.x() * tangentForceInverse;
+    dConeDF(1) = -localForce.y() * tangentForceInverse;
+    dConeDF(2) = config_.frictionCoefficient;
 
     
-    const matrix3_t d2ConeDF2 = matrix3_t::Zero();
+    matrix3_t d2ConeDF2 = matrix3_t::Zero();
 
-    d2ConeDF2(0, 0) = -(forceYSquared + config_.regularization_) * tangentForceInverse32;
-    d2ConeDF2(1, 1) = -(forceXSquared + config_.regularization_) * tangentForceInverse32;
+    d2ConeDF2(0, 0) = -(forceYSquared + config_.regularization) * tangentForceInverse32;
+    d2ConeDF2(1, 1) = -(forceXSquared + config_.regularization) * tangentForceInverse32;
     d2ConeDF2(0, 1) =  forceXforceY * tangentForceInverse32;
     d2ConeDF2(1, 0) =  d2ConeDF2(0, 1);
 
@@ -162,25 +195,30 @@ namespace legged_locomotion_mpc
 
     quadraticApprox.f = coneConstraint(localForce);
     
-    const size_t stateDim = info.stateDim.size();
-    const size_t inputDim = info.inputDim.size();
+    const size_t stateDim = info_.stateDim;
+    const size_t inputDim = info_.inputDim;
 
     quadraticApprox.dfdx = matrix_t::Zero(1, stateDim);
     quadraticApprox.dfdu = matrix_t::Zero(1, inputDim);
 
     quadraticApprox.dfdxx.emplace_back(matrix_t::Zero(stateDim, stateDim));
-    quadraticApprox.dfdxx.diagonal().array() -= config_.hessianDiagonalShift;
+    quadraticApprox.dfdxx[0].diagonal().array() -= config_.hessianDiagonalShift;
 
     quadraticApprox.dfduu.emplace_back(matrix_t::Zero(inputDim, inputDim));
 
     quadraticApprox.dfdux.emplace_back(matrix_t::Zero(inputDim, stateDim));
   
 
-    quadraticApprox.dfdu.block<1, 3>(0, 3 * contactPointIndex_) = dConeDF.transpose() * rotationWorldToTerrain_;
+    quadraticApprox.dfdu.block<1, 3>(0, 3 * endEffectorIndex_) = dConeDF.transpose() * 
+      rotationMatrixToTerrain;
 
-    const matrix3_t d2ConeD2u = rotationWorldToTerrain_.transpose() * d2ConeDF2 * rotationWorldToTerrain_;
-    quadraticApprox.dfduu[0].block<3, 3>(3 * contactPointIndex_, 3 * contactPointIndex_) = d2ConeD2u;
-    quadraticApprox.dfduu[0].diagonal().array() -= config_.hessianDiagonalShift_;
+    const matrix3_t d2ConeD2u = rotationMatrixToTerrain.transpose() * d2ConeDF2 * 
+      rotationMatrixToTerrain;
+
+    quadraticApprox.dfduu[0].block<3, 3>(3 * endEffectorIndex_, 
+      3 * endEffectorIndex_) = d2ConeD2u;
+
+    quadraticApprox.dfduu[0].diagonal().array() -= config_.hessianDiagonalShift;
 
     return quadraticApprox;
   }
@@ -188,13 +226,12 @@ namespace legged_locomotion_mpc
   /******************************************************************************************************/
   /******************************************************************************************************/
   /******************************************************************************************************/
-  vector_t ForceFrictionConeConstraint::coneConstraint(const vector3_t &localForces) const 
+  vector_t ForceFrictionConeConstraint::coneConstraint(const vector3_t &localForce) const 
   {
-    const scalar_t tangentForce = sqrt(localForces.x() * localForces.x() + 
-      localForces.y() * localForces.y() + config_.regularization_);
+    const scalar_t tangentForce = sqrt(localForce.x() * localForce.x() + 
+      localForce.y() * localForce.y() + config_.regularization);
 
-    const scalar_t frictionForce = config_.frictionCoefficient_
-      * (localForces.z() + config_.gripperForce_);
+    const scalar_t frictionForce = config_.frictionCoefficient * localForce.z();
       
     const scalar_t coneConstraint = frictionForce - tangentForce;
     return (vector_t(1) << coneConstraint).finished();

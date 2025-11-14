@@ -77,7 +77,7 @@ namespace legged_locomotion_mpc
     void preSolverRun(ocs2::scalar_t initTime, ocs2::scalar_t finalTime, 
       const ocs2::vector_t& initState) override;
 
-    contact_flags_t getContactFlags(ocs2::scalar_t time) const;
+    const contact_flags_t& getContactFlags(ocs2::scalar_t time) const;
 
     const terrain_model::TerrainModel& getTerrainModel() const;
 

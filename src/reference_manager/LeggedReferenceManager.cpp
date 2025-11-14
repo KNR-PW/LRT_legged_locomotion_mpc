@@ -42,7 +42,7 @@ namespace legged_locomotion_mpc
     newTrajectories_.wait();
   }
 
-  contact_flags_t LeggedReferenceManager::getContactFlags(ocs2::scalar_t time) const
+  const contact_flags_t& LeggedReferenceManager::getContactFlags(ocs2::scalar_t time) const
   {
     return contact_flags_t(this->getModeSchedule().modeAtTime(time));
   }
