@@ -55,9 +55,19 @@ namespace legged_locomotion_mpc
       const ocs2::VectorFunctionLinearApproximation& getEndEffectorPositionDerivatives(
         size_t endEffectorIndex) const;
 
-      const vector3_t& getEndEffectorVelocity(size_t endEffectorIndex) const;
+      const vector3_t& getEndEffectorOrientation(size_t endEffectorIndex) const;
 
-      const ocs2::VectorFunctionLinearApproximation& getEndEffectorVelocityDerivatives(
+      const ocs2::VectorFunctionLinearApproximation& getEndEffectorOrientationDerivatives(
+        size_t endEffectorIndex) const;
+
+      const vector3_t& getEndEffectorLinearVelocity(size_t endEffectorIndex) const;
+
+      const ocs2::VectorFunctionLinearApproximation& getEndEffectorLinearVelocityDerivatives(
+        size_t endEffectorIndex) const;
+
+      const vector3_t& getEndEffectorAngularVelocity(size_t endEffectorIndex) const;
+
+      const ocs2::VectorFunctionLinearApproximation& getEndEffectorAngularVelocityDerivatives(
         size_t endEffectorIndex) const;
 
       const ocs2::vector_t& getApproximatedJointTorques() const;
@@ -94,8 +104,14 @@ namespace legged_locomotion_mpc
       std::vector<vector3_t> endEffectorPositions_;
       std::vector<ocs2::VectorFunctionLinearApproximation> endEffectorPositionDerivaties_;
 
-      std::vector<vector3_t> endEffectorVelocities_;
-      std::vector<ocs2::VectorFunctionLinearApproximation> endEffectorVelocityDerivaties_;
+      std::vector<vector3_t> endEffectorEulerAngles_;
+      std::vector<ocs2::VectorFunctionLinearApproximation> endEffectorEulerAngleDerivaties_;
+
+      std::vector<vector3_t> endEffectorLinearVelocities_;
+      std::vector<ocs2::VectorFunctionLinearApproximation> endEffectorLinearVelocityDerivaties_;
+
+      std::vector<vector3_t> endEffectorAngularVelocities_;
+      std::vector<ocs2::VectorFunctionLinearApproximation> endEffectorAngularVelocityDerivaties_;
 
       std::vector<matrix3_t> rotationWorldToTerrains_;
       std::vector<vector3_t> surfaceNormals_;

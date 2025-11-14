@@ -46,24 +46,61 @@ namespace legged_locomotion_mpc
 
   const vector3_t& LeggedPrecomputation::getEndEffectorPosition(size_t endEffectorIndex) const
   {
+    assert(endEffectorIndex < endEffectorNumber_);
+
     return endEffectorPositions_[endEffectorIndex];
   }
 
   const VectorFunctionLinearApproximation& LeggedPrecomputation::getEndEffectorPositionDerivatives(
     size_t endEffectorIndex) const
   {
+    assert(endEffectorIndex < endEffectorNumber_);
+
     return endEffectorPositionDerivaties_[endEffectorIndex];
   }
 
-  const vector3_t& LeggedPrecomputation::getEndEffectorVelocity(size_t endEffectorIndex) const
+  const vector3_t& LeggedPrecomputation::getEndEffectorOrientation(size_t endEffectorIndex) const
   {
-    return endEffectorVelocities_[endEffectorIndex];
+    return endEffectorEulerAngles_[endEffectorIndex];
   }
 
-  const VectorFunctionLinearApproximation& LeggedPrecomputation::getEndEffectorVelocityDerivatives(
+  const ocs2::VectorFunctionLinearApproximation& LeggedPrecomputation::getEndEffectorOrientationDerivatives(
     size_t endEffectorIndex) const
   {
-    return endEffectorVelocityDerivaties_[endEffectorIndex];
+    assert(endEffectorIndex < endEffectorNumber_);
+
+    return endEffectorEulerAngleDerivaties_[endEffectorIndex];
+  }
+
+  const vector3_t& LeggedPrecomputation::getEndEffectorLinearVelocity(size_t endEffectorIndex) const
+  {
+    assert(endEffectorIndex < endEffectorNumber_);
+
+    return endEffectorLinearVelocities_[endEffectorIndex];
+  }
+
+  const VectorFunctionLinearApproximation& LeggedPrecomputation::getEndEffectorLinearVelocityDerivatives(
+    size_t endEffectorIndex) const
+  {
+    assert(endEffectorIndex < endEffectorNumber_);
+    
+    return endEffectorLinearVelocityDerivaties_[endEffectorIndex];
+  }
+
+  const vector3_t& LeggedPrecomputation::getEndEffectorAngularVelocity(
+    size_t endEffectorIndex) const
+  {
+    assert(endEffectorIndex < endEffectorNumber_);
+    
+    return endEffectorAngularVelocities_[endEffectorIndex];
+  }
+
+  const ocs2::VectorFunctionLinearApproximation& LeggedPrecomputation::getEndEffectorAngularVelocityDerivatives(
+    size_t endEffectorIndex) const
+  {
+    assert(endEffectorIndex < endEffectorNumber_);
+
+    return endEffectorAngularVelocityDerivaties_[endEffectorIndex];
   }
 
   const vector_t& LeggedPrecomputation::getApproximatedJointTorques() const
@@ -79,12 +116,16 @@ namespace legged_locomotion_mpc
   const matrix3_t& LeggedPrecomputation::getRotationWorldToTerrain(
     size_t endEffectorIndex) const
   {
+    assert(endEffectorIndex < endEffectorNumber_);
+
     return rotationWorldToTerrains_[endEffectorIndex];
   }
 
   const vector3_t& LeggedPrecomputation::getSurfaceNormal(
     size_t endEffectorIndex) const
   {
+    assert(endEffectorIndex < endEffectorNumber_);
+    
     return surfaceNormals_[endEffectorIndex];
   }
 
@@ -117,7 +158,10 @@ namespace legged_locomotion_mpc
     for(size_t i = 0; i < endEffectorNumber_; ++i)
     {
       endEffectorPositions_ = forwardKinematics_.getPosition(state);
-      endEffectorVelocities_ = forwardKinematics_.getLinearVelocity(state, input);
+      endEffectorLinearVelocities_ = forwardKinematics_.getLinearVelocity(state, input);
+
+      endEffectorEulerAngles_ = forwardKinematics_.getOrientation(state);
+      endEffectorAngularVelocities_ = forwardKinematics_.getAngularVelocity(state, input);
     }
   }
 
@@ -128,7 +172,12 @@ namespace legged_locomotion_mpc
     {
       endEffectorPositionDerivaties_ = forwardKinematics_.getPositionLinearApproximation(
         state);
-      endEffectorVelocityDerivaties_ = forwardKinematics_.getLinearVelocityLinearApproximation(
+      endEffectorLinearVelocityDerivaties_ = forwardKinematics_.getLinearVelocityLinearApproximation(
+        state, input);
+      
+      endEffectorEulerAngleDerivaties_ = forwardKinematics_.getOrientationLinearApproximation(
+        state);
+      endEffectorAngularVelocityDerivaties_ = forwardKinematics_.getAngularVelocityLinearApproximation(
         state, input);
     }
   }
