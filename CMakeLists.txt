@@ -94,6 +94,7 @@ add_library(${PROJECT_NAME}
   src/constraint/Zero3DofVelocityConstraint.cpp
   src/constraint/Zero6DofVelocityConstraint.cpp
   src/constraint/ZeroForceConstraint.cpp
+  src/constraint/ZeroWrenchConstraint.cpp
 )
 
 target_include_directories(${PROJECT_NAME}

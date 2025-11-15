@@ -5,55 +5,72 @@ using namespace floating_base_model;
 namespace legged_locomotion_mpc
 {
 
+  using namespace ocs2;
+  using namespace floating_base_model;
   /******************************************************************************************************/
   /******************************************************************************************************/
   /******************************************************************************************************/
-  ZeroWrenchConstraint::ZeroWrenchConstraint(const SwitchedModelReferenceManager &referenceManager,
-    size_t contactPointIndex,
-    FloatingBaseModelInfo& info): 
-      StateInputConstraint(ocs2::ConstraintOrder::Linear),
-      referenceManagerPtr_(&referenceManager),
-      contactPointIndex_(contactPointIndex),
-      info_(&info) 
+  ZeroWrenchConstraint::ZeroWrenchConstraint(const LeggedReferenceManager& referenceManager,
+    FloatingBaseModelInfo info,
+    size_t endEffectorIndex): 
+      StateInputConstraint(ConstraintOrder::Linear),
+      referenceManager_(referenceManager),
+      endEffectorIndex_(endEffectorIndex),
+      info_(std::move(info)) {}
+
+  /******************************************************************************************************/
+  /******************************************************************************************************/
+  /******************************************************************************************************/
+  bool ZeroWrenchConstraint::isActive(scalar_t time) const 
   {
-    const size_t startRow = 3 * info.numThreeDofContacts + 6 * (contactPointIndex_ - info.numThreeDofContacts);
-    const size_t stateDim = info.stateDim;
-    const size_t inputDim = info.inputDim;
-    
-    linearApproximation_.dfdx = ocs2::matrix_t::Zero(6, stateDim);
-    linearApproximation_.dfdu = ocs2::matrix_t::Zero(6, inputDim);
-    linearApproximation_.dfdu.middleCols<6>(startRow).diagonal() = ocs2::vector_t::Ones(6);
+    return !referenceManager_.getContactFlags(time)[endEffectorIndex_];
   }
 
   /******************************************************************************************************/
   /******************************************************************************************************/
   /******************************************************************************************************/
-  bool ZeroWrenchConstraint::isActive(ocs2::scalar_t time) const 
-  {
-    return !referenceManagerPtr_->getContactFlags(time)[contactPointIndex_];
+  ZeroWrenchConstraint* ZeroWrenchConstraint::clone() const
+  { 
+    return new ZeroWrenchConstraint(*this); 
   }
 
   /******************************************************************************************************/
   /******************************************************************************************************/
   /******************************************************************************************************/
-  vector_t ZeroWrenchConstraint::getValue(ocs2::scalar_t time,
-    const ocs2::vector_t &state,
-    const ocs2::vector_t &input,
-    const ocs2::PreComputation &preComp) const 
-  {
-    return access_helper_functions::getContactWrenches(input, contactPointIndex_, *info_);
+  size_t ZeroWrenchConstraint::getNumConstraints(scalar_t time) const
+  { 
+    return 6; 
   }
 
   /******************************************************************************************************/
   /******************************************************************************************************/
   /******************************************************************************************************/
-  VectorFunctionLinearApproximation ZeroWrenchConstraint::getLinearApproximation(ocs2::scalar_t time,
-    const ocs2::vector_t &state,
-    const ocs2::vector_t &input,
-    const ocs2::PreComputation &preComp) const 
+  vector_t ZeroWrenchConstraint::getValue(scalar_t time,
+    const vector_t& state,
+    const vector_t& input,
+    const PreComputation& preComp) const 
   {
-    linearApproximation_.f = getValue(time, state, input, preComp);
-    return linearApproximation_;
+    return access_helper_functions::getContactWrenches(input, endEffectorIndex_, info_);
+  }
+
+  /******************************************************************************************************/
+  /******************************************************************************************************/
+  /******************************************************************************************************/
+  VectorFunctionLinearApproximation ZeroWrenchConstraint::getLinearApproximation(scalar_t time,
+    const vector_t& state,
+    const vector_t& input,
+    const PreComputation& preComp) const 
+  {
+    VectorFunctionLinearApproximation linearApproximation;
+
+    const size_t startRow = 3 * info_.numThreeDofContacts + 6 * (endEffectorIndex_ - info_.numThreeDofContacts);
+
+    linearApproximation.f = getValue(time, state, input, preComp);
+    linearApproximation.dfdx = ocs2::matrix_t::Zero(6, info_.stateDim);
+    linearApproximation.dfdu = ocs2::matrix_t::Zero(6, info_.inputDim);
+    linearApproximation.dfdu.middleCols<6>(startRow).diagonal() = ocs2::vector_t::Ones(6);
+
+    return linearApproximation;
   }
 
 } // namespace legged_locomotion_mpc

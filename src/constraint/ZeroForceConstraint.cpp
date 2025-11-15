@@ -18,7 +18,7 @@ namespace legged_locomotion_mpc
       StateInputConstraint(ConstraintOrder::Linear),
       referenceManager_(referenceManager),
       endEffectorIndex_(endEffectorIndex),
-      info_(std::move(info)) { }
+      info_(std::move(info)) {}
 
   /******************************************************************************************************/
   /******************************************************************************************************/
@@ -47,9 +47,9 @@ namespace legged_locomotion_mpc
   /******************************************************************************************************/
   /******************************************************************************************************/
   /******************************************************************************************************/
-  vector_t ZeroForceConstraint::getValue(scalar_t time, const vector_t &state,
-    const vector_t &input,
-    const PreComputation &preComp) const 
+  vector_t ZeroForceConstraint::getValue(scalar_t time, const vector_t& state,
+    const vector_t& input,
+    const PreComputation& preComp) const 
   {
     return access_helper_functions::getContactForces(input, endEffectorIndex_, info_);
   }
@@ -58,21 +58,17 @@ namespace legged_locomotion_mpc
   /******************************************************************************************************/
   /******************************************************************************************************/
   VectorFunctionLinearApproximation ZeroForceConstraint::getLinearApproximation(scalar_t time,
-    const vector_t &state,
-    const vector_t &input,
-    const PreComputation &preComp) const 
+    const vector_t& state,
+    const vector_t& input,
+    const PreComputation& preComp) const 
   {
-    const size_t stateDim = info_.stateDim;
-    const size_t inputDim = info_.inputDim;
-
     VectorFunctionLinearApproximation linearApproximation;
     
     linearApproximation.f = getValue(time, state, input, preComp);
-    linearApproximation.dfdx = matrix_t::Zero(3, stateDim);
-    linearApproximation.dfdu = matrix_t::Zero(3, inputDim);
+    linearApproximation.dfdx = matrix_t::Zero(3, info_.stateDim);
+    linearApproximation.dfdu = matrix_t::Zero(3, info_.inputDim);
     linearApproximation.dfdu.middleCols<3>(3 * endEffectorIndex_).diagonal() = vector_t::Ones(3);
-    
+
     return linearApproximation;
   }
-
 } // namespace legged_locomotion_mpc

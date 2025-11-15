@@ -58,8 +58,7 @@ namespace legged_locomotion_mpc
       referenceManager_(referenceManager),
       config_(std::move(config)),
       info_(std::move(info)) ,
-      endEffectorIndex_(endEffectorIndex),
-      startIndex_(3 * info.numThreeDofContacts + 6 * (endEffectorIndex - info.numThreeDofContacts))
+      endEffectorIndex_(endEffectorIndex)
   {
     coneConstraintMatrix_ = generateConeConstraintMatrix(config_);
   }
@@ -152,7 +151,9 @@ namespace legged_locomotion_mpc
     rotation6x6.block<3, 3>(0, 0) = rotationMatrixToTerrain;
     rotation6x6.block<3, 3>(3, 3) = rotationMatrixToTerrain;
 
-    linearApproximation.dfdu.block<16, 6>(0, startIndex_) = coneConstraintMatrix_ * rotation6x6;
+    const size_t startIndex = (3 * info_.numThreeDofContacts + 6 * (endEffectorIndex_ - info_.numThreeDofContacts));
+
+    linearApproximation.dfdu.block<16, 6>(0, startIndex) = coneConstraintMatrix_ * rotation6x6;
     
     return linearApproximation;
   }

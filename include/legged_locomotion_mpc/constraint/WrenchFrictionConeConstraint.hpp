@@ -96,7 +96,6 @@ namespace legged_locomotion_mpc
 
       const Config config_;
       const size_t endEffectorIndex_;
-      const size_t startIndex_;
       const floating_base_model::FloatingBaseModelInfo info_;
 
       Eigen::Matrix<ocs2::scalar_t, 16, 6> coneConstraintMatrix_;
