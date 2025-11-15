@@ -33,7 +33,7 @@ namespace legged_locomotion_mpc
       /**
        * Constructor
        * @param [in] referenceManager : Legged model ReferenceManager
-       * @param [in] endEffectorIndex : The 3 DoF contact index.
+       * @param [in] endEffectorIndex : The 3 DoF end effector index.
        */
       Zero3DofVelocityConstraint(const LeggedReferenceManager& referenceManager,
         size_t endEffectorIndex);

@@ -35,9 +35,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <ocs2_core/constraint/StateInputConstraint.h>
 
 #include <floating_base_model/FloatingBaseModelInfo.hpp>
-#include <floating_base_model/AccessHelperFunctions.hpp>
 
-#include "legged_locomotion_mpc/reference_manager/SwitchedModelReferenceManager.hpp"
+#include <legged_locomotion_mpc/reference_manager/LeggedReferenceManager.hpp>
 
 namespace legged_locomotion_mpc
 {
@@ -48,40 +47,36 @@ namespace legged_locomotion_mpc
 
       /** 
        * Constructor
-       * @param [in] referenceManager: Switched model ReferenceManager
-       * @param [in] contactPointIndex: The 3 DoF contact index
-       * @param [in] info: info of FloatingBase model
+       * @param [in] referenceManager: Legged model ReferenceManager.
+       * @param [in] info: info of FloatingBase model.
+       * @param [in] endEffectorIndex: The 3 DoF end effector index.
        */
-      ZeroForceConstraint(const SwitchedModelReferenceManager &referenceManager,
-          size_t contactPointIndex,
-          FloatingBaseModelInfo& info);
+      ZeroForceConstraint(const LeggedReferenceManager& referenceManager,
+        floating_base_model::FloatingBaseModelInfo info,
+        size_t endEffectorIndex);
 
       ~ZeroForceConstraint() override = default;
 
-      ZeroForceConstraint *clone() const override { return new ZeroForceConstraint(*this); }
+      ZeroForceConstraint* clone() const override;
 
       bool isActive(ocs2::scalar_t time) const override;
 
-      size_t getNumConstraints(ocs2::scalar_t time) const override { return 3; }
+      size_t getNumConstraints(ocs2::scalar_t time) const override;
 
-      vector_t getValue(ocs2::scalar_t time,
-        const ocs2::vector_t &state,
-        const ocs2::vector_t &input,
-        const ocs2::PreComputation &preComp) const override;
+      ocs2::vector_t getValue(ocs2::scalar_t time, const ocs2::vector_t& state,
+        const ocs2::vector_t& input, const ocs2::PreComputation& preComp) const override;
 
-      VectorFunctionLinearApproximation getLinearApproximation(ocs2::scalar_t time, 
-        const ocs2::vector_t &state,
-        const ocs2::vector_t &input,
-        const ocs2::PreComputation &preComp) const override;
+      ocs2::VectorFunctionLinearApproximation getLinearApproximation(ocs2::scalar_t time, 
+        const ocs2::vector_t& state, const ocs2::vector_t& input,
+        const ocs2::PreComputation& preComp) const override;
 
     private:
 
       ZeroForceConstraint(const ZeroForceConstraint &other) = default;
 
-      const SwitchedModelReferenceManager *referenceManagerPtr_;
-      const size_t contactPointIndex_;
-      const FloatingBaseModelInfo* info_;
-      ocs2::VectorFunctionLinearApproximation linearApproximation_;
+      const LeggedReferenceManager& referenceManager_;
+      const floating_base_model::FloatingBaseModelInfo info_;
+      const size_t endEffectorIndex_;
 
   };
 

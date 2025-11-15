@@ -1,58 +1,78 @@
-#include "legged_locomotion_mpc/constraint/ZeroForceConstraint.hpp"
+#include <legged_locomotion_mpc/constraint/ZeroForceConstraint.hpp>
+
+#include <floating_base_model/AccessHelperFunctions.hpp>
 
 using namespace floating_base_model;
 
 namespace legged_locomotion_mpc
 {
 
+  using namespace ocs2;
+  using namespace floating_base_model; 
   /******************************************************************************************************/
   /******************************************************************************************************/
   /******************************************************************************************************/
-  ZeroForceConstraint::ZeroForceConstraint(const SwitchedModelReferenceManager &referenceManager,
-    size_t contactPointIndex,
-    FloatingBaseModelInfo& info): 
-      StateInputConstraint(ocs2::ConstraintOrder::Linear),
-      referenceManagerPtr_(&referenceManager),
-      contactPointIndex_(contactPointIndex),
-      info_(&info) 
+  ZeroForceConstraint::ZeroForceConstraint(const LeggedReferenceManager& referenceManager,
+    FloatingBaseModelInfo info,
+    size_t endEffectorIndex): 
+      StateInputConstraint(ConstraintOrder::Linear),
+      referenceManager_(referenceManager),
+      endEffectorIndex_(endEffectorIndex),
+      info_(std::move(info)) { }
+
+  /******************************************************************************************************/
+  /******************************************************************************************************/
+  /******************************************************************************************************/
+  bool ZeroForceConstraint::isActive(scalar_t time) const 
   {
-    const size_t stateDim = info.stateDim;
-    const size_t inputDim = info.inputDim;
+    return !referenceManager_.getContactFlags(time)[endEffectorIndex_];
+  }
+
+  /******************************************************************************************************/
+  /******************************************************************************************************/
+  /******************************************************************************************************/
+  ZeroForceConstraint* ZeroForceConstraint::clone() const
+  { 
+    return new ZeroForceConstraint(*this); 
+  }
+
+  /******************************************************************************************************/
+  /******************************************************************************************************/
+  /******************************************************************************************************/
+  size_t ZeroForceConstraint::getNumConstraints(scalar_t time) const
+  { 
+    return 3; 
+  }
+
+  /******************************************************************************************************/
+  /******************************************************************************************************/
+  /******************************************************************************************************/
+  vector_t ZeroForceConstraint::getValue(scalar_t time, const vector_t &state,
+    const vector_t &input,
+    const PreComputation &preComp) const 
+  {
+    return access_helper_functions::getContactForces(input, endEffectorIndex_, info_);
+  }
+
+  /******************************************************************************************************/
+  /******************************************************************************************************/
+  /******************************************************************************************************/
+  VectorFunctionLinearApproximation ZeroForceConstraint::getLinearApproximation(scalar_t time,
+    const vector_t &state,
+    const vector_t &input,
+    const PreComputation &preComp) const 
+  {
+    const size_t stateDim = info_.stateDim;
+    const size_t inputDim = info_.inputDim;
+
+    VectorFunctionLinearApproximation linearApproximation;
     
-    linearApproximation_.dfdx = ocs2::matrix_t::Zero(3, stateDim);
-    linearApproximation_.dfdu = ocs2::matrix_t::Zero(3, inputDim);
-    linearApproximation_.dfdu.middleCols<3>(3 * contactPointIndex_).diagonal() = ocs2::vector_t::Ones(3);
-  }
-
-  /******************************************************************************************************/
-  /******************************************************************************************************/
-  /******************************************************************************************************/
-  bool ZeroForceConstraint::isActive(ocs2::scalar_t time) const 
-  {
-    return !referenceManagerPtr_->getContactFlags(time)[contactPointIndex_];
-  }
-
-  /******************************************************************************************************/
-  /******************************************************************************************************/
-  /******************************************************************************************************/
-  vector_t ZeroForceConstraint::getValue(ocs2::scalar_t time,
-    const ocs2::vector_t &state,
-    const ocs2::vector_t &input,
-    const ocs2::PreComputation &preComp) const 
-  {
-    return access_helper_functions::getContactForces(input, contactPointIndex_, *info_);
-  }
-
-  /******************************************************************************************************/
-  /******************************************************************************************************/
-  /******************************************************************************************************/
-  VectorFunctionLinearApproximation ZeroForceConstraint::getLinearApproximation(ocs2::scalar_t time,
-    const ocs2::vector_t &state,
-    const ocs2::vector_t &input,
-    const ocs2::PreComputation &preComp) const 
-  {
-    linearApproximation_.f = getValue(time, state, input, preComp);
-    return linearApproximation_;
+    linearApproximation.f = getValue(time, state, input, preComp);
+    linearApproximation.dfdx = matrix_t::Zero(3, stateDim);
+    linearApproximation.dfdu = matrix_t::Zero(3, inputDim);
+    linearApproximation.dfdu.middleCols<3>(3 * endEffectorIndex_).diagonal() = vector_t::Ones(3);
+    
+    return linearApproximation;
   }
 
 } // namespace legged_locomotion_mpc

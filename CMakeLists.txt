@@ -90,9 +90,10 @@ add_library(${PROJECT_NAME}
   src/dynamics/LeggedDynamicsAD.cpp
 
   src/constraint/ForceFrictionConeConstraint.cpp
+  src/constraint/WrenchFrictionConeConstraint.cpp
   src/constraint/Zero3DofVelocityConstraint.cpp
   src/constraint/Zero6DofVelocityConstraint.cpp
-  src/constraint/WrenchFrictionConeConstraint.cpp
+  src/constraint/ZeroForceConstraint.cpp
 )
 
 target_include_directories(${PROJECT_NAME}
