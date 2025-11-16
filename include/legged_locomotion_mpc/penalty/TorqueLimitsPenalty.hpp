@@ -15,7 +15,7 @@
 
 /*
  * Authors: Bartłomiej Krajewski (https://github.com/BartlomiejK2)
-   Based on: rgrandia (https://github.com/leggedrobotics/ocs2)
+ * Based on: rgrandia (https://github.com/leggedrobotics/ocs2)
  */
 
 
@@ -23,57 +23,51 @@
 #define __TORQUE_LIMITS_PENALTY_LEGGED_LOCOMOTION_MPC__
 
 
-#include <ocs2_core/Types.h>
 #include <ocs2_core/cost/StateInputCost.h>
 #include <ocs2_core/penalties/Penalties.h>
 
 #include <floating_base_model/FloatingBaseModelInfo.hpp>
 
+#include <legged_locomotion_mpc/common/Types.hpp>
 #include <legged_locomotion_mpc/torque_approx/PinocchioTorqueApproximationCppAd.hpp>
 
 
 namespace legged_locomotion_mpc
 {
-  namespace penalty
+  class TorqueLimitsPenalty final: public ocs2::StateInputCost
   {
-    class TorqueLimitsPenalty final: public ocs2::StateInputCost
-    {
-      public:
-        EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
-        using TorqueApproximatorAD = legged_locomotion_mpc::PinocchioTorqueApproximationCppAd;
+    public:
+      EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     
-        TorqueLimitsPenalty(const floating_base_model::FloatingBaseModelInfo& info,
-          const ocs2::vector_t& torqueLimits,
-          ocs2::RelaxedBarrierPenalty::Config settings,
-          TorqueApproximatorAD& torqueApproximator);
+      TorqueLimitsPenalty(floating_base_model::FloatingBaseModelInfo info,
+        ocs2::vector_t torqueLimits, ocs2::RelaxedBarrierPenalty::Config settings, 
+        const PinocchioTorqueApproximationCppAd& torqueApproximator);
 
-        TorqueLimitsPenalty *clone() const override;
+      TorqueLimitsPenalty* clone() const override;
 
-        /** Get cost term value */
-        ocs2::scalar_t getValue(ocs2::scalar_t time, const ocs2::vector_t& state,
-          const ocs2::vector_t& input, const ocs2::TargetTrajectories& targetTrajectories,
-          const ocs2::PreComputation& preComp) const override;
+      /** Get cost term value */
+      ocs2::scalar_t getValue(ocs2::scalar_t time, const ocs2::vector_t& state,
+        const ocs2::vector_t& input, const ocs2::TargetTrajectories& targetTrajectories,
+        const ocs2::PreComputation& preComp) const override;
         
-        /** Get cost term quadratic approximation */
-        ocs2::ScalarFunctionQuadraticApproximation getQuadraticApproximation(
-          ocs2::scalar_t time, const ocs2::vector_t& state, const vector_t& input,
-          const ocs2::TargetTrajectories& targetTrajectories,
-          const ocs2::PreComputation& preComp) const override;
+      /** Get cost term quadratic approximation */
+      ocs2::ScalarFunctionQuadraticApproximation getQuadraticApproximation(
+        ocs2::scalar_t time, const ocs2::vector_t& state, const ocs2::vector_t& input,
+        const ocs2::TargetTrajectories& targetTrajectories,
+        const ocs2::PreComputation& preComp) const override;
 
-      private:
+    private:
 
-        TorqueLimitsPenalty(const TorqueLimitsPenalty &rhs);
+      TorqueLimitsPenalty(const TorqueLimitsPenalty &rhs);
 
-        floating_base_model::FloatingBaseModelInfo info_;
+      floating_base_model::FloatingBaseModelInfo info_;
 
-        std::unique_ptr<TorqueApproximatorAD> torqueApproximatorPtr_; // TODO DODAJ W PRECOMPUTATION
+      const PinocchioTorqueApproximationCppAd& torqueApproximator_;
         
-        std::unique_ptr<ocs2::RelaxedBarrierPenalty> torqueRelaxedBarrierPenaltyPtr_;
+      std::unique_ptr<ocs2::RelaxedBarrierPenalty> torqueRelaxedBarrierPenaltyPtr_;
 
-        ocs2::vector_t torqueLimits_;
+      ocs2::vector_t torqueLimits_;
     };
-  } //namespace penalty
 } // namespace legged_locomotion_mpc
 
 #endif
