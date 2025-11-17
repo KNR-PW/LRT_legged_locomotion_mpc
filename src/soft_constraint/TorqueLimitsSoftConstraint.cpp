@@ -18,7 +18,7 @@
  * Based on: rgrandia (https://github.com/leggedrobotics/ocs2)
  */
 
-#include <legged_locomotion_mpc/penalty/TorqueLimitsPenalty.hpp>
+#include <legged_locomotion_mpc/soft_constraint/TorqueLimitsSoftConstraint.hpp>
 
 #include <legged_locomotion_mpc/precomputation/LeggedPrecomputation.hpp>
 
@@ -29,7 +29,7 @@ namespace legged_locomotion_mpc
   /******************************************************************************************************/
   /******************************************************************************************************/
   /******************************************************************************************************/
-  TorqueLimitsPenalty::TorqueLimitsPenalty(
+  TorqueLimitsSoftConstraint::TorqueLimitsSoftConstraint(
     FloatingBaseModelInfo info,
     const vector_t torqueLimits,
     RelaxedBarrierPenalty::Config settings,
@@ -51,15 +51,15 @@ namespace legged_locomotion_mpc
   /******************************************************************************************************/
   /******************************************************************************************************/
   /******************************************************************************************************/
-  TorqueLimitsPenalty *TorqueLimitsPenalty::clone() const
+  TorqueLimitsSoftConstraint *TorqueLimitsSoftConstraint::clone() const
   {
-    return new TorqueLimitsPenalty(*this);
+    return new TorqueLimitsSoftConstraint(*this);
   }
     
   /******************************************************************************************************/
   /******************************************************************************************************/
   /******************************************************************************************************/
-  scalar_t TorqueLimitsPenalty::getValue(scalar_t time, const vector_t& state,
+  scalar_t TorqueLimitsSoftConstraint::getValue(scalar_t time, const vector_t& state,
     const vector_t& input, const TargetTrajectories& targetTrajectories,
     const PreComputation& preComp) const
   {
@@ -81,7 +81,7 @@ namespace legged_locomotion_mpc
   /******************************************************************************************************/
   /******************************************************************************************************/
   /******************************************************************************************************/
-  ScalarFunctionQuadraticApproximation TorqueLimitsPenalty::getQuadraticApproximation(
+  ScalarFunctionQuadraticApproximation TorqueLimitsSoftConstraint::getQuadraticApproximation(
     scalar_t time, const vector_t& state, const vector_t& input,
     const TargetTrajectories& targetTrajectories,
     const PreComputation& preComp) const
@@ -149,7 +149,7 @@ namespace legged_locomotion_mpc
   /******************************************************************************************************/
   /******************************************************************************************************/
   /******************************************************************************************************/
-  TorqueLimitsPenalty::TorqueLimitsPenalty(const TorqueLimitsPenalty &rhs):
+  TorqueLimitsSoftConstraint::TorqueLimitsSoftConstraint(const TorqueLimitsSoftConstraint &rhs):
     info_(rhs.info_), torqueApproximator_(rhs.torqueApproximator_),
     torqueRelaxedBarrierPenaltyPtr_(rhs.torqueRelaxedBarrierPenaltyPtr_->clone()),
     torqueLimits_(rhs.torqueLimits_) {}
