@@ -97,6 +97,7 @@ add_library(${PROJECT_NAME}
   src/constraint/ZeroWrenchConstraint.cpp
 
   src/soft_constraint/TorqueLimitsSoftConstraint.cpp
+  src/soft_constraint/JointLimitsSoftConstraint.cpp
 )
 
 target_include_directories(${PROJECT_NAME}

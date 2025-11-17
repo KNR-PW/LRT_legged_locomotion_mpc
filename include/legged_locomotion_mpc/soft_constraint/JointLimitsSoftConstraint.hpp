@@ -15,13 +15,10 @@
 
 /*
  * Authors: Bartłomiej Krajewski (https://github.com/BartlomiejK2)
- * Based on: rgrandia (https://github.com/leggedrobotics/ocs2)
  */
 
-
-#ifndef __TORQUE_LIMITS_SOFT_CONSTRAINT_LEGGED_LOCOMOTION_MPC__
-#define __TORQUE_LIMITS_SOFT_CONSTRAINT_LEGGED_LOCOMOTION_MPC__
-
+#ifndef __JOINT_LIMITS_SOFT_CONSTRAINT_LEGGED_LOCOMOTION_MPC__
+#define __JOINT_LIMITS_SOFT_CONSTRAINT_LEGGED_LOCOMOTION_MPC__
 
 #include <ocs2_core/cost/StateInputCost.h>
 #include <ocs2_core/penalties/Penalties.h>
@@ -29,29 +26,40 @@
 #include <floating_base_model/FloatingBaseModelInfo.hpp>
 
 #include <legged_locomotion_mpc/common/Types.hpp>
-#include <legged_locomotion_mpc/torque_approx/PinocchioTorqueApproximationCppAd.hpp>
-
 
 namespace legged_locomotion_mpc
 {
-  class TorqueLimitsSoftConstraint final: public ocs2::StateInputCost
+  /**
+   * Constraint that satisfies joint position and velocity limits (not torques)
+   */
+  class JointLimitsSoftConstraint final : public ocs2::StateInputCost 
   {
     public:
-      EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-    
-      TorqueLimitsSoftConstraint(floating_base_model::FloatingBaseModelInfo info,
-        ocs2::vector_t torqueLimits, ocs2::RelaxedBarrierPenalty::Config settings, 
-        const PinocchioTorqueApproximationCppAd& torqueApproximator);
 
-      ~TorqueLimitsSoftConstraint() override = default;
+      /**
+       * Constructor
+       * @param [in] info : Floating Base model info.
+       * @param [in] jointPositionUpperLimits : Maximum joint positions.
+       * @param [in] jointPositionLowerLimits : Minimum joint positions.
+       * @param [in] jointVelocityLimits : Maximum joint velocities.
+       * @param [in] settings : Relaxed barrier penalty settings 
+       * 
+       */
+      JointLimitsSoftConstraint(floating_base_model::FloatingBaseModelInfo info,
+        ocs2::vector_t jointPositionUpperLimits,
+        ocs2::vector_t jointPositionLowerLimits,
+        ocs2::vector_t jointVelocityLimits,
+        ocs2::RelaxedBarrierPenalty::Config settings);
 
-      TorqueLimitsSoftConstraint* clone() const override;
+      ~JointLimitsSoftConstraint() override = default;
+
+      JointLimitsSoftConstraint* clone() const override;
 
       /** Get cost term value */
       ocs2::scalar_t getValue(ocs2::scalar_t time, const ocs2::vector_t& state,
         const ocs2::vector_t& input, const ocs2::TargetTrajectories& targetTrajectories,
         const ocs2::PreComputation& preComp) const override;
-        
+
       /** Get cost term quadratic approximation */
       ocs2::ScalarFunctionQuadraticApproximation getQuadraticApproximation(
         ocs2::scalar_t time, const ocs2::vector_t& state, const ocs2::vector_t& input,
@@ -59,17 +67,17 @@ namespace legged_locomotion_mpc
         const ocs2::PreComputation& preComp) const override;
 
     private:
-
-      TorqueLimitsSoftConstraint(const TorqueLimitsSoftConstraint &rhs);
-
-      floating_base_model::FloatingBaseModelInfo info_;
-
-      const PinocchioTorqueApproximationCppAd& torqueApproximator_;
+      JointLimitsSoftConstraint(const JointLimitsSoftConstraint &rhs);
         
-      std::unique_ptr<ocs2::RelaxedBarrierPenalty> torqueRelaxedBarrierPenaltyPtr_;
+      const floating_base_model::FloatingBaseModelInfo info_;
+      const ocs2::vector_t jointPositionUpperLimits_;
+      const ocs2::vector_t jointPositionLowerLimits_;
+      const ocs2::vector_t jointVelocityLimits_;
 
-      const ocs2::vector_t torqueLimits_;
+      std::unique_ptr<ocs2::RelaxedBarrierPenalty> jointRelaxedBarrierPenaltyPtr_;
+
     };
+
 } // namespace legged_locomotion_mpc
 
 #endif

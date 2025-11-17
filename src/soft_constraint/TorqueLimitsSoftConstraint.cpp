@@ -70,12 +70,12 @@ namespace legged_locomotion_mpc
     const vector_t lowerBoundTorqueOffset = torqueLimits_ + torqueApprox;
 
     return upperBoundTorqueOffset.unaryExpr([&](scalar_t hi) 
-    {
-      return torqueRelaxedBarrierPenaltyPtr_->getValue(0.0, hi);
-    }).sum() + lowerBoundTorqueOffset.unaryExpr([&](scalar_t hi) 
-    {
-      return torqueRelaxedBarrierPenaltyPtr_->getValue(0.0, hi);
-    }).sum();
+      {
+        return torqueRelaxedBarrierPenaltyPtr_->getValue(0.0, hi);
+      }).sum() + lowerBoundTorqueOffset.unaryExpr([&](scalar_t hi) 
+      {
+        return torqueRelaxedBarrierPenaltyPtr_->getValue(0.0, hi);
+      }).sum();
   }
     
   /******************************************************************************************************/
@@ -104,29 +104,30 @@ namespace legged_locomotion_mpc
     cost.dfdu = vector_t::Zero(info_.inputDim);
 
     cost.f = upperBoundTorqueOffset.unaryExpr([&](scalar_t hi) 
-    {
-      return torqueRelaxedBarrierPenaltyPtr_->getValue(0.0, hi);
-    }).sum() + lowerBoundTorqueOffset.unaryExpr([&](scalar_t hi)
-    {
-      return torqueRelaxedBarrierPenaltyPtr_->getValue(0.0, hi);
-    }).sum();
+      {
+        return torqueRelaxedBarrierPenaltyPtr_->getValue(0.0, hi);
+      }).sum() + lowerBoundTorqueOffset.unaryExpr([&](scalar_t hi)
+      {
+        return torqueRelaxedBarrierPenaltyPtr_->getValue(0.0, hi);
+      }).sum();
 
     // Penalty derivatives w.r.t. the constraint
     const vector_t penaltyDerivatives = lowerBoundTorqueOffset.unaryExpr([&](scalar_t hi)
-    {
-      return torqueRelaxedBarrierPenaltyPtr_->getDerivative(0.0, hi);
-    }) - upperBoundTorqueOffset.unaryExpr([&](scalar_t hi)
-    { 
-      return torqueRelaxedBarrierPenaltyPtr_->getDerivative(0.0, hi); 
-    });
-
+      {
+        return torqueRelaxedBarrierPenaltyPtr_->getDerivative(0.0, hi);
+      }) - upperBoundTorqueOffset.unaryExpr([&](scalar_t hi)
+      { 
+        return torqueRelaxedBarrierPenaltyPtr_->getDerivative(0.0, hi); 
+      });
+    
+    // Should be diagonal matrix, but will be stored as vector for faster computation
     const vector_t penaltySecondDerivatives = lowerBoundTorqueOffset.unaryExpr([&](scalar_t hi)
-    {
-        return torqueRelaxedBarrierPenaltyPtr_->getSecondDerivative(0.0, hi);
-    }) + upperBoundTorqueOffset.unaryExpr([&](scalar_t hi)
-    {
-        return torqueRelaxedBarrierPenaltyPtr_->getSecondDerivative(0.0, hi);
-    });
+      {
+          return torqueRelaxedBarrierPenaltyPtr_->getSecondDerivative(0.0, hi);
+      }) + upperBoundTorqueOffset.unaryExpr([&](scalar_t hi)
+      {
+          return torqueRelaxedBarrierPenaltyPtr_->getSecondDerivative(0.0, hi);
+      });
 
     const auto [hessianStateState, hessianInputState] = torqueApproximator_.getWeightedHessians(penaltyDerivatives, state, input);
 
@@ -150,7 +151,7 @@ namespace legged_locomotion_mpc
   /******************************************************************************************************/
   /******************************************************************************************************/
   TorqueLimitsSoftConstraint::TorqueLimitsSoftConstraint(const TorqueLimitsSoftConstraint &rhs):
-    info_(rhs.info_), torqueApproximator_(rhs.torqueApproximator_),
+    StateInputCost(), info_(rhs.info_), torqueApproximator_(rhs.torqueApproximator_),
     torqueRelaxedBarrierPenaltyPtr_(rhs.torqueRelaxedBarrierPenaltyPtr_->clone()),
     torqueLimits_(rhs.torqueLimits_) {}
 } // namespace legged_locomotion_mpc
