@@ -19,11 +19,24 @@ namespace legged_locomotion_mpc
       assert(contactFlagsTrajectory.size() == targetTrajectories.timeTrajectory.size());
       
       const size_t referenceSize = targetTrajectories.timeTrajectory.size();
-      for(size_t i = 0; i < referenceSize; ++i)
+
+      vector_t& firstInput = targetTrajectories.inputTrajectory[0];
+      const contact_flags_t& firstFlags = contactFlagsTrajectory[0];
+      utils::weightCompensatingAppendInput(firstInput, modelInfo_, firstFlags);
+      for(size_t i = 1; i < referenceSize; ++i)
       {
         vector_t& currentInput = targetTrajectories.inputTrajectory[i];
         const contact_flags_t& currentFlags = contactFlagsTrajectory[i];
-        utils::weightCompensatingAppendInput(currentInput, modelInfo_, currentFlags);
+        const contact_flags_t& previousFlags = contactFlagsTrajectory[i - 1];
+        if(currentFlags == previousFlags)
+        {
+          const vector_t& previousInput = targetTrajectories.inputTrajectory[i - 1];
+          currentInput = previousInput;
+        }
+        else
+        {
+          utils::weightCompensatingAppendInput(currentInput, modelInfo_, currentFlags);
+        }
       } 
     }
   } // namespace planners
