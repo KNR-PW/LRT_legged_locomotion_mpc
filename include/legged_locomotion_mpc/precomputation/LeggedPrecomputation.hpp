@@ -78,6 +78,8 @@ namespace legged_locomotion_mpc
 
       const vector3_t& getSurfaceNormal(size_t endEffectorIndex) const;
 
+      const vector3_t& getReferenceEndEffectorLinearVelocity(size_t endEffectorIndex);
+
     private:
 
       LeggedPrecomputation(const LeggedPrecomputation& other);
@@ -93,6 +95,8 @@ namespace legged_locomotion_mpc
 
       void updateApproximatedTorquesData(ocs2::scalar_t time, const ocs2::vector_t& state, 
         const ocs2::vector_t& input);
+
+      void updateReferenceEndEffectorVelocities(ocs2::scalar_t time);
 
       const floating_base_model::FloatingBaseModelInfo modelInfo_;
       const size_t endEffectorNumber_;
@@ -115,6 +119,9 @@ namespace legged_locomotion_mpc
 
       std::vector<matrix3_t> rotationWorldToTerrains_;
       std::vector<vector3_t> surfaceNormals_;
+      
+      // Calculated from target trajectories
+      std::vector<vector3_t> referenceEndEffectorLinearVelocities_;
 
       ocs2::vector_t torqueApproximation_;
       ocs2::VectorFunctionLinearApproximation torqueApproximationDerivatives_;
