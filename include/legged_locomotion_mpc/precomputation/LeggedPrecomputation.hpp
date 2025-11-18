@@ -78,7 +78,7 @@ namespace legged_locomotion_mpc
 
       const vector3_t& getSurfaceNormal(size_t endEffectorIndex) const;
 
-      const vector3_t& getReferenceEndEffectorLinearVelocity(size_t endEffectorIndex);
+      const vector3_t& getReferenceEndEffectorLinearVelocity(size_t endEffectorIndex) const;
 
     private:
 

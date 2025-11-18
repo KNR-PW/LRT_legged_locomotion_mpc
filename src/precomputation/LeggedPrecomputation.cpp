@@ -136,7 +136,7 @@ namespace legged_locomotion_mpc
   }
 
   const vector3_t& LeggedPrecomputation::getReferenceEndEffectorLinearVelocity(
-    size_t endEffectorIndex)
+    size_t endEffectorIndex) const
   {
     assert(endEffectorIndex < endEffectorNumber_);
     return referenceEndEffectorLinearVelocities_[endEffectorIndex];

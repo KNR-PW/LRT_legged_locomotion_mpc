@@ -95,6 +95,7 @@ add_library(${PROJECT_NAME}
   src/constraint/Zero6DofVelocityConstraint.cpp
   src/constraint/ZeroForceConstraint.cpp
   src/constraint/ZeroWrenchConstraint.cpp
+  src/constraint/NormalVelocityConstraint.cpp
 
   src/soft_constraint/TorqueLimitsSoftConstraint.cpp
   src/soft_constraint/JointLimitsSoftConstraint.cpp
