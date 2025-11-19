@@ -83,8 +83,7 @@ namespace legged_locomotion_mpc
 
     private:
     
-      void generateNewTargetTrajectories(ocs2::scalar_t initTime, 
-        ocs2::scalar_t finalTime);
+      void generateNewTargetTrajectories(ocs2::scalar_t initTime, ocs2::scalar_t finalTime);
 
       Settings settings_;
 
@@ -94,14 +93,15 @@ namespace legged_locomotion_mpc
       ocs2::BufferedValue<contact_flags_t> currentContactFlags_;
       ocs2::BufferedValue<locomotion::GaitDynamicParameters> currentGaitParameters_;
       ocs2::BufferedValue<planners::BaseTrajectoryPlanner::BaseReferenceCommand> currentCommand_;
-      ocs2::BufferedPointer<terrain_model::TerrainModel> currentTerrainModel_;
+      
+      std::unique_ptr<terrain_model::TerrainModel> currentTerrainModel_;
+      ocs2::BufferedPointer<terrain_model::TerrainModel> bufferedTerrainModel_;
 
       std::shared_ptr<locomotion::GaitPlanner> gaitPlannerPtr_;
       std::shared_ptr<locomotion::SwingTrajectoryPlanner> swingTrajectoryPtr_;
       std::shared_ptr<planners::BaseTrajectoryPlanner> baseTrajectoryPtr_;
       std::shared_ptr<planners::JointTrajectoryPlanner> jointTrajectoryPtr_;
       std::shared_ptr<planners::ContactForceWrenchTrajectoryPlanner> forceTrajectoryPtr_;
-
   };
 } // namespace legged_locomotion_mpc
 

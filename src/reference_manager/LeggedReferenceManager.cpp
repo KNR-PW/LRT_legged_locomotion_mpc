@@ -25,7 +25,7 @@ namespace legged_locomotion_mpc
       currentContactFlags_(contact_flags_t()),
       currentGaitParameters_(GaitDynamicParameters()),
       currentCommand_(BaseTrajectoryPlanner::BaseReferenceCommand()),
-      currentTerrainModel_(nullptr) {}
+      bufferedTerrainModel_(nullptr) {}
 
   void LeggedReferenceManager::initalize(ocs2::scalar_t initTime, ocs2::scalar_t finalTime, 
     const state_vector_t& currenState, const contact_flags_t& currentContactFlags,
@@ -35,6 +35,10 @@ namespace legged_locomotion_mpc
     updateState(currenState);
     updateContactFlags(currentContactFlags);
     updateGaitParemeters(std::move(currentGaitParameters));
+
+    // Get copy of current terrain for getter, buffered value might be changed in parallel task
+    currentTerrainModel_ = std::unique_ptr<TerrainModel>(currentTerrainModel->clone());
+
     updateTerrainModel(std::move(currentTerrainModel));
     
     newTrajectories_ = std::async(std::launch::async, [this, initTime, finalTime]()
@@ -49,7 +53,7 @@ namespace legged_locomotion_mpc
 
   const TerrainModel& LeggedReferenceManager::getTerrainModel() const
   {
-    return currentTerrainModel_.get();
+    return *currentTerrainModel_.get();
   }
 
   void LeggedReferenceManager::preSolverRun(scalar_t initTime, scalar_t finalTime, 
@@ -58,6 +62,9 @@ namespace legged_locomotion_mpc
     newTrajectories_.wait();
 
     ReferenceManager::preSolverRun(initTime, finalTime, initState);
+
+    // Get copy of current terrain for getter, buffered value might be changed in parallel task
+    currentTerrainModel_ = std::unique_ptr<TerrainModel>(bufferedTerrainModel_.get().clone());
 
     newTrajectories_ = std::async(std::launch::async, [this, initTime, finalTime]()
       {return generateNewTargetTrajectories(initTime, finalTime);});
@@ -87,9 +94,9 @@ namespace legged_locomotion_mpc
       finalTime);
 
     // No new terrain model -> no update
-    if(currentTerrainModel_.updateFromBuffer());
+    if(bufferedTerrainModel_.updateFromBuffer());
     {
-      const TerrainModel& currentTerrainModel = currentTerrainModel_.get();
+      const TerrainModel& currentTerrainModel = bufferedTerrainModel_.get();
 
       baseTrajectoryPtr_->updateTerrain(currentTerrainModel);
     
@@ -161,7 +168,7 @@ namespace legged_locomotion_mpc
   void LeggedReferenceManager::updateTerrainModel(
     std::unique_ptr<TerrainModel> currentTerrainModel)
   {
-    currentTerrainModel_.setBuffer(std::move(currentTerrainModel));
+    bufferedTerrainModel_.setBuffer(std::move(currentTerrainModel));
   }
 
   LeggedReferenceManager::~LeggedReferenceManager()
