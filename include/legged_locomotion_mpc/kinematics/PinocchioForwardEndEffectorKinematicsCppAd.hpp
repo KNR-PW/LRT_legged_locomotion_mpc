@@ -1,24 +1,13 @@
 #ifndef __PINOCCHIO_FORWARD_END_EFFECTOR_KINEMATICS_CPP_AD__
 #define __PINOCCHIO_FORWARD_END_EFFECTOR_KINEMATICS_CPP_AD__
 
+#include <ocs2_core/automatic_differentiation/CppAdInterface.h>
+#include <ocs2_pinocchio_interface/PinocchioInterface.h>
 
-#include <pinocchio/fwd.hpp>  // forward declarations must be included first.
-#include <pinocchio/algorithm/frames.hpp>
-#include <pinocchio/algorithm/kinematics.hpp>
-
-
-#include <floating_base_model/QuaterionEulerTransforms.hpp>
 #include <floating_base_model/FloatingBaseModelInfo.hpp>
 #include <floating_base_model/FloatingBaseModelPinocchioMapping.hpp>
 
 #include <legged_locomotion_mpc/common/Types.hpp>
-
-#include <ocs2_core/automatic_differentiation/CppAdInterface.h>
-#include <ocs2_pinocchio_interface/PinocchioInterface.h>
-
-#include <functional>
-#include <string>
-#include <vector>
 
 namespace legged_locomotion_mpc 
 {

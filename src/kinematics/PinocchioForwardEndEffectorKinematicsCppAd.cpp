@@ -1,5 +1,9 @@
 #include <legged_locomotion_mpc/kinematics/PinocchioForwardEndEffectorKinematicsCppAd.hpp>
 
+#include <pinocchio/fwd.hpp>
+#include <pinocchio/algorithm/frames.hpp>
+
+#include <floating_base_model/QuaterionEulerTransforms.hpp>
 
 namespace legged_locomotion_mpc 
 {

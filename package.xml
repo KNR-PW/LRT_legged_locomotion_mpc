@@ -13,6 +13,7 @@
   <depend>ocs2_mpc</depend>
   <depend>ocs2_sqp</depend>
   <depend>ocs2_ipm</depend>
+  <depend>ocs2_sphere_approximation</depend>
   <depend>floating_base_model</depend>
   <depend>terrain_model</depend>
   <depend>multi_end_effector_kinematics</depend>

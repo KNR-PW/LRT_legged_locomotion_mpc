@@ -25,6 +25,7 @@ set(THIS_PACKAGE_DEPENDS
     ocs2_mpc
     ocs2_sqp
     ocs2_ipm
+    ocs2_sphere_approximation
     floating_base_model
     terrain_model
     multi_end_effector_kinematics
@@ -64,6 +65,8 @@ add_library(${PROJECT_NAME}
 
   src/kinematics/PinocchioForwardEndEffectorKinematicsCppAd.cpp
   src/torque_approx/PinocchioTorqueApproximationCppAd.cpp
+
+  src/collision/PinocchoCollisionInterface.cpp
 
   src/locomotion/ModeSequenceTemplate.cpp
   src/locomotion/GaitPlanner.cpp
