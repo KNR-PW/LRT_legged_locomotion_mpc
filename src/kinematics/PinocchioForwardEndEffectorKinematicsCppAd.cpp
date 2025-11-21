@@ -10,7 +10,6 @@ namespace legged_locomotion_mpc
 
   using namespace ocs2;
   using namespace floating_base_model;
-
   /******************************************************************************************************/
   /******************************************************************************************************/
   /******************************************************************************************************/
@@ -26,7 +25,7 @@ namespace legged_locomotion_mpc
   
     // mapping
     FloatingBaseModelPinocchioMappingCppAd mappingCppAd(info.toCppAd());
-     mappingCppAd.setPinocchioInterface(pinocchioInterfaceCppAd);
+    mappingCppAd.setPinocchioInterface(pinocchioInterfaceCppAd);
 
     // position function
     auto positionFunc = [&, this](const ad_vector_t& x, ad_vector_t& y) 

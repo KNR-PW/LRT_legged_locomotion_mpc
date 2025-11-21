@@ -15,7 +15,6 @@
 
 /*
  * Authors: Bartłomiej Krajewski (https://github.com/BartlomiejK2)
-   Based on: Farbod Farshidian (https://github.com/leggedrobotics/ocs2)
  */
 
 #ifndef __PINOCCHIO_FORWARD_END_EFFECTOR_KINEMATICS_CPP_AD__
@@ -34,7 +33,7 @@ namespace legged_locomotion_mpc
 
   /**
    * This class provides the CppAD implementation of the forward 3 and 6 DoF
-   * end-effector Kinematics based on pinocchio. No pre-computation is required. 
+   * end-effector kinematics based on pinocchio. No pre-computation is required. 
    * Position and velocities are expressed with respect to the world inertial frame.
    */
   class PinocchioForwardEndEffectorKinematicsCppAd

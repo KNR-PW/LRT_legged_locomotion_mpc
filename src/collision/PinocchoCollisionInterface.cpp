@@ -20,6 +20,8 @@
 
 #include <legged_locomotion_mpc/collision/PinocchoCollisionInterface.hpp>
 
+#include <stdexcept>
+
 #include <urdf_parser/urdf_parser.h>
 
 #include <pinocchio/fwd.hpp>
@@ -63,6 +65,11 @@ namespace legged_locomotion_mpc
       for(const std::string& frameName: otherCollisionLinks)
       {
         const size_t frameIndex = pinocchioInterface.getModel().getFrameId(frameName);
+        if(frameIndex <= 0)
+        {
+          std::string message = "[PinocchioCollisionInterface]: There is no frame named " + frameName + "!";
+          throw std::invalid_argument(message);
+        }
         collisionFrames.push_back(frameIndex);
       }
 

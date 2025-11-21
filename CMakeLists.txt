@@ -67,6 +67,7 @@ add_library(${PROJECT_NAME}
   src/torque_approx/PinocchioTorqueApproximationCppAd.cpp
 
   src/collision/PinocchoCollisionInterface.cpp
+  src/collision/PinocchioForwardCollisionKinematicsCppAd.cpp
 
   src/locomotion/ModeSequenceTemplate.cpp
   src/locomotion/GaitPlanner.cpp
