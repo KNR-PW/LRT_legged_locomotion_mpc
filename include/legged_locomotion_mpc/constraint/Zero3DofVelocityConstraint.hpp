@@ -27,13 +27,13 @@
 
 namespace legged_locomotion_mpc
 {
-  class Zero3DofVelocityConstraint final : public ocs2::StateInputConstraint {
+  class Zero3DofVelocityConstraint final: public ocs2::StateInputConstraint {
     public:
 
       /**
        * Constructor
-       * @param [in] referenceManager : Legged model ReferenceManager
-       * @param [in] endEffectorIndex : The 3 DoF end effector index.
+       * @param [in] referenceManager: Legged model ReferenceManager
+       * @param [in] endEffectorIndex: The 3 DoF end effector index.
        */
       Zero3DofVelocityConstraint(const LeggedReferenceManager& referenceManager,
         size_t endEffectorIndex);

@@ -52,7 +52,7 @@ namespace legged_locomotion_mpc
      * @param [in] modelFolder: folder to save the model library files to
      * @param [in] recompileLibraries: If true, the model library will be newly
      * compiled. If false, an existing library will be loaded if available.
-     * @param [in] verbose : print information.
+     * @param [in] verbose: print information.
      */
     PinocchioTorqueApproximationCppAd(
       const ocs2::PinocchioInterface& pinocchioInterface,

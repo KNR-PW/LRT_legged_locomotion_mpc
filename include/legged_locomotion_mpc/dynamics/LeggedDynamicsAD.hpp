@@ -43,7 +43,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace legged_locomotion_mpc 
 {
-  class LeggedDynamicsAD final : public ocs2::SystemDynamicsBase 
+  class LeggedDynamicsAD final: public ocs2::SystemDynamicsBase 
   {
 
     public:

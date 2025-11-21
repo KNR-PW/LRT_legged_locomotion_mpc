@@ -28,7 +28,7 @@
 
 namespace legged_locomotion_mpc
 {
-  class ZeroWrenchConstraint final : public ocs2::StateInputConstraint 
+  class ZeroWrenchConstraint final: public ocs2::StateInputConstraint 
   {
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     public:

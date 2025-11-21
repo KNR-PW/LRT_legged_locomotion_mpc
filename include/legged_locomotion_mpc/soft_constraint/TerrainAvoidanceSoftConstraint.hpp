@@ -17,11 +17,13 @@
  * Authors: Bartłomiej Krajewski (https://github.com/BartlomiejK2)
  */
 
-#ifndef __JOINT_LIMITS_SOFT_CONSTRAINT_LEGGED_LOCOMOTION_MPC__
-#define __JOINT_LIMITS_SOFT_CONSTRAINT_LEGGED_LOCOMOTION_MPC__
+#ifndef __TERRAIN_AVOIDANCE_SOFT_CONSTRAINT_LEGGED_LOCOMOTION_MPC__
+#define __TERRAIN_AVOIDANCE_SOFT_CONSTRAINT_LEGGED_LOCOMOTION_MPC__
 
 #include <ocs2_core/cost/StateInputCost.h>
 #include <ocs2_core/penalties/Penalties.h>
+#include <ocs2_core/automatic_differentiation/CppAdInterface.h>
+#include <ocs2_sphere_approximation/PinocchioSphereInterface.h>
 
 #include <floating_base_model/FloatingBaseModelInfo.hpp>
 
@@ -30,22 +32,27 @@
 namespace legged_locomotion_mpc
 {
   /**
-   * Constraint that satisfies joint position and velocity limits (not torques)
+   * Constraint that ensures that end effectors do not go through terrain:
+   * max(terrain_sdf(pos_ee)) - r_e + relax > 0 where:
+   * terrain_sdf - terrain sdf 
+   * pos_ee - all end effector sphere approximation positons
+   * r_e - radius of end effector sphere
+   * relax - relaxation constraint value
    */
-  class JointLimitsSoftConstraint final: public ocs2::StateInputCost 
+  class TerrainAvoidanceSoftConstraint final: public ocs2::StateInputCost 
   {
     public:
 
       /**
        * Constructor
        * @param [in] info: Floating Base model info.
-       * @param [in] jointPositionUpperLimits: Maximum joint positions.
-       * @param [in] jointPositionLowerLimits: Minimum joint positions.
+       * @param [in] sphereInterface: interface for sphere approximation
+       * @param [in] relaxation: Relax constraint values.
        * @param [in] jointVelocityLimits: Maximum joint velocities.
        * @param [in] settings: Relaxed barrier penalty settings 
        * 
        */
-      JointLimitsSoftConstraint(floating_base_model::FloatingBaseModelInfo info,
+     TerrainAvoidanceSoftConstraint(floating_base_model::FloatingBaseModelInfo info,
         ocs2::vector_t jointPositionUpperLimits,
         ocs2::vector_t jointPositionLowerLimits,
         ocs2::vector_t jointVelocityLimits,
@@ -53,7 +60,7 @@ namespace legged_locomotion_mpc
 
       ~JointLimitsSoftConstraint() override = default;
 
-      JointLimitsSoftConstraint* clone() const override;
+     TerrainAvoidanceSoftConstraint* clone() const override;
 
       /** Get cost term value */
       ocs2::scalar_t getValue(ocs2::scalar_t time, const ocs2::vector_t& state,
@@ -67,7 +74,7 @@ namespace legged_locomotion_mpc
         const ocs2::PreComputation& preComp) const override;
 
     private:
-      JointLimitsSoftConstraint(const JointLimitsSoftConstraint &rhs);
+     TerrainAvoidanceSoftConstraint(constTerrainAvoidanceSoftConstraint &rhs);
         
       const floating_base_model::FloatingBaseModelInfo info_;
       const ocs2::vector_t jointPositionUpperLimits_;
@@ -75,6 +82,12 @@ namespace legged_locomotion_mpc
       const ocs2::vector_t jointVelocityLimits_;
 
       std::unique_ptr<ocs2::RelaxedBarrierPenalty> jointRelaxedBarrierPenaltyPtr_;
+
+      /**
+       * Get partial derivatives of rotation matrix times vector 
+       * with respect to euler angles
+       */
+      std::unique_ptr<ocs2::CppAdInterface> rotationMatrixVectorAdInterfacePtr_;
 
     };
 

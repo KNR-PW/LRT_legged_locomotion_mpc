@@ -56,11 +56,11 @@ namespace legged_locomotion_mpc
       public:
         /**
          * Constructor
-         * @param [in] info : Floating Base model info.
+         * @param [in] info: Floating Base model info.
          * @param [in] pinocchioInterface: Pinocchio interface of Floating Base model
          * @param [in] otherCollisionLinks: Other collision links for terrain or
          * self collision
-         * @param [in] maxExcesses : vector of maximum allowed distances between 
+         * @param [in] maxExcesses: vector of maximum allowed distances between 
          * the surfaces of the collision primitives and collision spheres
          * @param [in] shrinkRatio: shrinking ratio for maxExcess to 
          * recursively approximate the circular base of the cylinder when more than one

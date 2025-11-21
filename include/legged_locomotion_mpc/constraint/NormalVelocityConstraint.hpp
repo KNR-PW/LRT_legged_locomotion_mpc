@@ -31,13 +31,13 @@ namespace legged_locomotion_mpc
     * Specializes the CppAd version of normal to terrain
     * linear velocity constraint on an end-effector linear velocity: nT (v(x, u) - v_ref)
     */
-  class NormalVelocityConstraint final : public ocs2::StateInputConstraint {
+  class NormalVelocityConstraint final: public ocs2::StateInputConstraint {
     public:
 
       /**
        * Constructor
-       * @param [in] referenceManager : Legged model ReferenceManager.
-       * @param [in] endEffectorIndex : The 3 DoF or 6 DoF end effector index.
+       * @param [in] referenceManager: Legged model ReferenceManager.
+       * @param [in] endEffectorIndex: The 3 DoF or 6 DoF end effector index.
        */
       NormalVelocityConstraint(const LeggedReferenceManager &referenceManager,
         size_t endEffectorIndex);

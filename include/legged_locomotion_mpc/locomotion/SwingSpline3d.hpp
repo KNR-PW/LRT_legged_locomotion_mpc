@@ -29,9 +29,9 @@ namespace legged_locomotion_mpc
         /**
          * Construct a swing trajectory with given boundary conditions
          *
-         * @param start : starting time and boundary conditions
-         * @param mid : waypoint time, position, and velocity. Time must be between start and end.
-         * @param end : ending time and boundary conditions
+         * @param start: starting time and boundary conditions
+         * @param mid: waypoint time, position, and velocity. Time must be between start and end.
+         * @param end: ending time and boundary conditions
          */
         SwingSpline3d(const SwingNode3d &start, const SwingNode3d &mid, const SwingNode3d &end);
 

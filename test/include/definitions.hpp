@@ -10,7 +10,7 @@
 namespace legged_locomotion_mpc 
 {
 
-  enum Meldog : size_t {
+  enum Meldog: size_t {
     STATE_DIM = 6 + 6 + 12,  // base body velocity, generalized coordinates
     INPUT_DIM = 2 * 3 + 2 * 6 + 12,  // end effector forces, actuated joint velocities
     ACTUATED_DOF_NUM = 12,

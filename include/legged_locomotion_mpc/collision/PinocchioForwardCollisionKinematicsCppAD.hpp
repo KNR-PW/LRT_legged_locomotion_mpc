@@ -43,7 +43,7 @@ namespace legged_locomotion_mpc
 
     /** Constructor
      * @param [in] pinocchioInterface: pinocchio interface.
-     * @param [in] info: info of kinematics model
+     * @param [in] collisionNames: coll
      * @param [in] modelName: name of the generate model library
      * @param [in] modelFolder: folder to save the model library files to
      * @param [in] recompileLibraries: If true, the model library will be newly

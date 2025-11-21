@@ -32,7 +32,7 @@ namespace legged_locomotion_mpc
       const terrain_model::ConvexTerrain &stanceTerrain, ocs2::scalar_t margin);
 
     /**
-     * Base class for a planned foot phase : Stance or Swing.
+     * Base class for a planned foot phase: Stance or Swing.
      */
     class FootPhase 
     {
@@ -86,7 +86,7 @@ namespace legged_locomotion_mpc
      * Encodes a planned stance phase on a terrain plane.
      * The normal constraint makes the foot converge to the terrain plane when positionGain > 0.0
      */
-    class StancePhase final : public FootPhase 
+    class StancePhase final: public FootPhase 
     {
       public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -125,7 +125,7 @@ namespace legged_locomotion_mpc
      * Encodes a swing trajectory between two terrain planes.
      * A spline based swing motion is designed in both liftoff and target plane.
      */
-    class SwingPhase final : public FootPhase 
+    class SwingPhase final: public FootPhase 
     {
       public:
         struct SwingEvent 
@@ -169,10 +169,10 @@ namespace legged_locomotion_mpc
          * Construct a swing phase:
          *    Creates a 3D swing reference motion
          *    Creates a 1D clearance profile for SDF based obstacle avoidance.
-         * @param liftOff : Information about the liftoff event.
-         * @param touchDown : Information about the touchdown event.
-         * @param SwingProfile : Settings to shape the swing profile
-         * @param terrainModel : (optional) Pointer to the terrain model. Terrain model should be kept alive externall as long as the swingphase
+         * @param liftOff: Information about the liftoff event.
+         * @param touchDown: Information about the touchdown event.
+         * @param SwingProfile: Settings to shape the swing profile
+         * @param terrainModel: (optional) Pointer to the terrain model. Terrain model should be kept alive externall as long as the swingphase
          * object exists. Will extract SDF and obstacle information from the terrain.
          */
         SwingPhase(SwingEvent liftOff, SwingEvent touchDown, const SwingProfile &swingProfile,

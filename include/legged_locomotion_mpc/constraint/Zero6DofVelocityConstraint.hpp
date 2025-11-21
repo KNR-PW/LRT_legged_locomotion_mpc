@@ -30,13 +30,13 @@ namespace legged_locomotion_mpc
     /**
     * Specializes the CppAd version of zero velocity constraint on an end-effector linear velocity.
     */
-  class Zero6DofVelocityConstraint final : public ocs2::StateInputConstraint {
+  class Zero6DofVelocityConstraint final: public ocs2::StateInputConstraint {
     public:
 
       /**
        * Constructor
-       * @param [in] referenceManager : Legged model ReferenceManager
-       * @param [in] endEffectorIndex : The 6 DoF end effector index.
+       * @param [in] referenceManager: Legged model ReferenceManager
+       * @param [in] endEffectorIndex: The 6 DoF end effector index.
        */
       Zero6DofVelocityConstraint(const LeggedReferenceManager& referenceManager,
         size_t endEffectorIndex);

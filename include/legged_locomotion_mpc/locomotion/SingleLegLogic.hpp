@@ -84,7 +84,7 @@ namespace legged_locomotion_mpc
 
     /**
      * Extracts for each leg the contact sequence over the motion phase sequence.
-     * @param modeSequence : Sequence of contact modes.
+     * @param modeSequence: Sequence of contact modes.
      * @return Sequence of contact flags per leg.
      */
     std::vector<std::vector<bool>> extractContactFlags(

@@ -37,7 +37,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <ocs2_core/Types.h>
 
-
 #include <boost/property_tree/info_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <ocs2_core/misc/LoadData.h>
@@ -53,6 +52,9 @@ namespace legged_locomotion_mpc
     std::string baseLinkName;
     std::vector<std::string> contactNames3DoF;
     std::vector<std::string> contactNames6DoF;
+
+    std::vector<std::string> collisionLinkNames;
+    std::vector<std::pair<std::string, std::string>> selfCollisionPairNames;
   };
 
   /**

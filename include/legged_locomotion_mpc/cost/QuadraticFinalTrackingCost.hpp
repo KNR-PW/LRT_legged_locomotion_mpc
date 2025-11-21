@@ -47,7 +47,7 @@ namespace legged_locomotion_mpc
     /**
      * State tracking cost used for the final time
      */
-    class QuadraticFinalTrackingCost final : public StateCost 
+    class QuadraticFinalTrackingCost final: public StateCost 
     {
       public:
 

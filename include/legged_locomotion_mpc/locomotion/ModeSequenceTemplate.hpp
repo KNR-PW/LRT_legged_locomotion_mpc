@@ -49,12 +49,12 @@ namespace legged_locomotion_mpc
     {
         /**
         * Constructor for a ModeSequenceTemplate. The number of modes must be greater than zero (N > 0)
-        * @param [in] switchingTimesInput : switching times of size N + 1
-        * @param [in] modeSequenceInput : mode sequence of size N
+        * @param [in] switchingTimesInput: switching times of size N + 1
+        * @param [in] modeSequenceInput: mode sequence of size N
         */
         ModeSequenceTemplate(std::vector<ocs2::scalar_t> switchingTimesInput,
           std::vector<size_t> modeSequenceInput)
-            : switchingTimes(std::move(switchingTimesInput)),
+           : switchingTimes(std::move(switchingTimesInput)),
               modeSequence(std::move(modeSequenceInput)) 
         {
           assert(!modeSequence.empty());

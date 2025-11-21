@@ -40,7 +40,7 @@ namespace legged_locomotion_mpc
 
     /**
      * Get contact flags from mode number
-     * @param [in] modeNumber : Mode number
+     * @param [in] modeNumber: Mode number
      * @param [in] endEffectorNumber: Number of end effectors (legs)
      * @return std::bitset with contact flags
      */
@@ -52,7 +52,7 @@ namespace legged_locomotion_mpc
 
     /**
      * Get mode number from contact flags
-     * @param [in] contactFlags : Bitset with contact flags
+     * @param [in] contactFlags: Bitset with contact flags
      * @return mode number
      */
     inline size_t contactFlags2ModeNumber(const contact_flags_t& contactFlags)
@@ -62,8 +62,8 @@ namespace legged_locomotion_mpc
 
     /**
      * Get bool contact flag from contact flags bitset
-     * @param [in] contactFlags : Bitset with contact flags
-     * @param [in] endEffectorIndex : Index of robots leg 
+     * @param [in] contactFlags: Bitset with contact flags
+     * @param [in] endEffectorIndex: Index of robots leg 
      * @return contact flag
      */
     inline bool getContactFlag(const contact_flags_t& contactFlags, size_t endEffectorIndex)
@@ -75,7 +75,7 @@ namespace legged_locomotion_mpc
 
     /**
      * Normalize phase value to [0, 1.0) 
-     * @param [in] value : Phase value to normalize
+     * @param [in] value: Phase value to normalize
      * @return  Normalized phase value to [0, 1.0)
      */
     inline double normalizePhase(double value)
@@ -86,7 +86,7 @@ namespace legged_locomotion_mpc
     /**
      * Get time to new end effector mode (STANCE -> SWING or SWING -> STANCE) 
      * based on end effector phase value
-     * @param [in] currentPhaseState : Current normalized phase value
+     * @param [in] currentPhaseState: Current normalized phase value
      * @param [in] swingRatio: Swing ratio
      * @param [in] gaitPeriod: Gait period (from dynamic gait parameters)
      * @return  time to new mode 

@@ -40,7 +40,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace legged_locomotion_mpc
 {
-  class ZeroForceConstraint final : public ocs2::StateInputConstraint 
+  class ZeroForceConstraint final: public ocs2::StateInputConstraint 
   {
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     public:

@@ -51,7 +51,7 @@ namespace legged_locomotion_mpc
    * sqrt(regularization) instead of Fz = 0
    *
    */
-  class ForceFrictionConeConstraint final : public ocs2::StateInputConstraint 
+  class ForceFrictionConeConstraint final: public ocs2::StateInputConstraint 
   {
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     public:
@@ -78,10 +78,10 @@ namespace legged_locomotion_mpc
 
       /**
        * Constructor
-       * @param [in] referenceManager : Legged model ReferenceManager.
-       * @param [in] config : Friction model settings.
-       * @param [in] info : The floating base model information.
-       * @param [in] endEffectorIndex : The 3 DoF end effector index.
+       * @param [in] referenceManager: Legged model ReferenceManager.
+       * @param [in] config: Friction model settings.
+       * @param [in] info: The floating base model information.
+       * @param [in] endEffectorIndex: The 3 DoF end effector index.
        */
       ForceFrictionConeConstraint(
         const LeggedReferenceManager& referenceManager,

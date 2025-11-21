@@ -35,7 +35,7 @@ namespace legged_locomotion_mpc
    * Implements the linear wrench cone constraint h(t,x,u) >= 0: 
    * (https://hal.science/hal-02108449/document)
    */
-  class WrenchFrictionConeConstraint final : public ocs2::StateInputConstraint 
+  class WrenchFrictionConeConstraint final: public ocs2::StateInputConstraint 
   {
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     public:
@@ -61,10 +61,10 @@ namespace legged_locomotion_mpc
 
       /**
        * Constructor
-       * @param [in] referenceManager : Switched model ReferenceManager.
-       * @param [in] config : Friction model settings.
-       * @param [in] info : The centroidal model information.
-       * @param [in] endEffectorIndex : The 6 DoF contact index.
+       * @param [in] referenceManager: Switched model ReferenceManager.
+       * @param [in] config: Friction model settings.
+       * @param [in] info: The centroidal model information.
+       * @param [in] endEffectorIndex: The 6 DoF contact index.
        */
       WrenchFrictionConeConstraint(const LeggedReferenceManager& referenceManager,
         Config config,

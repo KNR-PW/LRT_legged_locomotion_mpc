@@ -41,7 +41,7 @@ namespace legged_locomotion_mpc
   /**
   * Manages the ModeSchedule and the TargetTrajectories for switched model.
   */
-  class LeggedReferenceManager : public ocs2::ReferenceManager
+  class LeggedReferenceManager: public ocs2::ReferenceManager
   {
     public:
 
