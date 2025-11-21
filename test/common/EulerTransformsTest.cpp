@@ -1,0 +1,100 @@
+#include <gtest/gtest.h>
+
+#include <legged_locomotion_mpc/common/Types.hpp>
+#include <legged_locomotion_mpc/common/EulerTransforms.hpp>
+
+#include <ocs2_core/automatic_differentiation/CppAdInterface.h>
+#include <ocs2_robotic_tools/common/RotationTransforms.h>
+
+using namespace ocs2;
+using namespace legged_locomotion_mpc;
+using namespace legged_locomotion_mpc::euler_transforms;
+
+const scalar_t tolerance = 1e-9;
+const size_t NUM_TEST = 100;
+
+class RotationVectorMultiplicationAD final 
+  {
+    public:
+
+    RotationVectorMultiplicationAD(
+      const std::string& modelFolder = "/tmp/ocs2",
+      bool recompileLibraries = true,
+      bool verbose = false)
+    {
+      auto systemFlowMapFunc = [&](const ocs2::ad_vector_t& x, ocs2::ad_vector_t& y) {
+        const Eigen::Matrix<ocs2::ad_scalar_t, 3, 1> eulerAnglesAD = x.block<3, 1>(0, 0);
+        const Eigen::Matrix<ocs2::ad_scalar_t, 3, 1> vector = x.block<3, 1>(3, 0);
+        y = getValueCppAd(eulerAnglesAD, vector);
+      };
+    
+      systemFlowMapCppAdInterfacePtr_.reset(
+          new ocs2::CppAdInterface(systemFlowMapFunc, 6, "euler_to_matrix_systemFlowMap", modelFolder));
+    
+      if (recompileLibraries) {
+        systemFlowMapCppAdInterfacePtr_->createModels(ocs2::CppAdInterface::ApproximationOrder::First, verbose);
+      } else {
+        systemFlowMapCppAdInterfacePtr_->loadModelsIfAvailable(ocs2::CppAdInterface::ApproximationOrder::First, verbose);
+      }
+    };
+
+    ocs2::vector_t getValue(vector3_t euler, vector3_t vector) const
+    {
+      const ocs2::vector_t state = (ocs2::vector_t(6) << euler, vector).finished();
+      return systemFlowMapCppAdInterfacePtr_->getFunctionValue(state);
+    };
+
+    ocs2::matrix_t getLinearApproximation(vector3_t euler, 
+      vector3_t vector) const
+    {
+      const ocs2::vector_t state = (ocs2::vector_t(6) << euler, vector).finished();
+      ocs2::matrix_t approx;
+      const ocs2::matrix_t dynamicsJacobian = systemFlowMapCppAdInterfacePtr_->getJacobian(state);
+      approx = dynamicsJacobian.leftCols(euler.rows());
+      return approx;
+    };
+
+   private:
+
+   ocs2::ad_vector_t getValueCppAd(const Eigen::Matrix<ocs2::ad_scalar_t, 3, 1>& eulerAnglesAD, 
+    const Eigen::Matrix<ocs2::ad_scalar_t, 3, 1>& vector)
+    {
+      const Eigen::Matrix<ocs2::ad_scalar_t, 3, 3> rotationMatrix = getRotationMatrixFromZyxEulerAngles(
+        eulerAnglesAD);
+      return rotationMatrix * vector;
+    };
+
+    std::unique_ptr<ocs2::CppAdInterface> systemFlowMapCppAdInterfacePtr_;
+};
+
+
+
+
+TEST(ModelHelperFunctions, getRotationMatrixEulerZyxGradient)
+{
+  for(size_t i = 0; i < NUM_TEST; ++i)
+  {
+    const vector3_t vector = vector3_t::Random();
+    const vector3_t euler = vector3_t::Random();
+
+    const auto analyticalMatrix = getRotationMatrixFromZyxEulerAngles(euler);
+
+    const auto analyticalGradient = getRotationMatrixEulerZyxGradient(euler);
+
+    matrix3_t analyticalResult;
+
+    for(size_t j = 0; j < 3; ++j)
+    {
+      analyticalResult.row(j) = (analyticalGradient[j][0] * vector[0] + 
+        analyticalGradient[j][1] * vector[1] + analyticalGradient[j][2] * vector[2]).transpose();
+    }
+
+    const auto adMultiplication = RotationVectorMultiplicationAD();
+    const auto adResult = adMultiplication.getLinearApproximation(euler, vector);
+    const auto adValue = adMultiplication.getValue(euler, vector);
+    
+    EXPECT_TRUE((analyticalMatrix * vector - adValue).norm() < tolerance);
+    std::cerr << adResult - analyticalResult << std::endl;
+    EXPECT_TRUE((adResult - analyticalResult).norm() < tolerance);
+  }
+}

@@ -31,9 +31,6 @@ namespace legged_locomotion_mpc
   class PinocchioForwardEndEffectorKinematicsCppAd
   {
     public:
-    using update_pinocchio_interface_callback = std::function<void(
-      const ocs2::ad_vector_t& state,
-      ocs2::PinocchioInterfaceTpl<ocs2::ad_scalar_t>& pinocchioInterface)>;
 
     /** Constructor
      * @param [in] pinocchioInterface: pinocchio interface.

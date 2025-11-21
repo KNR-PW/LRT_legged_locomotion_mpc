@@ -157,6 +157,7 @@ if(BUILD_TESTING)
         test/common/AccessHelperFunctionsTest.cpp
         test/common/UtilsTest.cpp
         test/common/ModelHelperFunctionsTest.cpp
+        test/common/EulerTransformsTest.cpp
   )
   ament_target_dependencies(${PROJECT_NAME}_test_common ${THIS_PACKAGE_DEPENDS})
   target_include_directories(${PROJECT_NAME}_test_common PRIVATE test/include)
