@@ -1,5 +1,7 @@
 #include <legged_locomotion_mpc/reference_manager/LeggedReferenceManager.hpp>
 
+#include <ocs2_core/misc/Lookup.h>
+
 namespace legged_locomotion_mpc
 {
 
@@ -7,14 +9,20 @@ namespace legged_locomotion_mpc
   using namespace locomotion;
   using namespace planners;
   using namespace terrain_model;
+  using namespace floating_base_model;
+  using EndEffectorTrajectories = legged_locomotion_mpc::locomotion::SwingTrajectoryPlanner::EndEffectorTrajectories;
+  using EndEffectorTrajectoriesPoint = legged_locomotion_mpc::locomotion::SwingTrajectoryPlanner::EndEffectorTrajectoriesPoint;
 
-  LeggedReferenceManager::LeggedReferenceManager(LeggedReferenceManager::Settings settings,
+  LeggedReferenceManager::LeggedReferenceManager(
+    FloatingBaseModelInfo modelInfo,
+    LeggedReferenceManager::Settings settings,
     std::shared_ptr<locomotion::GaitPlanner> gaitPlannerPtr,
     std::shared_ptr<locomotion::SwingTrajectoryPlanner> swingTrajectoryPtr,
     std::shared_ptr<planners::BaseTrajectoryPlanner> baseTrajectoryPtr,
     std::shared_ptr<planners::JointTrajectoryPlanner> jointTrajectoryPtr,
     std::shared_ptr<planners::ContactForceWrenchTrajectoryPlanner> forceTrajectoryPtr):
       ReferenceManager(TargetTrajectories(), ModeSchedule()),
+      modelInfo_(std::move(modelInfo)),
       settings_(std::move(settings)),
       gaitPlannerPtr_(std::move(gaitPlannerPtr)), 
       swingTrajectoryPtr_(std::move(swingTrajectoryPtr)),
@@ -25,9 +33,10 @@ namespace legged_locomotion_mpc
       currentContactFlags_(contact_flags_t()),
       currentGaitParameters_(GaitDynamicParameters()),
       currentCommand_(BaseTrajectoryPlanner::BaseReferenceCommand()),
-      bufferedTerrainModel_(nullptr) {}
+      bufferedTerrainModel_(nullptr),
+      referenceTrajectories_(EndEffectorTrajectories()) {}
 
-  void LeggedReferenceManager::initalize(ocs2::scalar_t initTime, ocs2::scalar_t finalTime, 
+  void LeggedReferenceManager::initalize(scalar_t initTime, scalar_t finalTime, 
     const state_vector_t& currenState, const contact_flags_t& currentContactFlags,
     locomotion::GaitDynamicParameters&& currentGaitParameters,
     std::unique_ptr<terrain_model::TerrainModel> currentTerrainModel)
@@ -44,9 +53,11 @@ namespace legged_locomotion_mpc
     newTrajectories_ = std::async(std::launch::async, [this, initTime, finalTime]()
       {return generateNewTargetTrajectories(initTime, finalTime);});
     newTrajectories_.wait();
+
+    referenceTrajectories_.updateFromBuffer();
   }
 
-  const contact_flags_t& LeggedReferenceManager::getContactFlags(ocs2::scalar_t time) const
+  const contact_flags_t& LeggedReferenceManager::getContactFlags(scalar_t time) const
   {
     return contact_flags_t(this->getModeSchedule().modeAtTime(time));
   }
@@ -56,14 +67,34 @@ namespace legged_locomotion_mpc
     return *currentTerrainModel_.get();
   }
 
+  EndEffectorTrajectoriesPoint LeggedReferenceManager::getEndEffectorTrajectoryPoint(
+    scalar_t time) const
+  {
+    const auto timeIndex = lookup::findIndexInTimeArray(
+      getTargetTrajectories().timeTrajectory, time);
+
+    EndEffectorTrajectoriesPoint point;
+
+    const EndEffectorTrajectories& referenceTrajectories = referenceTrajectories_.get();
+    
+    point.positions = referenceTrajectories.positions[timeIndex];
+    point.velocities = referenceTrajectories.velocities[timeIndex];
+    point.clearances = referenceTrajectories.clearances[timeIndex];
+  }
+
   void LeggedReferenceManager::preSolverRun(scalar_t initTime, scalar_t finalTime, 
     const vector_t& initState)
   {
-    newTrajectories_.wait();
+    if(newTrajectories_.wait_for(std::chrono::seconds(0)) == std::future_status::timeout)
+    {
+      return;
+    }
 
     ReferenceManager::preSolverRun(initTime, finalTime, initState);
 
-    // Get copy of current terrain for getter, buffered value might be changed in parallel task
+    referenceTrajectories_.updateFromBuffer();
+
+    // Get copy of current terrain for getter, active value might be changed in parallel task
     currentTerrainModel_ = std::unique_ptr<TerrainModel>(bufferedTerrainModel_.get().clone());
 
     newTrajectories_ = std::async(std::launch::async, [this, initTime, finalTime]()
@@ -71,7 +102,7 @@ namespace legged_locomotion_mpc
   }
 
   void LeggedReferenceManager::generateNewTargetTrajectories(
-    ocs2::scalar_t initTime, ocs2::scalar_t finalTime)
+    scalar_t initTime, scalar_t finalTime)
   {
     currentState_.updateFromBuffer();
     const state_vector_t& currentState = currentState_.get();
@@ -125,16 +156,11 @@ namespace legged_locomotion_mpc
     swingTrajectoryPtr_->updateSwingMotions(initTime, finalTime, currentState, 
       newTrajectory, newModeSchedule);
 
-    using EndEffectorTrajectories = std::vector<std::vector<vector3_t>>;
-
-    const EndEffectorTrajectories newEndEffectorPositions = 
-      swingTrajectoryPtr_->getEndEffectorPositionTrajectories(newTrajectory.timeTrajectory);
+    const EndEffectorTrajectories endEffectorTrajectories = 
+      swingTrajectoryPtr_->getEndEffectorTrajectories(newTrajectory.timeTrajectory);
     
-    const EndEffectorTrajectories newEndEffectorVelocities = 
-      swingTrajectoryPtr_->getEndEffectorVelocityTrajectories(newTrajectory.timeTrajectory);
-
     jointTrajectoryPtr_->updateTrajectory(currentState, newTrajectory, 
-      newEndEffectorPositions, newEndEffectorVelocities);
+      endEffectorTrajectories.positions, endEffectorTrajectories.velocities);
     
     TargetTrajectories subsampledTrajectory = utils::subsampleReferenceTrajectory(
       newTrajectory, initTime, finalTime, settings_.maximumReferenceSampleInterval);
@@ -146,6 +172,7 @@ namespace legged_locomotion_mpc
 
     setTargetTrajectories(std::move(subsampledTrajectory));
     setModeSchedule(std::move(newModeSchedule));
+    referenceTrajectories_.setBuffer(std::move(endEffectorTrajectories));
   }
 
   void LeggedReferenceManager::updateState(const state_vector_t& currenState)

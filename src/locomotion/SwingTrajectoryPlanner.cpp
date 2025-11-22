@@ -72,7 +72,7 @@ namespace legged_locomotion_mpc
         throw std::runtime_error("[SwingTrajectoryPlanner] terrain cannot be null. " 
           "Update the terrain before planning swing motions");
       }
-      size_t numEndEffectors = modelInfo_.numThreeDofContacts + modelInfo_.numSixDofContacts;
+      const size_t numEndEffectors = modelInfo_.numThreeDofContacts + modelInfo_.numSixDofContacts;
 
       const std::vector<std::vector<ContactTiming>> contactTimingsPerLeg =
         extractContactTimingsPerLeg(modeSchedule, numEndEffectors);
@@ -142,7 +142,7 @@ namespace legged_locomotion_mpc
 
     std::vector<vector3_t> SwingTrajectoryPlanner::getEndEffectorPositions(scalar_t time) const
     {
-      size_t numEndEffectors = modelInfo_.numThreeDofContacts + modelInfo_.numSixDofContacts;
+      const size_t numEndEffectors = modelInfo_.numThreeDofContacts + modelInfo_.numSixDofContacts;
       std::vector<vector3_t> positions(numEndEffectors);
 
       for(size_t i = 0; i < numEndEffectors; ++i)
@@ -155,7 +155,7 @@ namespace legged_locomotion_mpc
 
     std::vector<vector3_t> SwingTrajectoryPlanner::getEndEffectorVelocities(scalar_t time) const
     {
-      size_t numEndEffectors = modelInfo_.numThreeDofContacts + modelInfo_.numSixDofContacts;
+      const size_t numEndEffectors = modelInfo_.numThreeDofContacts + modelInfo_.numSixDofContacts;
       std::vector<vector3_t> velocities(numEndEffectors);
 
       for(size_t i = 0; i < numEndEffectors; ++i)
@@ -166,9 +166,23 @@ namespace legged_locomotion_mpc
       return velocities;
     }
 
+    std::vector<scalar_t> SwingTrajectoryPlanner::getEndEffectorClearances(
+      scalar_t time) const
+    {
+      const size_t numEndEffectors = modelInfo_.numThreeDofContacts + modelInfo_.numSixDofContacts;
+      std::vector<scalar_t> footClearances(numEndEffectors);
+
+      for(size_t i = 0; i < numEndEffectors; ++i)
+      {
+        const auto& footPhase = getFootPhase(i, time);
+        footClearances[i] = footPhase.getMinimumFootClearance(time);
+      }
+      return footClearances;
+    }
+
     using position_trajectories = std::vector<std::vector<vector3_t>>;
     position_trajectories SwingTrajectoryPlanner::getEndEffectorPositionTrajectories(
-      std::vector<ocs2::scalar_t> times) const
+      std::vector<scalar_t> times) const
     {
       position_trajectories positions;
       positions.reserve(times.size());
@@ -183,7 +197,7 @@ namespace legged_locomotion_mpc
 
     using velocity_trajectories = std::vector<std::vector<vector3_t>>;
       velocity_trajectories SwingTrajectoryPlanner::getEndEffectorVelocityTrajectories(
-      std::vector<ocs2::scalar_t> times) const
+      std::vector<scalar_t> times) const
     {
       velocity_trajectories velocities;
       velocities.reserve(times.size());
@@ -196,7 +210,61 @@ namespace legged_locomotion_mpc
       return velocities;
     }
 
-    using FootPhasesStamped =  std::pair<std::vector<ocs2::scalar_t>, std::vector<std::unique_ptr<FootPhase>>>; 
+    using foot_clearance_trajectory = std::vector<std::vector<scalar_t>>;
+    foot_clearance_trajectory SwingTrajectoryPlanner::getEndEffectorClearanceTrajectories(
+      std::vector<scalar_t> times) const
+    {
+      foot_clearance_trajectory footClerances;
+      footClerances.reserve(times.size());
+      for(const auto time: times)
+      {
+        auto footClerance = getEndEffectorClearances(time);
+        footClerances.emplace_back(std::move(footClerance));
+      }
+      return footClerances;
+    }
+
+    SwingTrajectoryPlanner::EndEffectorTrajectoriesPoint SwingTrajectoryPlanner::getEndEffectorTrajectoryPoint(
+      ocs2::scalar_t time) const
+    {
+      const size_t numEndEffectors = modelInfo_.numThreeDofContacts + modelInfo_.numSixDofContacts;
+
+      EndEffectorTrajectoriesPoint point;
+      point.positions.reserve(numEndEffectors);
+      point.velocities.reserve(numEndEffectors);
+      point.clearances.reserve(numEndEffectors);
+
+      for(size_t i = 0; i < numEndEffectors; ++i)
+      {
+        const auto& footPhase = getFootPhase(i, time);
+        point.positions.emplace_back(footPhase.getPositionInWorld(time));
+        point.velocities.emplace_back(footPhase.getVelocityInWorld(time));
+        point.clearances.emplace_back(footPhase.getMinimumFootClearance(time));
+      }
+      
+      return point;
+    }
+
+    SwingTrajectoryPlanner::EndEffectorTrajectories SwingTrajectoryPlanner::getEndEffectorTrajectories(
+      std::vector<ocs2::scalar_t> times) const
+    {
+      EndEffectorTrajectories trajectories;
+      trajectories.positions.reserve(times.size());
+      trajectories.velocities.reserve(times.size());
+      trajectories.clearances.reserve(times.size());
+
+      for(const auto time: times)
+      {
+        const auto point = getEndEffectorTrajectoryPoint(time);
+        trajectories.positions.emplace_back(std::move(point.positions));
+        trajectories.velocities.emplace_back(std::move(point.velocities));
+        trajectories.clearances.emplace_back(std::move(point.clearances));
+      }
+
+      return trajectories;
+    }
+
+    using FootPhasesStamped =  std::pair<std::vector<scalar_t>, std::vector<std::unique_ptr<FootPhase>>>; 
     FootPhasesStamped SwingTrajectoryPlanner::generateSwingTrajectories(
       size_t endEffectorIndex, const std::vector<ContactTiming> &contactTimings, 
       scalar_t finalTime) const
@@ -313,8 +381,8 @@ namespace legged_locomotion_mpc
 
     std::vector<vector3_t> SwingTrajectoryPlanner::selectHeuristicFootholds(
       size_t endEffectorIndex, const std::vector<ContactTiming> &contactTimings,
-      const ocs2::TargetTrajectories &targetTrajectories, ocs2::scalar_t initTime,
-      const state_vector_t &currentState, ocs2::scalar_t finalTime) const
+      const TargetTrajectories &targetTrajectories, scalar_t initTime,
+      const state_vector_t &currentState, scalar_t finalTime) const
     {
       // Zmp preparation : measured state
       const vector3_t initBaseOrientation = legged_locomotion_mpc::

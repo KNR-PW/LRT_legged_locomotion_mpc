@@ -50,7 +50,8 @@ namespace legged_locomotion_mpc
       ocs2::scalar_t maximumReferenceSampleInterval = 0.05;
     };
   
-    LeggedReferenceManager(LeggedReferenceManager::Settings settings,
+    LeggedReferenceManager(floating_base_model::FloatingBaseModelInfo modelInfo,
+      LeggedReferenceManager::Settings settings,
       std::shared_ptr<locomotion::GaitPlanner> gaitPlannerPtr,
       std::shared_ptr<locomotion::SwingTrajectoryPlanner> swingTrajectoryPtr,
       std::shared_ptr<planners::BaseTrajectoryPlanner> baseTrajectoryPtr,
@@ -80,11 +81,15 @@ namespace legged_locomotion_mpc
     const contact_flags_t& getContactFlags(ocs2::scalar_t time) const;
 
     const terrain_model::TerrainModel& getTerrainModel() const;
-
-    private:
     
-      void generateNewTargetTrajectories(ocs2::scalar_t initTime, ocs2::scalar_t finalTime);
+    using EndEffectorTrajectoriesPoint = legged_locomotion_mpc::locomotion::SwingTrajectoryPlanner::EndEffectorTrajectoriesPoint;
+    EndEffectorTrajectoriesPoint getEndEffectorTrajectoryPoint(ocs2::scalar_t time) const;
+    
+    private:
 
+      void generateNewTargetTrajectories(ocs2::scalar_t initTime, ocs2::scalar_t finalTime);
+    
+      floating_base_model::FloatingBaseModelInfo modelInfo_;
       Settings settings_;
 
       std::future<void> newTrajectories_;
@@ -93,6 +98,9 @@ namespace legged_locomotion_mpc
       ocs2::BufferedValue<contact_flags_t> currentContactFlags_;
       ocs2::BufferedValue<locomotion::GaitDynamicParameters> currentGaitParameters_;
       ocs2::BufferedValue<planners::BaseTrajectoryPlanner::BaseReferenceCommand> currentCommand_;
+
+      using EndEffectorTrajectories = legged_locomotion_mpc::locomotion::SwingTrajectoryPlanner::EndEffectorTrajectories;
+      ocs2::BufferedValue<EndEffectorTrajectories> referenceTrajectories_;
       
       std::unique_ptr<terrain_model::TerrainModel> currentTerrainModel_;
       ocs2::BufferedPointer<terrain_model::TerrainModel> bufferedTerrainModel_;

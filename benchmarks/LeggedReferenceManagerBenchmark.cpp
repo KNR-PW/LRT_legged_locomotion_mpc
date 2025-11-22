@@ -109,7 +109,7 @@ static void LeggedReferenceManager_PRESOLVE(benchmark::State & state)
   
   LeggedReferenceManager::Settings managerSettings;
 
-  LeggedReferenceManager manager(managerSettings, gaitPlanner, swingPlanner, basePlanner, 
+  LeggedReferenceManager manager(modelInfo, managerSettings, gaitPlanner, swingPlanner, basePlanner, 
     jointPlanner, forcePlanner);
 
   const auto modeSchedule = gaitPlanner->getModeSchedule(initTime, finalTime);

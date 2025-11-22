@@ -118,19 +118,60 @@ namespace legged_locomotion_mpc
 
         /** Main access method for generated cartesian reference velocities */
         std::vector<vector3_t> getEndEffectorVelocities(ocs2::scalar_t time) const;
+
+        /** Main access method for generated cartesian reference terrain clerance */
+        std::vector<ocs2::scalar_t> getEndEffectorClearances(ocs2::scalar_t time) const;
         
         /** Main access method for generated cartesian reference position trajectories 
-         * 3D position of leg i in time t: pos[t][i]
+         * 3D position of leg i in time (index) t: pos[t][i]
          */
         using position_trajectories = std::vector<std::vector<vector3_t>>;
         position_trajectories getEndEffectorPositionTrajectories(
           std::vector<ocs2::scalar_t> times) const;
 
         /** Main access method for generated cartesian reference velocity trajectories 
-         * 3D velocity of leg i in time t: vel[t][i]
+         * 3D velocity of leg i in time (index) t: vel[t][i]
          */
         using velocity_trajectories = std::vector<std::vector<vector3_t>>;
         velocity_trajectories getEndEffectorVelocityTrajectories(
+          std::vector<ocs2::scalar_t> times) const;
+        
+        /** Main access method for generated cartesian reference terrain clearance 
+         * trajectories of leg i in time (index) t: vel[t][i]
+         */
+        using foot_clearance_trajectory = std::vector<std::vector<ocs2::scalar_t>>;
+        foot_clearance_trajectory getEndEffectorClearanceTrajectories(
+          std::vector<ocs2::scalar_t> times) const;
+        
+        /**
+         * Complete foot trajectories for single timestamp
+         */
+        struct EndEffectorTrajectoriesPoint
+        {
+          std::vector<vector3_t> positions;
+          std::vector<vector3_t> velocities;
+          std::vector<ocs2::scalar_t> clearances;
+        };
+
+        /**
+         * Complete foot trajectories for all timestamps
+         */
+        struct EndEffectorTrajectories
+        {
+          position_trajectories positions;
+          velocity_trajectories velocities;
+          foot_clearance_trajectory clearances;
+        };
+
+        /** Main access method for generated end effector trajectory point */
+        EndEffectorTrajectoriesPoint getEndEffectorTrajectoryPoint(
+          ocs2::scalar_t time) const;
+
+        /** 
+         * Main, optimized version of upper 3 algorithms for generating reference foot
+         * trajectories. Access of leg i in time (index) t: points[t] -> pos[i], vel[i], cl[i]
+         */
+        EndEffectorTrajectories getEndEffectorTrajectories(
           std::vector<ocs2::scalar_t> times) const;
 
         /** Accessed by the controller for visualization */
