@@ -200,4 +200,9 @@ namespace legged_locomotion_mpc
     }
     return orientations;
   }
+
+  size_t PinocchioForwardCollisionKinematicsCppAd::getCollisionNumber() const
+  {
+    return numCollisions_;
+  }
 }  // namespace legged_locomotion_mpc

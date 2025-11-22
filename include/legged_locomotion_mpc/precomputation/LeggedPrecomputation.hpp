@@ -30,6 +30,7 @@
 #include <legged_locomotion_mpc/common/Types.hpp>
 #include <legged_locomotion_mpc/reference_manager/LeggedReferenceManager.hpp>
 #include <legged_locomotion_mpc/kinematics/PinocchioForwardEndEffectorKinematicsCppAd.hpp>
+#include <legged_locomotion_mpc/collision/PinocchioForwardCollisionKinematicsCppAd.hpp>
 #include <legged_locomotion_mpc/torque_approx/PinocchioTorqueApproximationCppAd.hpp>
 
 namespace legged_locomotion_mpc
@@ -41,6 +42,7 @@ namespace legged_locomotion_mpc
       LeggedPrecomputation(floating_base_model::FloatingBaseModelInfo modelInfo,
         const LeggedReferenceManager& referenceManager,
         const PinocchioForwardEndEffectorKinematicsCppAd& forwardKinematics,
+        const PinocchioForwardCollisionKinematicsCppAd& collisionKinematics,
         const PinocchioTorqueApproximationCppAd& torqueApproximator);
 
       ~LeggedPrecomputation() override = default;
@@ -70,6 +72,16 @@ namespace legged_locomotion_mpc
       const ocs2::VectorFunctionLinearApproximation& getEndEffectorAngularVelocityDerivatives(
         size_t endEffectorIndex) const;
 
+      const vector3_t& getCollisionLinkPosition(size_t collisionLinkIndex) const;
+
+      const ocs2::VectorFunctionLinearApproximation& getCollisionLinkPositionDerivatives(
+        size_t collisionLinkIndex) const;
+
+      const vector3_t& getCollisionLinkOrientation(size_t collisionLinkIndex) const;
+
+      const ocs2::VectorFunctionLinearApproximation& getCollisionLinkOrientationDerivatives(
+        size_t collisionLinkIndex) const;
+
       const ocs2::vector_t& getApproximatedJointTorques() const;
 
       const ocs2::VectorFunctionLinearApproximation& getApproximatedJointTorquesDerivatives() const;
@@ -98,11 +110,18 @@ namespace legged_locomotion_mpc
 
       void updateReferenceEndEffectorVelocities(ocs2::scalar_t time);
 
+      void updateCollisionKienmaticsData(ocs2::scalar_t time, const ocs2::vector_t& state);
+
+      void updateCollisionKienmaticsDerivatives(ocs2::scalar_t time, 
+        const ocs2::vector_t& state);
+
       const floating_base_model::FloatingBaseModelInfo modelInfo_;
       const size_t endEffectorNumber_;
+      const size_t collisionLinkNumber_;
 
       const LeggedReferenceManager& referenceManager_;
       const PinocchioForwardEndEffectorKinematicsCppAd& forwardKinematics_;
+      const PinocchioForwardCollisionKinematicsCppAd& collisionKinematics_;
       const PinocchioTorqueApproximationCppAd& torqueApproximator_;
 
       std::vector<vector3_t> endEffectorPositions_;
@@ -122,6 +141,12 @@ namespace legged_locomotion_mpc
       
       // Calculated from target trajectories
       std::vector<vector3_t> referenceEndEffectorLinearVelocities_;
+
+      std::vector<vector3_t> collisionLinkPositions_;
+      std::vector<ocs2::VectorFunctionLinearApproximation> collisionLinkPositionDerivaties_;
+
+      std::vector<vector3_t> collisionLinkEulerAngles_;
+      std::vector<ocs2::VectorFunctionLinearApproximation> collisionLinkEulerAngleDerivaties_;
 
       ocs2::vector_t torqueApproximation_;
       ocs2::VectorFunctionLinearApproximation torqueApproximationDerivatives_;

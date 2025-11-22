@@ -75,6 +75,8 @@ namespace legged_locomotion_mpc
     std::vector<ocs2::VectorFunctionLinearApproximation> getOrientationLinearApproximation(
       const ocs2::vector_t& state) const;
 
+    size_t getCollisionNumber() const;
+
    private:
     PinocchioForwardCollisionKinematicsCppAd(
         const PinocchioForwardCollisionKinematicsCppAd& rhs);

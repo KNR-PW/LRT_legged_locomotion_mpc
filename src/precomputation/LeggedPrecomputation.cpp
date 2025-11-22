@@ -11,12 +11,14 @@ namespace legged_locomotion_mpc
     FloatingBaseModelInfo modelInfo,
     const LeggedReferenceManager& referenceManager,
     const PinocchioForwardEndEffectorKinematicsCppAd& forwardKinematics,
+    const PinocchioForwardCollisionKinematicsCppAd& collisionKinematics,
     const PinocchioTorqueApproximationCppAd& torqueApproximator):
       PreComputation(), 
       endEffectorNumber_(modelInfo.numThreeDofContacts + modelInfo.numSixDofContacts),
       modelInfo_(std::move(modelInfo)), 
+      collisionLinkNumber_(collisionKinematics.getCollisionNumber()),
       referenceManager_(referenceManager),forwardKinematics_(forwardKinematics), 
-      torqueApproximator_(torqueApproximator) { }
+      collisionKinematics_(collisionKinematics), torqueApproximator_(torqueApproximator) {}
 
   LeggedPrecomputation* LeggedPrecomputation::clone() const
   { 
@@ -31,6 +33,12 @@ namespace legged_locomotion_mpc
     if(request.contains(Request::Constraint))
     {
       updateContactData(t, x, u);
+      updateReferenceEndEffectorVelocities(t);
+    }
+
+    if(request.contains(Request::SoftConstraint))
+    {
+      updateCollisionKienmaticsData(t, x);
     }
 
     if(request.contains(Request::Cost))
@@ -41,6 +49,7 @@ namespace legged_locomotion_mpc
     if(request.contains(Request::Approximation))
     {
       updateEndEffectorKinematicsDerivatives(t, x, u);
+      updateCollisionKienmaticsDerivatives(t, x);
     }
   }
 
@@ -67,7 +76,7 @@ namespace legged_locomotion_mpc
     return endEffectorEulerAngles_[endEffectorIndex - modelInfo_.numThreeDofContacts];
   }
 
-  const ocs2::VectorFunctionLinearApproximation& LeggedPrecomputation::getEndEffectorOrientationDerivatives(
+  const VectorFunctionLinearApproximation& LeggedPrecomputation::getEndEffectorOrientationDerivatives(
     size_t endEffectorIndex) const
   {
     assert(endEffectorIndex < endEffectorNumber_);
@@ -100,13 +109,49 @@ namespace legged_locomotion_mpc
     return endEffectorAngularVelocities_[endEffectorIndex - modelInfo_.numThreeDofContacts];
   }
 
-  const ocs2::VectorFunctionLinearApproximation& LeggedPrecomputation::getEndEffectorAngularVelocityDerivatives(
+  const VectorFunctionLinearApproximation& LeggedPrecomputation::getEndEffectorAngularVelocityDerivatives(
     size_t endEffectorIndex) const
   {
     assert(endEffectorIndex < endEffectorNumber_);
     assert(endEffectorIndex >= modelInfo_.numThreeDofContacts);
 
     return endEffectorAngularVelocityDerivaties_[endEffectorIndex  - modelInfo_.numThreeDofContacts];
+  }
+
+  const vector3_t& LeggedPrecomputation::getCollisionLinkPosition(
+    size_t collisionLinkIndex) const
+  {
+    assert(collisionLinkIndex < collisionLinkNumber_ + endEffectorNumber_);
+    assert(collisionLinkIndex >= endEffectorNumber_);
+
+    return collisionLinkPositions_[collisionLinkIndex - endEffectorNumber_];
+  }
+
+  const VectorFunctionLinearApproximation& LeggedPrecomputation::getCollisionLinkPositionDerivatives(
+    size_t collisionLinkIndex) const
+  {
+    assert(collisionLinkIndex < collisionLinkNumber_ + endEffectorNumber_);
+    assert(collisionLinkIndex >= endEffectorNumber_);
+
+    return collisionLinkPositionDerivaties_[collisionLinkIndex - endEffectorNumber_];
+  }
+
+  const vector3_t& LeggedPrecomputation::getCollisionLinkOrientation(
+    size_t collisionLinkIndex) const
+  {
+    assert(collisionLinkIndex < collisionLinkNumber_ + endEffectorNumber_);
+    assert(collisionLinkIndex >= endEffectorNumber_);
+
+    return collisionLinkEulerAngles_[collisionLinkIndex - endEffectorNumber_];
+  }
+
+  const VectorFunctionLinearApproximation& LeggedPrecomputation::getCollisionLinkOrientationDerivatives(
+    size_t collisionLinkIndex) const
+  {
+    assert(collisionLinkIndex < collisionLinkNumber_ + endEffectorNumber_);
+    assert(collisionLinkIndex >= endEffectorNumber_);
+
+    return collisionLinkEulerAngleDerivaties_[collisionLinkIndex - endEffectorNumber_];
   }
 
   const vector_t& LeggedPrecomputation::getApproximatedJointTorques() const
@@ -145,9 +190,11 @@ namespace legged_locomotion_mpc
   LeggedPrecomputation::LeggedPrecomputation(const LeggedPrecomputation& other):
     PreComputation(other), 
     endEffectorNumber_(other.endEffectorNumber_),
+    collisionLinkNumber_(other.collisionLinkNumber_),
     modelInfo_(other.modelInfo_), 
     referenceManager_(other.referenceManager_), 
     forwardKinematics_(other.forwardKinematics_),
+    collisionKinematics_(other.collisionKinematics_),
     torqueApproximator_(other.torqueApproximator_) {}
 
   void LeggedPrecomputation::updateContactData(scalar_t time,
@@ -202,5 +249,21 @@ namespace legged_locomotion_mpc
     const vector_t referenceInput = referenceManager_.getTargetTrajectories().getDesiredInput(time);
     referenceEndEffectorLinearVelocities_ = forwardKinematics_.getLinearVelocity(
       referenceState, referenceInput);
+  }
+
+  void LeggedPrecomputation::updateCollisionKienmaticsData(scalar_t time, 
+    const vector_t& state)
+  {
+    collisionLinkPositions_ = collisionKinematics_.getPosition(state);
+    collisionLinkEulerAngles_ = collisionKinematics_.getOrientation(state);
+  }
+
+  void LeggedPrecomputation::updateCollisionKienmaticsDerivatives(scalar_t time, 
+    const vector_t& state)
+  {
+    collisionLinkPositionDerivaties_ = collisionKinematics_.getPositionLinearApproximation(
+      state);
+    collisionLinkEulerAngleDerivaties_ = collisionKinematics_.getOrientationLinearApproximation(
+      state);
   }
 } // namespace legged_locomotion_mpc
