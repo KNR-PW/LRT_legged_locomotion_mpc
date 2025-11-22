@@ -24,6 +24,7 @@
 #include <pinocchio/fwd.hpp>
 #include <pinocchio/multibody/geometry.hpp>
 
+#include <ocs2_core/automatic_differentiation/CppAdInterface.h>
 #include <ocs2_pinocchio_interface/PinocchioInterface.h>
 #include <ocs2_sphere_approximation/SphereApproximation.h>
 
@@ -65,12 +66,19 @@ namespace legged_locomotion_mpc
          * @param [in] shrinkRatio: shrinking ratio for maxExcess to 
          * recursively approximate the circular base of the cylinder when more than one
          * collision sphere is required along the radial direction
+         * @param [in] modelFolder: folder to save the model library files to
+         * @param [in] recompileLibraries: If true, the model library will be newly
+         * compiled. If false, an existing library will be loaded if available.
+         * @param [in] verbose: print information.
          */
         PinocchioCollisionInterface(
           const floating_base_model::FloatingBaseModelInfo info,
           const ocs2::PinocchioInterface& pinocchioInterface,
           std::vector<std::string> otherCollisionLinks, 
-          const std::vector<ocs2::scalar_t>& maxExcesses, ocs2::scalar_t shrinkRatio);
+          const std::vector<ocs2::scalar_t>& maxExcesses, ocs2::scalar_t shrinkRatio,
+          const std::string& modelFolder = "/tmp/ocs2",
+          bool recompileLibraries = true,
+          bool verbose = false);
         
         /**
          * Get vector with number of spheres in every geometry in frame
@@ -98,8 +106,21 @@ namespace legged_locomotion_mpc
          * 3. other collision objects, as defined in otherCollisionLinks
          */
         const std::vector<vector3_t>& getFrameSpherePositions(size_t collisionIndex);
+        
+        /**
+         * Get partial derivative w.r.t euler ZYX angles 
+         * from rotation matrix and vector multiplication: d(R * v)/de.
+         * Used for calculating partial derivatives of sphere positions.
+         */
+        matrix3_t getRotationTimesVectorGradient(const vector3_t& eulerAnglesZYX, 
+          const vector3_t& vector);
 
       private:
+        
+        // Cpp AD version of rotation matrix and vector multiplication: R * v
+        ocs2::ad_vector_t getRotationTimesVectorCppAd(
+          const Eigen::Matrix<ocs2::ad_scalar_t, 3, 1>& eulerAnglesAD, 
+          const Eigen::Matrix<ocs2::ad_scalar_t, 3, 1>& vector);
         
         pinocchio::GeometryModel geometryModel_;
 
@@ -113,6 +134,10 @@ namespace legged_locomotion_mpc
 
         // Positions of sphere centers relative to their parent frame
         std::vector<std::vector<vector3_t>> frameToSpherePositons_;
+
+        // Helper Cpp AD function for getting partial derivative w.r.t euler ZYX angles
+        // from rotation matrix and vector multiplication: d(R * v)/de
+        std::unique_ptr<ocs2::CppAdInterface> rotationMatrixVectorAdInterfacePtr_;
     };
   } // namespace collision
 } // namespace legged_locomotion_mpc

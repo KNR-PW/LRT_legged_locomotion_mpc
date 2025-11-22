@@ -28,6 +28,8 @@
 #include <pinocchio/parsers/urdf.hpp>
 #include <pinocchio/algorithm/geometry.hpp>
 
+#include <ocs2_robotic_tools/common/RotationTransforms.h>
+
 namespace legged_locomotion_mpc
 {
   namespace collision
@@ -39,7 +41,8 @@ namespace legged_locomotion_mpc
       const FloatingBaseModelInfo info,
       const PinocchioInterface& pinocchioInterface,
       std::vector<std::string> otherCollisionLinks, 
-      const std::vector<scalar_t>& maxExcesses, scalar_t shrinkRatio)
+      const std::vector<scalar_t>& maxExcesses, scalar_t shrinkRatio,
+      const std::string& modelFolder, bool recompileLibraries, bool verbose)
     {
       if (!pinocchioInterface.getUrdfModelPtr()) 
       {
@@ -115,6 +118,23 @@ namespace legged_locomotion_mpc
         sphereRadiuses_.push_back(std::move(sphereRadiuses));
         frameToSpherePositons_.push_back(std::move(spherePositions));
       }
+
+      auto systemFlowMapFunc = [&](const ocs2::ad_vector_t& x, const ocs2::ad_vector_t& p, 
+        ocs2::ad_vector_t& y) 
+      {
+        const Eigen::Matrix<ocs2::ad_scalar_t, 3, 1> eulerAnglesAD = x;
+        const Eigen::Matrix<ocs2::ad_scalar_t, 3, 1> vector = p;
+        y = getRotationTimesVectorCppAd(eulerAnglesAD, vector);
+      };
+    
+      rotationMatrixVectorAdInterfacePtr_.reset(
+          new ocs2::CppAdInterface(systemFlowMapFunc, 3, 3, "rotation_times_vector_euler", modelFolder));
+    
+      if (recompileLibraries) {
+        rotationMatrixVectorAdInterfacePtr_->createModels(ocs2::CppAdInterface::ApproximationOrder::First, verbose);
+      } else {
+        rotationMatrixVectorAdInterfacePtr_->loadModelsIfAvailable(ocs2::CppAdInterface::ApproximationOrder::First, verbose);
+      }
     }
 
     const std::vector<size_t>& PinocchioCollisionInterface::getFrameSphereNumbers(
@@ -136,6 +156,26 @@ namespace legged_locomotion_mpc
     {
       assert(collisionIndex < frameNumber_);
       return frameToSpherePositons_[collisionIndex];
+    }
+
+    matrix3_t PinocchioCollisionInterface::getRotationTimesVectorGradient(
+      const vector3_t& eulerAnglesZYX, const vector3_t& vector)
+    {
+      const ocs2::vector_t x = (ocs2::vector_t(3) << eulerAnglesZYX).finished();
+      const ocs2::vector_t p = (ocs2::vector_t(3) << vector).finished();
+      const ocs2::matrix_t dynamicsJacobian = rotationMatrixVectorAdInterfacePtr_->getJacobian(x, p);
+      const matrix3_t approx = matrix3_t::Map(dynamicsJacobian.data());
+
+      return approx;
+    }
+
+    ocs2::ad_vector_t PinocchioCollisionInterface::getRotationTimesVectorCppAd(
+      const Eigen::Matrix<ocs2::ad_scalar_t, 3, 1>& eulerAnglesAD, 
+      const Eigen::Matrix<ocs2::ad_scalar_t, 3, 1>& vector)
+    {
+      const Eigen::Matrix<ocs2::ad_scalar_t, 3, 3> rotationMatrix = getRotationMatrixFromZyxEulerAngles(
+        eulerAnglesAD);
+      return rotationMatrix * vector;
     }
   } // namespace collision
 } // namespace legged_locomotion_mpc

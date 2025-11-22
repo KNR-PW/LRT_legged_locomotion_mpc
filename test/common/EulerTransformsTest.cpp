@@ -22,14 +22,15 @@ class RotationVectorMultiplicationAD final
       bool recompileLibraries = true,
       bool verbose = false)
     {
-      auto systemFlowMapFunc = [&](const ocs2::ad_vector_t& x, ocs2::ad_vector_t& y) {
-        const Eigen::Matrix<ocs2::ad_scalar_t, 3, 1> eulerAnglesAD = x.block<3, 1>(0, 0);
-        const Eigen::Matrix<ocs2::ad_scalar_t, 3, 1> vector = x.block<3, 1>(3, 0);
+      auto systemFlowMapFunc = [&](const ocs2::ad_vector_t& x, const ocs2::ad_vector_t& p, 
+        ocs2::ad_vector_t& y) {
+        const Eigen::Matrix<ocs2::ad_scalar_t, 3, 1> eulerAnglesAD = x;
+        const Eigen::Matrix<ocs2::ad_scalar_t, 3, 1> vector = p;
         y = getValueCppAd(eulerAnglesAD, vector);
       };
     
       systemFlowMapCppAdInterfacePtr_.reset(
-          new ocs2::CppAdInterface(systemFlowMapFunc, 6, "euler_to_matrix_systemFlowMap", modelFolder));
+          new ocs2::CppAdInterface(systemFlowMapFunc, 3, 3, "euler_to_matrix_systemFlowMap", modelFolder));
     
       if (recompileLibraries) {
         systemFlowMapCppAdInterfacePtr_->createModels(ocs2::CppAdInterface::ApproximationOrder::First, verbose);
@@ -38,19 +39,23 @@ class RotationVectorMultiplicationAD final
       }
     };
 
-    ocs2::vector_t getValue(vector3_t euler, vector3_t vector) const
+    vector3_t getValue(vector3_t euler, vector3_t vector) const
     {
-      const ocs2::vector_t state = (ocs2::vector_t(6) << euler, vector).finished();
-      return systemFlowMapCppAdInterfacePtr_->getFunctionValue(state);
+      const ocs2::vector_t x = (ocs2::vector_t(3) << euler).finished();
+      const ocs2::vector_t p = (ocs2::vector_t(3) << vector).finished();
+      const auto value = systemFlowMapCppAdInterfacePtr_->getFunctionValue(x, p);
+      const vector3_t resultVector = vector3_t::Map(value.data());
+      return resultVector;
     };
 
-    ocs2::matrix_t getLinearApproximation(vector3_t euler, 
+    matrix3_t getLinearApproximation(vector3_t euler, 
       vector3_t vector) const
     {
-      const ocs2::vector_t state = (ocs2::vector_t(6) << euler, vector).finished();
-      ocs2::matrix_t approx;
-      const ocs2::matrix_t dynamicsJacobian = systemFlowMapCppAdInterfacePtr_->getJacobian(state);
-      approx = dynamicsJacobian.leftCols(euler.rows());
+      const ocs2::vector_t x = (ocs2::vector_t(3) << euler).finished();
+      const ocs2::vector_t p = (ocs2::vector_t(3) << vector).finished();
+      const ocs2::matrix_t dynamicsJacobian = systemFlowMapCppAdInterfacePtr_->getJacobian(x, p);
+      const matrix3_t approx = matrix3_t::Map(dynamicsJacobian.data());
+
       return approx;
     };
 
