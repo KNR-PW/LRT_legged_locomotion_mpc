@@ -81,8 +81,8 @@ namespace legged_locomotion_mpc
       for(size_t i = 0; i < collisionFrames.size(); ++i)
       {
         const size_t frameIndex = collisionFrames[i];
-        const vector3_t framePosition = pinocchioInterface.getModel().frames[
-          frameIndex].placement.translation();
+        const auto& framePlacement = pinocchioInterface.getModel().frames[
+          frameIndex].placement;
 
         std::vector<size_t> sphereNumbers;
         std::vector<scalar_t> sphereRadiuses;
@@ -92,10 +92,14 @@ namespace legged_locomotion_mpc
         {
           const pinocchio::GeometryObject& object = geometryModel_.geometryObjects[j];
           const size_t parentFrameIndex = object.parentFrame;
-          const vector3_t objectCenterPosition = object.placement.translation();
-          const vector3_t frameToCenterPositon = objectCenterPosition - framePosition;
+
           if (parentFrameIndex == frameIndex) 
           {
+            const auto& objectCenterPlacement = object.placement;
+            const auto frameToCenterPlacement = framePlacement.actInv(objectCenterPlacement);
+            const auto& frameToCenterPosition = frameToCenterPlacement.translation();
+            const auto& centerToFrameRotation = frameToCenterPlacement.rotation();
+            
             const SphereApproximation sphereApproximation = SphereApproximation(*object.geometry, j, 
               maxExcesses[i], shrinkRatio);
 
@@ -105,11 +109,12 @@ namespace legged_locomotion_mpc
             const scalar_t sphereRadius = sphereApproximation.getSphereRadius();
             sphereRadiuses.insert(sphereRadiuses.end(), sphereNumber, sphereRadius);
 
-            const auto& centerToSpherePositons = sphereApproximation.getSphereCentersToObjectCenter();
+            const auto& centerToSpherePositions = sphereApproximation.getSphereCentersToObjectCenter();
 
             for(size_t k = 0; k < sphereNumber; ++k)
             {
-              const vector3_t frameToSphere = frameToCenterPositon + centerToSpherePositons[k];
+              const vector3_t frameToSphere = frameToCenterPosition + centerToFrameRotation * 
+                centerToSpherePositions[k];
               spherePositions.push_back(std::move(frameToSphere));
             }
           }
@@ -138,28 +143,28 @@ namespace legged_locomotion_mpc
     }
 
     const std::vector<size_t>& PinocchioCollisionInterface::getFrameSphereNumbers(
-      size_t collisionIndex)
+      size_t collisionIndex) const
     {
       assert(collisionIndex < frameNumber_);
       return sphereNumbers_[collisionIndex];
     }
 
     const std::vector<scalar_t>& PinocchioCollisionInterface::getFrameSphereRadiuses(
-      size_t collisionIndex)
+      size_t collisionIndex) const
     {
       assert(collisionIndex < frameNumber_);
       return sphereRadiuses_[collisionIndex];
     }
 
     const std::vector<vector3_t>& PinocchioCollisionInterface::getFrameSpherePositions(
-      size_t collisionIndex)
+      size_t collisionIndex) const
     {
       assert(collisionIndex < frameNumber_);
       return frameToSpherePositons_[collisionIndex];
     }
 
     matrix3_t PinocchioCollisionInterface::getRotationTimesVectorGradient(
-      const vector3_t& eulerAnglesZYX, const vector3_t& vector)
+      const vector3_t& eulerAnglesZYX, const vector3_t& vector) const
     {
       const ocs2::vector_t x = (ocs2::vector_t(3) << eulerAnglesZYX).finished();
       const ocs2::vector_t p = (ocs2::vector_t(3) << vector).finished();

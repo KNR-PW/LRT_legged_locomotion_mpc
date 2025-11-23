@@ -87,7 +87,7 @@ namespace legged_locomotion_mpc
          * 2. 6 DoF end effectors
          * 3. other collision objects, as defined in otherCollisionLinks
          */
-        const std::vector<size_t>& getFrameSphereNumbers(size_t collisionIndex);
+        const std::vector<size_t>& getFrameSphereNumbers(size_t collisionIndex) const;
 
         /**
          * Get vector with radius of every sphere in every geometry in frame
@@ -96,7 +96,7 @@ namespace legged_locomotion_mpc
          * 2. 6 DoF end effectors
          * 3. other collision objects, as defined in otherCollisionLinks
          */
-        const std::vector<ocs2::scalar_t>& getFrameSphereRadiuses(size_t collisionIndex);
+        const std::vector<ocs2::scalar_t>& getFrameSphereRadiuses(size_t collisionIndex) const;
 
         /**
          * Get vector with position of every sphere in every geometry with respect to frame
@@ -105,7 +105,7 @@ namespace legged_locomotion_mpc
          * 2. 6 DoF end effectors
          * 3. other collision objects, as defined in otherCollisionLinks
          */
-        const std::vector<vector3_t>& getFrameSpherePositions(size_t collisionIndex);
+        const std::vector<vector3_t>& getFrameSpherePositions(size_t collisionIndex) const;
         
         /**
          * Get partial derivative w.r.t euler ZYX angles 
@@ -113,7 +113,7 @@ namespace legged_locomotion_mpc
          * Used for calculating partial derivatives of sphere positions.
          */
         matrix3_t getRotationTimesVectorGradient(const vector3_t& eulerAnglesZYX, 
-          const vector3_t& vector);
+          const vector3_t& vector) const;
 
       private:
         
