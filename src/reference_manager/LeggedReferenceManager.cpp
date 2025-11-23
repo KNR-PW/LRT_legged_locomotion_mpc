@@ -1,6 +1,6 @@
 #include <legged_locomotion_mpc/reference_manager/LeggedReferenceManager.hpp>
 
-#include <ocs2_core/misc/Lookup.h>
+#include <ocs2_core/misc/LinearInterpolation.h>
 
 namespace legged_locomotion_mpc
 {
@@ -70,16 +70,48 @@ namespace legged_locomotion_mpc
   EndEffectorTrajectoriesPoint LeggedReferenceManager::getEndEffectorTrajectoryPoint(
     scalar_t time) const
   {
-    const auto timeIndex = lookup::findIndexInTimeArray(
-      getTargetTrajectories().timeTrajectory, time);
+    const auto indexAlpha = LinearInterpolation::timeSegment(time, 
+      getTargetTrajectories().timeTrajectory);
+    const size_t index = indexAlpha.first;
+    const scalar_t alpha = indexAlpha.second;
+    const scalar_t one_minus_alpha = 1.0 - alpha;
+
+    const size_t numEndEffectors = modelInfo_.numThreeDofContacts + 
+      modelInfo_.numSixDofContacts;
 
     EndEffectorTrajectoriesPoint point;
 
+    point.positions.reserve(numEndEffectors);
+    point.velocities.reserve(numEndEffectors);
+    point.clearances.reserve(numEndEffectors);
+
     const EndEffectorTrajectories& referenceTrajectories = referenceTrajectories_.get();
     
-    point.positions = referenceTrajectories.positions[timeIndex];
-    point.velocities = referenceTrajectories.velocities[timeIndex];
-    point.clearances = referenceTrajectories.clearances[timeIndex];
+    const auto& lhsPositions = referenceTrajectories.positions[index];
+    const auto& rhsPositions = referenceTrajectories.positions[index + 1];
+
+    const auto& lhsVelocities = referenceTrajectories.velocities[index];
+    const auto& rhsVelocities = referenceTrajectories.velocities[index + 1];
+
+    const auto& lhsClearances = referenceTrajectories.clearances[index];
+    const auto& rhsClearances = referenceTrajectories.clearances[index + 1];
+    
+    for(size_t i = 0; i < numEndEffectors; ++i)
+    {
+      const vector3_t& lhsPosition = lhsPositions[i];
+      const vector3_t& rhsPosition = rhsPositions[i];
+
+      const vector3_t& lhsVelocity = lhsVelocities[i];
+      const vector3_t& rhsVelocity = rhsVelocities[i];
+
+      const scalar_t lhsClearance = lhsClearances[i];
+      const scalar_t rhsClearance = rhsClearances[i];
+
+      point.positions.emplace_back(alpha * lhsPosition + one_minus_alpha * rhsPosition);
+      point.velocities.emplace_back(alpha * lhsVelocity + one_minus_alpha * rhsVelocity);
+      point.clearances.emplace_back(alpha * lhsClearance + one_minus_alpha * rhsClearance);
+    }
+    return point;
   }
 
   void LeggedReferenceManager::preSolverRun(scalar_t initTime, scalar_t finalTime, 

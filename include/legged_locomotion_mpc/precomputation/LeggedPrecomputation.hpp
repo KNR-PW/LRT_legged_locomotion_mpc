@@ -90,7 +90,11 @@ namespace legged_locomotion_mpc
 
       const vector3_t& getSurfaceNormal(size_t endEffectorIndex) const;
 
+      const vector3_t& getReferenceEndEffectorPosition(size_t endEffectorIndex) const;
+
       const vector3_t& getReferenceEndEffectorLinearVelocity(size_t endEffectorIndex) const;
+      
+      ocs2::scalar_t getReferenceEndEffectorTerrainClearance(size_t endEffectorIndex) const;
 
     private:
 
@@ -108,7 +112,7 @@ namespace legged_locomotion_mpc
       void updateApproximatedTorquesData(ocs2::scalar_t time, const ocs2::vector_t& state, 
         const ocs2::vector_t& input);
 
-      void updateReferenceEndEffectorVelocities(ocs2::scalar_t time);
+      void updateReferenceEndEffectorData(ocs2::scalar_t time);
 
       void updateCollisionKienmaticsData(ocs2::scalar_t time, const ocs2::vector_t& state);
 
@@ -138,15 +142,19 @@ namespace legged_locomotion_mpc
 
       std::vector<matrix3_t> rotationWorldToTerrains_;
       std::vector<vector3_t> surfaceNormals_;
-      
-      // Calculated from target trajectories
-      std::vector<vector3_t> referenceEndEffectorLinearVelocities_;
 
       std::vector<vector3_t> collisionLinkPositions_;
       std::vector<ocs2::VectorFunctionLinearApproximation> collisionLinkPositionDerivaties_;
 
       std::vector<vector3_t> collisionLinkEulerAngles_;
       std::vector<ocs2::VectorFunctionLinearApproximation> collisionLinkEulerAngleDerivaties_;
+      
+      /**
+       * Includes reference trajectory in time t for:
+       * positions, velocities and terrain clearances for each end effector
+       */
+      using EndEffectorTrajectoriesPoint = locomotion::SwingTrajectoryPlanner::EndEffectorTrajectoriesPoint;
+      EndEffectorTrajectoriesPoint referenceTrajectoryPoint_;
 
       ocs2::vector_t torqueApproximation_;
       ocs2::VectorFunctionLinearApproximation torqueApproximationDerivatives_;

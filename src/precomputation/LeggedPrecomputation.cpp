@@ -28,17 +28,19 @@ namespace legged_locomotion_mpc
   void LeggedPrecomputation::request(RequestSet request, scalar_t t, 
     const vector_t &x, const vector_t &u)
   {
+    // TODO POPRAW DLA KAZDEGO PRZYPADKU
     updateEndEffectorKinematicsData(t, x, u);
 
     if(request.contains(Request::Constraint))
     {
       updateContactData(t, x, u);
-      updateReferenceEndEffectorVelocities(t);
+      updateReferenceEndEffectorData(t);
     }
 
     if(request.contains(Request::SoftConstraint))
     {
       updateCollisionKienmaticsData(t, x);
+      updateReferenceEndEffectorData(t);
     }
 
     if(request.contains(Request::Cost))
@@ -180,11 +182,25 @@ namespace legged_locomotion_mpc
     return surfaceNormals_[endEffectorIndex];
   }
 
+  const vector3_t& LeggedPrecomputation::getReferenceEndEffectorPosition(
+    size_t endEffectorIndex) const
+  {
+    assert(endEffectorIndex < endEffectorNumber_);
+    return referenceTrajectoryPoint_.positions[endEffectorIndex];
+  }
+
   const vector3_t& LeggedPrecomputation::getReferenceEndEffectorLinearVelocity(
     size_t endEffectorIndex) const
   {
     assert(endEffectorIndex < endEffectorNumber_);
-    return referenceEndEffectorLinearVelocities_[endEffectorIndex];
+    return referenceTrajectoryPoint_.velocities[endEffectorIndex];
+  }
+
+  scalar_t LeggedPrecomputation::getReferenceEndEffectorTerrainClearance(
+    size_t endEffectorIndex) const
+  {
+    assert(endEffectorIndex < endEffectorNumber_);
+    return referenceTrajectoryPoint_.clearances[endEffectorIndex];
   }
 
   LeggedPrecomputation::LeggedPrecomputation(const LeggedPrecomputation& other):
@@ -243,12 +259,9 @@ namespace legged_locomotion_mpc
     torqueApproximationDerivatives_ = torqueApproximator_.getLinearApproximation(state, input);
   }
 
-  void LeggedPrecomputation::updateReferenceEndEffectorVelocities(scalar_t time)
+  void LeggedPrecomputation::updateReferenceEndEffectorData(ocs2::scalar_t time)
   {
-    const vector_t referenceState = referenceManager_.getTargetTrajectories().getDesiredState(time);
-    const vector_t referenceInput = referenceManager_.getTargetTrajectories().getDesiredInput(time);
-    referenceEndEffectorLinearVelocities_ = forwardKinematics_.getLinearVelocity(
-      referenceState, referenceInput);
+    referenceTrajectoryPoint_ = referenceManager_.getEndEffectorTrajectoryPoint(time);
   }
 
   void LeggedPrecomputation::updateCollisionKienmaticsData(scalar_t time, 
