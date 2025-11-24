@@ -1,0 +1,264 @@
+// Copyright (c) 2025, Koło Naukowe Robotyków
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+/*
+ * Authors: Bartłomiej Krajewski (https://github.com/BartlomiejK2)
+ */
+
+#include <legged_locomotion_mpc/soft_constraint/TerrainAvoidanceSoftConstraint.hpp>
+
+#include <ocs2_robotic_tools/common/RotationTransforms.h>
+
+#include <legged_locomotion_mpc/precomputation/LeggedPrecomputation.hpp>
+
+namespace legged_locomotion_mpc
+{
+  
+  using namespace ocs2;
+  using namespace floating_base_model;
+  using namespace collision;
+  using namespace terrain_model;
+
+  TerrainAvoidanceSoftConstraint::TerrainAvoidanceSoftConstraint(
+    FloatingBaseModelInfo info,
+    const PinocchioCollisionInterface& collisionInterface,
+    const LeggedReferenceManager& referenceManager,
+    std::vector<size_t> collisionLinks,
+    std::vector<scalar_t> relaxations,
+    RelaxedBarrierPenalty::Config settings):
+      threeDofEndEffectorNum_(info.numThreeDofContacts),
+      sixDofEndEffectorNum_(info.numSixDofContacts),
+      endEffectorNum_(info.numThreeDofContacts + info.numSixDofContacts),
+      collisionLinkIndicies_(std::move(collisionLinks)),
+      referenceManager_(referenceManager),
+      collisionInterface_(collisionInterface),
+      relaxations_(std::move(relaxations)),
+      terrainAvoidancePenaltyPtr_(new RelaxedBarrierPenalty(settings)) {}
+
+  TerrainAvoidanceSoftConstraint* TerrainAvoidanceSoftConstraint::clone() const
+  {
+    return new TerrainAvoidanceSoftConstraint(*this);
+  }
+
+  scalar_t TerrainAvoidanceSoftConstraint::getValue(
+    scalar_t time, const vector_t& state, const TargetTrajectories& targetTrajectories, 
+    const PreComputation& preComp) const
+  {
+    const auto& leggedPrecomputation = cast<LeggedPrecomputation>(preComp);
+    const SignedDistanceField* sdf = referenceManager_.getTerrainModel()
+      .getSignedDistanceField();
+
+    scalar_t cost = 0.0;
+
+    // Three Dof End Effectors (one sphere)
+    for(size_t i = 0; i < threeDofEndEffectorNum_; ++i)
+    {
+      const scalar_t radius = collisionInterface_.getFrameSphereRadiuses(i)[0];
+      const vector3_t& position = leggedPrecomputation.getEndEffectorPosition(i);
+      const scalar_t terrainClearance = leggedPrecomputation.getReferenceEndEffectorTerrainClearance(i);
+      const scalar_t relaxation = relaxations_[i];
+      const scalar_t distance = sdf->value(position) - terrainClearance
+        - radius + relaxation;
+      cost += terrainAvoidancePenaltyPtr_->getValue(0.0, distance);
+    }
+
+    // Six Dof End Effectors (many spheres)
+    for(size_t i = threeDofEndEffectorNum_; i < endEffectorNum_; ++i)
+    {
+      const std::vector<scalar_t>& radiuses = collisionInterface_.getFrameSphereRadiuses(i);
+      const std::vector<vector3_t>& sphereRelativePositions = collisionInterface_.getFrameSpherePositions(i);
+      const vector3_t& framePosition = leggedPrecomputation.getEndEffectorPosition(i);
+      const vector3_t& frameEulerAngles = leggedPrecomputation.getEndEffectorOrientation(i);
+      const matrix3_t rotationMatrix = getRotationMatrixFromZyxEulerAngles(frameEulerAngles);
+      std::vector<scalar_t> distances(sphereRelativePositions.size());
+      for(size_t j = 0; j < sphereRelativePositions.size(); ++j)
+      {
+        const vector3_t spherePositionInWorld = framePosition + rotationMatrix * sphereRelativePositions[j];
+        distances[j] = sdf->value(spherePositionInWorld) - radiuses[j];
+      }      
+      const scalar_t relaxation = relaxations_[i];
+      const scalar_t terrainClearance = leggedPrecomputation.getReferenceEndEffectorTerrainClearance(i);
+      const scalar_t distance = *std::min_element(distances.begin(), distances.end()) 
+        - terrainClearance + relaxation;
+      cost += terrainAvoidancePenaltyPtr_->getValue(0.0, distance);
+    }
+
+    // Collison links (one or many spheres)
+    for(size_t i = 0; i < collisionLinkIndicies_.size(); ++i)
+    {
+      const size_t collisionIndex = collisionLinkIndicies_[i];
+      const std::vector<scalar_t>& radiuses = collisionInterface_.getFrameSphereRadiuses(
+        collisionIndex);
+      const std::vector<vector3_t>& sphereRelativePositions = collisionInterface_.getFrameSpherePositions(collisionIndex);
+      const vector3_t& framePosition = leggedPrecomputation.getCollisionLinkPosition(i);
+      const vector3_t& frameEulerAngles = leggedPrecomputation.getCollisionLinkOrientation(i);
+      const matrix3_t rotationMatrix = getRotationMatrixFromZyxEulerAngles(frameEulerAngles);
+      std::vector<scalar_t> distances(sphereRelativePositions.size());
+      for(size_t j = 0; j < sphereRelativePositions.size(); ++j)
+      {
+        const vector3_t spherePositionInWorld = framePosition + rotationMatrix * sphereRelativePositions[j];
+        distances[j] = sdf->value(spherePositionInWorld) - radiuses[j];
+      }      
+      const scalar_t relaxation = relaxations_[i + endEffectorNum_];
+      const scalar_t distance = *std::min_element(distances.begin(), distances.end()) 
+        + relaxation;
+      cost += terrainAvoidancePenaltyPtr_->getValue(0.0, distance);
+    }
+    return cost;
+  }
+
+      
+  ScalarFunctionQuadraticApproximation TerrainAvoidanceSoftConstraint::getQuadraticApproximation(
+    scalar_t time, const vector_t& state, const TargetTrajectories& targetTrajectories,
+    const PreComputation& preComp) const
+  {
+    const auto& leggedPrecomputation = cast<LeggedPrecomputation>(preComp);
+    const SignedDistanceField* sdf = referenceManager_.getTerrainModel()
+      .getSignedDistanceField();
+
+    ScalarFunctionQuadraticApproximation cost;
+    cost.f = 0.0;
+    cost.dfdx = vector_t::Zero(state.size());
+    cost.dfdxx = vector_t::Zero(state.size(), state.size());
+
+    // Three Dof End Effectors (one sphere)
+    for(size_t i = 0; i < threeDofEndEffectorNum_; ++i)
+    {
+      const scalar_t radius = collisionInterface_.getFrameSphereRadiuses(i)[0];
+      const vector3_t& position = leggedPrecomputation.getEndEffectorPosition(i);
+      const scalar_t terrainClearance = leggedPrecomputation.getReferenceEndEffectorTerrainClearance(i);
+      const scalar_t relaxation = relaxations_[i];
+      const auto [sdfDistance, sdfGradient] = sdf->valueAndDerivative(position);
+      const scalar_t distance = sdfDistance - radius - terrainClearance + relaxation;
+      cost.f += terrainAvoidancePenaltyPtr_->getValue(0.0, distance);
+
+      const scalar_t penaltyDerivative = terrainAvoidancePenaltyPtr_->getDerivative(
+        0.0, distance);
+
+      const scalar_t penaltySecondDerivative = terrainAvoidancePenaltyPtr_->getSecondDerivative(
+        0.0, distance);
+
+      const auto& positionDerivative = leggedPrecomputation.getEndEffectorPositionDerivatives(i);
+      
+      const vector_t scaledGrdaient = positionDerivative.dfdx.transpose() * sdfGradient;
+      
+      cost.dfdx.noalias() += penaltyDerivative * scaledGrdaient;
+
+      // Approximated second derivative (sdf and postion second gradients are omitted)
+      cost.dfdxx.noalias() += penaltySecondDerivative * scaledGrdaient * scaledGrdaient.transpose();
+    }
+
+    // Six Dof End Effectors (many spheres)
+    for(size_t i = threeDofEndEffectorNum_; i < endEffectorNum_; ++i)
+    {
+      const std::vector<scalar_t>& radiuses = collisionInterface_.getFrameSphereRadiuses(i);
+      const std::vector<vector3_t>& sphereRelativePositions = collisionInterface_.getFrameSpherePositions(i);
+      const vector3_t& framePosition = leggedPrecomputation.getEndEffectorPosition(i);
+      const vector3_t& frameEulerAngles = leggedPrecomputation.getEndEffectorOrientation(i);
+      const matrix3_t rotationMatrix = getRotationMatrixFromZyxEulerAngles(frameEulerAngles);
+      std::vector<scalar_t> distances(sphereRelativePositions.size());
+      for(size_t j = 0; j < sphereRelativePositions.size(); ++j)
+      {
+        const vector3_t spherePositionInWorld = framePosition + rotationMatrix * sphereRelativePositions[j];
+        distances[j] = sdf->value(spherePositionInWorld) - radiuses[j];
+      }      
+
+      const scalar_t relaxation = relaxations_[i];
+      const auto minDistanceIterator = std::min_element(distances.begin(), distances.end());
+      const size_t minDistanceIndex = std::distance(distances.begin(), minDistanceIterator);
+      const scalar_t terrainClearance = leggedPrecomputation.getReferenceEndEffectorTerrainClearance(i);
+      const scalar_t distance = distances[minDistanceIndex] - terrainClearance + relaxation;
+      
+      cost.f += terrainAvoidancePenaltyPtr_->getValue(0.0, distance);
+
+      const vector3_t minSpherePosition = framePosition + rotationMatrix * sphereRelativePositions[minDistanceIndex];
+
+      const vector3_t sdfGradient = sdf->derivative(minSpherePosition);
+
+      const scalar_t penaltyDerivative = terrainAvoidancePenaltyPtr_->getDerivative(
+        0.0, distance);
+
+      const scalar_t penaltySecondDerivative = terrainAvoidancePenaltyPtr_->getSecondDerivative(
+        0.0, distance);
+
+      const auto& positionDerivative = leggedPrecomputation.getEndEffectorPositionDerivatives(i);
+      
+      const vector_t scaledGrdaient = positionDerivative.dfdx.transpose() * sdfGradient;
+      
+      cost.dfdx.noalias() += penaltyDerivative * scaledGrdaient;
+
+      // Approximated second derivative (sdf and postion second gradients are omitted)
+      cost.dfdxx.noalias() += penaltySecondDerivative * scaledGrdaient * scaledGrdaient.transpose();
+    }
+
+    // Collison links (one or many spheres)
+    for(size_t i = 0; i < collisionLinkIndicies_.size(); ++i)
+    {
+      const size_t collisionIndex = collisionLinkIndicies_[i];
+      const std::vector<scalar_t>& radiuses = collisionInterface_.getFrameSphereRadiuses(
+        collisionIndex);
+      const std::vector<vector3_t>& sphereRelativePositions = collisionInterface_.getFrameSpherePositions(collisionIndex);
+      const vector3_t& framePosition = leggedPrecomputation.getCollisionLinkPosition(i);
+      const vector3_t& frameEulerAngles = leggedPrecomputation.getCollisionLinkOrientation(i);
+      const matrix3_t rotationMatrix = getRotationMatrixFromZyxEulerAngles(frameEulerAngles);
+      std::vector<scalar_t> distances(sphereRelativePositions.size());
+      for(size_t j = 0; j < sphereRelativePositions.size(); ++j)
+      {
+        const vector3_t spherePositionInWorld = framePosition + rotationMatrix * sphereRelativePositions[j];
+        distances[j] = sdf->value(spherePositionInWorld) - radiuses[j];
+      }      
+
+      const scalar_t relaxation = relaxations_[i];
+      const auto minDistanceIterator = std::min_element(distances.begin(), distances.end());
+      const size_t minDistanceIndex = std::distance(distances.begin(), minDistanceIterator);
+
+      const scalar_t distance = distances[minDistanceIndex] + relaxation;
+      
+      cost.f += terrainAvoidancePenaltyPtr_->getValue(0.0, distance);
+
+      const vector3_t minSpherePosition = framePosition + rotationMatrix * sphereRelativePositions[minDistanceIndex];
+
+      const vector3_t sdfGradient = sdf->derivative(minSpherePosition);
+
+      const scalar_t penaltyDerivative = terrainAvoidancePenaltyPtr_->getDerivative(
+        0.0, distance);
+
+      const scalar_t penaltySecondDerivative = terrainAvoidancePenaltyPtr_->getSecondDerivative(
+        0.0, distance);
+
+      const auto& positionDerivative = leggedPrecomputation.getCollisionLinkPositionDerivatives(collisionIndex);
+      
+      const vector_t scaledGrdaient = positionDerivative.dfdx.transpose() * sdfGradient;
+      
+      cost.dfdx.noalias() += penaltyDerivative * scaledGrdaient;
+
+      // Approximated second derivative (sdf and postion second gradients are omitted)
+      cost.dfdxx.noalias() += penaltySecondDerivative * scaledGrdaient * scaledGrdaient.transpose();
+    }
+
+    return cost;
+  }
+
+  TerrainAvoidanceSoftConstraint::TerrainAvoidanceSoftConstraint(
+    const TerrainAvoidanceSoftConstraint& rhs):
+      threeDofEndEffectorNum_(rhs.threeDofEndEffectorNum_),
+      sixDofEndEffectorNum_(rhs.sixDofEndEffectorNum_),
+      endEffectorNum_(rhs.endEffectorNum_),
+      collisionLinkIndicies_(rhs.collisionLinkIndicies_),
+      referenceManager_(rhs.referenceManager_),
+      collisionInterface_(rhs.collisionInterface_),
+      relaxations_(rhs.relaxations_),
+      terrainAvoidancePenaltyPtr_(rhs.terrainAvoidancePenaltyPtr_->clone()) {}
+} // namespace legged_locomotion_mpc

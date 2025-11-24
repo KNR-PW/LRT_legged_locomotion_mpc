@@ -103,6 +103,7 @@ add_library(${PROJECT_NAME}
 
   src/soft_constraint/TorqueLimitsSoftConstraint.cpp
   src/soft_constraint/JointLimitsSoftConstraint.cpp
+  src/soft_constraint/TerrainAvoidanceSoftConstraint.cpp
 )
 
 target_include_directories(${PROJECT_NAME}

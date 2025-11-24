@@ -20,26 +20,26 @@
 #ifndef __TERRAIN_AVOIDANCE_SOFT_CONSTRAINT_LEGGED_LOCOMOTION_MPC__
 #define __TERRAIN_AVOIDANCE_SOFT_CONSTRAINT_LEGGED_LOCOMOTION_MPC__
 
-#include <ocs2_core/cost/StateInputCost.h>
+#include <ocs2_core/cost/StateCost.h>
 #include <ocs2_core/penalties/Penalties.h>
-#include <ocs2_core/automatic_differentiation/CppAdInterface.h>
-#include <ocs2_sphere_approximation/PinocchioSphereInterface.h>
 
 #include <floating_base_model/FloatingBaseModelInfo.hpp>
 
 #include <legged_locomotion_mpc/common/Types.hpp>
+#include <legged_locomotion_mpc/collision/PinocchoCollisionInterface.hpp>
+#include <legged_locomotion_mpc/reference_manager/LeggedReferenceManager.hpp>
 
 namespace legged_locomotion_mpc
 {
   /**
    * Constraint that ensures that end effectors do not go through terrain:
-   * max(terrain_sdf(pos_ee)) - r_e + relax > 0 where:
+   * min(terrain_sdf(pos_ee)) - r_e + relax > 0 where:
    * terrain_sdf - terrain sdf 
-   * pos_ee - all end effector sphere approximation positons
+   * pos_ee - all sphere approximation positons of end effector or collision link
    * r_e - radius of end effector sphere
    * relax - relaxation constraint value
    */
-  class TerrainAvoidanceSoftConstraint final: public ocs2::StateInputCost 
+  class TerrainAvoidanceSoftConstraint final: public ocs2::StateCost 
   {
     public:
 
@@ -47,50 +47,54 @@ namespace legged_locomotion_mpc
        * Constructor
        * @param [in] info: Floating Base model info.
        * @param [in] sphereInterface: interface for sphere approximation
-       * @param [in] relaxation: Relax constraint values.
-       * @param [in] jointVelocityLimits: Maximum joint velocities.
-       * @param [in] settings: Relaxed barrier penalty settings 
+       * @param [in] collisionIndices: Indexes of end effectors (0 : endEffectorNum - 1)
+       * or collision links (endEffectorNum : endEffectorNum + collisionNum - 1).
+       * @param [in] referenceManager: Legged Reference Manager
+       * @param [in] relaxations: Relax constraint values (for end effectors and 
+       * collision links).
+       * @param [in] settings: Relaxed barrier penalty settings
        * 
+       * @warning All end effectors ale by default added, in collisionIndices include 
+       * only additional links defined as collision links
        */
-     TerrainAvoidanceSoftConstraint(floating_base_model::FloatingBaseModelInfo info,
-        ocs2::vector_t jointPositionUpperLimits,
-        ocs2::vector_t jointPositionLowerLimits,
-        ocs2::vector_t jointVelocityLimits,
+      TerrainAvoidanceSoftConstraint(
+        floating_base_model::FloatingBaseModelInfo info,
+        const collision::PinocchioCollisionInterface& collisionInterface,
+        const LeggedReferenceManager& referenceManager,
+        std::vector<size_t> collisionLinks,
+        std::vector<ocs2::scalar_t> relaxations,
         ocs2::RelaxedBarrierPenalty::Config settings);
 
-      ~JointLimitsSoftConstraint() override = default;
+      ~TerrainAvoidanceSoftConstraint() override = default;
 
      TerrainAvoidanceSoftConstraint* clone() const override;
 
       /** Get cost term value */
-      ocs2::scalar_t getValue(ocs2::scalar_t time, const ocs2::vector_t& state,
-        const ocs2::vector_t& input, const ocs2::TargetTrajectories& targetTrajectories,
+      ocs2::scalar_t getValue(ocs2::scalar_t time, const ocs2::vector_t& state, 
+        const ocs2::TargetTrajectories& targetTrajectories, 
         const ocs2::PreComputation& preComp) const override;
 
       /** Get cost term quadratic approximation */
       ocs2::ScalarFunctionQuadraticApproximation getQuadraticApproximation(
-        ocs2::scalar_t time, const ocs2::vector_t& state, const ocs2::vector_t& input,
-        const ocs2::TargetTrajectories& targetTrajectories,
+        ocs2::scalar_t time, const ocs2::vector_t& state, 
+        const ocs2::TargetTrajectories& targetTrajectories, 
         const ocs2::PreComputation& preComp) const override;
 
     private:
-     TerrainAvoidanceSoftConstraint(constTerrainAvoidanceSoftConstraint &rhs);
-        
-      const floating_base_model::FloatingBaseModelInfo info_;
-      const ocs2::vector_t jointPositionUpperLimits_;
-      const ocs2::vector_t jointPositionLowerLimits_;
-      const ocs2::vector_t jointVelocityLimits_;
+      TerrainAvoidanceSoftConstraint(const TerrainAvoidanceSoftConstraint& rhs);
 
-      std::unique_ptr<ocs2::RelaxedBarrierPenalty> jointRelaxedBarrierPenaltyPtr_;
+      const size_t threeDofEndEffectorNum_;
+      const size_t sixDofEndEffectorNum_;
+      const size_t endEffectorNum_;
+      const std::vector<size_t> collisionLinkIndicies_;
 
-      /**
-       * Get partial derivatives of rotation matrix times vector 
-       * with respect to euler angles
-       */
-      std::unique_ptr<ocs2::CppAdInterface> rotationMatrixVectorAdInterfacePtr_;
+      const std::vector<ocs2::scalar_t> relaxations_;
 
-    };
-
+      const LeggedReferenceManager& referenceManager_;
+      const collision::PinocchioCollisionInterface& collisionInterface_;
+      
+      std::unique_ptr<ocs2::RelaxedBarrierPenalty> terrainAvoidancePenaltyPtr_;
+  };
 } // namespace legged_locomotion_mpc
 
 #endif
