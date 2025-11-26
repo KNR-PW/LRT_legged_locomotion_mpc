@@ -17,8 +17,8 @@
  * Authors: Bartłomiej Krajewski (https://github.com/BartlomiejK2)
  */
 
-#ifndef __TERRAIN_AVOIDANCE_SOFT_CONSTRAINT_LEGGED_LOCOMOTION_MPC__
-#define __TERRAIN_AVOIDANCE_SOFT_CONSTRAINT_LEGGED_LOCOMOTION_MPC__
+#ifndef __SELF_COLLISION_AVOIDANCE_SOFT_CONSTRAINT_LEGGED_LOCOMOTION_MPC__
+#define __SELF_COLLISION_AVOIDANCE_SOFT_CONSTRAINT_LEGGED_LOCOMOTION_MPC__
 
 #include <ocs2_core/cost/StateCost.h>
 #include <ocs2_core/penalties/Penalties.h>
@@ -32,14 +32,14 @@
 namespace legged_locomotion_mpc
 {
   /**
-   * Constraint that ensures that end effectors do not go through terrain:
-   * min(terrain_sdf(pos_ee)) - r_e + relax > 0 where:
-   * terrain_sdf - terrain sdf 
-   * pos_ee - all sphere approximation positons of end effector or collision link
-   * r_e - radius of end effector or collision link sphere
+   * Constraint that ensures that end effectors and/or links do not collide with each other.
+   * min(dist(p_1 - p_2)) - r_1 - r_2 + relax > 0 where:
+   * min(dist(p_1 - p_2)) - minimal distance between approximation 
+   * spheres of two end effector or links
+   * r_1, r_2 - radiuses of end effector or collision link sphere
    * relax - relaxation constraint value
    */
-  class TerrainAvoidanceSoftConstraint final: public ocs2::StateCost 
+  class SelfCollisionAvoidanceSoftConstraint final: public ocs2::StateCost 
   {
     public:
 
@@ -47,27 +47,24 @@ namespace legged_locomotion_mpc
        * Constructor
        * @param [in] info: Floating Base model info.
        * @param [in] sphereInterface: interface for sphere approximation
-       * @param [in] referenceManager: Legged Reference Manager
-       * @param [in] collisionIndices: Indexes of end effectors (0 : endEffectorNum - 1)
+       * @param [in] collisionPairIndices: Pair of self collsion 
+       * indexes of end effectors (0 : endEffectorNum - 1)
        * or collision links (endEffectorNum : endEffectorNum + collisionNum - 1).
-       * @param [in] relaxations: Relax constraint values (for end effectors and 
-       * collision links).
+       * @param [in] referenceManager: Legged Reference Manager
+       * @param [in] relaxations: Relax constraint values (for all pairs).
        * @param [in] settings: Relaxed barrier penalty settings
-       * 
-       * @warning All end effectors ale by default added, in collisionIndices include 
-       * only additional links defined as collision links
        */
-      TerrainAvoidanceSoftConstraint(
+      SelfCollisionAvoidanceSoftConstraint(
         floating_base_model::FloatingBaseModelInfo info,
         const collision::PinocchioCollisionInterface& collisionInterface,
         const LeggedReferenceManager& referenceManager,
-        std::vector<size_t> collisionIndices,
-        std::vector<ocs2::scalar_t> relaxations,
+        const std::vector<std::pair<size_t, size_t>>& collisionIndices,
+        const std::vector<ocs2::scalar_t>& relaxations,
         ocs2::RelaxedBarrierPenalty::Config settings);
 
-      ~TerrainAvoidanceSoftConstraint() override = default;
+      ~SelfCollisionAvoidanceSoftConstraint() override = default;
 
-      TerrainAvoidanceSoftConstraint* clone() const override;
+      SelfCollisionAvoidanceSoftConstraint* clone() const override;
 
       /** Get cost term value */
       ocs2::scalar_t getValue(ocs2::scalar_t time, const ocs2::vector_t& state, 
@@ -81,19 +78,37 @@ namespace legged_locomotion_mpc
         const ocs2::PreComputation& preComp) const override;
 
     private:
-      TerrainAvoidanceSoftConstraint(const TerrainAvoidanceSoftConstraint& rhs);
-
+      SelfCollisionAvoidanceSoftConstraint(const SelfCollisionAvoidanceSoftConstraint& rhs);
+      
       const size_t threeDofEndEffectorNum_;
       const size_t sixDofEndEffectorNum_;
       const size_t endEffectorNum_;
-      const std::vector<size_t> collisionLinkIndicies_;
+
+      // 3 DoF End effector - 3 DoF End effector
+      std::vector<std::pair<size_t, size_t>> endEffector33DoFPairIndices_;
+      std::vector<ocs2::scalar_t> endEffector33DoFPairRelaxations_;
+      // 3 DoF End effector - 6 DoF End effector
+      std::vector<std::pair<size_t, size_t>> endEffector36DoFPairIndices_;
+      std::vector<ocs2::scalar_t> endEffector36DoFPairRelaxations_;
+      // 6 DoF End effector - 6 DoF End effector
+      std::vector<std::pair<size_t, size_t>> endEffector66DoFPairIndices_;
+      std::vector<ocs2::scalar_t> endEffector66DoFPairRelaxations_;
+      // 3 DoF End effector - Collision link
+      std::vector<std::pair<size_t, size_t>> endEffector3DoFLinkIndices_;
+      std::vector<ocs2::scalar_t> endEffector3DoFLinkRelaxations_;
+      // 6 DoF End effector - Collision link
+      std::vector<std::pair<size_t, size_t>> endEffector6DoFLinkIndices_;
+      std::vector<ocs2::scalar_t> endEffector6DoFLinkRelaxations_;
+      // Collision link - Collision link
+      std::vector<std::pair<size_t, size_t>> collisionLinkPairIndices_;
+      std::vector<ocs2::scalar_t> collisionLinkPairRelaxations_;
 
       const std::vector<ocs2::scalar_t> relaxations_;
 
       const LeggedReferenceManager& referenceManager_;
       const collision::PinocchioCollisionInterface& collisionInterface_;
       
-      std::unique_ptr<ocs2::RelaxedBarrierPenalty> terrainAvoidancePenaltyPtr_;
+      std::unique_ptr<ocs2::RelaxedBarrierPenalty> selfAvoidancePenaltyPtr_;
   };
 } // namespace legged_locomotion_mpc
 

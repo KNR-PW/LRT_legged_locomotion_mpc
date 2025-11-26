@@ -51,6 +51,9 @@ namespace legged_locomotion_mpc
     * Reference:
     * [1] A. Voelz and K. Graichen, "Computation of Collision Distance and Gradient using an Automatic Sphere Approximation of the Robot Model
     * with Bounded Error," ISR 2018; 50th International Symposium on Robotics, 2018, pp. 1-8.
+    * 
+    * @warning 3 DoF end effector collison model i assumed to be sphere with center postion 
+    * located in the same positon as end effector frame!
     */
     class PinocchioCollisionInterface
     {
