@@ -36,14 +36,15 @@ namespace legged_locomotion_mpc
     const PinocchioCollisionInterface& collisionInterface,
     const LeggedReferenceManager& referenceManager,
     const std::vector<std::pair<size_t, size_t>>& collisionIndices,
-    std::vector<scalar_t> relaxations,
+    const std::vector<scalar_t>& relaxations,
     RelaxedBarrierPenalty::Config settings):
+      StateCost(),
       threeDofEndEffectorNum_(info.numThreeDofContacts),
       sixDofEndEffectorNum_(info.numSixDofContacts),
       endEffectorNum_(info.numThreeDofContacts + info.numSixDofContacts),
       referenceManager_(referenceManager),
       collisionInterface_(collisionInterface),
-      terrainAvoidancePenaltyPtr_(new RelaxedBarrierPenalty(settings)) 
+      selfAvoidancePenaltyPtr_(new RelaxedBarrierPenalty(settings)) 
   {
     size_t relaxationIndex = 0;
     for(const auto& collisionPair: collisionIndices)
@@ -69,16 +70,16 @@ namespace legged_locomotion_mpc
           }
           else if(isSecond3DoF)
           {
-            size_t temp = collisionPair.second;
-            collisionPair.second = collisionPair.first;
-            collisionPair.first = temp;
-            endEffector36DoFPairIndices_.push_back(collisionPair);
+            const size_t threeEndEffectorIndex = collisionPair.second;
+            const size_t sixEndEffectorIndex = collisionPair.first;
+            endEffector36DoFPairIndices_.emplace_back(
+              threeEndEffectorIndex, sixEndEffectorIndex);
             endEffector36DoFPairRelaxations_.push_back(relaxations[relaxationIndex]);
           }
           else
           {
-            ndEffector66DoFPairIndices_.push_back(collisionPair);
-            endEffecto636DoFPairRelaxations_.push_back(relaxations[relaxationIndex]);
+            endEffector66DoFPairIndices_.push_back(collisionPair);
+            endEffector66DoFPairRelaxations_.push_back(relaxations[relaxationIndex]);
           }
         }
         // One is end effector, it will be first item in pair
@@ -135,9 +136,8 @@ namespace legged_locomotion_mpc
     scalar_t cost = 0.0;
 
     // 3 DoF - 3 DoF
-    for(size_t i = 0; i < endEffector33DoFPairIndices_.size(); ++i)
+    for(const auto& endEffectorPair: endEffector33DoFPairIndices_)
     {
-      const auto& endEffectorPair = endEffector33DoFPairIndices_[i];
       const size_t firstIndex = endEffectorPair.first;
       const size_t secondIndex = endEffectorPair.second;
 
@@ -158,9 +158,8 @@ namespace legged_locomotion_mpc
     }
 
     // 3 DoF - 6 DoF
-    for(size_t i = 0; i < endEffector36DoFPairIndices_.size(); ++i)
+    for(const auto& endEffectorPair: endEffector36DoFPairIndices_)
     {
-      const auto& endEffectorPair = endEffector36DoFPairIndices_[i];
       const size_t firstIndex = endEffectorPair.first;
       const size_t secondIndex = endEffectorPair.second;
 
@@ -173,10 +172,11 @@ namespace legged_locomotion_mpc
         secondIndex);
       const matrix3_t rotationMatrix = getRotationMatrixFromZyxEulerAngles(frameEulerAngles);
 
-      const std::vector<vector3_t>& sphereRelativePositions = collisionInterface_.getFrameSpherePositions(secondIndex);
+      const std::vector<vector3_t>& sphereRelativePositions = 
+        collisionInterface_.getFrameSpherePositions(secondIndex);
 
       const scalar_t firstRadius = 
-        collisionInterface_.getFrameSphereRadiuses(firstIndex);
+        collisionInterface_.getFrameSphereRadiuses(firstIndex)[0];
       const std::vector<scalar_t>& secondRadiuses = 
         collisionInterface_.getFrameSphereRadiuses(secondIndex);
 
@@ -193,15 +193,13 @@ namespace legged_locomotion_mpc
     }
 
     // 6 DoF - 6 DoF
-    for(size_t i = 0; i < endEffector66DoFPairIndices_.size(); ++i)
+    for(const auto& endEffectorPair: endEffector66DoFPairIndices_)
     {
-      const auto& endEffectorPair = endEffector66DoFPairIndices_[i];
       const size_t firstIndex = endEffectorPair.first;
       const size_t secondIndex = endEffectorPair.second;
 
       const vector3_t& firstFramePosition = leggedPrecomputation.getEndEffectorPosition(
         firstIndex);
-
       const vector3_t& firstFrameEulerAngles = leggedPrecomputation.getEndEffectorOrientation(
         firstIndex);
       const matrix3_t firstRotationMatrix = getRotationMatrixFromZyxEulerAngles(
@@ -209,17 +207,20 @@ namespace legged_locomotion_mpc
 
       const vector3_t& secondFramePosition = leggedPrecomputation.getEndEffectorPosition(
         secondIndex);
-
       const vector3_t& secondFrameEulerAngles = leggedPrecomputation.getEndEffectorOrientation(
         secondIndex);
       const matrix3_t secondRotationMatrix = getRotationMatrixFromZyxEulerAngles(
         secondFrameEulerAngles);
 
-      const std::vector<vector3_t>& firstSphereRelativePositions = collisionInterface_.getFrameSpherePositions(firstIndex);
-      const std::vector<vector3_t>& secondSphereRelativePositions = collisionInterface_.getFrameSpherePositions(secondIndex)
+      const std::vector<vector3_t>& firstSphereRelativePositions = 
+        collisionInterface_.getFrameSpherePositions(firstIndex);
+
+      const std::vector<vector3_t>& secondSphereRelativePositions = 
+        collisionInterface_.getFrameSpherePositions(secondIndex);
 
       const std::vector<scalar_t>& firstRadiuses = 
         collisionInterface_.getFrameSphereRadiuses(firstIndex);
+
       const std::vector<scalar_t>& secondRadiuses = 
         collisionInterface_.getFrameSphereRadiuses(secondIndex);
 
@@ -242,72 +243,73 @@ namespace legged_locomotion_mpc
     }
 
     // 3 DoF - Collision Link
-    for(size_t i = 0; i < endEffector3DoFLinkIndices_.size(); ++i)
+    for(const auto& endEffectorLinkPair: endEffector3DoFLinkIndices_)
     {
-      const auto& endEffectorLinkPair = endEffector3DoFLinkIndices_[i];
       const size_t endEffectorIndex = endEffectorLinkPair.first;
       const size_t collisionIndex = endEffectorLinkPair.second;
 
       const vector3_t& framePosition = leggedPrecomputation.getEndEffectorPosition(
         endEffectorIndex);
-      const vector3_t& collisionFramePosition = leggedPrecomputation.getCollisionLinkPosition(
+
+      const vector3_t& collisionPosition = leggedPrecomputation.getCollisionLinkPosition(
         collisionIndex);
-
-      const vector3_t& frameEulerAngles = leggedPrecomputation.getCollisionLinkOrientation(
-        endEffectorIndex);
-      const matrix3_t frameRotationMatrix = getRotationMatrixFromZyxEulerAngles(frameEulerAngles);
-
       const vector3_t& collisionEulerAngles = leggedPrecomputation.getCollisionLinkOrientation(
         collisionIndex);
-      const matrix3_t collisionRotationMatrix = getRotationMatrixFromZyxEulerAngles(collisionEulerAngles);
+      const matrix3_t collisionRotationMatrix = getRotationMatrixFromZyxEulerAngles(
+        collisionEulerAngles);
 
-      const std::vector<vector3_t>& sphereRelativePositions = collisionInterface_.getFrameSpherePositions(collisionIndex);
+      const std::vector<vector3_t>& sphereRelativePositions = 
+        collisionInterface_.getFrameSpherePositions(collisionIndex);
 
-      const scalar_t firstRadius = 
-        collisionInterface_.getFrameSphereRadiuses(endEffectorIndex);
-      const std::vector<scalar_t>& secondRadiuses = 
+      const scalar_t frameRadius = 
+        collisionInterface_.getFrameSphereRadiuses(endEffectorIndex)[0];
+
+      const std::vector<scalar_t>& collisionRadiuses = 
         collisionInterface_.getFrameSphereRadiuses(collisionIndex);
 
       scalar_t minDistance = std::numeric_limits<scalar_t>::max();
 
-      for(size_t j = 0; j < secondRadiuses.size(); ++j)
+      for(size_t j = 0; j < collisionRadiuses.size(); ++j)
       {
-        const vector3_t spherePosition = collisionFramePosition + rotationMatrix * sphereRelativePositions[j];
+        const vector3_t spherePosition = collisionPosition 
+          + collisionRotationMatrix * sphereRelativePositions[j];
+
         const scalar_t distance = (spherePosition - framePosition).norm() 
-          - secondRadiuses[j];
+          - collisionRadiuses[j];
         if(distance < minDistance) minDistance = distance;
       }
-      cost += selfAvoidancePenaltyPtr_->getValue(0.0, minDistance - firstRadius);
+      cost += selfAvoidancePenaltyPtr_->getValue(0.0, minDistance - frameRadius);
     }
 
     // 6 DoF - Collision Link
-    for(size_t i = 0; i < endEffector6DoFLinkIndices_.size(); ++i)
+    for(const auto& endEffectorLinkPair: endEffector6DoFLinkIndices_)
     {
-      const auto& endEffectorLinkPair = endEffector6DoFLinkIndices_[i];
-      const size_t frameIndex = endEffectorPair.first;
-      const size_t collisionIndex = endEffectorPair.second;
+      const size_t frameIndex = endEffectorLinkPair.first;
+      const size_t collisionIndex = endEffectorLinkPair.second;
 
       const vector3_t& framePosition = leggedPrecomputation.getEndEffectorPosition(
         frameIndex);
-
       const vector3_t& frameEulerAngles = leggedPrecomputation.getEndEffectorOrientation(
         frameIndex);
       const matrix3_t frameRotationMatrix = getRotationMatrixFromZyxEulerAngles(
         frameEulerAngles);
 
-      const vector3_t& secondFramePosition = leggedPrecomputation.getCollisionLinkPosition(
+      const vector3_t& collisionPosition = leggedPrecomputation.getCollisionLinkPosition(
         collisionIndex);
-
-      const vector3_t& collisionFrameEulerAngles = leggedPrecomputation.getEndEffectorOrientation(
+      const vector3_t& collisionFrameEulerAngles = leggedPrecomputation.getCollisionLinkOrientation(
         collisionIndex);
       const matrix3_t collisionRotationMatrix = getRotationMatrixFromZyxEulerAngles(
         collisionFrameEulerAngles);
 
-      const std::vector<vector3_t>& frameSphereRelativePositions = collisionInterface_.getFrameSpherePositions(frameIndex);
-      const std::vector<vector3_t>& collisionSphereRelativePositions = collisionInterface_.getFrameSpherePositions(collisionIndex)
+      const std::vector<vector3_t>& frameSphereRelativePositions = 
+        collisionInterface_.getFrameSpherePositions(frameIndex);
+      
+      const std::vector<vector3_t>& collisionSphereRelativePositions = 
+        collisionInterface_.getFrameSpherePositions(collisionIndex);
 
       const std::vector<scalar_t>& frameRadiuses = 
         collisionInterface_.getFrameSphereRadiuses(frameIndex);
+
       const std::vector<scalar_t>& collisionRadiuses = 
         collisionInterface_.getFrameSphereRadiuses(collisionIndex);
 
@@ -315,11 +317,11 @@ namespace legged_locomotion_mpc
 
       for(size_t j = 0; j < frameRadiuses.size(); ++j)
       {
-        const vector3_t frameSpherePosition = firstFramePosition 
+        const vector3_t frameSpherePosition = framePosition 
           + frameRotationMatrix * frameSphereRelativePositions[j];
         for(size_t k = 0; k < collisionRadiuses.size(); ++k)
         {
-          const vector3_t collisionSpherePosition = collisionFramePosition 
+          const vector3_t collisionSpherePosition = collisionPosition 
             + collisionRotationMatrix * collisionSphereRelativePositions[k];
           const scalar_t distance = (frameSpherePosition - collisionSpherePosition).norm() 
             - frameRadiuses[j] - collisionRadiuses[k];
@@ -330,37 +332,228 @@ namespace legged_locomotion_mpc
     }
 
     // Collision Link - Collision Link
-    for(size_t i = 0; i < collisionLinkPairIndices_.size(); ++i)
+    for(const auto& collisionPair: collisionLinkPairIndices_)
     {
-      const auto& collisionPair = collisionLinkPairIndices_[i];
       const size_t firstIndex = collisionPair.first;
       const size_t secondIndex = collisionPair.second;
 
-      const vector3_t& firstFramePosition = leggedPrecomputation.getCollisionLinkPosition(
+      const vector3_t& firstPosition = leggedPrecomputation.getCollisionLinkPosition(
+        firstIndex);
+      const vector3_t& firstEulerAngles = leggedPrecomputation.getCollisionLinkOrientation(
+        firstIndex);
+      const matrix3_t firstRotationMatrix = getRotationMatrixFromZyxEulerAngles(
+        firstEulerAngles);
+
+      const vector3_t& secondPosition = leggedPrecomputation.getCollisionLinkPosition(
+        secondIndex);
+      const vector3_t& secondEulerAngles = leggedPrecomputation.getCollisionLinkOrientation(
+        secondIndex);
+      const matrix3_t secondRotationMatrix = getRotationMatrixFromZyxEulerAngles(
+        secondEulerAngles);
+
+      const std::vector<vector3_t>& firstSphereRelativePositions = 
+        collisionInterface_.getFrameSpherePositions(firstIndex);
+
+      const std::vector<vector3_t>& secondSphereRelativePositions = 
+        collisionInterface_.getFrameSpherePositions(secondIndex);
+
+      const std::vector<scalar_t>& firstRadiuses = 
+        collisionInterface_.getFrameSphereRadiuses(firstIndex);
+
+      const std::vector<scalar_t>& secondRadiuses = 
+        collisionInterface_.getFrameSphereRadiuses(secondIndex);
+
+      scalar_t minDistance = std::numeric_limits<scalar_t>::max();
+
+      for(size_t j = 0; j < firstRadiuses.size(); ++j)
+      {
+        const vector3_t firstSpherePosition = firstPosition 
+          + firstRotationMatrix * firstSphereRelativePositions[j];
+        for(size_t k = 0; k < secondRadiuses.size(); ++k)
+        {
+          const vector3_t secondSpherePosition = secondPosition 
+            + secondRotationMatrix * secondSphereRelativePositions[k];
+          const scalar_t distance = (firstSpherePosition - secondSpherePosition).norm() 
+            - firstRadiuses[j] - secondRadiuses[k];
+          if(distance < minDistance) minDistance = distance;
+        }
+      }
+      cost += selfAvoidancePenaltyPtr_->getValue(0.0, minDistance);
+    }
+    return cost;
+  }
+
+      
+  ScalarFunctionQuadraticApproximation SelfCollisionAvoidanceSoftConstraint::getQuadraticApproximation(
+    scalar_t time, const vector_t& state, const TargetTrajectories& targetTrajectories,
+    const PreComputation& preComp) const
+  {
+    const auto& leggedPrecomputation = cast<LeggedPrecomputation>(preComp);
+    
+    ScalarFunctionQuadraticApproximation cost;
+    cost.f = 0.0;
+    cost.dfdx = vector_t::Zero(state.size());
+    cost.dfdxx = vector_t::Zero(state.size(), state.size());
+
+    // 3 DoF - 3 DoF
+    for(const auto& endEffectorPair: endEffector33DoFPairIndices_)
+    {
+      const size_t firstIndex = endEffectorPair.first;
+      const size_t secondIndex = endEffectorPair.second;
+
+      const vector3_t& firstFramePosition = leggedPrecomputation.getEndEffectorPosition(
+        firstIndex);
+      const vector3_t& secondFramePosition = leggedPrecomputation.getEndEffectorPosition(
+        secondIndex);
+
+      const scalar_t firstRadius = 
+        collisionInterface_.getFrameSphereRadiuses(firstIndex)[0];
+      const scalar_t  secondRadius = 
+        collisionInterface_.getFrameSphereRadiuses(secondIndex)[0];
+
+      const scalar_t pointDistance = (firstFramePosition - secondFramePosition).norm();
+
+      const scalar_t distance = pointDistance - firstRadius - secondRadius;
+
+      cost.f += selfAvoidancePenaltyPtr_->getValue(0.0, distance);
+
+      const scalar_t penaltyDerivative = selfAvoidancePenaltyPtr_->getDerivative(0.0, distance);
+
+      const auto& firstPositonDerivative = leggedPrecomputation.getEndEffectorPositionDerivatives(
         firstIndex);
 
-      const vector3_t& firstFrameEulerAngles = leggedPrecomputation.getCollisionLinkOrientation(
+      const auto& secondPositonDerivative = leggedPrecomputation.getEndEffectorPositionDerivatives(
+        secondIndex);
+
+      const vector3_t normal = (firstFramePosition - secondFramePosition).normalized();
+      
+      const matrix_t positionDifferenceGradient = firstPositonDerivative.dfdx - secondPositonDerivative.dfdx;
+      
+      const vector_t dDistancedx = positionDifferenceGradient.transpose() * normal;
+
+      cost.dfdx += penaltyDerivative * dDistancedx;
+      
+      const scalar_t penaltySecondDerivative = selfAvoidancePenaltyPtr_->getSecondDerivative(0.0, 
+        distance);
+
+      const matrix3_t distanceSecondGradient = getDistanceSecondGradient(normal, pointDistance);
+
+      cost.dfdxx += penaltySecondDerivative * dDistancedx * dDistancedx.transpose() 
+        + penaltyDerivative * positionDifferenceGradient * distanceSecondGradient * 
+          positionDifferenceGradient.transpose();
+    }
+
+    // 3 DoF - 6 DoF
+    for(const auto& endEffectorPair: endEffector36DoFPairIndices_)
+    {
+      const size_t firstIndex = endEffectorPair.first;
+      const size_t secondIndex = endEffectorPair.second;
+
+      const vector3_t& firstFramePosition = leggedPrecomputation.getEndEffectorPosition(
+        firstIndex);
+      const vector3_t& secondFramePosition = leggedPrecomputation.getEndEffectorPosition(
+        secondIndex);
+
+      const vector3_t& frameEulerAngles = leggedPrecomputation.getEndEffectorOrientation(
+        secondIndex);
+      const matrix3_t rotationMatrix = getRotationMatrixFromZyxEulerAngles(frameEulerAngles);
+
+      const std::vector<vector3_t>& sphereRelativePositions = 
+        collisionInterface_.getFrameSpherePositions(secondIndex);
+
+      const scalar_t firstRadius = 
+        collisionInterface_.getFrameSphereRadiuses(firstIndex)[0];
+      const std::vector<scalar_t>& secondRadiuses = 
+        collisionInterface_.getFrameSphereRadiuses(secondIndex);
+
+      scalar_t minDistance = std::numeric_limits<scalar_t>::max();
+      size_t minIndex = 0;
+
+      for(size_t j = 0; j < secondRadiuses.size(); ++j)
+      {
+        const vector3_t spherePosition = secondFramePosition + rotationMatrix * sphereRelativePositions[j];
+        const scalar_t distance = (spherePosition - firstFramePosition).norm() 
+          - secondRadiuses[j];
+        if(distance < minDistance)
+        {
+          minDistance = distance;
+          minIndex = j;
+        } 
+      }
+
+      const vector3_t minSpherePosition = secondFramePosition 
+        + rotationMatrix * sphereRelativePositions[minIndex];
+      const vector3_t pointDifference = firstFramePosition - minSpherePosition;
+      const vector3_t normal = pointDifference.normalized();
+      const scalar_t pointDistance = pointDifference.norm();
+      const scalar_t sphereDistance = minDistance - firstRadius;
+
+      cost.f += selfAvoidancePenaltyPtr_->getValue(0.0, sphereDistance);
+
+      const auto& firstPositionDerivatives = leggedPrecomputation.getEndEffectorPositionDerivatives(
+        firstIndex).dfdx;
+
+      matrix_t secondPositionDerivatives = leggedPrecomputation.getEndEffectorPositionDerivatives(
+        secondIndex).dfdx;
+      const auto& secondOrientationDerivatives = leggedPrecomputation.getEndEffectorOrientationDerivatives(
+        secondIndex).dfdx;
+      const matrix3_t rotationVectorGradient = collisionInterface_.getRotationTimesVectorGradient(
+        frameEulerAngles, sphereRelativePositions[minIndex]);
+      secondPositionDerivatives += rotationVectorGradient * secondOrientationDerivatives;
+
+      const scalar_t penaltyDerivative = selfAvoidancePenaltyPtr_->getDerivative(0.0, sphereDistance);
+
+      const matrix_t positionDifferenceGradient = firstPositionDerivatives - secondPositionDerivatives;
+
+      const vector_t dDistancedx = positionDifferenceGradient.transpose() * normal;
+
+      cost.dfdx += penaltyDerivative * dDistancedx;
+      
+      const scalar_t penaltySecondDerivative = selfAvoidancePenaltyPtr_->getSecondDerivative(0.0, 
+        sphereDistance);
+
+      const matrix3_t distanceSecondGradient = getDistanceSecondGradient(normal, pointDistance);
+
+      cost.dfdxx += penaltySecondDerivative * dDistancedx * dDistancedx.transpose() 
+        + penaltyDerivative * positionDifferenceGradient * distanceSecondGradient * 
+          positionDifferenceGradient.transpose();
+    }
+
+    // 6 DoF - 6 DoF
+    for(const auto& endEffectorPair: endEffector66DoFPairIndices_)
+    {
+      const size_t firstIndex = endEffectorPair.first;
+      const size_t secondIndex = endEffectorPair.second;
+
+      const vector3_t& firstFramePosition = leggedPrecomputation.getEndEffectorPosition(
+        firstIndex);
+      const vector3_t& firstFrameEulerAngles = leggedPrecomputation.getEndEffectorOrientation(
         firstIndex);
       const matrix3_t firstRotationMatrix = getRotationMatrixFromZyxEulerAngles(
         firstFrameEulerAngles);
 
-      const vector3_t& secondFramePosition = leggedPrecomputation.getCollisionLinkPosition(
+      const vector3_t& secondFramePosition = leggedPrecomputation.getEndEffectorPosition(
         secondIndex);
-
       const vector3_t& secondFrameEulerAngles = leggedPrecomputation.getEndEffectorOrientation(
         secondIndex);
       const matrix3_t secondRotationMatrix = getRotationMatrixFromZyxEulerAngles(
         secondFrameEulerAngles);
 
-      const std::vector<vector3_t>& firstSphereRelativePositions = collisionInterface_.getFrameSpherePositions(firstIndex);
-      const std::vector<vector3_t>& secondSphereRelativePositions = collisionInterface_.getFrameSpherePositions(secondIndex)
+      const std::vector<vector3_t>& firstSphereRelativePositions = 
+        collisionInterface_.getFrameSpherePositions(firstIndex);
+
+      const std::vector<vector3_t>& secondSphereRelativePositions = 
+        collisionInterface_.getFrameSpherePositions(secondIndex);
 
       const std::vector<scalar_t>& firstRadiuses = 
         collisionInterface_.getFrameSphereRadiuses(firstIndex);
+
       const std::vector<scalar_t>& secondRadiuses = 
         collisionInterface_.getFrameSphereRadiuses(secondIndex);
 
       scalar_t minDistance = std::numeric_limits<scalar_t>::max();
+      size_t minFirstIndex = 0;
+      size_t minSecondIndex = 0;
 
       for(size_t j = 0; j < firstRadiuses.size(); ++j)
       {
@@ -372,157 +565,375 @@ namespace legged_locomotion_mpc
             + secondRotationMatrix * secondSphereRelativePositions[k];
           const scalar_t distance = (firstSpherePosition - secondSpherePosition).norm() 
             - firstRadiuses[j] - secondRadiuses[k];
-          if(distance < minDistance) minDistance = distance;
+          if(distance < minDistance)
+          {
+            minDistance = distance;
+            minFirstIndex = j;
+            minSecondIndex = k;
+          }
         }
       }
-      cost += selfAvoidancePenaltyPtr_->getValue(0.0, minDistance);
+      
+      const vector3_t minFirstSpherePosition = firstFramePosition 
+        + firstRotationMatrix * firstSphereRelativePositions[minFirstIndex];
+
+      const vector3_t minSecondSpherePosition = secondFramePosition 
+        + secondRotationMatrix * secondSphereRelativePositions[minSecondIndex];
+
+      const vector3_t pointDifference = minFirstSpherePosition - minSecondSpherePosition;
+      const vector3_t normal = pointDifference.normalized();
+      const scalar_t pointDistance = pointDifference.norm();
+      const scalar_t sphereDistance = minDistance;
+
+      cost.f += selfAvoidancePenaltyPtr_->getValue(0.0, sphereDistance);
+
+      matrix_t firstPositionDerivatives = leggedPrecomputation.getEndEffectorPositionDerivatives(
+        firstIndex).dfdx;
+      const auto& firstOrientationDerivatives = leggedPrecomputation.getEndEffectorOrientationDerivatives(
+        firstIndex).dfdx;
+      const matrix3_t firstRotationVectorGradient = collisionInterface_.getRotationTimesVectorGradient(
+        firstFrameEulerAngles, firstSphereRelativePositions[minFirstIndex]);
+      firstPositionDerivatives += firstRotationVectorGradient * firstOrientationDerivatives;
+
+      matrix_t secondPositionDerivatives = leggedPrecomputation.getEndEffectorPositionDerivatives(
+        secondIndex).dfdx;
+      const auto& secondOrientationDerivatives = leggedPrecomputation.getEndEffectorOrientationDerivatives(
+        secondIndex).dfdx;
+      const matrix3_t secondRotationVectorGradient = collisionInterface_.getRotationTimesVectorGradient(
+        secondFrameEulerAngles, secondSphereRelativePositions[minSecondIndex]);
+      secondPositionDerivatives += secondRotationVectorGradient * secondOrientationDerivatives;
+
+      const scalar_t penaltyDerivative = selfAvoidancePenaltyPtr_->getDerivative(0.0, sphereDistance);
+
+      const matrix_t positionDifferenceGradient = firstPositionDerivatives - secondPositionDerivatives;
+
+      const vector_t dDistancedx = positionDifferenceGradient.transpose() * normal;
+
+      cost.dfdx += penaltyDerivative * dDistancedx;
+      
+      const scalar_t penaltySecondDerivative = selfAvoidancePenaltyPtr_->getSecondDerivative(0.0, 
+        sphereDistance);
+
+      const matrix3_t distanceSecondGradient = getDistanceSecondGradient(normal, pointDistance);
+
+      cost.dfdxx += penaltySecondDerivative * dDistancedx * dDistancedx.transpose() 
+        + penaltyDerivative * positionDifferenceGradient * distanceSecondGradient * 
+          positionDifferenceGradient.transpose();
     }
 
+    // 3 DoF - Collision Link
+    for(const auto& endEffectorLinkPair: endEffector3DoFLinkIndices_)
+    {
+      const size_t endEffectorIndex = endEffectorLinkPair.first;
+      const size_t collisionIndex = endEffectorLinkPair.second;
+
+      const vector3_t& framePosition = leggedPrecomputation.getEndEffectorPosition(
+        endEffectorIndex);
+
+      const vector3_t& collisionPosition = leggedPrecomputation.getCollisionLinkPosition(
+        collisionIndex);
+      const vector3_t& collisionEulerAngles = leggedPrecomputation.getCollisionLinkOrientation(
+        collisionIndex);
+      const matrix3_t collisionRotationMatrix = getRotationMatrixFromZyxEulerAngles(
+        collisionEulerAngles);
+
+      const std::vector<vector3_t>& sphereRelativePositions = 
+        collisionInterface_.getFrameSpherePositions(collisionIndex);
+
+      const scalar_t frameRadius = 
+        collisionInterface_.getFrameSphereRadiuses(endEffectorIndex)[0];
+
+      const std::vector<scalar_t>& collisionRadiuses = 
+        collisionInterface_.getFrameSphereRadiuses(collisionIndex);
+
+      scalar_t minDistance = std::numeric_limits<scalar_t>::max();
+      size_t minIndex = 0;
+
+      for(size_t j = 0; j < collisionRadiuses.size(); ++j)
+      {
+        const vector3_t spherePosition = collisionPosition 
+          + collisionRotationMatrix * sphereRelativePositions[j];
+
+        const scalar_t distance = (spherePosition - framePosition).norm() 
+          - collisionRadiuses[j];
+        if(distance < minDistance)
+        {
+          minDistance = distance;
+          minIndex = j;
+        }
+      }
+
+      const vector3_t minSpherePosition = collisionPosition  
+        + collisionRotationMatrix * sphereRelativePositions[minIndex];
+      const vector3_t pointDifference = framePosition - minSpherePosition;
+      const vector3_t normal = pointDifference.normalized();
+      const scalar_t pointDistance = pointDifference.norm();
+      const scalar_t sphereDistance = minDistance - frameRadius;
+
+      cost.f += selfAvoidancePenaltyPtr_->getValue(0.0, sphereDistance);
+
+      const auto& framePositionDerivatives = leggedPrecomputation.getEndEffectorPositionDerivatives(
+        endEffectorIndex ).dfdx;
+
+      matrix_t collisionPositionDerivatives = leggedPrecomputation.getCollisionLinkPositionDerivatives(
+        collisionIndex).dfdx;
+      const auto& collisionOrientationDerivatives = leggedPrecomputation.getCollisionLinkOrientationDerivatives(
+        collisionIndex).dfdx;
+      const matrix3_t rotationVectorGradient = collisionInterface_.getRotationTimesVectorGradient(
+        collisionEulerAngles, sphereRelativePositions[minIndex]);
+      collisionPositionDerivatives += rotationVectorGradient * collisionOrientationDerivatives;
+
+      const scalar_t penaltyDerivative = selfAvoidancePenaltyPtr_->getDerivative(0.0, sphereDistance);
+
+      const matrix_t positionDifferenceGradient = framePositionDerivatives - secondPositionDerivatives;
+
+      const vector_t dDistancedx = positionDifferenceGradient.transpose() * normal;
+
+      cost.dfdx += penaltyDerivative * dDistancedx;
+      
+      const scalar_t penaltySecondDerivative = selfAvoidancePenaltyPtr_->getSecondDerivative(0.0, 
+        sphereDistance);
+
+      const matrix3_t distanceSecondGradient = getDistanceSecondGradient(normal, pointDistance);
+
+      cost.dfdxx += penaltySecondDerivative * dDistancedx * dDistancedx.transpose() 
+        + penaltyDerivative * positionDifferenceGradient * distanceSecondGradient * 
+          positionDifferenceGradient.transpose();
+    }
+
+    // 6 DoF - Collision Link
+    for(const auto& endEffectorLinkPair: endEffector6DoFLinkIndices_)
+    {
+      const size_t frameIndex = endEffectorPair.first;
+      const size_t collisionIndex = endEffectorPair.second;
+
+      const vector3_t& framePosition = leggedPrecomputation.getEndEffectorPosition(
+        frameIndex);
+      const vector3_t& frameEulerAngles = leggedPrecomputation.getEndEffectorOrientation(
+        frameIndex);
+      const matrix3_t frameRotationMatrix = getRotationMatrixFromZyxEulerAngles(
+        frameEulerAngles);
+
+      const vector3_t& collisionPosition = leggedPrecomputation.getCollisionLinkPosition(
+        collisionIndex);
+      const vector3_t& collisionFrameEulerAngles = leggedPrecomputation.getCollisionLinkOrientation(
+        collisionIndex);
+      const matrix3_t collisionRotationMatrix = getRotationMatrixFromZyxEulerAngles(
+        collisionFrameEulerAngles);
+
+      const std::vector<vector3_t>& frameSphereRelativePositions = 
+        collisionInterface_.getFrameSpherePositions(frameIndex);
+      
+      const std::vector<vector3_t>& collisionSphereRelativePositions = 
+        collisionInterface_.getFrameSpherePositions(collisionIndex)
+
+      const std::vector<scalar_t>& frameRadiuses = 
+        collisionInterface_.getFrameSphereRadiuses(frameIndex);
+
+      const std::vector<scalar_t>& collisionRadiuses = 
+        collisionInterface_.getFrameSphereRadiuses(collisionIndex);
+
+      scalar_t minDistance = std::numeric_limits<scalar_t>::max();
+      size_t minFrameIndex = 0;
+      size_t minCollisionIndex = 0;
+
+      for(size_t j = 0; j < frameRadiuses.size(); ++j)
+      {
+        const vector3_t frameSpherePosition = framePosition 
+          + frameRotationMatrix * frameSphereRelativePositions[j];
+        for(size_t k = 0; k < collisionRadiuses.size(); ++k)
+        {
+          const vector3_t collisionSpherePosition = collisionPosition 
+            + collisionRotationMatrix * collisionSphereRelativePositions[k];
+          const scalar_t distance = (frameSpherePosition - collisionSpherePosition).norm() 
+            - frameRadiuses[j] - collisionRadiuses[k];
+          if(distance < minDistance)
+          {
+            minDistance = distance;
+            minFrameIndex = j;
+            minCollisionIndex = k;
+          }
+        }
+      }
+      const vector3_t minFrameSpherePosition = framePosition 
+        + frameRotationMatrix * frameSphereRelativePositions[minFrameIndex];
+
+      const vector3_t minCollisionSpherePosition = collisionFramePosition 
+        + collisionRotationMatrix * collisionSphereRelativePositions[minCollisionIndex];
+
+      const vector3_t pointDifference = minFrameSpherePosition - minCollisionSpherePosition;
+      const vector3_t normal = pointDifference.normalized();
+      const scalar_t pointDistance = pointDifference.norm();
+      const scalar_t sphereDistance = minDistance;
+
+      cost.f += selfAvoidancePenaltyPtr_->getValue(0.0, sphereDistance);
+
+      matrix_t framePositionDerivatives = leggedPrecomputation.getEndEffectorPositionDerivatives(
+        frameIndex).dfdx;
+      const auto& frameOrientationDerivatives = leggedPrecomputation.getEndEffectorOrientationDerivatives(
+        frameIndex).dfdx;
+      const matrix3_t frameRotationVectorGradient = collisionInterface_.getRotationTimesVectorGradient(
+        frameEulerAngles, frameSphereRelativePositions[minFrameIndex]);
+      framePositionDerivatives += frameRotationVectorGradient * frameOrientationDerivatives;
+
+      matrix_t collisionPositionDerivatives = leggedPrecomputation.getEndEffectorPositionDerivatives(
+        collisionIndex).dfdx;
+      const auto& collisionOrientationDerivatives = leggedPrecomputation.getEndEffectorOrientationDerivatives(
+        collisionIndex).dfdx;
+      const matrix3_t collisionRotationVectorGradient = collisionInterface_.getRotationTimesVectorGradient(
+        collisionEulerAngles, collisionSphereRelativePositions[minCollisionIndex]);
+      collisionPositionDerivatives += collisionRotationVectorGradient * collisionOrientationDerivatives;
+
+      const scalar_t penaltyDerivative = selfAvoidancePenaltyPtr_->getDerivative(0.0, sphereDistance);
+
+      const matrix_t positionDifferenceGradient = framePositionDerivatives - collisionPositionDerivatives;
+
+      const vector_t dDistancedx = positionDifferenceGradient.transpose() * normal;
+
+      cost.dfdx += penaltyDerivative * dDistancedx;
+      
+      const scalar_t penaltySecondDerivative = selfAvoidancePenaltyPtr_->getSecondDerivative(0.0, 
+        sphereDistance);
+
+      const matrix3_t distanceSecondGradient = getDistanceSecondGradient(normal, pointDistance);
+
+      cost.dfdxx += penaltySecondDerivative * dDistancedx * dDistancedx.transpose() 
+        + penaltyDerivative * positionDifferenceGradient * distanceSecondGradient * 
+          positionDifferenceGradient.transpose();
+    }
+
+    // Collision Link - Collision Link
+    for(const auto& collisionPair: collisionLinkPairIndices_.)
+    {
+      const size_t firstIndex = collisionPair.first;
+      const size_t secondIndex = collisionPair.second;
+
+      const vector3_t& firstPosition = leggedPrecomputation.getCollisionLinkPosition(
+        firstIndex);
+      const vector3_t& firstEulerAngles = leggedPrecomputation.getCollisionLinkOrientation(
+        firstIndex);
+      const matrix3_t firstRotationMatrix = getRotationMatrixFromZyxEulerAngles(
+        firstEulerAngles);
+
+      const vector3_t& secondPosition = leggedPrecomputation.getCollisionLinkPosition(
+        secondIndex);
+      const vector3_t& secondEulerAngles = leggedPrecomputation.getCollisionLinkOrientation(
+        secondIndex);
+      const matrix3_t secondRotationMatrix = getRotationMatrixFromZyxEulerAngles(
+        secondEulerAngles);
+
+      const std::vector<vector3_t>& firstSphereRelativePositions = 
+        collisionInterface_.getFrameSpherePositions(firstIndex);
+
+      const std::vector<vector3_t>& secondSphereRelativePositions = 
+        collisionInterface_.getFrameSpherePositions(secondIndex)
+
+      const std::vector<scalar_t>& firstRadiuses = 
+        collisionInterface_.getFrameSphereRadiuses(firstIndex);
+
+      const std::vector<scalar_t>& secondRadiuses = 
+        collisionInterface_.getFrameSphereRadiuses(secondIndex);
+
+      scalar_t minDistance = std::numeric_limits<scalar_t>::max();
+      size_t minFirstIndex = 0;
+      size_t minSecondIndex = 0;
+
+      for(size_t j = 0; j < firstRadiuses.size(); ++j)
+      {
+        const vector3_t firstSpherePosition = firstPosition 
+          + firstRotationMatrix * firstSphereRelativePositions[j];
+        for(size_t k = 0; k < secondRadiuses.size(); ++k)
+        {
+          const vector3_t secondSpherePosition = secondPosition 
+            + secondRotationMatrix * secondSphereRelativePositions[k];
+          const scalar_t distance = (firstSpherePosition - secondSpherePosition).norm() 
+            - firstRadiuses[j] - secondRadiuses[k];
+          if(distance < minDistance)
+          {
+            minDistance = distance;
+            minFirstIndex = j; 
+            minSecondIndex = k;
+          }
+        }
+      }
+      
+      const vector3_t minFirstSpherePosition = firstPosition 
+        + firstRotationMatrix * firstSphereRelativePositions[minFirstIndex];
+
+      const vector3_t minSecondSpherePosition = secondPosition 
+        + secondRotationMatrix * secondSphereRelativePositions[minSecondIndex];
+
+      const vector3_t pointDifference = minFirstSpherePosition - minSecondSpherePosition;
+      const vector3_t normal = pointDifference.normalized();
+      const scalar_t pointDistance = pointDifference.norm();
+      const scalar_t sphereDistance = minDistance;
+
+      cost.f += selfAvoidancePenaltyPtr_->getValue(0.0, sphereDistance);
+
+      matrix_t firstPositionDerivatives = leggedPrecomputation.getCollisionLinkPositionDerivatives(
+        firstIndex).dfdx;
+      const auto& firstOrientationDerivatives = leggedPrecomputation.getCollisionLinkOrientationDerivatives(
+        firstIndex).dfdx;
+      const matrix3_t firstRotationVectorGradient = collisionInterface_.getRotationTimesVectorGradient(
+        firstFrameEulerAngles, firstSphereRelativePositions[minFirstIndex]);
+      firstPositionDerivatives += firstRotationVectorGradient * firstOrientationDerivatives;
+
+      mmatrix_t secondPositionDerivatives = leggedPrecomputation.getCollisionLinkPositionDerivatives(
+        secondIndex).dfdx;
+      const auto& secondOrientationDerivatives = leggedPrecomputation.getCollisionLinkOrientationDerivatives(
+        secondIndex).dfdx;
+      const matrix3_t secondRotationVectorGradient = collisionInterface_.getRotationTimesVectorGradient(
+        secondFrameEulerAngles, secondSphereRelativePositions[minSecondIndex]);
+      secondPositionDerivatives += secondRotationVectorGradient * secondOrientationDerivatives;
+
+      const scalar_t penaltyDerivative = selfAvoidancePenaltyPtr_->getDerivative(0.0, sphereDistance);
+
+      const matrix_t positionDifferenceGradient = firstPositionDerivatives - secondPositionDerivatives;
+
+      const vector_t dDistancedx = positionDifferenceGradient.transpose() * normal;
+
+      cost.dfdx += penaltyDerivative * dDistancedx;
+      
+      const scalar_t penaltySecondDerivative = selfAvoidancePenaltyPtr_->getSecondDerivative(0.0, 
+        sphereDistance);
+
+      const matrix3_t distanceSecondGradient = getDistanceSecondGradient(normal, pointDistance);
+
+      cost.dfdxx += penaltySecondDerivative * dDistancedx * dDistancedx.transpose() 
+        + penaltyDerivative * positionDifferenceGradient * distanceSecondGradient * 
+          positionDifferenceGradient.transpose();
+    }
     return cost;
   }
 
-      
-  ScalarFunctionQuadraticApproximation SelfCollisionAvoidanceSoftConstraint::getQuadraticApproximation(
-    scalar_t time, const vector_t& state, const TargetTrajectories& targetTrajectories,
-    const PreComputation& preComp) const
+  matrix3_t SelfCollisionAvoidanceSoftConstraint::getDistanceSecondGradient(
+    const vector3_t& normal, scalar_t distance) const
   {
-    const auto& leggedPrecomputation = cast<LeggedPrecomputation>(preComp);
-    const SignedDistanceField* sdf = referenceManager_.getTerrainModel()
-      .getSignedDistanceField();
-
-    ScalarFunctionQuadraticApproximation cost;
-    cost.f = 0.0;
-    cost.dfdx = vector_t::Zero(state.size());
-    cost.dfdxx = vector_t::Zero(state.size(), state.size());
-
-    // Three Dof End Effectors (one sphere)
-    for(size_t i = 0; i < threeDofEndEffectorNum_; ++i)
-    {
-      const scalar_t radius = collisionInterface_.getFrameSphereRadiuses(i)[0];
-      const vector3_t& position = leggedPrecomputation.getEndEffectorPosition(i);
-      const scalar_t terrainClearance = leggedPrecomputation.getReferenceEndEffectorTerrainClearance(i);
-      const scalar_t relaxation = relaxations_[i];
-      const auto [sdfDistance, sdfGradient] = sdf->valueAndDerivative(position);
-      const scalar_t distance = sdfDistance - radius - terrainClearance + relaxation;
-      cost.f += terrainAvoidancePenaltyPtr_->getValue(0.0, distance);
-
-      const scalar_t penaltyDerivative = terrainAvoidancePenaltyPtr_->getDerivative(
-        0.0, distance);
-
-      const scalar_t penaltySecondDerivative = terrainAvoidancePenaltyPtr_->getSecondDerivative(
-        0.0, distance);
-
-      const auto& positionDerivative = leggedPrecomputation.getEndEffectorPositionDerivatives(i);
-      
-      const vector_t scaledGrdaient = positionDerivative.dfdx.transpose() * sdfGradient;
-      
-      cost.dfdx.noalias() += penaltyDerivative * scaledGrdaient;
-
-      // Approximated second derivative (sdf and postion second gradients are omitted)
-      cost.dfdxx.noalias() += penaltySecondDerivative * scaledGrdaient * scaledGrdaient.transpose();
-    }
-
-    // Six Dof End Effectors (many spheres)
-    for(size_t i = threeDofEndEffectorNum_; i < endEffectorNum_; ++i)
-    {
-      const std::vector<scalar_t>& radiuses = collisionInterface_.getFrameSphereRadiuses(i);
-      const std::vector<vector3_t>& sphereRelativePositions = collisionInterface_.getFrameSpherePositions(i);
-      const vector3_t& framePosition = leggedPrecomputation.getEndEffectorPosition(i);
-      const vector3_t& frameEulerAngles = leggedPrecomputation.getEndEffectorOrientation(i);
-      const matrix3_t rotationMatrix = getRotationMatrixFromZyxEulerAngles(frameEulerAngles);
-      std::vector<scalar_t> distances(sphereRelativePositions.size());
-      for(size_t j = 0; j < sphereRelativePositions.size(); ++j)
-      {
-        const vector3_t spherePositionInWorld = framePosition + rotationMatrix * sphereRelativePositions[j];
-        distances[j] = sdf->value(spherePositionInWorld) - radiuses[j];
-      }      
-
-      const scalar_t relaxation = relaxations_[i];
-      const auto minDistanceIterator = std::min_element(distances.begin(), distances.end());
-      const size_t minDistanceIndex = std::distance(distances.begin(), minDistanceIterator);
-      const scalar_t terrainClearance = leggedPrecomputation.getReferenceEndEffectorTerrainClearance(i);
-      const scalar_t distance = distances[minDistanceIndex] - terrainClearance + relaxation;
-      
-      cost.f += terrainAvoidancePenaltyPtr_->getValue(0.0, distance);
-
-      const vector3_t minSpherePosition = framePosition + rotationMatrix * sphereRelativePositions[minDistanceIndex];
-
-      const vector3_t sdfGradient = sdf->derivative(minSpherePosition);
-
-      const scalar_t penaltyDerivative = terrainAvoidancePenaltyPtr_->getDerivative(
-        0.0, distance);
-
-      const scalar_t penaltySecondDerivative = terrainAvoidancePenaltyPtr_->getSecondDerivative(
-        0.0, distance);
-
-      const auto& positionDerivative = leggedPrecomputation.getEndEffectorPositionDerivatives(i);
-      
-      const vector_t scaledGrdaient = positionDerivative.dfdx.transpose() * sdfGradient;
-      
-      cost.dfdx.noalias() += penaltyDerivative * scaledGrdaient;
-
-      // Approximated second derivative (sdf and postion second gradients are omitted)
-      cost.dfdxx.noalias() += penaltySecondDerivative * scaledGrdaient * scaledGrdaient.transpose();
-    }
-
-    // Collison links (one or many spheres)
-    for(size_t i = 0; i < collisionLinkIndicies_.size(); ++i)
-    {
-      const size_t collisionIndex = collisionLinkIndicies_[i];
-      const std::vector<scalar_t>& radiuses = collisionInterface_.getFrameSphereRadiuses(
-        collisionIndex);
-      const std::vector<vector3_t>& sphereRelativePositions = collisionInterface_.getFrameSpherePositions(collisionIndex);
-      const vector3_t& framePosition = leggedPrecomputation.getCollisionLinkPosition(i);
-      const vector3_t& frameEulerAngles = leggedPrecomputation.getCollisionLinkOrientation(i);
-      const matrix3_t rotationMatrix = getRotationMatrixFromZyxEulerAngles(frameEulerAngles);
-      std::vector<scalar_t> distances(sphereRelativePositions.size());
-      for(size_t j = 0; j < sphereRelativePositions.size(); ++j)
-      {
-        const vector3_t spherePositionInWorld = framePosition + rotationMatrix * sphereRelativePositions[j];
-        distances[j] = sdf->value(spherePositionInWorld) - radiuses[j];
-      }      
-
-      const scalar_t relaxation = relaxations_[i];
-      const auto minDistanceIterator = std::min_element(distances.begin(), distances.end());
-      const size_t minDistanceIndex = std::distance(distances.begin(), minDistanceIterator);
-
-      const scalar_t distance = distances[minDistanceIndex] + relaxation;
-      
-      cost.f += terrainAvoidancePenaltyPtr_->getValue(0.0, distance);
-
-      const vector3_t minSpherePosition = framePosition + rotationMatrix * sphereRelativePositions[minDistanceIndex];
-
-      const vector3_t sdfGradient = sdf->derivative(minSpherePosition);
-
-      const scalar_t penaltyDerivative = terrainAvoidancePenaltyPtr_->getDerivative(
-        0.0, distance);
-
-      const scalar_t penaltySecondDerivative = terrainAvoidancePenaltyPtr_->getSecondDerivative(
-        0.0, distance);
-
-      const auto& positionDerivative = leggedPrecomputation.getCollisionLinkPositionDerivatives(collisionIndex);
-      
-      const vector_t scaledGrdaient = positionDerivative.dfdx.transpose() * sdfGradient;
-      
-      cost.dfdx.noalias() += penaltyDerivative * scaledGrdaient;
-
-      // Approximated second derivative (sdf and postion second gradients are omitted)
-      cost.dfdxx.noalias() += penaltySecondDerivative * scaledGrdaient * scaledGrdaient.transpose();
-    }
-
-    return cost;
+    matrix3_t temp = - normal * normal.transpose() / distance;
+    temp.diagonal().array() += distance * distance;
+    return temp;
   }
 
   SelfCollisionAvoidanceSoftConstraint::SelfCollisionAvoidanceSoftConstraint(
     const SelfCollisionAvoidanceSoftConstraint& rhs):
+      StateCost(),
       threeDofEndEffectorNum_(rhs.threeDofEndEffectorNum_),
       sixDofEndEffectorNum_(rhs.sixDofEndEffectorNum_),
       endEffectorNum_(rhs.endEffectorNum_),
-      endEffectorPairIndices_(rhs.ndEffectorIndices_),
-      endEffectorLinkIndices_(rhs.endEffectorLinkIndices_),
+      endEffector33DoFPairIndices_(rhs.endEffector33DoFPairIndices_),
+      endEffector33DoFPairRelaxations_(rhs.endEffector33DoFPairRelaxations_),
+      endEffector36DoFPairIndices_(rhs.endEffector36DoFPairIndices_),
+      endEffector36DoFPairRelaxations_(rhs.endEffector36DoFPairRelaxations_),
+      endEffector66DoFPairIndices_(rhs.endEffector66DoFPairIndices_),
+      endEffector66DoFPairRelaxations_(rhs.endEffector66DoFPairRelaxations_),
+      endEffector3DoFLinkIndices_(rhs.endEffector3DoFLinkIndices_),
+      endEffector3DoFLinkRelaxations_(rhs.endEffector3DoFLinkRelaxations_),
+      endEffector6DoFLinkIndices_(rhs.endEffector6DoFLinkIndices_),
+      endEffector6DoFLinkRelaxations_(rhs.endEffector6DoFLinkRelaxations_),
       collisionLinkPairIndices_(rhs.collisionLinkPairIndices_),
+      collisionLinkPairRelaxations_(rhs.collisionLinkPairRelaxations_),
       referenceManager_(rhs.referenceManager_),
       collisionInterface_(rhs.collisionInterface_),
       relaxations_(rhs.relaxations_),
-      terrainAvoidancePenaltyPtr_(rhs.terrainAvoidancePenaltyPtr_->clone()) {}
+      selfAvoidancePenaltyPtr_(rhs.selfAvoidancePenaltyPtr_->clone()) {}
 } // namespace legged_locomotion_mpc

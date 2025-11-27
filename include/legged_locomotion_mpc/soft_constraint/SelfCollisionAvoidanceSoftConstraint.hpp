@@ -109,6 +109,13 @@ namespace legged_locomotion_mpc
       const collision::PinocchioCollisionInterface& collisionInterface_;
       
       std::unique_ptr<ocs2::RelaxedBarrierPenalty> selfAvoidancePenaltyPtr_;
+      
+      /**
+       * Get second derivative of distance between points with respect to 
+       * difference of those points: d(d(distance(p1, p2)))/d(p1 - p2)^2
+       */
+      matrix3_t getDistanceSecondGradient(const vector3_t& normal, 
+        ocs2::scalar_t distance) const;
   };
 } // namespace legged_locomotion_mpc
 
