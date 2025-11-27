@@ -200,8 +200,14 @@ namespace legged_locomotion_mpc
         0.0, minDistance);
 
       const auto& positionDerivative = leggedPrecomputation.getEndEffectorPositionDerivatives(i);
-      
-      const vector_t scaledGrdaient = positionDerivative.dfdx.transpose() * sdfGradient;
+      const auto& eulerDerivative = leggedPrecomputation.getEndEffectorOrientationDerivatives(i);
+
+      const auto rotationVectorGradient = 
+        collisionInterface_.getRotationTimesVectorGradient(frameEulerAngles, 
+          sphereRelativePositions[minIndex]);
+
+      const auto positionStateDerivative = positionDerivative.dfdx + rotationVectorGradient * eulerDerivative.dfdx;
+      const vector_t scaledGrdaient = positionStateDerivative.transpose() * sdfGradient;
       
       cost.dfdx.noalias() += penaltyDerivative * scaledGrdaient;
 
@@ -216,8 +222,8 @@ namespace legged_locomotion_mpc
       const std::vector<scalar_t>& radiuses = collisionInterface_.getFrameSphereRadiuses(
         collisionIndex);
       const std::vector<vector3_t>& sphereRelativePositions = collisionInterface_.getFrameSpherePositions(collisionIndex);
-      const vector3_t& framePosition = leggedPrecomputation.getCollisionLinkPosition(i);
-      const vector3_t& frameEulerAngles = leggedPrecomputation.getCollisionLinkOrientation(i);
+      const vector3_t& framePosition = leggedPrecomputation.getCollisionLinkPosition(collisionIndex);
+      const vector3_t& frameEulerAngles = leggedPrecomputation.getCollisionLinkOrientation(collisionIndex);
       const matrix3_t rotationMatrix = getRotationMatrixFromZyxEulerAngles(frameEulerAngles);
       scalar_t minDistance = std::numeric_limits<scalar_t>::max();
       size_t minIndex = 0;
@@ -231,7 +237,7 @@ namespace legged_locomotion_mpc
           minIndex = j;
         }
       }      
-      const scalar_t relaxation = relaxations_[i];
+      const scalar_t relaxation = relaxations_[i + endEffectorNum_];
 
       minDistance += relaxation;
       
@@ -248,8 +254,14 @@ namespace legged_locomotion_mpc
         0.0, minDistance);
 
       const auto& positionDerivative = leggedPrecomputation.getCollisionLinkPositionDerivatives(collisionIndex);
-      
-      const vector_t scaledGrdaient = positionDerivative.dfdx.transpose() * sdfGradient;
+      const auto& eulerDerivative = leggedPrecomputation.getCollisionLinkOrientationDerivatives(collisionIndex);
+
+      const auto rotationVectorGradient = 
+        collisionInterface_.getRotationTimesVectorGradient(frameEulerAngles, 
+          sphereRelativePositions[minIndex]);
+
+      const auto positionStateDerivative = positionDerivative.dfdx + rotationVectorGradient * eulerDerivative.dfdx;
+      const vector_t scaledGrdaient = positionStateDerivative.transpose() * sdfGradient;
       
       cost.dfdx.noalias() += penaltyDerivative * scaledGrdaient;
 
