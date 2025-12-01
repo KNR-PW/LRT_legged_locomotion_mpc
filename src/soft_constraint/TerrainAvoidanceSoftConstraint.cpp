@@ -59,12 +59,16 @@ namespace legged_locomotion_mpc
     const auto& leggedPrecomputation = cast<LeggedPrecomputation>(preComp);
     const SignedDistanceField* sdf = referenceManager_.getTerrainModel()
       .getSignedDistanceField();
+    
+    const contact_flags_t contactFlags = referenceManager_.getContactFlags(time);
 
     scalar_t cost = 0.0;
 
     // Three Dof End Effectors (one sphere)
     for(size_t i = 0; i < threeDofEndEffectorNum_; ++i)
     {
+      // If end effector is in contact, does not add cost
+      if(contactFlags[i]) continue;
       const scalar_t radius = collisionInterface_.getFrameSphereRadiuses(i)[0];
       const vector3_t& position = leggedPrecomputation.getEndEffectorPosition(i);
       const scalar_t terrainClearance = leggedPrecomputation.getReferenceEndEffectorTerrainClearance(i);
@@ -77,6 +81,8 @@ namespace legged_locomotion_mpc
     // Six Dof End Effectors (many spheres)
     for(size_t i = threeDofEndEffectorNum_; i < endEffectorNum_; ++i)
     {
+      // If end effector is in contact, does not add cost
+      if(contactFlags[i]) continue;
       const std::vector<scalar_t>& radiuses = collisionInterface_.getFrameSphereRadiuses(i);
       const std::vector<vector3_t>& sphereRelativePositions = collisionInterface_.getFrameSpherePositions(i);
       const vector3_t& framePosition = leggedPrecomputation.getEndEffectorPosition(i);
@@ -129,6 +135,8 @@ namespace legged_locomotion_mpc
     const SignedDistanceField* sdf = referenceManager_.getTerrainModel()
       .getSignedDistanceField();
 
+    const contact_flags_t contactFlags = referenceManager_.getContactFlags(time);
+
     ScalarFunctionQuadraticApproximation cost;
     cost.f = 0.0;
     cost.dfdx = vector_t::Zero(state.size());
@@ -137,6 +145,8 @@ namespace legged_locomotion_mpc
     // Three Dof End Effectors (one sphere)
     for(size_t i = 0; i < threeDofEndEffectorNum_; ++i)
     {
+      // If end effector is in contact, does not add cost
+      if(contactFlags[i]) continue;
       const scalar_t radius = collisionInterface_.getFrameSphereRadiuses(i)[0];
       const vector3_t& position = leggedPrecomputation.getEndEffectorPosition(i);
       const scalar_t terrainClearance = leggedPrecomputation.getReferenceEndEffectorTerrainClearance(i);
@@ -164,6 +174,8 @@ namespace legged_locomotion_mpc
     // Six Dof End Effectors (many spheres)
     for(size_t i = threeDofEndEffectorNum_; i < endEffectorNum_; ++i)
     {
+      // If end effector is in contact, does not add cost
+      if(contactFlags[i]) continue;
       const std::vector<scalar_t>& radiuses = collisionInterface_.getFrameSphereRadiuses(i);
       const std::vector<vector3_t>& sphereRelativePositions = collisionInterface_.getFrameSpherePositions(i);
       const vector3_t& framePosition = leggedPrecomputation.getEndEffectorPosition(i);

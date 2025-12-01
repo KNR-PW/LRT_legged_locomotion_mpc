@@ -133,6 +133,8 @@ namespace legged_locomotion_mpc
   {
     const auto& leggedPrecomputation = cast<LeggedPrecomputation>(preComp);
 
+    const contact_flags_t contactFlags = referenceManager_.getContactFlags(time);
+
     scalar_t cost = 0.0;
 
     // 3 DoF - 3 DoF
@@ -141,6 +143,9 @@ namespace legged_locomotion_mpc
       const auto& endEffectorPair = endEffector33DoFPairIndices_[i];
       const size_t firstIndex = endEffectorPair.first;
       const size_t secondIndex = endEffectorPair.second;
+
+      // If boths end effectors are in contact, does not add cost
+      if(contactFlags[firstIndex] && contactFlags[secondIndex]) continue;
 
       const vector3_t& firstFramePosition = leggedPrecomputation.getEndEffectorPosition(
         firstIndex);
@@ -164,6 +169,9 @@ namespace legged_locomotion_mpc
       const auto& endEffectorPair = endEffector36DoFPairIndices_[i];
       const size_t firstIndex = endEffectorPair.first;
       const size_t secondIndex = endEffectorPair.second;
+
+      // If boths end effectors are in contact, does not add cost
+      if(contactFlags[firstIndex] && contactFlags[secondIndex]) continue;
 
       const vector3_t& firstFramePosition = leggedPrecomputation.getEndEffectorPosition(
         firstIndex);
@@ -201,6 +209,9 @@ namespace legged_locomotion_mpc
       const auto& endEffectorPair = endEffector66DoFPairIndices_[i];
       const size_t firstIndex = endEffectorPair.first;
       const size_t secondIndex = endEffectorPair.second;
+
+      // If boths end effectors are in contact, does not add cost
+      if(contactFlags[firstIndex] && contactFlags[secondIndex]) continue;
 
       const vector3_t& firstFramePosition = leggedPrecomputation.getEndEffectorPosition(
         firstIndex);
@@ -400,6 +411,8 @@ namespace legged_locomotion_mpc
     const PreComputation& preComp) const
   {
     const auto& leggedPrecomputation = cast<LeggedPrecomputation>(preComp);
+
+    const contact_flags_t contactFlags = referenceManager_.getContactFlags(time);
     
     ScalarFunctionQuadraticApproximation cost;
     cost.f = 0.0;
@@ -412,6 +425,9 @@ namespace legged_locomotion_mpc
       const auto& endEffectorPair = endEffector33DoFPairIndices_[i];
       const size_t firstIndex = endEffectorPair.first;
       const size_t secondIndex = endEffectorPair.second;
+
+      // If boths end effectors are in contact, does not add cost
+      if(contactFlags[firstIndex] && contactFlags[secondIndex]) continue;
 
       const vector3_t& firstFramePosition = leggedPrecomputation.getEndEffectorPosition(
         firstIndex);
@@ -462,6 +478,9 @@ namespace legged_locomotion_mpc
       const auto& endEffectorPair = endEffector36DoFPairIndices_[i];
       const size_t firstIndex = endEffectorPair.first;
       const size_t secondIndex = endEffectorPair.second;
+
+      // If boths end effectors are in contact, does not add cost
+      if(contactFlags[firstIndex] && contactFlags[secondIndex]) continue;
 
       const vector3_t& firstFramePosition = leggedPrecomputation.getEndEffectorPosition(
         firstIndex);
@@ -540,6 +559,9 @@ namespace legged_locomotion_mpc
       const auto& endEffectorPair = endEffector66DoFPairIndices_[i];
       const size_t firstIndex = endEffectorPair.first;
       const size_t secondIndex = endEffectorPair.second;
+
+      // If boths end effectors are in contact, does not add cost
+      if(contactFlags[firstIndex] && contactFlags[secondIndex]) continue;
 
       const vector3_t& firstFramePosition = leggedPrecomputation.getEndEffectorPosition(
         firstIndex);
