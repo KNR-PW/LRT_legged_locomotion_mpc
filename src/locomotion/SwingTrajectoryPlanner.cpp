@@ -692,6 +692,49 @@ namespace legged_locomotion_mpc
       }
     }
 
+    SwingTrajectoryPlanner::FootTangentialConstraintTrajectories 
+      SwingTrajectoryPlanner::getFootTangentialConstraintTrajectories(
+        std::vector<contact_flags_t> contactFlags, std::vector<scalar_t> times)
+    {
+      const size_t numEndEffectors = modelInfo_.numThreeDofContacts + modelInfo_.numSixDofContacts;
+
+      FootTangentialConstraintTrajectories trajectory;
+
+      // First iteration
+      std::vector<FootTangentialConstraintMatrix> firstConstraints(numEndEffectors);
+
+      for(size_t i = 0; i < numEndEffectors; ++i)
+      {
+        const auto& footPhase = getFootPhase(i, times[0]);
+        if(contactFlags[0][i])
+        {
+          firstConstraints[i] = *footPhase.getFootTangentialConstraintInWorldFrame();
+        }
+      }
+      trajectory.times.push_back(times[0]);
+      trajectory.constraints.push_back(std::move(firstConstraints));
+
+      // Other iterations
+      for(size_t i = 1; i < times.size(); ++i)
+      {
+        // If flags are the same, continue
+        if(contactFlags[i] == contactFlags[i - 1]) continue;
+        std::vector<FootTangentialConstraintMatrix> newConstraints(numEndEffectors);
+        for(size_t j = 0; j < numEndEffectors; ++j)
+        {
+          const auto& footPhase = getFootPhase(j, times[i]);
+          if(contactFlags[i][j])
+          {
+            newConstraints[j] = *footPhase.getFootTangentialConstraintInWorldFrame();
+          }
+        }
+        trajectory.times.push_back(times[i]);
+        trajectory.constraints.push_back(std::move(newConstraints));
+      }
+      
+      return trajectory;
+    }
+
     std::vector<ConvexTerrain> SwingTrajectoryPlanner::getNominalFootholds(
       size_t endEffectorIndex) const 
     { 
