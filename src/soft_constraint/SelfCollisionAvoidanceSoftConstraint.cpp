@@ -136,8 +136,9 @@ namespace legged_locomotion_mpc
     scalar_t cost = 0.0;
 
     // 3 DoF - 3 DoF
-    for(const auto& endEffectorPair: endEffector33DoFPairIndices_)
+    for(size_t i = 0; i < endEffector33DoFPairIndices_.size(); ++i)
     {
+      const auto& endEffectorPair = endEffector33DoFPairIndices_[i];
       const size_t firstIndex = endEffectorPair.first;
       const size_t secondIndex = endEffectorPair.second;
 
@@ -152,14 +153,15 @@ namespace legged_locomotion_mpc
         collisionInterface_.getFrameSphereRadiuses(secondIndex)[0];
 
       const scalar_t distance = (firstFramePosition - secondFramePosition).norm() 
-        - firstRadius - secondRadius;
+        - firstRadius - secondRadius + endEffector33DoFPairRelaxations_[i];
 
       cost += selfAvoidancePenaltyPtr_->getValue(0.0, distance);
     }
 
     // 3 DoF - 6 DoF
-    for(const auto& endEffectorPair: endEffector36DoFPairIndices_)
+    for(size_t i = 0; i < endEffector36DoFPairIndices_.size(); ++i)
     {
+      const auto& endEffectorPair = endEffector36DoFPairIndices_[i];
       const size_t firstIndex = endEffectorPair.first;
       const size_t secondIndex = endEffectorPair.second;
 
@@ -189,12 +191,14 @@ namespace legged_locomotion_mpc
           - secondRadiuses[j];
         if(distance < minDistance) minDistance = distance;
       }
-      cost += selfAvoidancePenaltyPtr_->getValue(0.0, minDistance - firstRadius);
+      cost += selfAvoidancePenaltyPtr_->getValue(0.0, minDistance - firstRadius 
+        + endEffector36DoFPairRelaxations_[i]);
     }
 
     // 6 DoF - 6 DoF
-    for(const auto& endEffectorPair: endEffector66DoFPairIndices_)
+    for(size_t i = 0; i < endEffector66DoFPairIndices_.size(); ++i)
     {
+      const auto& endEffectorPair = endEffector66DoFPairIndices_[i];
       const size_t firstIndex = endEffectorPair.first;
       const size_t secondIndex = endEffectorPair.second;
 
@@ -239,12 +243,14 @@ namespace legged_locomotion_mpc
           if(distance < minDistance) minDistance = distance;
         }
       }
-      cost += selfAvoidancePenaltyPtr_->getValue(0.0, minDistance);
+      cost += selfAvoidancePenaltyPtr_->getValue(0.0, minDistance 
+        + endEffector66DoFPairRelaxations_[i]);
     }
 
     // 3 DoF - Collision Link
-    for(const auto& endEffectorLinkPair: endEffector3DoFLinkIndices_)
+    for(size_t i = 0; i < endEffector3DoFLinkIndices_.size(); ++i)
     {
+      const auto& endEffectorLinkPair = endEffector3DoFLinkIndices_[i];
       const size_t endEffectorIndex = endEffectorLinkPair.first;
       const size_t collisionIndex = endEffectorLinkPair.second;
 
@@ -278,12 +284,14 @@ namespace legged_locomotion_mpc
           - collisionRadiuses[j];
         if(distance < minDistance) minDistance = distance;
       }
-      cost += selfAvoidancePenaltyPtr_->getValue(0.0, minDistance - frameRadius);
+      cost += selfAvoidancePenaltyPtr_->getValue(0.0, minDistance - frameRadius 
+        + endEffector3DoFLinkRelaxations_[i]);
     }
 
     // 6 DoF - Collision Link
-    for(const auto& endEffectorLinkPair: endEffector6DoFLinkIndices_)
+    for(size_t i = 0; i < endEffector6DoFLinkIndices_.size(); ++i)
     {
+      const auto& endEffectorLinkPair = endEffector6DoFLinkIndices_[i];
       const size_t frameIndex = endEffectorLinkPair.first;
       const size_t collisionIndex = endEffectorLinkPair.second;
 
@@ -328,12 +336,14 @@ namespace legged_locomotion_mpc
           if(distance < minDistance) minDistance = distance;
         }
       }
-      cost += selfAvoidancePenaltyPtr_->getValue(0.0, minDistance);
+      cost += selfAvoidancePenaltyPtr_->getValue(0.0, minDistance 
+        + endEffector6DoFLinkRelaxations_[i]);
     }
 
     // Collision Link - Collision Link
-    for(const auto& collisionPair: collisionLinkPairIndices_)
+    for(size_t i = 0; i < collisionLinkPairIndices_.size(); ++i)
     {
+      const auto& collisionPair = collisionLinkPairIndices_[i];
       const size_t firstIndex = collisionPair.first;
       const size_t secondIndex = collisionPair.second;
 
@@ -378,7 +388,8 @@ namespace legged_locomotion_mpc
           if(distance < minDistance) minDistance = distance;
         }
       }
-      cost += selfAvoidancePenaltyPtr_->getValue(0.0, minDistance);
+      cost += selfAvoidancePenaltyPtr_->getValue(0.0, minDistance 
+        + collisionLinkPairRelaxations_[i]);
     }
     return cost;
   }
@@ -396,8 +407,9 @@ namespace legged_locomotion_mpc
     cost.dfdxx = vector_t::Zero(state.size(), state.size());
 
     // 3 DoF - 3 DoF
-    for(const auto& endEffectorPair: endEffector33DoFPairIndices_)
+    for(size_t i = 0; i < endEffector33DoFPairIndices_.size(); ++i)
     {
+      const auto& endEffectorPair = endEffector33DoFPairIndices_[i];
       const size_t firstIndex = endEffectorPair.first;
       const size_t secondIndex = endEffectorPair.second;
 
@@ -413,7 +425,8 @@ namespace legged_locomotion_mpc
 
       const scalar_t pointDistance = (firstFramePosition - secondFramePosition).norm();
 
-      const scalar_t distance = pointDistance - firstRadius - secondRadius;
+      const scalar_t distance = pointDistance - firstRadius - secondRadius
+        + endEffector33DoFPairRelaxations_[i];
 
       cost.f += selfAvoidancePenaltyPtr_->getValue(0.0, distance);
 
@@ -444,8 +457,9 @@ namespace legged_locomotion_mpc
     }
 
     // 3 DoF - 6 DoF
-    for(const auto& endEffectorPair: endEffector36DoFPairIndices_)
+    for(size_t i = 0; i < endEffector36DoFPairIndices_.size(); ++i)
     {
+      const auto& endEffectorPair = endEffector36DoFPairIndices_[i];
       const size_t firstIndex = endEffectorPair.first;
       const size_t secondIndex = endEffectorPair.second;
 
@@ -486,7 +500,8 @@ namespace legged_locomotion_mpc
       const vector3_t pointDifference = firstFramePosition - minSpherePosition;
       const vector3_t normal = pointDifference.normalized();
       const scalar_t pointDistance = pointDifference.norm();
-      const scalar_t sphereDistance = minDistance - firstRadius;
+      const scalar_t sphereDistance = minDistance - firstRadius 
+        + endEffector36DoFPairRelaxations_[i];
 
       cost.f += selfAvoidancePenaltyPtr_->getValue(0.0, sphereDistance);
 
@@ -520,8 +535,9 @@ namespace legged_locomotion_mpc
     }
 
     // 6 DoF - 6 DoF
-    for(const auto& endEffectorPair: endEffector66DoFPairIndices_)
+    for(size_t i = 0; i < endEffector66DoFPairIndices_.size(); ++i)
     {
+      const auto& endEffectorPair = endEffector66DoFPairIndices_[i];
       const size_t firstIndex = endEffectorPair.first;
       const size_t secondIndex = endEffectorPair.second;
 
@@ -583,7 +599,7 @@ namespace legged_locomotion_mpc
       const vector3_t pointDifference = minFirstSpherePosition - minSecondSpherePosition;
       const vector3_t normal = pointDifference.normalized();
       const scalar_t pointDistance = pointDifference.norm();
-      const scalar_t sphereDistance = minDistance;
+      const scalar_t sphereDistance = minDistance + endEffector66DoFPairRelaxations_[i];
 
       cost.f += selfAvoidancePenaltyPtr_->getValue(0.0, sphereDistance);
 
@@ -622,8 +638,9 @@ namespace legged_locomotion_mpc
     }
 
     // 3 DoF - Collision Link
-    for(const auto& endEffectorLinkPair: endEffector3DoFLinkIndices_)
+    for(size_t i = 0; i < endEffector3DoFLinkIndices_.size(); ++i)
     {
+      const auto& endEffectorLinkPair = endEffector3DoFLinkIndices_[i];
       const size_t endEffectorIndex = endEffectorLinkPair.first;
       const size_t collisionIndex = endEffectorLinkPair.second;
 
@@ -668,12 +685,13 @@ namespace legged_locomotion_mpc
       const vector3_t pointDifference = framePosition - minSpherePosition;
       const vector3_t normal = pointDifference.normalized();
       const scalar_t pointDistance = pointDifference.norm();
-      const scalar_t sphereDistance = minDistance - frameRadius;
+      const scalar_t sphereDistance = minDistance - frameRadius 
+        + endEffector3DoFLinkRelaxations_[i];
 
       cost.f += selfAvoidancePenaltyPtr_->getValue(0.0, sphereDistance);
 
       const auto& framePositionDerivatives = leggedPrecomputation.getEndEffectorPositionDerivatives(
-        endEffectorIndex ).dfdx;
+        endEffectorIndex).dfdx;
 
       matrix_t collisionPositionDerivatives = leggedPrecomputation.getCollisionLinkPositionDerivatives(
         collisionIndex).dfdx;
@@ -685,7 +703,7 @@ namespace legged_locomotion_mpc
 
       const scalar_t penaltyDerivative = selfAvoidancePenaltyPtr_->getDerivative(0.0, sphereDistance);
 
-      const matrix_t positionDifferenceGradient = framePositionDerivatives - secondPositionDerivatives;
+      const matrix_t positionDifferenceGradient = framePositionDerivatives - collisionPositionDerivatives;
 
       const vector_t dDistancedx = positionDifferenceGradient.transpose() * normal;
 
@@ -702,10 +720,11 @@ namespace legged_locomotion_mpc
     }
 
     // 6 DoF - Collision Link
-    for(const auto& endEffectorLinkPair: endEffector6DoFLinkIndices_)
+    for(size_t i = 0; i < endEffector6DoFLinkIndices_.size(); ++i)
     {
-      const size_t frameIndex = endEffectorPair.first;
-      const size_t collisionIndex = endEffectorPair.second;
+      const auto& endEffectorLinkPair = endEffector6DoFLinkIndices_[i];
+      const size_t frameIndex = endEffectorLinkPair.first;
+      const size_t collisionIndex = endEffectorLinkPair.second;
 
       const vector3_t& framePosition = leggedPrecomputation.getEndEffectorPosition(
         frameIndex);
@@ -716,16 +735,16 @@ namespace legged_locomotion_mpc
 
       const vector3_t& collisionPosition = leggedPrecomputation.getCollisionLinkPosition(
         collisionIndex);
-      const vector3_t& collisionFrameEulerAngles = leggedPrecomputation.getCollisionLinkOrientation(
+      const vector3_t& collisionEulerAngles = leggedPrecomputation.getCollisionLinkOrientation(
         collisionIndex);
       const matrix3_t collisionRotationMatrix = getRotationMatrixFromZyxEulerAngles(
-        collisionFrameEulerAngles);
+        collisionEulerAngles);
 
       const std::vector<vector3_t>& frameSphereRelativePositions = 
         collisionInterface_.getFrameSpherePositions(frameIndex);
       
       const std::vector<vector3_t>& collisionSphereRelativePositions = 
-        collisionInterface_.getFrameSpherePositions(collisionIndex)
+        collisionInterface_.getFrameSpherePositions(collisionIndex);
 
       const std::vector<scalar_t>& frameRadiuses = 
         collisionInterface_.getFrameSphereRadiuses(frameIndex);
@@ -758,13 +777,13 @@ namespace legged_locomotion_mpc
       const vector3_t minFrameSpherePosition = framePosition 
         + frameRotationMatrix * frameSphereRelativePositions[minFrameIndex];
 
-      const vector3_t minCollisionSpherePosition = collisionFramePosition 
+      const vector3_t minCollisionSpherePosition = collisionPosition 
         + collisionRotationMatrix * collisionSphereRelativePositions[minCollisionIndex];
 
       const vector3_t pointDifference = minFrameSpherePosition - minCollisionSpherePosition;
       const vector3_t normal = pointDifference.normalized();
       const scalar_t pointDistance = pointDifference.norm();
-      const scalar_t sphereDistance = minDistance;
+      const scalar_t sphereDistance = minDistance + endEffector6DoFLinkRelaxations_[i];
 
       cost.f += selfAvoidancePenaltyPtr_->getValue(0.0, sphereDistance);
 
@@ -803,8 +822,9 @@ namespace legged_locomotion_mpc
     }
 
     // Collision Link - Collision Link
-    for(const auto& collisionPair: collisionLinkPairIndices_.)
+    for(size_t i = 0; i < collisionLinkPairIndices_.size(); ++i)
     {
+      const auto& collisionPair = collisionLinkPairIndices_[i];
       const size_t firstIndex = collisionPair.first;
       const size_t secondIndex = collisionPair.second;
 
@@ -826,7 +846,7 @@ namespace legged_locomotion_mpc
         collisionInterface_.getFrameSpherePositions(firstIndex);
 
       const std::vector<vector3_t>& secondSphereRelativePositions = 
-        collisionInterface_.getFrameSpherePositions(secondIndex)
+        collisionInterface_.getFrameSpherePositions(secondIndex);
 
       const std::vector<scalar_t>& firstRadiuses = 
         collisionInterface_.getFrameSphereRadiuses(firstIndex);
@@ -866,7 +886,7 @@ namespace legged_locomotion_mpc
       const vector3_t pointDifference = minFirstSpherePosition - minSecondSpherePosition;
       const vector3_t normal = pointDifference.normalized();
       const scalar_t pointDistance = pointDifference.norm();
-      const scalar_t sphereDistance = minDistance;
+      const scalar_t sphereDistance = minDistance + collisionLinkPairRelaxations_[i];
 
       cost.f += selfAvoidancePenaltyPtr_->getValue(0.0, sphereDistance);
 
@@ -875,15 +895,15 @@ namespace legged_locomotion_mpc
       const auto& firstOrientationDerivatives = leggedPrecomputation.getCollisionLinkOrientationDerivatives(
         firstIndex).dfdx;
       const matrix3_t firstRotationVectorGradient = collisionInterface_.getRotationTimesVectorGradient(
-        firstFrameEulerAngles, firstSphereRelativePositions[minFirstIndex]);
+        firstEulerAngles, firstSphereRelativePositions[minFirstIndex]);
       firstPositionDerivatives += firstRotationVectorGradient * firstOrientationDerivatives;
 
-      mmatrix_t secondPositionDerivatives = leggedPrecomputation.getCollisionLinkPositionDerivatives(
+      matrix_t secondPositionDerivatives = leggedPrecomputation.getCollisionLinkPositionDerivatives(
         secondIndex).dfdx;
       const auto& secondOrientationDerivatives = leggedPrecomputation.getCollisionLinkOrientationDerivatives(
         secondIndex).dfdx;
       const matrix3_t secondRotationVectorGradient = collisionInterface_.getRotationTimesVectorGradient(
-        secondFrameEulerAngles, secondSphereRelativePositions[minSecondIndex]);
+        secondEulerAngles, secondSphereRelativePositions[minSecondIndex]);
       secondPositionDerivatives += secondRotationVectorGradient * secondOrientationDerivatives;
 
       const scalar_t penaltyDerivative = selfAvoidancePenaltyPtr_->getDerivative(0.0, sphereDistance);
@@ -934,6 +954,5 @@ namespace legged_locomotion_mpc
       collisionLinkPairRelaxations_(rhs.collisionLinkPairRelaxations_),
       referenceManager_(rhs.referenceManager_),
       collisionInterface_(rhs.collisionInterface_),
-      relaxations_(rhs.relaxations_),
       selfAvoidancePenaltyPtr_(rhs.selfAvoidancePenaltyPtr_->clone()) {}
 } // namespace legged_locomotion_mpc

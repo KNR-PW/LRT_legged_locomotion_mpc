@@ -103,8 +103,6 @@ namespace legged_locomotion_mpc
       std::vector<std::pair<size_t, size_t>> collisionLinkPairIndices_;
       std::vector<ocs2::scalar_t> collisionLinkPairRelaxations_;
 
-      const std::vector<ocs2::scalar_t> relaxations_;
-
       const LeggedReferenceManager& referenceManager_;
       const collision::PinocchioCollisionInterface& collisionInterface_;
       
