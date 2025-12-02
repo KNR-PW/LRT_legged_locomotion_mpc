@@ -34,7 +34,8 @@ namespace legged_locomotion_mpc
       currentGaitParameters_(GaitDynamicParameters()),
       currentCommand_(BaseTrajectoryPlanner::BaseReferenceCommand()),
       bufferedTerrainModel_(nullptr),
-      referenceTrajectories_(EndEffectorTrajectories()) {}
+      referenceTrajectories_(EndEffectorTrajectories()),
+      footConstraintTrajectories_(FootTangentialConstraintTrajectories()) {}
 
   void LeggedReferenceManager::initalize(scalar_t initTime, scalar_t finalTime, 
     const state_vector_t& currenState, const contact_flags_t& currentContactFlags,
@@ -54,7 +55,9 @@ namespace legged_locomotion_mpc
       {return generateNewTargetTrajectories(initTime, finalTime);});
     newTrajectories_.wait();
 
+    // Get reference trajectories and constraints
     referenceTrajectories_.updateFromBuffer();
+    footConstraintTrajectories_.updateFromBuffer();
   }
 
   const contact_flags_t& LeggedReferenceManager::getContactFlags(scalar_t time) const
@@ -114,6 +117,16 @@ namespace legged_locomotion_mpc
     return point;
   }
 
+  const std::vector<FootTangentialConstraintMatrix>& LeggedReferenceManager::getEndEffectorConstraintMatrixes(
+    ocs2::scalar_t time)
+  {
+    const auto& footTangentialConstraintMatrixes = footConstraintTrajectories_.get();
+    const auto& times = footTangentialConstraintMatrixes.times;
+    const size_t index = lookup::findIndexInTimeArray(times, time);
+    if(index > times.size()) return footTangentialConstraintMatrixes.constraints.back();
+    return footTangentialConstraintMatrixes.constraints[index];
+  }
+
   void LeggedReferenceManager::preSolverRun(scalar_t initTime, scalar_t finalTime, 
     const vector_t& initState)
   {
@@ -124,7 +137,9 @@ namespace legged_locomotion_mpc
 
     ReferenceManager::preSolverRun(initTime, finalTime, initState);
 
+    // Get reference trajectories and constraints
     referenceTrajectories_.updateFromBuffer();
+    footConstraintTrajectories_.updateFromBuffer();
 
     // Get copy of current terrain for getter, active value might be changed in parallel task
     currentTerrainModel_ = std::unique_ptr<TerrainModel>(bufferedTerrainModel_.get().clone());
@@ -202,9 +217,14 @@ namespace legged_locomotion_mpc
 
     forceTrajectoryPtr_->updateTargetTrajectory(contactTrajectory, subsampledTrajectory);
 
+    const FootTangentialConstraintTrajectories footConstraintTrajectories = 
+      swingTrajectoryPtr_->getFootTangentialConstraintTrajectories(
+        contactTrajectory, subsampledTrajectory.timeTrajectory);
+
     setTargetTrajectories(std::move(subsampledTrajectory));
     setModeSchedule(std::move(newModeSchedule));
     referenceTrajectories_.setBuffer(std::move(endEffectorTrajectories));
+    footConstraintTrajectories_.setBuffer(std::move(footConstraintTrajectories));
   }
 
   void LeggedReferenceManager::updateState(const state_vector_t& currenState)

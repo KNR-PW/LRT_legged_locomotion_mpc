@@ -84,6 +84,10 @@ namespace legged_locomotion_mpc
     
     using EndEffectorTrajectoriesPoint = legged_locomotion_mpc::locomotion::SwingTrajectoryPlanner::EndEffectorTrajectoriesPoint;
     EndEffectorTrajectoriesPoint getEndEffectorTrajectoryPoint(ocs2::scalar_t time) const;
+
+    using FootTangentialConstraintMatrix = legged_locomotion_mpc::locomotion::FootTangentialConstraintMatrix;
+    const std::vector<FootTangentialConstraintMatrix>& getEndEffectorConstraintMatrixes(
+      ocs2::scalar_t time);
     
     private:
 
@@ -101,6 +105,9 @@ namespace legged_locomotion_mpc
 
       using EndEffectorTrajectories = legged_locomotion_mpc::locomotion::SwingTrajectoryPlanner::EndEffectorTrajectories;
       ocs2::BufferedValue<EndEffectorTrajectories> referenceTrajectories_;
+
+      using FootTangentialConstraintTrajectories = legged_locomotion_mpc::locomotion::SwingTrajectoryPlanner::FootTangentialConstraintTrajectories;
+      ocs2::BufferedValue<FootTangentialConstraintTrajectories> footConstraintTrajectories_;
       
       std::unique_ptr<terrain_model::TerrainModel> currentTerrainModel_;
       ocs2::BufferedPointer<terrain_model::TerrainModel> bufferedTerrainModel_;
