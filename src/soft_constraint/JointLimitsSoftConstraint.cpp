@@ -21,7 +21,12 @@ namespace legged_locomotion_mpc
       jointPositionUpperLimits_(std::move(jointPositionUpperLimits)),
       jointVelocityLimits_(std::move(jointVelocityLimits)),
       info_(std::move(info)),
-      jointRelaxedBarrierPenaltyPtr_(new RelaxedBarrierPenalty(settings)) {}
+      jointRelaxedBarrierPenaltyPtr_(new RelaxedBarrierPenalty(settings)) 
+  {
+    assert(jointPositionLowerLimits_.size() == info_.actuatedDofNum);
+    assert(jointPositionUpperLimits_.size() == info_.actuatedDofNum);
+    assert(jointVelocityLimits_.size() == info_.actuatedDofNum);
+  }
 
   /******************************************************************************************************/
   /******************************************************************************************************/

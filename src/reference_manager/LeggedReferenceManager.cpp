@@ -118,7 +118,7 @@ namespace legged_locomotion_mpc
   }
 
   const std::vector<FootTangentialConstraintMatrix>& LeggedReferenceManager::getEndEffectorConstraintMatrixes(
-    ocs2::scalar_t time)
+    ocs2::scalar_t time) const
   {
     const auto& footTangentialConstraintMatrixes = footConstraintTrajectories_.get();
     const auto& times = footTangentialConstraintMatrixes.times;

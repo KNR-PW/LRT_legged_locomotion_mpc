@@ -105,6 +105,7 @@ add_library(${PROJECT_NAME}
   src/soft_constraint/JointLimitsSoftConstraint.cpp
   src/soft_constraint/TerrainAvoidanceSoftConstraint.cpp
   src/soft_constraint/SelfCollisionAvoidanceSoftConstraint.cpp
+  src/soft_constraint/EndEffectorPlacementSoftConstraint.cpp
 )
 
 target_include_directories(${PROJECT_NAME}

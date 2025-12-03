@@ -87,7 +87,7 @@ namespace legged_locomotion_mpc
 
     using FootTangentialConstraintMatrix = legged_locomotion_mpc::locomotion::FootTangentialConstraintMatrix;
     const std::vector<FootTangentialConstraintMatrix>& getEndEffectorConstraintMatrixes(
-      ocs2::scalar_t time);
+      ocs2::scalar_t time) const;
     
     private:
 
