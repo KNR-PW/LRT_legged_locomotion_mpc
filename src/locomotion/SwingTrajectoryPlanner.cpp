@@ -95,11 +95,13 @@ namespace legged_locomotion_mpc
             if (hasEndTime(contactTimings.front())) 
             {
               expectedLiftOffTime = contactTimings.front().end;
+              updateLastContact(i, expectedLiftOffTime, feetPositions[i], *terrainModel_);
             } 
             else 
             {
               // Expected liftoff unknown, set to end of horizon
               expectedLiftOffTime = finalTime;
+              updateLastContact(i, expectedLiftOffTime, feetPositions[i], *terrainModel_);
             }
           } 
           else 
@@ -111,9 +113,9 @@ namespace legged_locomotion_mpc
             if (lastContacts_[i].first > initTime) 
             {
               expectedLiftOffTime = initTime;
+              updateLastContact(i, expectedLiftOffTime, feetPositions[i], *terrainModel_);
             }
           }
-          updateLastContact(i, expectedLiftOffTime, feetPositions[i], *terrainModel_);
         }
 
         // Select heuristic footholds.
