@@ -15,7 +15,7 @@ namespace legged_locomotion_mpc
     const LeggedReferenceManager& referenceManager,
     vector_t endEffectorRadiuses,
     RelaxedBarrierPenalty::Config settings):
-      StateInputCost(),
+      StateCost(),
       referenceManager_(referenceManager),
       endEffectorNum_(info.numThreeDofContacts + info.numSixDofContacts),
       info_(std::move(info)),
@@ -52,7 +52,7 @@ namespace legged_locomotion_mpc
       if(!contactFlags[i]) continue;
       const auto& position = leggedPrecomputation.getEndEffectorPosition(i);
       const auto& constraint = constraints[i];
-      const vector_t constraintVector = constraint.A * position + constraint.b;
+      vector_t constraintVector = constraint.A * position + constraint.b;
       constraintVector.array() -= endEffectorRadiuses_[i];
       
       cost += constraintVector.unaryExpr([&](scalar_t hi) 
@@ -83,7 +83,7 @@ namespace legged_locomotion_mpc
       if(!contactFlags[i]) continue;
       const auto& position = leggedPrecomputation.getEndEffectorPosition(i);
       const auto& constraint = constraints[i];
-      const vector_t constraintVector = constraint.A * position + constraint.b;
+      vector_t constraintVector = constraint.A * position + constraint.b;
       constraintVector.array() -= endEffectorRadiuses_[i];
       
       cost.f += constraintVector.unaryExpr([&](scalar_t hi) 
@@ -98,13 +98,13 @@ namespace legged_locomotion_mpc
         return placementRelaxedBarrierPenaltyPtr_->getDerivative(0.0, hi);
       });
 
-      const matrix_t constraintDerivative = constraint.A * positionDerivative;
+      const matrix_t constraintDerivative = constraint.A * positionDerivative.dfdx;
 
       cost.dfdx += (constraintDerivative).transpose() * penaltyDerivative;
 
       const vector_t penaltySecondDerivative = constraintVector.unaryExpr([&](scalar_t hi) 
       {
-        return placementRelaxedBarrierPenaltyPtr_->getSeconDerivative(0.0, hi);
+        return placementRelaxedBarrierPenaltyPtr_->getSecondDerivative(0.0, hi);
       });
 
       cost.dfdxx += (constraintDerivative).transpose() * penaltySecondDerivative * constraintDerivative;
@@ -116,7 +116,7 @@ namespace legged_locomotion_mpc
   /******************************************************************************************************/
   /******************************************************************************************************/
   EndEffectorPlacementSoftConstraint::EndEffectorPlacementSoftConstraint(const EndEffectorPlacementSoftConstraint &rhs):
-    StateInputCost(),
+    StateCost(),
     referenceManager_(rhs.referenceManager_),
     endEffectorNum_(rhs.endEffectorNum_),
     info_(rhs.info_),

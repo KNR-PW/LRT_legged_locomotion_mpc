@@ -20,7 +20,7 @@
 #ifndef __END_EFFECTOR_PLACEMENT_SOFT_CONSTRAINT_LEGGED_LOCOMOTION_MPC__
 #define __END_EFFECTOR_PLACEMENT_SOFT_CONSTRAINT_LEGGED_LOCOMOTION_MPC__
 
-#include <ocs2_core/cost/StateInputCost.h>
+#include <ocs2_core/cost/StateCost.h>
 #include <ocs2_core/penalties/Penalties.h>
 
 #include <floating_base_model/FloatingBaseModelInfo.hpp>
