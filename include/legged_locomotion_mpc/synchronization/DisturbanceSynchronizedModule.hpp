@@ -20,10 +20,10 @@
 #ifndef __DISTURBANCE_SYNCHRONIZED_MODULE_LEGGED_LOCOMOTION_MPC__
 #define __DISTURBANCE_SYNCHRONIZED_MODULE_LEGGED_LOCOMOTION_MPC__
 
-#include <legged_locomotion_mpc/common/Types.hpp>
-
-#include <ocs2_core/thread_support/Synchronized.h>
+#include <ocs2_core/thread_support/BufferedValue.h>
 #include <ocs2_oc/synchronized_module/SolverSynchronizedModule.h>
+
+#include <legged_locomotion_mpc/common/Types.hpp>
 
 namespace legged_locomotion_mpc 
 {
@@ -48,15 +48,7 @@ namespace legged_locomotion_mpc
 
       private:
         
-        vector6_t activeDisturbance_;
-        ocs2::scalar_t activeDisturbanceTime_;
-        
-        vector6_t newDisturbance_;
-        ocs2::scalar_t newDisturbanceTime_;
-
-        std::atomic_bool disturbanceUpdated_;
-
-        std::mutex receivedDisturbanceMutex_; 
+        ocs2::BufferedValue<vector6_t> bufferedDisturbance_;
     };
   } // namespace synchronization
 } // namespace legged_locomotion_mpc 
