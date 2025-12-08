@@ -182,5 +182,10 @@ namespace legged_locomotion_mpc
         eulerAnglesAD);
       return rotationMatrix * vector;
     }
+
+    const pinocchio::GeometryModel& PinocchioCollisionInterface::getGeometryModel() const
+    {
+      return geometryModel_;
+    }
   } // namespace collision
 } // namespace legged_locomotion_mpc

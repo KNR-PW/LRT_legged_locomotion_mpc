@@ -118,6 +118,8 @@ namespace legged_locomotion_mpc
         matrix3_t getRotationTimesVectorGradient(const vector3_t& eulerAnglesZYX, 
           const vector3_t& vector) const;
 
+        const pinocchio::GeometryModel& getGeometryModel() const;
+
       private:
         
         // Cpp AD version of rotation matrix and vector multiplication: R * v
