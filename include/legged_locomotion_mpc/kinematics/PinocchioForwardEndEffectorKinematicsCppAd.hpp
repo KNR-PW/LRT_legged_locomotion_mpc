@@ -17,8 +17,8 @@
  * Authors: Bartłomiej Krajewski (https://github.com/BartlomiejK2)
  */
 
-#ifndef __PINOCCHIO_FORWARD_END_EFFECTOR_KINEMATICS_CPP_AD__
-#define __PINOCCHIO_FORWARD_END_EFFECTOR_KINEMATICS_CPP_AD__
+#ifndef __PINOCCHIO_FORWARD_END_EFFECTOR_KINEMATICS_CPP_AD_LEGGED_LOCOMOTION_MPC__
+#define __PINOCCHIO_FORWARD_END_EFFECTOR_KINEMATICS_CPP_AD_LEGGED_LOCOMOTION_MPC__
 
 #include <ocs2_core/automatic_differentiation/CppAdInterface.h>
 #include <ocs2_pinocchio_interface/PinocchioInterface.h>
