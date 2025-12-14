@@ -140,8 +140,10 @@ namespace legged_locomotion_mpc
         // Positions of sphere centers relative to their parent frame
         std::vector<std::vector<vector3_t>> frameToSpherePositons_;
 
-        // Helper Cpp AD function for getting partial derivative w.r.t euler ZYX angles
-        // from rotation matrix and vector multiplication: d(R * v)/de
+        /**
+         * Helper Cpp AD function for getting partial derivative w.r.t euler ZYX angles
+         * from rotation matrix and vector multiplication: d(R * v)/de
+         */
         std::unique_ptr<ocs2::CppAdInterface> rotationMatrixVectorAdInterfacePtr_;
     };
   } // namespace collision
