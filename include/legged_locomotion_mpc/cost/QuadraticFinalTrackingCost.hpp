@@ -40,6 +40,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <legged_locomotion_mpc/Utils.hpp>
 #include <legged_locomotion_mpc/reference_manager/SwitchedModelReferenceManager.hpp>
 
+
 namespace legged_locomotion_mpc 
 {
   namespace cost
