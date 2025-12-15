@@ -20,6 +20,9 @@
 #ifndef __TRAJECTORY_TRACKING_COST_LEGGED_LOCOMOTION_MPC__
 #define __TRAJECTORY_TRACKING_COST_LEGGED_LOCOMOTION_MPC__
 
+#include <pinocchio/fwd.hpp>
+#include <pinocchio/codegen/cppadcg.hpp>
+
 #include <ocs2_core/cost/StateInputCost.h>
 #include <ocs2_core/automatic_differentiation/CppAdInterface.h>
 
@@ -84,7 +87,7 @@ namespace legged_locomotion_mpc
          * Cpp AD version of log3 of tagret (parameter) and 
          * actual euler angles (differentiable values)
          * */ 
-        ocs2::ad_vector_t getLo3gCppAd(
+        ocs2::ad_vector_t getLog3CppAd(
           const Eigen::Matrix<ocs2::ad_scalar_t, 3, 1>& currentEulerAngles, 
           const Eigen::Matrix<ocs2::ad_scalar_t, 3, 1>& targetEulerAngles);
 

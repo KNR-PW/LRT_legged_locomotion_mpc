@@ -108,6 +108,8 @@ add_library(${PROJECT_NAME}
   src/soft_constraint/EndEffectorPlacementSoftConstraint.cpp
 
   src/initialization/LeggedInitializer.cpp
+
+  src/cost/TrajectoryTrackingCost.cpp
 )
 
 target_include_directories(${PROJECT_NAME}
