@@ -19,6 +19,8 @@
 
 #include <legged_locomotion_mpc/cost/TrajectoryTrackingCost.hpp>
 
+#include <stdexcept>
+
 #include <pinocchio/fwd.hpp>
 #include <pinocchio/spatial/log.hpp>
 #include <pinocchio/codegen/cppadcg.hpp>
@@ -46,14 +48,32 @@ namespace legged_locomotion_mpc
       baseWeights_(std::move(baseWeights)), jointWeights_(std::move(jointWeights)),
       endEffectorWeights_(std::move(endEffectorWeights)) 
     {
-      assert(jointWeights_.positions.size() == info_.actuatedDofNum);
-      assert(jointWeights_.velocities.size() == info_.actuatedDofNum);
+      if(jointWeights_.positions.size() != info_.actuatedDofNum)
+      {
+        throw std::invalid_argument("[TrajectoryTrackingCost]: Wrong size for joint position weights!");
+      }
+
+      if(jointWeights_.velocities.size() != info_.actuatedDofNum)
+      {
+        throw std::invalid_argument("[TrajectoryTrackingCost]: Wrong size for joint velocity weights!");
+      }
       
       const size_t endEffectorNum = info_.numThreeDofContacts + info_.numSixDofContacts;
       
-      assert(endEffectorWeights_.positions.size() == endEffectorNum);
-      assert(endEffectorWeights_.linearVelocities.size() == endEffectorNum);
-      assert(endEffectorWeights_.forces.size() == endEffectorNum);
+      if(endEffectorWeights_.positions.size() != endEffectorNum);
+      {
+        throw std::invalid_argument("[TrajectoryTrackingCost]: Wrong size for end effectors position weights!");
+      }
+
+      if(endEffectorWeights_.velocities.size() != endEffectorNum)
+      {
+        throw std::invalid_argument("[TrajectoryTrackingCost]: Wrong size for end effectors velocity weights!");
+      }
+
+      if(endEffectorWeights_.forces.size() != endEffectorNum)
+      {
+        throw std::invalid_argument("[TrajectoryTrackingCost]: Wrong size for end effectors force weights!");
+      }
 
       auto systemFlowMapFunc = [&](const ad_vector_t& x, const ad_vector_t& p, 
         ad_vector_t& y) 
@@ -66,9 +86,12 @@ namespace legged_locomotion_mpc
       log3AdInterfacePtr_.reset(
           new CppAdInterface(systemFlowMapFunc, 3, 3, "log3", modelFolder));
     
-      if (recompileLibraries) {
+      if(recompileLibraries) 
+      {
         log3AdInterfacePtr_->createModels(CppAdInterface::ApproximationOrder::First, verbose);
-      } else {
+      } 
+      else 
+      {
         log3AdInterfacePtr_->loadModelsIfAvailable(CppAdInterface::ApproximationOrder::First, verbose);
       }
     }
