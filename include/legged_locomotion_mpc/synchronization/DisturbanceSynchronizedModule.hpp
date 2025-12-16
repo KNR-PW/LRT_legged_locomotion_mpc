@@ -44,7 +44,7 @@ namespace legged_locomotion_mpc
         void updateDistrubance(ocs2::scalar_t time, 
           const vector6_t& disturbance);
 
-        std::pair<ocs2::scalar_t, vector6_t> getCurrentDisturbance() const;
+        const vector6_t& getCurrentDisturbance() const;
 
       private:
         

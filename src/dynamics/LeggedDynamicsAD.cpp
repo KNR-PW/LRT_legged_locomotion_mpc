@@ -26,8 +26,8 @@ namespace legged_locomotion_mpc
   vector_t LeggedDynamicsAD::computeFlowMap(scalar_t time, const vector_t &state,
     const vector_t &input, const PreComputation &preComp)
   {
-    const vector6_t floatingBaseDisturbance = disturbanceSynchronizedModule_->
-      getCurrentDisturbance().second;
+    const vector6_t& floatingBaseDisturbance = disturbanceSynchronizedModule_->
+      getCurrentDisturbance();
     return dynamicsAdPtr_.getValue(time, state, input, floatingBaseDisturbance);
 
   }
@@ -38,8 +38,8 @@ namespace legged_locomotion_mpc
   VectorFunctionLinearApproximation LeggedDynamicsAD::linearApproximation(scalar_t time,
     const vector_t &state, const vector_t &input, const PreComputation &preComp)
   {
-    const vector6_t floatingBaseDisturbance = disturbanceSynchronizedModule_->
-      getCurrentDisturbance().second;
+    const vector6_t& floatingBaseDisturbance = disturbanceSynchronizedModule_->
+      getCurrentDisturbance();
     return dynamicsAdPtr_.getLinearApproximation(time, state, input, floatingBaseDisturbance);
   }
 

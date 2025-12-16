@@ -36,6 +36,14 @@ namespace legged_locomotion_mpc
     {
       bufferedDisturbance_.setBuffer(disturbance);
     }
+
+    /******************************************************************************************************/
+    /******************************************************************************************************/
+    /******************************************************************************************************/
+    const vector6_t& DisturbanceSynchronizedModule::getCurrentDisturbance() const
+    {
+      return bufferedDisturbance_.get();
+    }
   } // namespace synchronization
 } // namespace legged_locomotion_mpc
 
