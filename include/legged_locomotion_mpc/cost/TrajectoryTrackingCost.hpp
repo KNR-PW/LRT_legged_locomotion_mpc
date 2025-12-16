@@ -103,7 +103,7 @@ namespace legged_locomotion_mpc
          * Helper Cpp AD function for getting partial derivative w.r.t euler ZYX angles
          * from log3 of tagret (parameter) and actual euler angles (differentiable values)
          */
-        std::unique_ptr<ocs2::CppAdInterface> log3AdInterfacePtr_;
+        std::shared_ptr<ocs2::CppAdInterface> log3AdInterfacePtr_;
     };
   } // namespace cost
 } // namespace legged_locomotion_mpc

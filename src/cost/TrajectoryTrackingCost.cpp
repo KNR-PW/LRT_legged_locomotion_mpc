@@ -116,15 +116,15 @@ namespace legged_locomotion_mpc
         access_helper_functions::getBaseLinearVelocity(targetState, info_);
       
       // Base error
-      const auto basePositionError = baseTargetPosition - baseCurrentPosition;
+      const vector3_t basePositionError = baseTargetPosition - baseCurrentPosition;
 
       const auto baseRotationError = log3AdInterfacePtr_->getFunctionValue(
         baseCurrentEulerAngles, baseTargetEulerAngles);
 
-      const auto baseLinearVelocityError = baseTargetLinearVelocity 
+      const vector3_t baseLinearVelocityError = baseTargetLinearVelocity 
         - baseCurrentLinearVelocity;
 
-      const auto baseAngularVelocityError = baseTargetAngularVelocity 
+      const vector3_t baseAngularVelocityError = baseTargetAngularVelocity 
         - baseCurrentAngularVelocity;
       
       // Add base weighted squared cost
@@ -158,9 +158,9 @@ namespace legged_locomotion_mpc
           access_helper_functions::getContactForces(forcesInInput, i, info_);
         
         // End effectors error
-        const vector3_t& endEffectorPositionError = endEffectorTargetPositon - endEffectorCurrentPositon;
-        const vector3_t& endEffectorVelocityError = endEffectorTargetVelocity - endEffectorCurrentVelocity;
-        const auto endEffectorForceError = endEffectorTargetForce - endEffectorCurrentForce;
+        const vector3_t endEffectorPositionError = endEffectorTargetPositon - endEffectorCurrentPositon;
+        const vector3_t endEffectorVelocityError = endEffectorTargetVelocity - endEffectorCurrentVelocity;
+        const vector3_t endEffectorForceError = endEffectorTargetForce - endEffectorCurrentForce;
         
         // Add end effectors weighted squared cost
         cost += endEffectorPositionError.dot(endEffectorWeights_.positions[i].asDiagonal() 
@@ -186,8 +186,8 @@ namespace legged_locomotion_mpc
         access_helper_functions::getJointVelocities(targetInput, info_);
 
       // Joint error
-      const auto jointPositionError = jointTargetPositions - jointCurrentPositions;
-      const auto jointVelocityError = jointTargetVelocities - jointCurrentVelocities;
+      const vector_t jointPositionError = jointTargetPositions - jointCurrentPositions;
+      const vector_t jointVelocityError = jointTargetVelocities - jointCurrentVelocities;
 
       // Add joint weighted squared cost
       cost += jointPositionError.dot(jointWeights_.positions.asDiagonal() 
@@ -245,15 +245,15 @@ namespace legged_locomotion_mpc
         access_helper_functions::getBaseLinearVelocity(targetState, info_);
       
       // Base error
-      const auto basePositionError = baseTargetPosition - baseCurrentPosition;
+      const vector3_t basePositionError = baseTargetPosition - baseCurrentPosition;
 
       const auto baseRotationError = log3AdInterfacePtr_->getFunctionValue(
         baseCurrentEulerAngles, baseTargetEulerAngles);
 
-      const auto baseLinearVelocityError = baseTargetLinearVelocity 
+      const vector3_t baseLinearVelocityError = baseTargetLinearVelocity 
         - baseCurrentLinearVelocity;
 
-      const auto baseAngularVelocityError = baseTargetAngularVelocity 
+      const vector3_t baseAngularVelocityError = baseTargetAngularVelocity 
         - baseCurrentAngularVelocity;
       
       // Add base weighted squared cost and its derivatives
@@ -307,15 +307,15 @@ namespace legged_locomotion_mpc
           access_helper_functions::getContactForces(input, i, info_);
 
         // End effectors target data
-        const vector3_t& endEffectorTargetPositon = endEffectorTargets.positions[i];
-        const vector3_t& endEffectorTargetVelocity = endEffectorTargets.velocities[i];
+        const vector3_t endEffectorTargetPositon = endEffectorTargets.positions[i];
+        const vector3_t endEffectorTargetVelocity = endEffectorTargets.velocities[i];
         const auto endEffectorTargetForce = floating_base_model::
           access_helper_functions::getContactForces(forcesInInput, i, info_);
         
         // End effectors error
-        const vector3_t& endEffectorPositionError = endEffectorTargetPositon - endEffectorCurrentPositon;
-        const vector3_t& endEffectorVelocityError = endEffectorTargetVelocity - endEffectorCurrentVelocity;
-        const auto endEffectorForceError = endEffectorTargetForce - endEffectorCurrentForce;
+        const vector3_t endEffectorPositionError = endEffectorTargetPositon - endEffectorCurrentPositon;
+        const vector3_t endEffectorVelocityError = endEffectorTargetVelocity - endEffectorCurrentVelocity;
+        const vector3_t endEffectorForceError = endEffectorTargetForce - endEffectorCurrentForce;
 
         const vector3_t weightedEndEffectorPositionError = 
           endEffectorWeights_.positions[i].asDiagonal() * endEffectorPositionError;
@@ -326,16 +326,16 @@ namespace legged_locomotion_mpc
         const vector3_t weightedEndEffectorForceError = 
           endEffectorWeights_.forces[i].asDiagonal() * endEffectorForceError;
 
-        const auto positionDerivativeBlock = endEffectorCurrentPositonDerivative.dfdx.block(0, 
-          6, 3, info_.stateDim - 6);
+        const auto positionDerivativeBlock = 
+          endEffectorCurrentPositonDerivative.dfdx.rightCols(info_.stateDim - 6);
 
-        const auto velocityDerivativeBlock = endEffectorCurrentVelocityDerivative.dfdu.block(0, 
-          forceIndexOffset, 3, info_.inputDim - forceIndexOffset);
+        const auto velocityDerivativeBlock = 
+          endEffectorCurrentVelocityDerivative.dfdu.rightCols(info_.actuatedDofNum);
 
         // Add end effectors weighted squared cost and its derivatives
         cost.f += endEffectorPositionError.dot(weightedEndEffectorPositionError);
-        cost.dfdx.block(6, 0, info_.stateDim - 6, 1) += 
-          -positionDerivativeBlock.transpose() * weightedEndEffectorPositionError;
+        cost.dfdx.bottomRows(info_.stateDim - 6) += -positionDerivativeBlock.transpose() 
+          * weightedEndEffectorPositionError;
         cost.dfdxx.block(6, 6, info_.stateDim - 6, info_.stateDim - 6) += 
           positionDerivativeBlock.transpose() * endEffectorWeights_.positions[i].asDiagonal() 
           * positionDerivativeBlock;
@@ -343,14 +343,16 @@ namespace legged_locomotion_mpc
         cost.f += endEffectorVelocityError.dot(weightedEndEffectorVelocityError);
         cost.dfdx += -endEffectorCurrentVelocityDerivative.dfdx.transpose() 
           * weightedEndEffectorVelocityError;
-        cost.dfdu.block(forceIndexOffset, 0, info_.inputDim - forceIndexOffset, 1) +=
-          -velocityDerivativeBlock.transpose() * weightedEndEffectorVelocityError;
+        cost.dfdu.bottomRows(info_.actuatedDofNum) +=-velocityDerivativeBlock.transpose() 
+          * weightedEndEffectorVelocityError;
         cost.dfdxx += endEffectorCurrentVelocityDerivative.dfdx.transpose() * 
           endEffectorWeights_.velocities[i].asDiagonal() * endEffectorCurrentVelocityDerivative.dfdx;
         cost.dfduu.block(forceIndexOffset, forceIndexOffset, 
-          info_.inputDim - forceIndexOffset, info_.inputDim - forceIndexOffset) += 
+          info_.actuatedDofNum, info_.actuatedDofNum) += 
             velocityDerivativeBlock.transpose() 
             * endEffectorWeights_.velocities[i].asDiagonal() * velocityDerivativeBlock;
+        cost.dfdux.bottomRows(info_.actuatedDofNum) += velocityDerivativeBlock.transpose() 
+          * endEffectorWeights_.velocities[i].asDiagonal() * endEffectorCurrentVelocityDerivative.dfdx;
 
         cost.f += endEffectorForceError.dot(weightedEndEffectorForceError);
         if(i < info_.numThreeDofContacts)
@@ -382,13 +384,13 @@ namespace legged_locomotion_mpc
         access_helper_functions::getJointVelocities(targetInput, info_);
 
       // Joint error
-      const auto jointPositionError = jointTargetPositions - jointCurrentPositions;
-      const auto jointVelocityError = jointTargetVelocities - jointCurrentVelocities;
+      const vector_t jointPositionError = jointTargetPositions - jointCurrentPositions;
+      const vector_t jointVelocityError = jointTargetVelocities - jointCurrentVelocities;
 
-      const auto weightedJointPositionError = jointWeights_.positions.asDiagonal() 
+      const vector_t weightedJointPositionError = jointWeights_.positions.asDiagonal() 
         * jointPositionError;
 
-      const auto weightedJointVelocityError = jointWeights_.velocities.asDiagonal() 
+      const vector_t weightedJointVelocityError = jointWeights_.velocities.asDiagonal() 
         * jointVelocityError;
 
       // Add joint weighted squared cost and its derivatives
@@ -413,7 +415,7 @@ namespace legged_locomotion_mpc
       info_(rhs.info_), referenceManager_(rhs.referenceManager_), 
       baseWeights_(rhs.baseWeights_), jointWeights_(rhs.jointWeights_),
       endEffectorWeights_(rhs.endEffectorWeights_), 
-      log3AdInterfacePtr_(new CppAdInterface(*rhs.log3AdInterfacePtr_)) {}
+      log3AdInterfacePtr_(rhs.log3AdInterfacePtr_) {}
 
     ad_vector_t TrajectoryTrackingCost::getLog3CppAd(
       const Eigen::Matrix<ad_scalar_t, 3, 1>& currentEulerAngles, 
