@@ -438,7 +438,7 @@ namespace legged_locomotion_mpc
       info_(rhs.info_), referenceManager_(rhs.referenceManager_), 
       baseWeights_(rhs.baseWeights_), jointWeights_(rhs.jointWeights_),
       endEffectorWeights_(rhs.endEffectorWeights_), 
-      log3AdInterfacePtr_(rhs.log3AdInterfacePtr_) {}
+      log3AdInterfacePtr_(new CppAdInterface(*rhs.log3AdInterfacePtr_)) {}
 
     ad_vector_t TrajectoryTrackingCost::getLog3CppAd(
       const Eigen::Matrix<ad_scalar_t, 3, 1>& currentEulerAngles, 
