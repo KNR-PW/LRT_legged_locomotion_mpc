@@ -129,19 +129,15 @@ namespace legged_locomotion_mpc
           return torqueRelaxedBarrierPenaltyPtr_->getSecondDerivative(0.0, hi);
       });
 
-    const auto [hessianStateState, hessianInputState] = torqueApproximator_.getWeightedHessians(penaltyDerivatives, state, input);
-
     cost.dfdx.block(6, 0, info_.generalizedCoordinatesNum, 1).noalias() =  dTorquedQ.transpose() * penaltyDerivatives;
     cost.dfdu.block(0, 0, forceSize, 1).noalias() =  dTorquedF.transpose() * penaltyDerivatives;
     cost.dfdxx.block(6, 6, info_.generalizedCoordinatesNum, info_.generalizedCoordinatesNum).noalias() = 
-      hessianStateState.block(6, 6, info_.generalizedCoordinatesNum, info_.generalizedCoordinatesNum) + 
         dTorquedQ.transpose() * penaltySecondDerivatives.asDiagonal() * dTorquedQ;
 
     cost.dfduu.block(0, 0, forceSize, forceSize).noalias() = 
       dTorquedF.transpose() * penaltySecondDerivatives.asDiagonal() * dTorquedF; // torque is linearly dependent on forces, so its hessian is zero
     
     cost.dfdux.block(0, 6, forceSize, info_.generalizedCoordinatesNum).noalias() = 
-      hessianInputState.block(0, 6, forceSize, info_.generalizedCoordinatesNum) + 
         dTorquedF.transpose() * penaltySecondDerivatives.asDiagonal() * dTorquedQ;
 
     return cost;
