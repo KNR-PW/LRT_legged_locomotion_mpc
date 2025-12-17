@@ -110,6 +110,7 @@ add_library(${PROJECT_NAME}
   src/initialization/LeggedInitializer.cpp
 
   src/cost/TrajectoryTrackingCost.cpp
+  src/cost/TerminalTrackingCost.cpp
 )
 
 target_include_directories(${PROJECT_NAME}

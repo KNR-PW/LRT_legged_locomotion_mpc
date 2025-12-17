@@ -29,17 +29,10 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ******************************************************************************/
 
-#ifndef __QUADRATIC_TRACKING_COST_LEGGED_LOCOMOTION_MPC__
-#define __QUADRATIC_TRACKING_COST_LEGGED_LOCOMOTION_MPC__
+#ifndef __TERMINAL_TRACKING_COST_LEGGED_LOCOMOTION_MPC__
+#define __TERMINAL_TRACKING_COST_LEGGED_LOCOMOTION_MPC__
 
-#include <ocs2_core/cost/QuadraticStateCost.h>
-#include <ocs2_core/cost/QuadraticStateInputCost.h>
-
-#include <floating_base_model/FloatingBaseModelInfo.hpp>
-
-#include <legged_locomotion_mpc/Utils.hpp>
-#include <legged_locomotion_mpc/reference_manager/SwitchedModelReferenceManager.hpp>
-
+#include <ocs2_core/cost/StateCost.h>
 
 namespace legged_locomotion_mpc 
 {
@@ -48,7 +41,7 @@ namespace legged_locomotion_mpc
     /**
      * State tracking cost used for the final time
      */
-    class QuadraticFinalTrackingCost final: public StateCost 
+    class TerminalTrackingCost: public ocs2::StateCost 
     {
       public:
 
@@ -56,19 +49,12 @@ namespace legged_locomotion_mpc
         * Constructor for the quadratic cost function defined as the following:
         * \f$ L = 0.5(x-x_{n})' Q (x-x_{n}) \f$
         * @param [in] Q: \f$ Q \f$
-        * @param [in] info: floating base model info
-        * @param [in] leggedSynchronizedModule: synchronized module 
-        * @param [in] referenceManager: reference manager
-        * 
         */
-        QuadraticFinalTrackingCost(vector_t Q,
-          floating_base_model::FloatingBaseModelInfo& info,
-          const LeggedSynchronizedModule &leggedSynchronizedModule,
-          const SwitchedModelReferenceManager& referenceManager)
+        TerminalTrackingCost(ocs2::matrix_t Q);
 
-        ~QuadraticFinalTrackingCost() override = default;
+        ~TerminalTrackingCost() override = default;
 
-        QuadraticFinalTrackingCost *clone() const override;
+        TerminalTrackingCost* clone() const override;
 
         /**
          * Computes value for quadratic final tracking cost
@@ -80,7 +66,7 @@ namespace legged_locomotion_mpc
          */
         ocs2::scalar_t getValue(ocs2::scalar_t time, const ocs2::vector_t& state,
           const ocs2::TargetTrajectories& targetTrajectories,
-          const ocs2::PreComputation&) final;
+          const ocs2::PreComputation&) const override;
 
         /**
          * Computes quadratic approximation for quadratic final tracking cost
@@ -90,38 +76,23 @@ namespace legged_locomotion_mpc
          * @param [in] targetTrajectories: target trajectories for desired state and input
          * @return quadratic approximation for cost  
          */
-        ocs2::ScalarFunctionQuadraticApproximation getQuadraticApproximation(ocs2::scalar_t time,
-          const ocs2::vector_t& state, const ocs2::TargetTrajectories& targetTrajectories,
-          const ocs2::PreComputation&) final;
+        ocs2::ScalarFunctionQuadraticApproximation getQuadraticApproximation(
+          ocs2::scalar_t time, const ocs2::vector_t& state, 
+          const ocs2::TargetTrajectories& targetTrajectories, 
+          const ocs2::PreComputation&) const override;
 
       private:
 
-        QuadraticFinalTrackingCost(const QuadraticFinalTrackingCost &rhs) = default;
-        
-        /**
-         * Computes delta state
-         *
-         * @param [in] time: time
-         * @param [in] state: system state vector
-         * @param [in] targetTrajectories: target trajectories for desired state and input
-         * @return delta state (desired vs actual) 
-         */
-        ocs2::vector_t getStateDeviation(ocs2::scalar_t time, const ocs2::vector_t &state,
-          const ocs2::TargetTrajectories &targetTrajectories) const;
+        TerminalTrackingCost(const TerminalTrackingCost &rhs) = default;
 
-
-        /** Floating Base Info */
-        const floating_base_model::FloatingBaseModelInfo* info_;
-
-        /** Synchronized Module and Reference Manager */
-        const LeggedSynchronizedModule* leggedSynchronizedModulePtr_; //TODO DODAJ TEN MODUL
-        const SwitchedModelReferenceManager *referenceManagerPtr_;
+        ocs2::vector_t getStateDeviation(ocs2::scalar_t time, const ocs2::vector_t &state, 
+          const ocs2::TargetTrajectories& targetTrajectories) const;
 
         /** Diagonal matrixes defined as vectors */
-        ocs2::vector_t Q_;
+        ocs2::matrix_t Q_;
 
-        /** Quadratic Aproxximation (precomputated) */
-        ocs2::ScalarFunctionQuadraticApproximation quadraticApprox_;
     };
-  } //namespace cost
-} //namespace legged_locomotion_mpc
+  } // namespace cost
+} // namespace legged_locomotion_mpc
+
+#endif
