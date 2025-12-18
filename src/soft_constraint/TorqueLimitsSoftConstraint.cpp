@@ -45,7 +45,10 @@ namespace legged_locomotion_mpc
     const vector_t sampleInput = vector_t::Random(info_.inputDim);
 
     const vector_t sampleTorques = torqueApproximator_.getValue(sampleState, sampleInput);
-    assert(torqueLimits_.rows() == sampleTorques.rows());
+    if(torqueLimits_.rows() != sampleTorques.rows())
+    {
+      throw std::invalid_argument("[TorqueLimitsSoftConstraint]: Wrong size of torque limits!");
+    }
   }
 
   /******************************************************************************************************/

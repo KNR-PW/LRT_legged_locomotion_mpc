@@ -46,6 +46,12 @@ namespace legged_locomotion_mpc
       collisionInterface_(collisionInterface),
       selfAvoidancePenaltyPtr_(new RelaxedBarrierPenalty(settings)) 
   {
+    if(relaxations.size() != collisionIndices.size())
+    {
+      throw std::invalid_argument("[SelfCollisionAvoidanceSoftConstraint]: "
+        "collisionIndices and relaxations should have the same size!");
+    }
+    
     size_t relaxationIndex = 0;
     for(const auto& collisionPair: collisionIndices)
     {

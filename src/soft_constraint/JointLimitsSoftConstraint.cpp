@@ -23,9 +23,18 @@ namespace legged_locomotion_mpc
       info_(std::move(info)),
       jointRelaxedBarrierPenaltyPtr_(new RelaxedBarrierPenalty(settings)) 
   {
-    assert(jointPositionLowerLimits_.size() == info_.actuatedDofNum);
-    assert(jointPositionUpperLimits_.size() == info_.actuatedDofNum);
-    assert(jointVelocityLimits_.size() == info_.actuatedDofNum);
+    if(jointPositionLowerLimits_.size() != info_.actuatedDofNum)
+    {
+      throw std::invalid_argument("[JointLimitsSoftConstraint]: Wrong size of position lower limits!");
+    }
+    if(jointPositionUpperLimits_.size() != info_.actuatedDofNum)
+    {
+      throw std::invalid_argument("[JointLimitsSoftConstraint]: Wrong size of positon upper limits!");
+    }
+    if(jointVelocityLimits_.size() != info_.actuatedDofNum)
+    {
+      throw std::invalid_argument("[JointLimitsSoftConstraint]: Wrong size of velocity limits!");
+    }
   }
 
   /******************************************************************************************************/

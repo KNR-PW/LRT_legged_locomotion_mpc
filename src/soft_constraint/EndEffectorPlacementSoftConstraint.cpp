@@ -22,7 +22,11 @@ namespace legged_locomotion_mpc
       endEffectorRadiuses_(std::move(endEffectorRadiuses)), 
       placementRelaxedBarrierPenaltyPtr_(new RelaxedBarrierPenalty(settings)) 
   {
-    assert(endEffectorRadiuses_.size() == endEffectorNum_);
+    if(endEffectorRadiuses_.size() != endEffectorNum_)
+    {
+      throw std::invalid_argument("[EndEffectorPlacementSoftConstraint]: endEffectorRadiuses " 
+        "have wrong size!");
+    }
   }
 
   /******************************************************************************************************/

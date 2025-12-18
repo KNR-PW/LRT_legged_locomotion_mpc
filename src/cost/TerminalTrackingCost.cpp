@@ -37,11 +37,19 @@ namespace legged_locomotion_mpc
   {
 
     using namespace ocs2;
+    using namespace floating_base_model;
     /******************************************************************************************************/
     /******************************************************************************************************/
     /******************************************************************************************************/
-    TerminalTrackingCost::TerminalTrackingCost(matrix_t Q): 
-      StateCost(), Q_(std::move(Q)) {}
+    TerminalTrackingCost::TerminalTrackingCost(matrix_t Q,
+      FloatingBaseModelInfo info): 
+      StateCost(), Q_(std::move(Q)) 
+    {
+      if(Q_.rows() != Q_.cols() || Q_.rows() != info.stateDim)
+      {
+        throw std::invalid_argument("[TerminalTrackingCost]: Wrong size of Q matrix!");
+      }
+    }
 
     TerminalTrackingCost* TerminalTrackingCost::clone() const
     {

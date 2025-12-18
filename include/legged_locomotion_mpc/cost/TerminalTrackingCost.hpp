@@ -34,6 +34,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <ocs2_core/cost/StateCost.h>
 
+#include <floating_base_model/FloatingBaseModelInfo.hpp>
+
 namespace legged_locomotion_mpc 
 {
   namespace cost
@@ -49,8 +51,10 @@ namespace legged_locomotion_mpc
         * Constructor for the quadratic cost function defined as the following:
         * \f$ L = 0.5(x-x_{n})' Q (x-x_{n}) \f$
         * @param [in] Q: \f$ Q \f$
+        * @param [in] info: info of kinematics model
         */
-        TerminalTrackingCost(ocs2::matrix_t Q);
+        TerminalTrackingCost(ocs2::matrix_t Q,
+          floating_base_model::FloatingBaseModelInfo info);
 
         ~TerminalTrackingCost() override = default;
 

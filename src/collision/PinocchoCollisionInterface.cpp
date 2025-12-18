@@ -44,9 +44,15 @@ namespace legged_locomotion_mpc
       const std::vector<scalar_t>& maxExcesses, scalar_t shrinkRatio,
       const std::string& modelFolder, bool recompileLibraries, bool verbose)
     {
+      if(maxExcesses.size() != otherCollisionLinks.size())
+      {
+        throw std::invalid_argument("[PinocchioCollisionInterface]: "
+          "maxExcesses is not the same size as otherCollisionLinks!");
+      }
+
       if (!pinocchioInterface.getUrdfModelPtr()) 
       {
-        throw std::runtime_error(
+        throw std::invalid_argument(
           "[PinocchioCollisionInterface]: The PinocchioInterface passed to "
           "PinocchioGeometryInterface(...) "
           "does not contain a urdf model!");
