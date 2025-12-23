@@ -178,7 +178,8 @@ namespace legged_locomotion_mpc
     for (size_t i = info_.numThreeDofContacts; i < numEndEffectors_; i++) 
     {
       const size_t frameId = info_.endEffectorFrameIndices[i];
-      orientations.segment<3>(3 * i) = quaterion_euler_transforms::getEulerAnglesFromRotationMatrix(data.oMf[frameId].rotation());
+      const size_t index = 3 * (i - info_.numThreeDofContacts);
+      orientations.segment<3>(index) = quaterion_euler_transforms::getEulerAnglesFromRotationMatrix(data.oMf[frameId].rotation());
     }
     return orientations;
   }
@@ -303,7 +304,8 @@ namespace legged_locomotion_mpc
     for (size_t i = info_.numThreeDofContacts; i < numEndEffectors_; i++) 
     {
       const size_t frameId = info_.endEffectorFrameIndices[i];
-      velocities.segment<3>(3 * i) = pinocchio::getFrameVelocity(model, data, frameId, rf).angular();
+      const size_t index = 3 * (i - info_.numThreeDofContacts);
+      velocities.segment<3>(index) = pinocchio::getFrameVelocity(model, data, frameId, rf).angular();
     }
     return velocities;
   }
