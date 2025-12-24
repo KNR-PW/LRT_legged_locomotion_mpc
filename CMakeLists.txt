@@ -207,6 +207,14 @@ if(BUILD_TESTING)
   target_link_libraries(${PROJECT_NAME}_test_torque_approx ${PROJECT_NAME})
   target_compile_options(${PROJECT_NAME}_test_torque_approx PUBLIC ${FLAGS})
 
+  ament_add_gtest(${PROJECT_NAME}_test_kinematicsCppAD
+        test/kinematics/PinocchioForwardEndEffectorKinematicsCppAdTest.cpp     
+  )
+  ament_target_dependencies(${PROJECT_NAME}_test_kinematicsCppAD ${THIS_PACKAGE_DEPENDS})
+  target_include_directories(${PROJECT_NAME}_test_kinematicsCppAD PRIVATE test/include)
+  target_link_libraries(${PROJECT_NAME}_test_kinematicsCppAD ${PROJECT_NAME})
+  target_compile_options(${PROJECT_NAME}_test_kinematicsCppAD PUBLIC ${FLAGS})
+
   ################
   ## Benchmarks ##
   ################
