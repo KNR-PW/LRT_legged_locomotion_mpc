@@ -24,6 +24,9 @@ namespace legged_locomotion_mpc
   static const std::vector<std::string> meldog3DofContactNames = {"RFF_link", "RRF_link", "LFF_link", "LRF_link"};
   static const std::vector<std::string> meldog6DofContactNames;
 
+  // Example collision names
+  static const std::vector<std::string> meldogCollisions = {"LFLL_link", "RFLL_link", "LRLL_link", "RRLL_link"};
+
   // Two urdfs, one with additional link before base link (will be removed by factory function)
   static const std::string meldogWithBaseLinkUrdfFile = legged_locomotion_mpc::package_path::getPath() + "/test/test_models/meldog_base_link.urdf";
   static const std::string meldogWithoutBaseLinkUrdfFile = legged_locomotion_mpc::package_path::getPath() + "/test/test_models/meldog_no_base_link.urdf";
