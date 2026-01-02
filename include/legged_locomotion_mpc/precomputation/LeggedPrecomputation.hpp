@@ -100,23 +100,102 @@ namespace legged_locomotion_mpc
 
       LeggedPrecomputation(const LeggedPrecomputation& other);
 
+      /**
+       * Updates:
+       * - surface normals
+       * - rotation matrixes to terrain
+       */
       void updateContactData(ocs2::scalar_t time, const ocs2::vector_t& state, 
         const ocs2::vector_t& input);
 
-      void updateEndEffectorKinematicsData(ocs2::scalar_t time, const ocs2::vector_t& state, 
-        const ocs2::vector_t& input);
+      /**
+       * Updates:
+       * - end effector positions 
+       */
+      void updateEndEffectorPositions(ocs2::scalar_t time, const ocs2::vector_t& state);
       
-      void updateEndEffectorKinematicsDerivatives(ocs2::scalar_t time, 
+      /**
+       * Updates:
+       * - end effector orientations as euler angles
+       */
+      void updateEndEffectorOrientations(ocs2::scalar_t time, const ocs2::vector_t& state);
+        
+      /**
+       * Updates:
+       * - end effector linear velocities
+       */
+      void updateEndEffectorLinearVelocities(ocs2::scalar_t time, 
+        const ocs2::vector_t& state, const ocs2::vector_t& input);
+      
+      /**
+       * Updates:
+       * - end effector angular velocities
+       */
+      void updateEndEffectorAngularVelocities(ocs2::scalar_t time, 
         const ocs2::vector_t& state, const ocs2::vector_t& input);
 
+      /**
+       * Updates:
+       * - end effector position derivaties
+       */
+      void updateEndEffectorPositionDerviatives(ocs2::scalar_t time, 
+        const ocs2::vector_t& state);
+      
+      /**
+       * Updates:
+       * - end effector orientation as euler angle derivatives
+       */
+      void updateEndEffectorOrientationDerviatives(ocs2::scalar_t time, 
+        const ocs2::vector_t& state);
+        
+      /**
+       * Updates:
+       * - end effector linear velocity derivatives
+       */
+      void updateEndEffectorLinearVelocityDerviatives(ocs2::scalar_t time, 
+        const ocs2::vector_t& state, const ocs2::vector_t& input);
+      
+      /**
+       * Updates:
+       * - end effector angular velocity derivatives
+       */
+      void updateEndEffectorAngularVelocityDerviatives(ocs2::scalar_t time, 
+        const ocs2::vector_t& state, const ocs2::vector_t& input);
+      
+      /**
+       * Updates:
+       * - approxmiated torque values
+       */
       void updateApproximatedTorquesData(ocs2::scalar_t time, const ocs2::vector_t& state, 
         const ocs2::vector_t& input);
 
+      /**
+       * Updates:
+       * - approxmiated torque derivatives
+       */
+      void updateApproximatedTorquesDerivatives(ocs2::scalar_t time, 
+        const ocs2::vector_t& state, const ocs2::vector_t& input);
+      
+      /**
+       * Updates:
+       * - reference trajectory point for end effectors (position, 
+       *   linear velocities and terrain clearances)
+       */
       void updateReferenceEndEffectorData(ocs2::scalar_t time);
-
-      void updateCollisionKienmaticsData(ocs2::scalar_t time, const ocs2::vector_t& state);
-
-      void updateCollisionKienmaticsDerivatives(ocs2::scalar_t time, 
+      
+      /**
+       * Updates:
+       * - collision links positions and orientations as euler angles
+       * - collision links linear and angular velocities
+       */
+      void updateCollisionKinematicsData(ocs2::scalar_t time, const ocs2::vector_t& state);
+      
+      /**
+       * Updates:
+       * - collision links position and orientations as euler angle derivatives
+       * - collision links linear and angular velocity derivatives
+       */
+      void updateCollisionKinematicsDerivatives(ocs2::scalar_t time, 
         const ocs2::vector_t& state);
 
       const floating_base_model::FloatingBaseModelInfo modelInfo_;

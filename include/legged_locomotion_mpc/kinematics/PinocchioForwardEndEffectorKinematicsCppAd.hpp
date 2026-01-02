@@ -70,45 +70,45 @@ namespace legged_locomotion_mpc
     std::vector<vector3_t> getLinearVelocity(
       const ocs2::vector_t& state, const ocs2::vector_t& input) const;
 
-      std::vector<vector3_t> getAngularVelocity(
-        const ocs2::vector_t& state, const ocs2::vector_t& input) const;
+    std::vector<vector3_t> getAngularVelocity(
+      const ocs2::vector_t& state, const ocs2::vector_t& input) const;
 
     std::vector<ocs2::VectorFunctionLinearApproximation> getPositionLinearApproximation(
-        const ocs2::vector_t& state) const;
+      const ocs2::vector_t& state) const;
 
     std::vector<ocs2::VectorFunctionLinearApproximation> getOrientationLinearApproximation(
       const ocs2::vector_t& state) const;
 
     std::vector<ocs2::VectorFunctionLinearApproximation> getLinearVelocityLinearApproximation(
-        const ocs2::vector_t& state, const ocs2::vector_t& input) const;
+      const ocs2::vector_t& state, const ocs2::vector_t& input) const;
 
     std::vector<ocs2::VectorFunctionLinearApproximation> getAngularVelocityLinearApproximation(
       const ocs2::vector_t& state, const ocs2::vector_t& input) const;
 
    private:
     PinocchioForwardEndEffectorKinematicsCppAd(
-        const PinocchioForwardEndEffectorKinematicsCppAd& rhs);
+      const PinocchioForwardEndEffectorKinematicsCppAd& rhs);
 
     ocs2::ad_vector_t getPositionCppAd(
       ocs2::PinocchioInterfaceCppAd& pinocchioInterfaceCppAd,
-        const floating_base_model::FloatingBaseModelPinocchioMappingCppAd& mapping,
-        const ocs2::ad_vector_t& state);
+      const floating_base_model::FloatingBaseModelPinocchioMappingCppAd& mapping,
+      const ocs2::ad_vector_t& state);
     
     ocs2::ad_vector_t getOrientationCppAd(
       ocs2::PinocchioInterfaceCppAd& pinocchioInterfaceCppAd,
-        const floating_base_model::FloatingBaseModelPinocchioMappingCppAd& mapping,
-        const ocs2::ad_vector_t& state);
+      const floating_base_model::FloatingBaseModelPinocchioMappingCppAd& mapping,
+      const ocs2::ad_vector_t& state);
 
 
     ocs2::ad_vector_t getLinearVelocityCppAd(
       ocs2::PinocchioInterfaceCppAd& pinocchioInterfaceCppAd,
-        const floating_base_model::FloatingBaseModelPinocchioMappingCppAd& mapping,
-        const ocs2::ad_vector_t& state, const ocs2::ad_vector_t& input);
+      const floating_base_model::FloatingBaseModelPinocchioMappingCppAd& mapping,
+      const ocs2::ad_vector_t& state, const ocs2::ad_vector_t& input);
     
     ocs2::ad_vector_t getAngularVelocityCppAd(
       ocs2::PinocchioInterfaceCppAd& pinocchioInterfaceCppAd,
-        const floating_base_model::FloatingBaseModelPinocchioMappingCppAd& mapping,
-        const ocs2::ad_vector_t& state, const ocs2::ad_vector_t& input);
+      const floating_base_model::FloatingBaseModelPinocchioMappingCppAd& mapping,
+      const ocs2::ad_vector_t& state, const ocs2::ad_vector_t& input);
 
 
     std::unique_ptr<ocs2::CppAdInterface> positionCppAdInterfacePtr_;

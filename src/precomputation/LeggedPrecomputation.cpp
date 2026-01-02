@@ -28,30 +28,52 @@ namespace legged_locomotion_mpc
   void LeggedPrecomputation::request(RequestSet request, scalar_t t, 
     const vector_t &x, const vector_t &u)
   {
-    // TODO POPRAW DLA KAZDEGO PRZYPADKU
-    updateEndEffectorKinematicsData(t, x, u);
+    // Constraints || soft constraints || cost
+    if(request.containsAny(Request::Constraint + Request::SoftConstraint + Request::Cost))
+    {
+      updateEndEffectorPositions(t, x);
+      updateEndEffectorLinearVelocities(t, x, u);
 
+      if(request.contains(Request::Approximation))
+      {
+        updateEndEffectorPositionDerviatives(t, x);
+        updateEndEffectorLinearVelocityDerviatives(t, x, u);
+      }
+    }
+
+    // Constraints || soft constraints
+    if(request.containsAny(Request::Constraint + Request::SoftConstraint))
+    {
+      updateReferenceEndEffectorData(t);
+      updateEndEffectorOrientations(t, x);
+
+      if(request.contains(Request::Approximation))
+      {
+        updateEndEffectorOrientationDerviatives(t, x);
+      }
+    }
+
+    // Constraints
     if(request.contains(Request::Constraint))
     {
       updateContactData(t, x, u);
-      updateReferenceEndEffectorData(t);
+      updateEndEffectorAngularVelocities(t, x, u);
+      if(request.contains(Request::Approximation))
+      {
+        updateEndEffectorAngularVelocityDerviatives(t, x, u);
+      }
     }
 
+    // Soft constraints
     if(request.contains(Request::SoftConstraint))
     {
-      updateCollisionKienmaticsData(t, x);
-      updateReferenceEndEffectorData(t);
-    }
-
-    if(request.contains(Request::Cost))
-    {
+      updateCollisionKinematicsData(t, x);
       updateApproximatedTorquesData(t, x, u);
-    }
-
-    if(request.contains(Request::Approximation))
-    {
-      updateEndEffectorKinematicsDerivatives(t, x, u);
-      updateCollisionKienmaticsDerivatives(t, x);
+      if(request.contains(Request::Approximation))
+      {
+        updateCollisionKinematicsDerivatives(t, x);
+        updateApproximatedTorquesDerivatives(t, x, u);
+      }
     }
   }
 
@@ -228,26 +250,54 @@ namespace legged_locomotion_mpc
     }
   }
 
-  void LeggedPrecomputation::updateEndEffectorKinematicsData(scalar_t time, 
-    const vector_t& state, const vector_t& input)
+  void LeggedPrecomputation::updateEndEffectorPositions(scalar_t time, 
+    const vector_t& state)
   {
     endEffectorPositions_ = forwardKinematics_.getPosition(state);
-    endEffectorLinearVelocities_ = forwardKinematics_.getLinearVelocity(state, input);
-
+  }
+      
+  void LeggedPrecomputation::updateEndEffectorOrientations(scalar_t time, 
+    const vector_t& state)
+  {
     endEffectorEulerAngles_ = forwardKinematics_.getOrientation(state);
+  }
+    
+  void LeggedPrecomputation::updateEndEffectorLinearVelocities(scalar_t time, 
+    const vector_t& state, const vector_t& input)
+  {
+    endEffectorLinearVelocities_ = forwardKinematics_.getLinearVelocity(state, input);
+  }
+  
+  void LeggedPrecomputation::updateEndEffectorAngularVelocities(scalar_t time, 
+    const vector_t& state, const vector_t& input)
+  {
     endEffectorAngularVelocities_ = forwardKinematics_.getAngularVelocity(state, input);
   }
 
-  void LeggedPrecomputation::updateEndEffectorKinematicsDerivatives(scalar_t time, 
-    const vector_t& state, const vector_t& input)
+  void LeggedPrecomputation::updateEndEffectorPositionDerviatives(scalar_t time, 
+    const vector_t& state)
   {
     endEffectorPositionDerivaties_ = forwardKinematics_.getPositionLinearApproximation(
       state);
-    endEffectorLinearVelocityDerivaties_ = forwardKinematics_.getLinearVelocityLinearApproximation(
-      state, input);
-      
+  }
+  
+  void LeggedPrecomputation::updateEndEffectorOrientationDerviatives(scalar_t time, 
+    const vector_t& state)
+  {
     endEffectorEulerAngleDerivaties_ = forwardKinematics_.getOrientationLinearApproximation(
       state);
+  }
+    
+  void LeggedPrecomputation::updateEndEffectorLinearVelocityDerviatives(scalar_t time, 
+    const vector_t& state, const vector_t& input)
+  {
+    endEffectorLinearVelocityDerivaties_ = forwardKinematics_.getLinearVelocityLinearApproximation(
+      state, input);
+  }
+  
+  void LeggedPrecomputation::updateEndEffectorAngularVelocityDerviatives(scalar_t time, 
+    const vector_t& state, const vector_t& input)
+  {
     endEffectorAngularVelocityDerivaties_ = forwardKinematics_.getAngularVelocityLinearApproximation(
       state, input);
   }
@@ -256,22 +306,28 @@ namespace legged_locomotion_mpc
     const vector_t& state, const vector_t& input)
   {
     torqueApproximation_ = torqueApproximator_.getValue(state, input);
-    torqueApproximationDerivatives_ = torqueApproximator_.getLinearApproximation(state, input);
   }
 
-  void LeggedPrecomputation::updateReferenceEndEffectorData(ocs2::scalar_t time)
+  void LeggedPrecomputation::updateApproximatedTorquesDerivatives(scalar_t time, 
+    const vector_t& state, const vector_t& input)
+  {
+    torqueApproximationDerivatives_ = torqueApproximator_.getLinearApproximation(state, 
+      input);
+  }
+
+  void LeggedPrecomputation::updateReferenceEndEffectorData(scalar_t time)
   {
     referenceTrajectoryPoint_ = referenceManager_.getEndEffectorTrajectoryPoint(time);
   }
 
-  void LeggedPrecomputation::updateCollisionKienmaticsData(scalar_t time, 
+  void LeggedPrecomputation::updateCollisionKinematicsData(scalar_t time, 
     const vector_t& state)
   {
     collisionLinkPositions_ = collisionKinematics_.getPosition(state);
     collisionLinkEulerAngles_ = collisionKinematics_.getOrientation(state);
   }
 
-  void LeggedPrecomputation::updateCollisionKienmaticsDerivatives(scalar_t time, 
+  void LeggedPrecomputation::updateCollisionKinematicsDerivatives(scalar_t time, 
     const vector_t& state)
   {
     collisionLinkPositionDerivaties_ = collisionKinematics_.getPositionLinearApproximation(
