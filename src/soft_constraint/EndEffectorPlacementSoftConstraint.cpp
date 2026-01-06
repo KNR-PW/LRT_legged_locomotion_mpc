@@ -53,9 +53,9 @@ namespace legged_locomotion_mpc
 
     for(size_t i = 0; i < endEffectorNum_; ++i)
     {
-      if(!contactFlags[i]) continue;
-      const auto& position = leggedPrecomputation.getEndEffectorPosition(i);
       const auto& constraint = constraints[i];
+      if(!contactFlags[i] && constraint.active()) continue;
+      const auto& position = leggedPrecomputation.getEndEffectorPosition(i);
       vector_t constraintVector = constraint.A * position + constraint.b;
       constraintVector.array() -= endEffectorRadiuses_[i];
       
@@ -84,9 +84,9 @@ namespace legged_locomotion_mpc
 
     for(size_t i = 0; i < endEffectorNum_; ++i)
     {
-      if(!contactFlags[i]) continue;
-      const auto& position = leggedPrecomputation.getEndEffectorPosition(i);
       const auto& constraint = constraints[i];
+      if(!contactFlags[i] && constraint.active()) continue;
+      const auto& position = leggedPrecomputation.getEndEffectorPosition(i);
       vector_t constraintVector = constraint.A * position + constraint.b;
       constraintVector.array() -= endEffectorRadiuses_[i];
       

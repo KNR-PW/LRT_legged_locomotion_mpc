@@ -708,9 +708,14 @@ namespace legged_locomotion_mpc
       for(size_t i = 0; i < numEndEffectors; ++i)
       {
         const auto& footPhase = getFootPhase(i, times[0]);
-        if(contactFlags[0][i])
+        const FootTangentialConstraintMatrix* firstConstraintsPtr = footPhase.getFootTangentialConstraintInWorldFrame();
+        if(contactFlags[0][i] && firstConstraintsPtr)
         {
-          firstConstraints[i] = *footPhase.getFootTangentialConstraintInWorldFrame();
+          firstConstraints[i] = *firstConstraintsPtr;
+        }
+        else
+        {
+          firstConstraints[i] = FootTangentialConstraintMatrix();
         }
       }
       trajectory.times.push_back(times[0]);
@@ -725,9 +730,14 @@ namespace legged_locomotion_mpc
         for(size_t j = 0; j < numEndEffectors; ++j)
         {
           const auto& footPhase = getFootPhase(j, times[i]);
-          if(contactFlags[i][j])
+          const FootTangentialConstraintMatrix* newConstraintssPtr = footPhase.getFootTangentialConstraintInWorldFrame();
+          if(contactFlags[i][j] && newConstraintssPtr)
           {
-            newConstraints[j] = *footPhase.getFootTangentialConstraintInWorldFrame();
+            newConstraints[j] = *newConstraintssPtr;
+          }
+          else
+          {
+            newConstraints[j] = FootTangentialConstraintMatrix();
           }
         }
         trajectory.times.push_back(times[i]);

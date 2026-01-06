@@ -1,4 +1,4 @@
-#include <benchmark/benchmark.h>
+#include <gtest/gtest.h>
 
 #include <legged_locomotion_mpc/reference_manager/LeggedReferenceManager.hpp>
 #include <legged_locomotion_mpc/common/AccessHelperFunctions.hpp>
@@ -18,30 +18,30 @@ using namespace ocs2;
 using namespace terrain_model;
 using namespace multi_end_effector_kinematics;
 
-static void LeggedReferenceManager_PRESOLVE(benchmark::State & state)
+const double eps = 1e-3;
+
+TEST(LeggedReferenceManagerTest, getContactFlags) 
 {
   const scalar_t defTime = 0.0;
   const scalar_t initTime = 0.0;
-  const scalar_t finalTime = 1.0;
-  const scalar_t deltaTime = 0.01;
+  const scalar_t finalTime = 2.1;
+  const scalar_t deltaTime = 0.2;
 
   /* STANDING TROT */
-  scalar_t startingPhase = 3.5 / 7.0;
+  scalar_t currentPhase = 3.5 / 7.0;
 
   GaitStaticParameters staticParams;
   staticParams.endEffectorNumber = 4;
   staticParams.plannerFrequency = 2.0;
   staticParams.timeHorizion = 0.7;
 
-  /* FLYING TROT */
   GaitDynamicParameters dynamicParams;
-  dynamicParams.swingRatio =  0.33 / 0.6;
-  dynamicParams.steppingFrequency = 1.0 / 0.6;
-  scalar_t currentPhase = dynamicParams.swingRatio;
+  dynamicParams.steppingFrequency = 1.0 / 0.7;
+  dynamicParams.swingRatio = 3.0 / 7.0;
+  
+  dynamicParams.phaseOffsets = {-currentPhase , -currentPhase , 0};
 
-  dynamicParams.phaseOffsets = {-currentPhase + 0.03 / 0.6, -currentPhase + 0.03 / 0.6, 0};
-
-  auto modeSequenceTemplate = getDynamicModeSequenceTemplate(startingPhase,
+  auto modeSequenceTemplate = getDynamicModeSequenceTemplate(currentPhase,
     finalTime, staticParams, dynamicParams);
 
   const scalar_t slope = 0.0;
@@ -91,7 +91,7 @@ static void LeggedReferenceManager_PRESOLVE(benchmark::State & state)
   SwingTrajectoryPlanner::DynamicSettings swingDynamicSettings;
 
   GaitPlanner gaitPlanner(staticParams, dynamicParams, modeSequenceTemplate, 
-    startingPhase, defTime);
+    currentPhase, defTime);
 
   BaseTrajectoryPlanner basePlanner(modelInfo, staticSettings);
 
@@ -145,13 +145,19 @@ static void LeggedReferenceManager_PRESOLVE(benchmark::State & state)
 
   std::unique_ptr<TerrainModel> terrainModelPtr = 
     std::make_unique<PlanarTerrainModel>(slopyTerrain);
-
+  
   manager.initialize(initTime, finalTime, initialState, contactFlag, 
     std::move(dynamicParams), std::move(terrainModelPtr));
 
-   for (auto _ : state) {
-    manager.preSolverRun(initTime, finalTime, initialState);
+  std::vector<scalar_t> goodTimings = {0, 0.3, 0.35, 0.65, 0.7, 1, 1.05, 1.35, 1.4, 1.7, 1.75, 2.05, 2.1};
+  std::vector<size_t> goodSequence = {15, 9, 15, 6, 15, 9, 15, 6, 15, 9, 15, 6, 15, 15};
+  const auto mySequence = manager.getModeSchedule().modeSequence;
+
+  EXPECT_TRUE(mySequence == goodSequence);
+  for(size_t i = 0; i < goodSequence.size(); ++i)
+  {
+    const auto mode = contactFlags2ModeNumber(manager.getContactFlags(goodTimings[i] - eps));
+    const auto trueMode = goodSequence[i];
+    EXPECT_TRUE(mode == trueMode);
   }
 }
-
-BENCHMARK(LeggedReferenceManager_PRESOLVE);

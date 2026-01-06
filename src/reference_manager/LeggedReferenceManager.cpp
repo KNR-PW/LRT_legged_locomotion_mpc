@@ -16,19 +16,19 @@ namespace legged_locomotion_mpc
   LeggedReferenceManager::LeggedReferenceManager(
     FloatingBaseModelInfo modelInfo,
     LeggedReferenceManager::Settings settings,
-    std::shared_ptr<locomotion::GaitPlanner> gaitPlannerPtr,
-    std::shared_ptr<locomotion::SwingTrajectoryPlanner> swingTrajectoryPtr,
-    std::shared_ptr<planners::BaseTrajectoryPlanner> baseTrajectoryPtr,
-    std::shared_ptr<planners::JointTrajectoryPlanner> jointTrajectoryPtr,
-    std::shared_ptr<planners::ContactForceWrenchTrajectoryPlanner> forceTrajectoryPtr):
+    locomotion::GaitPlanner& gaitPlanner,
+    locomotion::SwingTrajectoryPlanner& swingTrajectory,
+    planners::BaseTrajectoryPlanner& baseTrajectory,
+    planners::JointTrajectoryPlanner& jointTrajectory,
+    planners::ContactForceWrenchTrajectoryPlanner& forceTrajectory):
       ReferenceManager(TargetTrajectories(), ModeSchedule()),
       modelInfo_(std::move(modelInfo)),
       settings_(std::move(settings)),
-      gaitPlannerPtr_(std::move(gaitPlannerPtr)), 
-      swingTrajectoryPtr_(std::move(swingTrajectoryPtr)),
-      baseTrajectoryPtr_(std::move(baseTrajectoryPtr)), 
-      jointTrajectoryPtr_(std::move(jointTrajectoryPtr)),
-      forceTrajectoryPtr_(std::move(forceTrajectoryPtr)),
+      gaitPlanner_(gaitPlanner), 
+      swingTrajectory_(swingTrajectory),
+      baseTrajectory_(baseTrajectory), 
+      jointTrajectory_(jointTrajectory),
+      forceTrajectory_(forceTrajectory),
       currentState_(state_vector_t()),
       currentContactFlags_(contact_flags_t()),
       currentGaitParameters_(GaitDynamicParameters()),
@@ -37,7 +37,7 @@ namespace legged_locomotion_mpc
       referenceTrajectories_(EndEffectorTrajectories()),
       footConstraintTrajectories_(FootTangentialConstraintTrajectories()) {}
 
-  void LeggedReferenceManager::initalize(scalar_t initTime, scalar_t finalTime, 
+  void LeggedReferenceManager::initialize(scalar_t initTime, scalar_t finalTime, 
     const state_vector_t& currenState, const contact_flags_t& currentContactFlags,
     locomotion::GaitDynamicParameters&& currentGaitParameters,
     std::unique_ptr<terrain_model::TerrainModel> currentTerrainModel)
@@ -58,11 +58,15 @@ namespace legged_locomotion_mpc
     // Get reference trajectories and constraints
     referenceTrajectories_.updateFromBuffer();
     footConstraintTrajectories_.updateFromBuffer();
+
+    // Get initialized target trajectory and mode schedule 
+    ReferenceManager::preSolverRun(initTime, finalTime, 
+      vector_t::Zero(modelInfo_.stateDim));
   }
 
-  const contact_flags_t& LeggedReferenceManager::getContactFlags(scalar_t time) const
+  const contact_flags_t LeggedReferenceManager::getContactFlags(scalar_t time) const
   {
-    return contact_flags_t(this->getModeSchedule().modeAtTime(time));
+    return contact_flags_t(getModeSchedule().modeAtTime(time));
   }
 
   const TerrainModel& LeggedReferenceManager::getTerrainModel() const
@@ -158,17 +162,17 @@ namespace legged_locomotion_mpc
     if(currentGaitParameters_.updateFromBuffer())
     {
       const GaitDynamicParameters& currentGaitParameters = currentGaitParameters_.get();
-      gaitPlannerPtr_->updateDynamicParameters(initTime, currentGaitParameters);
+      gaitPlanner_.updateDynamicParameters(initTime, currentGaitParameters);
     }
 
     // No new contact flag -> no update
     if(currentContactFlags_.updateFromBuffer());
     {
       const contact_flags_t& currentContactFlags = currentContactFlags_.get();
-      gaitPlannerPtr_->updateCurrentContacts(initTime, currentContactFlags);
+      gaitPlanner_.updateCurrentContacts(initTime, currentContactFlags);
     }
 
-    const ModeSchedule newModeSchedule = gaitPlannerPtr_->getModeSchedule(initTime, 
+    const ModeSchedule newModeSchedule = gaitPlanner_.getModeSchedule(initTime, 
       finalTime);
 
     // No new terrain model -> no update
@@ -176,9 +180,9 @@ namespace legged_locomotion_mpc
     {
       const TerrainModel& currentTerrainModel = bufferedTerrainModel_.get();
 
-      baseTrajectoryPtr_->updateTerrain(currentTerrainModel);
+      baseTrajectory_.updateTerrain(currentTerrainModel);
     
-      swingTrajectoryPtr_->updateTerrain(currentTerrainModel);
+      swingTrajectory_.updateTerrain(currentTerrainModel);
     }
     
     // No new command -> stay in place
@@ -197,28 +201,28 @@ namespace legged_locomotion_mpc
 
     TargetTrajectories newTrajectory;
 
-    baseTrajectoryPtr_->updateTargetTrajectory(initTime, finalTime, currentCommand, 
+    baseTrajectory_.updateTargetTrajectory(initTime, finalTime, currentCommand, 
       currentState, newTrajectory);
-    
-    swingTrajectoryPtr_->updateSwingMotions(initTime, finalTime, currentState, 
+
+    swingTrajectory_.updateSwingMotions(initTime, finalTime, currentState, 
       newTrajectory, newModeSchedule);
 
     const EndEffectorTrajectories endEffectorTrajectories = 
-      swingTrajectoryPtr_->getEndEffectorTrajectories(newTrajectory.timeTrajectory);
+      swingTrajectory_.getEndEffectorTrajectories(newTrajectory.timeTrajectory);
     
-    jointTrajectoryPtr_->updateTrajectory(currentState, newTrajectory, 
+    jointTrajectory_.updateTrajectory(currentState, newTrajectory, 
       endEffectorTrajectories.positions, endEffectorTrajectories.velocities);
     
     TargetTrajectories subsampledTrajectory = utils::subsampleReferenceTrajectory(
       newTrajectory, initTime, finalTime, settings_.maximumReferenceSampleInterval);
 
     const std::vector<contact_flags_t> contactTrajectory = 
-      gaitPlannerPtr_->getContactFlagsAtTimes(subsampledTrajectory.timeTrajectory);
+      gaitPlanner_.getContactFlagsAtTimes(subsampledTrajectory.timeTrajectory);
 
-    forceTrajectoryPtr_->updateTargetTrajectory(contactTrajectory, subsampledTrajectory);
+    forceTrajectory_.updateTargetTrajectory(contactTrajectory, subsampledTrajectory);
 
     const FootTangentialConstraintTrajectories footConstraintTrajectories = 
-      swingTrajectoryPtr_->getFootTangentialConstraintTrajectories(
+      swingTrajectory_.getFootTangentialConstraintTrajectories(
         contactTrajectory, subsampledTrajectory.timeTrajectory);
 
     setTargetTrajectories(std::move(subsampledTrajectory));

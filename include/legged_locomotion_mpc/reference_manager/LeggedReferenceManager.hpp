@@ -52,15 +52,15 @@ namespace legged_locomotion_mpc
   
     LeggedReferenceManager(floating_base_model::FloatingBaseModelInfo modelInfo,
       LeggedReferenceManager::Settings settings,
-      std::shared_ptr<locomotion::GaitPlanner> gaitPlannerPtr,
-      std::shared_ptr<locomotion::SwingTrajectoryPlanner> swingTrajectoryPtr,
-      std::shared_ptr<planners::BaseTrajectoryPlanner> baseTrajectoryPtr,
-      std::shared_ptr<planners::JointTrajectoryPlanner> jointTrajectoryPtr,
-      std::shared_ptr<planners::ContactForceWrenchTrajectoryPlanner> forceTrajectoryPtr);
+      locomotion::GaitPlanner& gaitPlanner,
+      locomotion::SwingTrajectoryPlanner& swingTrajectory,
+      planners::BaseTrajectoryPlanner& baseTrajectory,
+      planners::JointTrajectoryPlanner& jointTrajectory,
+      planners::ContactForceWrenchTrajectoryPlanner& forceTrajectory);
 
     ~LeggedReferenceManager() override;
 
-    void initalize(ocs2::scalar_t initTime, ocs2::scalar_t finalTime, 
+    void initialize(ocs2::scalar_t initTime, ocs2::scalar_t finalTime, 
       const state_vector_t& currenState, const contact_flags_t& currentContactFlags,
       locomotion::GaitDynamicParameters&& currentGaitParameters,
       std::unique_ptr<terrain_model::TerrainModel> currentTerrainModel);
@@ -78,7 +78,7 @@ namespace legged_locomotion_mpc
     void preSolverRun(ocs2::scalar_t initTime, ocs2::scalar_t finalTime, 
       const ocs2::vector_t& initState) override;
 
-    const contact_flags_t& getContactFlags(ocs2::scalar_t time) const;
+    const contact_flags_t getContactFlags(ocs2::scalar_t time) const;
 
     const terrain_model::TerrainModel& getTerrainModel() const;
     
@@ -112,11 +112,11 @@ namespace legged_locomotion_mpc
       std::unique_ptr<terrain_model::TerrainModel> currentTerrainModel_;
       ocs2::BufferedPointer<terrain_model::TerrainModel> bufferedTerrainModel_;
 
-      std::shared_ptr<locomotion::GaitPlanner> gaitPlannerPtr_;
-      std::shared_ptr<locomotion::SwingTrajectoryPlanner> swingTrajectoryPtr_;
-      std::shared_ptr<planners::BaseTrajectoryPlanner> baseTrajectoryPtr_;
-      std::shared_ptr<planners::JointTrajectoryPlanner> jointTrajectoryPtr_;
-      std::shared_ptr<planners::ContactForceWrenchTrajectoryPlanner> forceTrajectoryPtr_;
+      locomotion::GaitPlanner& gaitPlanner_;
+      locomotion::SwingTrajectoryPlanner& swingTrajectory_;
+      planners::BaseTrajectoryPlanner& baseTrajectory_;
+      planners::JointTrajectoryPlanner& jointTrajectory_;
+      planners::ContactForceWrenchTrajectoryPlanner& forceTrajectory_;
   };
 } // namespace legged_locomotion_mpc
 

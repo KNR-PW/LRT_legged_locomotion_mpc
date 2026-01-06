@@ -44,18 +44,8 @@ foreach(Dependency IN ITEMS ${THIS_PACKAGE_DEPENDS})
   find_package(${Dependency} REQUIRED)
 endforeach()
 
-# add_executable(${PROJECT_NAME}
-#         # src/common/Utils.cpp
-#         # src/common/ModelSettings.cpp
-#         # src/kinematics/PinocchioForwardEndEffectorKinematicsCppAd.cpp
-#         # src/kinematics/ForwardEndEffectorKinematicsInfo.cpp
-#         # src/dynamics/LeggedDynamicsAD.cpp
-        
-#         # src/constraint/ZeroForceConstraint.cpp
-#         # src/constraint/ZeroWrenchConstraint.cpp
-#         # src/constraint/ForceFrictionConeConstraint.cpp
-#         # src/constraint/WrenchFrictionConeConstraint.cpp
-#         src/main.cpp
+# add_executable(${PROJECT_NAME}_exe
+#       src/main.cpp
 # )
 
 add_library(${PROJECT_NAME}
@@ -120,6 +110,8 @@ target_include_directories(${PROJECT_NAME}
 )
 
 ament_target_dependencies(${PROJECT_NAME} ${THIS_PACKAGE_DEPENDS})
+# target_link_libraries(${PROJECT_NAME}_exe ${PROJECT_NAME})
+# ament_target_dependencies(${PROJECT_NAME}_exe ${THIS_PACKAGE_DEPENDS})
 target_compile_options(${PROJECT_NAME} PUBLIC ${FLAGS})
 
 #########################
@@ -141,6 +133,9 @@ endif (cmake_clang_tools_FOUND)
 #############
 ## Install ##
 #############
+
+# install(TARGETS ${PROJECT_NAME}_exe
+#     DESTINATION lib/${PROJECT_NAME})
 
 install(TARGETS
   ${PROJECT_NAME}
@@ -222,6 +217,14 @@ if(BUILD_TESTING)
   target_include_directories(${PROJECT_NAME}_test_collision PRIVATE test/include)
   target_link_libraries(${PROJECT_NAME}_test_collision ${PROJECT_NAME})
   target_compile_options(${PROJECT_NAME}_test_collision PUBLIC ${FLAGS})
+
+  ament_add_gtest(${PROJECT_NAME}_test_reference_manager
+        test/reference_manager/LeggedReferenceManagerTest.cpp     
+  )
+  ament_target_dependencies(${PROJECT_NAME}_test_reference_manager ${THIS_PACKAGE_DEPENDS})
+  target_include_directories(${PROJECT_NAME}_test_reference_manager PRIVATE test/include)
+  target_link_libraries(${PROJECT_NAME}_test_reference_manager ${PROJECT_NAME})
+  target_compile_options(${PROJECT_NAME}_test_reference_manager PUBLIC ${FLAGS})
 
   ################
   ## Benchmarks ##
