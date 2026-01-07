@@ -225,16 +225,6 @@ namespace legged_locomotion_mpc
     return referenceTrajectoryPoint_.clearances[endEffectorIndex];
   }
 
-  LeggedPrecomputation::LeggedPrecomputation(const LeggedPrecomputation& other):
-    PreComputation(other), 
-    endEffectorNumber_(other.endEffectorNumber_),
-    collisionLinkNumber_(other.collisionLinkNumber_),
-    modelInfo_(other.modelInfo_), 
-    referenceManager_(other.referenceManager_), 
-    forwardKinematics_(other.forwardKinematics_),
-    collisionKinematics_(other.collisionKinematics_),
-    torqueApproximator_(other.torqueApproximator_) {}
-
   void LeggedPrecomputation::updateContactData(scalar_t time,
     const vector_t& state, const vector_t& input)
   {

@@ -98,7 +98,7 @@ namespace legged_locomotion_mpc
 
     private:
 
-      LeggedPrecomputation(const LeggedPrecomputation& other);
+      LeggedPrecomputation(const LeggedPrecomputation& other) = default;
 
       /**
        * Updates:
