@@ -39,7 +39,7 @@ namespace legged_locomotion_mpc
       // 3. unsure we have samples at start and end of the MPC horizon.
       if (targetTrajectories.empty()) 
       {
-        throw std::runtime_error("[SwingTrajectoryPlanner] provided target "
+        throw std::runtime_error("[Utils] provided target "
           "trajectory cannot be empty.");
       }
 
@@ -61,7 +61,7 @@ namespace legged_locomotion_mpc
 
       for (int k = 0; k < targetTrajectories.timeTrajectory.size(); ++k) 
       {
-        if (targetTrajectories.timeTrajectory[k] < initTime) 
+        if (targetTrajectories.timeTrajectory[k] <= initTime) 
         {
           continue; // Drop all samples before init time
         } 

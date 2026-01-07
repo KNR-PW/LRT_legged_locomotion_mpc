@@ -1,5 +1,7 @@
 #include <legged_locomotion_mpc/reference_manager/LeggedReferenceManager.hpp>
 
+#include <limits>
+
 #include <ocs2_core/misc/LinearInterpolation.h>
 
 namespace legged_locomotion_mpc
@@ -77,10 +79,18 @@ namespace legged_locomotion_mpc
   EndEffectorTrajectoriesPoint LeggedReferenceManager::getEndEffectorTrajectoryPoint(
     scalar_t time) const
   {
-    const auto indexAlpha = LinearInterpolation::timeSegment(time, 
-      getTargetTrajectories().timeTrajectory);
-    const size_t index = indexAlpha.first;
+    const auto& times = getTargetTrajectories().timeTrajectory;
+    const auto indexAlpha = LinearInterpolation::timeSegment(time, times);
+    size_t index = indexAlpha.first;
     const scalar_t alpha = indexAlpha.second;
+
+    // Get previous time index if value is between (times[index - 1], times[index])
+    if(index != 0 && (times[index] - time) > std::numeric_limits<scalar_t>::min())
+    {
+      std::cerr << "Jestem" << std::endl;
+      index -= 1;
+    }
+
     const scalar_t one_minus_alpha = 1.0 - alpha;
 
     const size_t numEndEffectors = modelInfo_.numThreeDofContacts + 
@@ -166,7 +176,7 @@ namespace legged_locomotion_mpc
     }
 
     // No new contact flag -> no update
-    if(currentContactFlags_.updateFromBuffer());
+    if(currentContactFlags_.updateFromBuffer())
     {
       const contact_flags_t& currentContactFlags = currentContactFlags_.get();
       gaitPlanner_.updateCurrentContacts(initTime, currentContactFlags);
@@ -176,7 +186,7 @@ namespace legged_locomotion_mpc
       finalTime);
 
     // No new terrain model -> no update
-    if(bufferedTerrainModel_.updateFromBuffer());
+    if(bufferedTerrainModel_.updateFromBuffer())
     {
       const TerrainModel& currentTerrainModel = bufferedTerrainModel_.get();
 
@@ -207,7 +217,7 @@ namespace legged_locomotion_mpc
     swingTrajectory_.updateSwingMotions(initTime, finalTime, currentState, 
       newTrajectory, newModeSchedule);
 
-    const EndEffectorTrajectories endEffectorTrajectories = 
+    EndEffectorTrajectories endEffectorTrajectories = 
       swingTrajectory_.getEndEffectorTrajectories(newTrajectory.timeTrajectory);
     
     jointTrajectory_.updateTrajectory(currentState, newTrajectory, 
@@ -220,6 +230,13 @@ namespace legged_locomotion_mpc
       gaitPlanner_.getContactFlagsAtTimes(subsampledTrajectory.timeTrajectory);
 
     forceTrajectory_.updateTargetTrajectory(contactTrajectory, subsampledTrajectory);
+
+    // If trajectory was subsampled, get new reference for end effectors
+    if(settings_.maximumReferenceSampleInterval < baseTrajectory_.getStaticSettings().deltaTime)
+    {
+      endEffectorTrajectories = swingTrajectory_.getEndEffectorTrajectories(
+        subsampledTrajectory.timeTrajectory);
+    }
 
     const FootTangentialConstraintTrajectories footConstraintTrajectories = 
       swingTrajectory_.getFootTangentialConstraintTrajectories(

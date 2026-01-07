@@ -192,6 +192,11 @@ namespace legged_locomotion_mpc
         getBaseVelocity(almostLastStateVector, modelInfo_);
     }
 
+    const BaseTrajectoryPlanner::StaticSettings& BaseTrajectoryPlanner::getStaticSettings() const
+    {
+      return settings_;
+    }
+
     TerrainPlane BaseTrajectoryPlanner::projectedHeadingPlane(
       vector2_t baseXYPositionInWorld, scalar_t yawOnPlane)
     {

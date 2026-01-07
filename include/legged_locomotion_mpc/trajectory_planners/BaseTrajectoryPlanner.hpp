@@ -108,6 +108,11 @@ namespace legged_locomotion_mpc
         void updateTargetTrajectory(ocs2::scalar_t initTime, 
           ocs2::scalar_t finalTime, const BaseReferenceCommand& command, 
           const state_vector_t& initialState, ocs2::TargetTrajectories& targetTrajectories);
+        
+        /**
+         * Get static settings.
+         */
+        const StaticSettings& getStaticSettings() const;
 
       private:
 
