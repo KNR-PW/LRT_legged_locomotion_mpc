@@ -77,7 +77,7 @@ namespace legged_locomotion_mpc
         PinocchioCollisionInterface(
           floating_base_model::FloatingBaseModelInfo info,
           const ocs2::PinocchioInterface& pinocchioInterface,
-          std::vector<std::string> otherCollisionLinks, 
+          const std::vector<std::string>& otherCollisionLinks, 
           const std::vector<ocs2::scalar_t>& maxExcesses, ocs2::scalar_t shrinkRatio,
           const std::string& modelFolder = "/tmp/ocs2",
           bool recompileLibraries = true,

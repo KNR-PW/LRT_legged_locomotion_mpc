@@ -40,7 +40,7 @@ namespace legged_locomotion_mpc
     PinocchioCollisionInterface::PinocchioCollisionInterface(
       FloatingBaseModelInfo info,
       const PinocchioInterface& pinocchioInterface,
-      std::vector<std::string> otherCollisionLinks, 
+      const std::vector<std::string>& otherCollisionLinks, 
       const std::vector<scalar_t>& maxExcesses, scalar_t shrinkRatio,
       const std::string& modelFolder, bool recompileLibraries, bool verbose)
     {
