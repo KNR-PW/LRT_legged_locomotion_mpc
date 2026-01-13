@@ -7,6 +7,8 @@ using namespace legged_locomotion_mpc;
 using namespace legged_locomotion_mpc::locomotion;
 using namespace ocs2;
 
+// Not round because std::lower_bound is sensitive for time points of mode change
+const size_t ITERATIONS = 343;
 
 TEST(GaitPlannerTest, Constructor)
 {
@@ -32,14 +34,14 @@ TEST(GaitPlannerTest, Constructor)
   scalar_t timeHorizon = 3 * staticParams.timeHorizion;
   auto modeSchedule = gaitPlanner.getModeSchedule(0.0, timeHorizon);
 
-  std::vector<scalar_t> goodTimings = {0, 0.3, 0.35, 0.65, 0.7, 1, 1.05, 1.35, 1.4, 1.7, 1.75, 2.05, 2.1};
-  std::vector<size_t> goodSequence = {15, 9, 15, 6, 15, 9, 15, 6, 15, 9, 15, 6, 15, 15};
+  std::vector<scalar_t> goodTimings = {0.3, 0.35, 0.65, 0.7, 1, 1.05, 1.35, 1.4, 1.7, 1.75, 2.05, 2.1};
+  std::vector<size_t> goodSequence = {9, 15, 6, 15, 9, 15, 6, 15, 9, 15, 6, 15, 15};
 
-  ASSERT_TRUE(modeSchedule.modeSequence == goodSequence);
+  EXPECT_TRUE(modeSchedule.modeSequence == goodSequence);
 
   for(size_t i = 0; i < goodTimings.size(); ++i)
   {
-    ASSERT_NEAR(modeSchedule.eventTimes[i], goodTimings[i], 1e-6);
+    EXPECT_NEAR(modeSchedule.eventTimes[i], goodTimings[i], 1e-6);
   }
 
   const scalar_t MIN_TIME_BETWEEN_CHANGES = 1e-4;
@@ -47,15 +49,15 @@ TEST(GaitPlannerTest, Constructor)
   for(size_t i = 1; i < modeSchedule.eventTimes.size(); ++i)
   {
     scalar_t deltaTime = modeSchedule.eventTimes[i] - modeSchedule.eventTimes[i - 1];
-    ASSERT_GT(deltaTime, MIN_TIME_BETWEEN_CHANGES);
+    EXPECT_GT(deltaTime, MIN_TIME_BETWEEN_CHANGES);
   }
 
-  for(int i = 0; i < 10; ++i)
+  for(int i = 0; i < ITERATIONS; ++i)
   {
-    scalar_t time = i * timeHorizon / 10.0 + 1e-6;
+    scalar_t time = i * timeHorizon / ITERATIONS;
     auto contactFlags = gaitPlanner.getContactFlagsAtTime(time);
     auto trueContactFlags = modeNumber2ContactFlags(modeSchedule.modeAtTime(time));
-    ASSERT_TRUE(contactFlags == trueContactFlags);
+    EXPECT_TRUE(contactFlags == trueContactFlags);
   }
 
 }
@@ -89,29 +91,29 @@ TEST(GaitPlannerTest, getModeSchedule)
   std::vector<scalar_t> goodTimings = {0.35, 0.65, 0.7, 1, 1.05, 1.35, 1.4, 1.7, 1.75, 2.05, 2.1};
   std::vector<size_t> goodSequence = {15, 6, 15, 9, 15, 6, 15, 9, 15, 6, 15, 15};
 
-  ASSERT_TRUE(modeSchedule.modeSequence == goodSequence);
+  EXPECT_TRUE(modeSchedule.modeSequence == goodSequence);
   
   std::vector<scalar_t> times;
-  for(int i = 0; i < 10; ++i)
+  for(int i = 0; i < ITERATIONS; ++i)
   {
-    scalar_t time = startTime + i * (finalTime - startTime)  / 10.0 + 1e-6;
+    scalar_t time = startTime + i * (finalTime - startTime)  / ITERATIONS;
     times.push_back(time);
     auto contactFlags = gaitPlanner.getContactFlagsAtTime(time);
     auto trueContactFlags = modeNumber2ContactFlags(modeSchedule.modeAtTime(time));
-    ASSERT_TRUE(contactFlags == trueContactFlags);
+    EXPECT_TRUE(contactFlags == trueContactFlags);
   }
 
   std::vector<contact_flags_t> flagsTrajectory = gaitPlanner.getContactFlagsAtTimes(times);
 
   for(size_t i = 0; i < 10; ++i)
   {
-     auto trueContactFlags = modeNumber2ContactFlags(modeSchedule.modeAtTime(times[i]));
-    ASSERT_TRUE(flagsTrajectory[i] == trueContactFlags);
+    auto trueContactFlags = modeNumber2ContactFlags(modeSchedule.modeAtTime(times[i]));
+    EXPECT_TRUE(flagsTrajectory[i] == trueContactFlags);
   }
 
   for(size_t i = 0; i < goodTimings.size(); ++i)
   {
-    ASSERT_NEAR(modeSchedule.eventTimes[i], goodTimings[i], 1e-6);
+    EXPECT_NEAR(modeSchedule.eventTimes[i], goodTimings[i], 1e-6);
   }
 
   startTime = 0.65;
@@ -121,11 +123,11 @@ TEST(GaitPlannerTest, getModeSchedule)
   goodTimings = {0.65, 0.7, 1, 1.05, 1.35, 1.4, 1.7, 1.75, 2.05, 2.1};
   goodSequence = {6, 15, 9, 15, 6, 15, 9, 15, 6, 15, 15};
 
-  ASSERT_TRUE(modeSchedule.modeSequence == goodSequence);
+  EXPECT_TRUE(modeSchedule.modeSequence == goodSequence);
 
   for(size_t i = 0; i < goodTimings.size(); ++i)
   {
-    ASSERT_NEAR(modeSchedule.eventTimes[i], goodTimings[i], 1e-6);
+    EXPECT_NEAR(modeSchedule.eventTimes[i], goodTimings[i], 1e-6);
   }
 
   const scalar_t MIN_TIME_BETWEEN_CHANGES = 1e-4;
@@ -133,17 +135,17 @@ TEST(GaitPlannerTest, getModeSchedule)
   for(size_t i = 1; i < modeSchedule.eventTimes.size(); ++i)
   {
     scalar_t deltaTime = modeSchedule.eventTimes[i] - modeSchedule.eventTimes[i - 1];
-    ASSERT_GT(deltaTime, MIN_TIME_BETWEEN_CHANGES);
+    EXPECT_GT(deltaTime, MIN_TIME_BETWEEN_CHANGES);
   }
 
   times.clear();
-  for(int i = 0; i < 10; ++i)
+  for(int i = 0; i < ITERATIONS; ++i)
   {
-    scalar_t time = startTime + i * (finalTime - startTime)  / 10.0 + 1e-6;
+    scalar_t time = startTime + i * (finalTime - startTime)  / ITERATIONS;
     times.push_back(time);
     auto contactFlags = gaitPlanner.getContactFlagsAtTime(time);
     auto trueContactFlags = modeNumber2ContactFlags(modeSchedule.modeAtTime(time));
-    ASSERT_TRUE(contactFlags == trueContactFlags);
+    EXPECT_TRUE(contactFlags == trueContactFlags);
   }
 
   flagsTrajectory = gaitPlanner.getContactFlagsAtTimes(times);
@@ -151,7 +153,7 @@ TEST(GaitPlannerTest, getModeSchedule)
   for(size_t i = 0; i < 10; ++i)
   {
      auto trueContactFlags = modeNumber2ContactFlags(modeSchedule.modeAtTime(times[i]));
-    ASSERT_TRUE(flagsTrajectory[i] == trueContactFlags);
+    EXPECT_TRUE(flagsTrajectory[i] == trueContactFlags);
   }
 }
 
@@ -204,35 +206,35 @@ TEST(GaitPlannerTest, updateDynamicParameters)
   for(size_t i = 1; i < modeSchedule.eventTimes.size(); ++i)
   {
     scalar_t deltaTime = modeSchedule.eventTimes[i] - modeSchedule.eventTimes[i - 1];
-    ASSERT_GT(deltaTime, MIN_TIME_BETWEEN_CHANGES);
+    EXPECT_GT(deltaTime, MIN_TIME_BETWEEN_CHANGES);
   }
 
-  for(int i = 0; i < 10; ++i)
+  for(int i = 0; i < ITERATIONS; ++i)
   {
-    scalar_t time = startTime + i * (firstTime - startTime)  / 10.0 + 1e-6;
+    scalar_t time = startTime + i * (firstTime - startTime)  / ITERATIONS;
     auto contactFlags = gaitPlanner.getContactFlagsAtTime(time);
     auto trueContactFlags = modeNumber2ContactFlags(modeSchedule.modeAtTime(time));
-    ASSERT_TRUE(contactFlags == trueContactFlags);
+    EXPECT_TRUE(contactFlags == trueContactFlags);
   }
 
-  scalar_t secondTime = 2.075; // Change mode template in 3 second, remove 7 seconds of first template 
+  scalar_t secondTime = 2.65; // Change mode template in 3 second, remove 7 seconds of first template 
   scalar_t thirdTime = 10.0;
   gaitPlanner.updateDynamicParameters(secondTime, dynamicParams2);
 
   modeSchedule = gaitPlanner.getModeSchedule(startTime, thirdTime);
 
-  for(int i = 0; i < 10; ++i)
+  for(int i = 0; i < ITERATIONS; ++i)
   {
-    scalar_t time = startTime + i * (thirdTime - startTime)  / 10.0 + 1e-6;
+    scalar_t time = startTime + i * (thirdTime - startTime)  / ITERATIONS;
     auto contactFlags = gaitPlanner.getContactFlagsAtTime(time);
     auto trueContactFlags = modeNumber2ContactFlags(modeSchedule.modeAtTime(time));
-    ASSERT_TRUE(contactFlags == trueContactFlags);
+    EXPECT_TRUE(contactFlags == trueContactFlags);
   }
 
   for(size_t i = 1; i < modeSchedule.eventTimes.size(); ++i)
   {
     scalar_t deltaTime = modeSchedule.eventTimes[i] - modeSchedule.eventTimes[i - 1];
-    ASSERT_GT(deltaTime, MIN_TIME_BETWEEN_CHANGES);
+    EXPECT_GT(deltaTime, MIN_TIME_BETWEEN_CHANGES);
   }
 
   scalar_t forthTime = 5.0; // Change mode template in 5 second, remove 5 seconds of second template 
@@ -245,27 +247,77 @@ TEST(GaitPlannerTest, updateDynamicParameters)
   for(size_t i = 1; i < modeSchedule.eventTimes.size(); ++i)
   {
     scalar_t deltaTime = modeSchedule.eventTimes[i] - modeSchedule.eventTimes[i - 1];
-    ASSERT_GT(deltaTime, MIN_TIME_BETWEEN_CHANGES);
+    EXPECT_GT(deltaTime, MIN_TIME_BETWEEN_CHANGES);
   }
 
-  for(int i = 0; i < 10; ++i)
+  for(int i = 0; i < ITERATIONS; ++i)
   {
-    scalar_t time = startTime + i * (fifthTime - startTime)  / 10.0 + 1e-6;
+    scalar_t time = startTime + i * (fifthTime - startTime)  / ITERATIONS;
     auto contactFlags = gaitPlanner.getContactFlagsAtTime(time);
     auto trueContactFlags = modeNumber2ContactFlags(modeSchedule.modeAtTime(time));
-    ASSERT_TRUE(contactFlags == trueContactFlags);
+    EXPECT_TRUE(contactFlags == trueContactFlags);
   }
 
   startTime = 7.4;
 
   modeSchedule = gaitPlanner.getModeSchedule(startTime, fifthTime);
 
-  for(int i = 0; i < 10; ++i)
+  for(int i = 0; i < ITERATIONS; ++i)
   {
-    scalar_t time = startTime + i * (fifthTime - startTime)  / 10.0 + 1e-6;
+    scalar_t time = startTime + i * (fifthTime - startTime)  / ITERATIONS;
     auto contactFlags = gaitPlanner.getContactFlagsAtTime(time);
     auto trueContactFlags = modeNumber2ContactFlags(modeSchedule.modeAtTime(time));
-    ASSERT_TRUE(contactFlags == trueContactFlags);
+    EXPECT_TRUE(contactFlags == trueContactFlags);
+  }
+}
+
+TEST(GaitPlannerTest, stayingInPlace)
+{
+  /* STANDING TROT */
+  scalar_t currentPhase = 3.5 / 7.0;
+
+  GaitStaticParameters staticParams;
+  staticParams.endEffectorNumber = 4;
+  staticParams.plannerFrequency = 2.0;
+  staticParams.timeHorizion = 0.7;
+
+  GaitDynamicParameters dynamicParams;
+  dynamicParams.steppingFrequency = 0.0;
+  dynamicParams.swingRatio = 3.0 / 7.0;
+  
+  dynamicParams.phaseOffsets = {0, 0, 0};
+
+  auto modeSequenceTemplate = getDynamicModeSequenceTemplate(currentPhase,
+    staticParams.timeHorizion, staticParams, dynamicParams);
+
+  GaitPlanner gaitPlanner(staticParams, dynamicParams, modeSequenceTemplate, currentPhase, 0.0);
+
+  scalar_t timeHorizon = 3 * staticParams.timeHorizion;
+  auto modeSchedule = gaitPlanner.getModeSchedule(0.0, timeHorizon);
+
+  std::vector<scalar_t> goodTimings = {2.1};
+  std::vector<size_t> goodSequence = {15, 15};
+
+  EXPECT_TRUE(modeSchedule.modeSequence == goodSequence);
+
+  for(size_t i = 0; i < goodTimings.size(); ++i)
+  {
+    EXPECT_NEAR(modeSchedule.eventTimes[i], goodTimings[i], 1e-6);
   }
 
+  const scalar_t MIN_TIME_BETWEEN_CHANGES = 1e-4;
+
+  for(size_t i = 1; i < modeSchedule.eventTimes.size(); ++i)
+  {
+    scalar_t deltaTime = modeSchedule.eventTimes[i] - modeSchedule.eventTimes[i - 1];
+    EXPECT_GT(deltaTime, MIN_TIME_BETWEEN_CHANGES);
+  }
+
+  for(int i = 0; i < 10; ++i)
+  {
+    scalar_t time = i * timeHorizon / 10.0;
+    auto contactFlags = gaitPlanner.getContactFlagsAtTime(time);
+    auto trueContactFlags = modeNumber2ContactFlags(modeSchedule.modeAtTime(time));
+    EXPECT_TRUE(contactFlags == trueContactFlags);
+  }
 }

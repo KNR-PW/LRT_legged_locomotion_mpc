@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <limits>
+#include <iostream>
 
 #include <ocs2_core/misc/Lookup.h>
 
@@ -23,9 +24,12 @@ namespace legged_locomotion_mpc
     {
       modeSchedule_.clear();
 
-      // First mode is STAND
-      size_t standMode = (0x01 << (staticParams.endEffectorNumber)) - 1;
-      modeSchedule_.modeSequence.push_back(standMode);
+      // Add first modes and time
+      modeSchedule_.eventTimes.push_back(initTime);
+
+      const contact_flags_t initFlags = gaitPhaseController_.getContactFlagsAtTime(initTime);
+      modeSchedule_.modeSequence.push_back(contactFlags2ModeNumber(initFlags));
+      modeSchedule_.modeSequence.push_back(contactFlags2ModeNumber(initFlags));
       
       insertModeSequenceTemplate(initTime, modeSequenceTemplate_.switchingTimes.back(),
         modeSequenceTemplate_);
@@ -170,17 +174,15 @@ namespace legged_locomotion_mpc
         modeSequence.erase(modeSequence.begin() + index + 1, modeSequence.end());
       }
 
-      // tile the mode sequence template from last eventTime to finalTime.
-      // scalar_t tilingTime = eventTimes.empty() ? startTime : eventTimes.back();
       tileModeSequenceTemplate(startTime, finalTime);
     }
 
     void GaitPlanner::tileModeSequenceTemplate(scalar_t startTime, scalar_t finalTime)
     {
-      auto &eventTimes = modeSchedule_.eventTimes;
-      auto &modeSequence = modeSchedule_.modeSequence;
-      const auto &templateTimes = modeSequenceTemplate_.switchingTimes;
-      const auto &templateModeSequence = modeSequenceTemplate_.modeSequence;
+      auto& eventTimes = modeSchedule_.eventTimes;
+      auto& modeSequence = modeSchedule_.modeSequence;
+      const auto& templateTimes = modeSequenceTemplate_.switchingTimes;
+      const auto& templateModeSequence = modeSequenceTemplate_.modeSequence;
       const size_t numTemplateSubsystems = modeSequenceTemplate_.modeSequence.size();
 
       // If no template subsystem is defined, the last subsystem should continue for ever
@@ -189,23 +191,52 @@ namespace legged_locomotion_mpc
         return;
       }
 
-      if (!eventTimes.empty() && startTime <= eventTimes.back()) 
+      if (!eventTimes.empty() && startTime < eventTimes.back()) 
       {
         throw std::runtime_error(
           "The initial time for template-tiling is not greater than the last event time.");
       }
 
-      // add a initial time
-      eventTimes.push_back(startTime);
+      // If template starts with same mode, extend this mode and make one iteration
+      if(templateModeSequence.front() == modeSequence.back())
+      {
+        scalar_t deltaTime = templateTimes[1] - templateTimes[0];
+        eventTimes.push_back(startTime + deltaTime);
+        for (size_t i = 1; i < templateModeSequence.size(); i++) 
+        {
+          scalar_t deltaTime = templateTimes[i + 1] - templateTimes[i];
+          if(templateModeSequence[i] == modeSequence.back())
+          {
+            eventTimes.back() += deltaTime;
+          }
+          else
+          {
+            modeSequence.push_back(templateModeSequence[i]);
+            eventTimes.push_back(eventTimes.back() + deltaTime);
+          }
+        } // end of i loop
+      }
+      else
+      {
+        // end last mode in start time on new one
+        eventTimes.push_back(startTime);
+      }
 
       // concatenate from index
       while (eventTimes.back() < finalTime) 
       {
         for (size_t i = 0; i < templateModeSequence.size(); i++) 
         {
-          modeSequence.push_back(templateModeSequence[i]);
           scalar_t deltaTime = templateTimes[i + 1] - templateTimes[i];
-          eventTimes.push_back(eventTimes.back() + deltaTime);
+          if(templateModeSequence[i] == modeSequence.back())
+          {
+            eventTimes.back() += deltaTime;
+          }
+          else
+          {
+            modeSequence.push_back(templateModeSequence[i]);
+            eventTimes.push_back(eventTimes.back() + deltaTime);
+          }
         } // end of i loop
       } // end of while loop
 

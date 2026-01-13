@@ -108,7 +108,6 @@ namespace legged_locomotion_mpc
         timeEndEffectorIndexQueue.push({timeToNextMode, i});
       }
 
-
       scalar_t time = 0;
 
       while(time < timeHorizon)

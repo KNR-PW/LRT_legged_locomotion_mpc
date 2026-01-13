@@ -27,7 +27,7 @@ namespace legged_locomotion_mpc
       Eigen::Matrix<ocs2::scalar_t, -1, 3> A;
       ocs2::vector_t b;
       
-      bool active() const
+      bool isActive() const
       {
         return (A.rows() != 0 && b.rows() != 0);
       }

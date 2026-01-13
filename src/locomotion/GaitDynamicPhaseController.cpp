@@ -1,9 +1,12 @@
 #include <legged_locomotion_mpc/locomotion/GaitDynamicPhaseController.hpp>
 
-#include <legged_locomotion_mpc/locomotion/GaitCommon.hpp>
-
 #include <algorithm>
 #include <iostream>
+
+#include <ocs2_core/misc/Lookup.h>
+
+#include <legged_locomotion_mpc/locomotion/GaitCommon.hpp>
+
 namespace legged_locomotion_mpc
 {
   namespace locomotion
@@ -46,8 +49,7 @@ namespace legged_locomotion_mpc
       }
 
       // Find index of time larger that query time
-      const size_t index = std::lower_bound(eventTimes_.begin(), eventTimes_.end(),
-       time) - eventTimes_.begin();
+      const size_t index = lookup::findIndexInTimeArray(eventTimes_, time);
       
       // Add phase between index - 1 time and query time
       const auto frequency = dynamicParamsVec_[index - 1].steppingFrequency;
@@ -83,10 +85,9 @@ namespace legged_locomotion_mpc
 
         return returnFlags;
       }
-
+      
       // Find index of time larger that query time
-      const size_t index = std::lower_bound(eventTimes_.begin(), eventTimes_.end(),
-       time) - eventTimes_.begin();
+      const size_t index = lookup::findIndexInTimeArray(eventTimes_, time);
       
       // Add phase between index - 1 time and query time
       const auto frequency = dynamicParamsVec_[index - 1].steppingFrequency;

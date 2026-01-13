@@ -99,7 +99,6 @@ TEST(ModelHelperFunctions, getRotationMatrixEulerZyxGradient)
     const auto adValue = adMultiplication.getValue(euler, vector);
     
     EXPECT_TRUE((analyticalMatrix * vector - adValue).norm() < tolerance);
-    std::cerr << adResult - analyticalResult << std::endl;
     EXPECT_TRUE((adResult - analyticalResult).norm() < tolerance);
   }
 }
