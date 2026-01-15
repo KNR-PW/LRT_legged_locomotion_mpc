@@ -108,6 +108,28 @@ namespace legged_locomotion_mpc
     void weightCompensatingAppendInput(ocs2::vector_t& input,
       const floating_base_model::FloatingBaseModelInfo &info, 
       const contact_flags_t &contactFlags);
+
+    /**
+     *  Find index into a sorted time Array
+     *
+     *  Indices are counted as follows:
+     *          ------ | ----- | ---  ... ---    | -----
+     *                t0     t1              t(n-1)
+     *  Index     0        1      2   ...  (n-1)    n
+     *
+     *  Corner cases:
+     *     - If time equal to a time in the timeArray is requested, the lower index is taken (e.g. t = t1 -> index = 1)
+     *     - If multiple times in the timeArray are equal, the index before the first occurrence is taken.
+     *       for example: if t1 = t2 = t3  and the requested time t <= t3 -> index = 1
+     *
+     *  It is a fixed version, ocs2::findIndexInTimeArray does not work properly!
+     * @tparam SCALAR : numerical type of time
+     * @param timeArray : sorted time array to perform the lookup in
+     * @param time : enquiry time
+     * @return index between [0, size(timeArray)]
+     */
+    size_t findIndexInTimeArray(const std::vector<ocs2::scalar_t> &timeArray, 
+      ocs2::scalar_t time);
       
   } // namespace utils
 } // namespace legged_locomotion_mpc

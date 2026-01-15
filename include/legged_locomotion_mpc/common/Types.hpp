@@ -42,6 +42,7 @@ namespace legged_locomotion_mpc
   static const ocs2::scalar_t PLUS_GRAVITY_VALUE = 9.81;
   static const ocs2::scalar_t MINUS_GRAVITY_VALUE = -PLUS_GRAVITY_VALUE;
   static const size_t MAX_LEG_NUMBER = 8;
+  static const ocs2::scalar_t SCALAR_EPSILON = 1e-12;
   using contact_flags_t = std::bitset<MAX_LEG_NUMBER>; // Dont expect for robot to have more than 8 legs
 
   using vector2_t = Eigen::Matrix<ocs2::scalar_t, 2, 1>;

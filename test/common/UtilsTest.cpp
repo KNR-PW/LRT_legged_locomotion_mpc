@@ -339,5 +339,28 @@ TEST(UtilsTest, weightCompensatingAppendInput)
   EXPECT_TRUE((getContactForces(fourInput, 1, modelInfo) - forceFour).norm() < tolerance);
   EXPECT_TRUE((getContactForces(fourInput, 2, modelInfo) - forceFour).norm() < tolerance);
   EXPECT_TRUE((getContactForces(fourInput, 3, modelInfo) - forceFour).norm() < tolerance);
+}
 
+
+TEST(UtilsTest, findIndexInTimeArray)
+{
+  std::vector<scalar_t> times{0.0, 0.3, 0.5, 0.7, 0.9, 1.0, 150.0, 100000.0, 100000.0001};
+
+  for(size_t i = 0; i < times.size(); ++i)
+  {
+    const size_t index = utils::findIndexInTimeArray(times, times[i]);
+    EXPECT_TRUE(index == i);
+  }
+
+  for(size_t i = 1; i < times.size(); ++i)
+  {
+    const size_t index = utils::findIndexInTimeArray(times, times[i] - 1e-6);
+    EXPECT_TRUE(index == i);
+  }
+
+  for(size_t i = 0; i < times.size() - 1; ++i)
+  {
+    const size_t index = utils::findIndexInTimeArray(times, times[i] + 1e-6);
+    EXPECT_TRUE(index == (i + 1));
+  }
 }

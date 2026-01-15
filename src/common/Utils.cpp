@@ -1,6 +1,7 @@
 #include <legged_locomotion_mpc/common/Utils.hpp>
 
 #include <ocs2_core/misc/LinearInterpolation.h>
+#include <ocs2_core/misc/Numerics.h>
 
 
 namespace legged_locomotion_mpc
@@ -161,6 +162,19 @@ namespace legged_locomotion_mpc
           }
         } 
       }
+    }
+
+    /******************************************************************************************************/
+    /******************************************************************************************************/
+    /******************************************************************************************************/
+    size_t findIndexInTimeArray(const std::vector<scalar_t> &timeArray, scalar_t time) 
+    {
+      const auto compare = [](const scalar_t& one, const scalar_t& two)
+      {
+        return one < two && !numerics::almost_eq(one, two, SCALAR_EPSILON);
+      };
+      auto firstLargerValueIterator = std::lower_bound(timeArray.cbegin(), timeArray.cend(), time, compare);
+      return static_cast<size_t>(firstLargerValueIterator - timeArray.cbegin());
     }
     
   } // namsespace utils
