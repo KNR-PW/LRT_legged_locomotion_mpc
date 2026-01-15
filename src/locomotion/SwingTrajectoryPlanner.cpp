@@ -4,18 +4,19 @@
 //
 
 #include <legged_locomotion_mpc/locomotion/SwingTrajectoryPlanner.hpp>
-#include <legged_locomotion_mpc/common/AccessHelperFunctions.hpp>
-#include <legged_locomotion_mpc/common/Utils.hpp>
-
-#include <floating_base_model/AccessHelperFunctions.hpp>
-
-#include <ocs2_core/misc/Lookup.h>
-#include <ocs2_core/misc/LoadData.h>
-
-#include <ocs2_robotic_tools/common/RotationTransforms.h>
 
 #include <boost/property_tree/info_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
+
+#include <ocs2_core/misc/Lookup.h>
+#include <ocs2_core/misc/LoadData.h>
+#include <ocs2_robotic_tools/common/RotationTransforms.h>
+
+#include <floating_base_model/AccessHelperFunctions.hpp>
+
+#include <legged_locomotion_mpc/common/AccessHelperFunctions.hpp>
+#include <legged_locomotion_mpc/common/Utils.hpp>
+#include <legged_locomotion_mpc/locomotion/GaitCommon.hpp>
 
 namespace legged_locomotion_mpc
 {
@@ -137,8 +138,9 @@ namespace legged_locomotion_mpc
     const FootPhase &SwingTrajectoryPlanner::getFootPhase(size_t endEffectorIndex, 
       scalar_t time) const 
     {
-      const auto timeIndex = lookup::findIndexInTimeArray(
+      const auto timeIndex = utils::findIndexInTimeArray(
         feetNormalTrajectoriesEvents_[endEffectorIndex], time);
+      // std::cerr << "leg: " << endEffectorIndex << ", Time: " << feetNormalTrajectoriesEvents_[endEffectorIndex][timeIndex] << std::endl;
       return *feetNormalTrajectories_[endEffectorIndex][timeIndex];
     }
 
@@ -349,6 +351,12 @@ namespace legged_locomotion_mpc
           eventTimes.push_back(currentContactTiming.end);
           footPhases.emplace_back(new SwingPhase(liftOff, touchDown, swingProfile, terrainModel_));
         }
+      // std::cerr << "Noga: " << endEffectorIndex << ", rozmiary: " << eventTimes.size() << ", " << footPhases.size() << ", " << contactTimings.size() << std::endl;
+      // for(const auto timing: contactTimings)
+      // {
+      //   std::cerr << timing.start << " " << timing.end << ": ";
+      // }
+      // std::cerr << std::endl;
       return std::make_pair(eventTimes, std::move(footPhases));
     }
 
@@ -696,54 +704,46 @@ namespace legged_locomotion_mpc
 
     SwingTrajectoryPlanner::FootTangentialConstraintTrajectories 
       SwingTrajectoryPlanner::getFootTangentialConstraintTrajectories(
-        std::vector<contact_flags_t> contactFlags, std::vector<scalar_t> times)
+        ModeSchedule modeSchedule, std::vector<scalar_t> times)
     {
+      const auto& eventTimes = modeSchedule.eventTimes;
+      const auto& modeSequence = modeSchedule.modeSequence;
+
       const size_t numEndEffectors = modelInfo_.numThreeDofContacts + modelInfo_.numSixDofContacts;
+      const size_t trajectorySize = modeSequence.size();
 
       FootTangentialConstraintTrajectories trajectory;
+      trajectory.times = modeSchedule.eventTimes;
+      trajectory.constraints.reserve(trajectorySize);
 
-      // First iteration
-      std::vector<FootTangentialConstraintMatrix> firstConstraints(numEndEffectors);
-
-      for(size_t i = 0; i < numEndEffectors; ++i)
-      {
-        const auto& footPhase = getFootPhase(i, times[0]);
-        const FootTangentialConstraintMatrix* firstConstraintsPtr = footPhase.getFootTangentialConstraintInWorldFrame();
-        if(contactFlags[0][i] && firstConstraintsPtr)
-        {
-          firstConstraints[i] = *firstConstraintsPtr;
-        }
-        else
-        {
-          firstConstraints[i] = FootTangentialConstraintMatrix();
-        }
-      }
-      trajectory.times.push_back(times[0]);
+      // Dont run first mode (foot is already on the ground)
+      std::vector<FootTangentialConstraintMatrix> firstConstraints(numEndEffectors, 
+        FootTangentialConstraintMatrix());
       trajectory.constraints.push_back(std::move(firstConstraints));
 
-      // Other iterations
-      for(size_t i = 1; i < times.size(); ++i)
+      for(size_t i = 1; i < trajectorySize - 1; ++i)
       {
-        // If flags are the same, continue
-        if(contactFlags[i] == contactFlags[i - 1]) continue;
+        const contact_flags_t contactFlags = modeNumber2ContactFlags(modeSequence[i]);
         std::vector<FootTangentialConstraintMatrix> newConstraints(numEndEffectors);
+        // std::cerr << "Time: " << eventTimes[i] << ", Flag: " << contactFlags.to_ulong() << std::endl;
         for(size_t j = 0; j < numEndEffectors; ++j)
         {
-          const auto& footPhase = getFootPhase(j, times[i]);
-          const FootTangentialConstraintMatrix* newConstraintssPtr = footPhase.getFootTangentialConstraintInWorldFrame();
-          if(contactFlags[i][j] && newConstraintssPtr)
+          const scalar_t midTime = eventTimes[i] + 0.5 * (eventTimes[i + 1] - eventTimes[i]);
+          const auto& footPhase = getFootPhase(j, eventTimes[i]);
+          const FootTangentialConstraintMatrix* newConstraintPtr = footPhase.getFootTangentialConstraintInWorldFrame();
+          if(contactFlags[j] && newConstraintPtr)
           {
-            newConstraints[j] = *newConstraintssPtr;
+            newConstraints[j] = *newConstraintPtr;
           }
           else
           {
             newConstraints[j] = FootTangentialConstraintMatrix();
           }
         }
-        trajectory.times.push_back(times[i]);
         trajectory.constraints.push_back(std::move(newConstraints));
       }
-      
+
+      trajectory.constraints.push_back(trajectory.constraints.back());
       return trajectory;
     }
 

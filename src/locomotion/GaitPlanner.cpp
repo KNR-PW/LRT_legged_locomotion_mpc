@@ -4,7 +4,7 @@
 #include <limits>
 #include <iostream>
 
-#include <ocs2_core/misc/Lookup.h>
+#include <legged_locomotion_mpc/common/Utils.hpp>
 
 
 namespace legged_locomotion_mpc
@@ -45,17 +45,16 @@ namespace legged_locomotion_mpc
     {
       auto &eventTimes = modeSchedule_.eventTimes;
       auto &modeSequence = modeSchedule_.modeSequence;
-      const size_t index = std::lower_bound(eventTimes.begin(), eventTimes.end(),
-       startTime) - eventTimes.begin();
+      const size_t index = utils::findIndexInTimeArray(eventTimes, startTime);
 
       if(index > 0) 
       {
         // Update gait phase controller
         gaitPhaseController_.remove(startTime);
         // delete the old logic from index and set the default start phase to stance
-        eventTimes.erase(eventTimes.begin(), eventTimes.begin() + index - 1);
+        eventTimes.erase(eventTimes.begin(), eventTimes.begin() + index);
         // keep the one before the last to make it stance
-        modeSequence.erase(modeSequence.begin(), modeSequence.begin() + index - 1);
+        modeSequence.erase(modeSequence.begin(), modeSequence.begin() + index);
       }
 
       // Start tiling at time
@@ -164,8 +163,7 @@ namespace legged_locomotion_mpc
       auto &modeSequence = modeSchedule_.modeSequence;
 
       // find the index on which the new gait should be added
-      const size_t index = std::lower_bound(eventTimes.begin(), eventTimes.end(),
-       startTime) - eventTimes.begin();
+      const size_t index = utils::findIndexInTimeArray(eventTimes, startTime);
 
       // delete the old logic from the index
       if (index < eventTimes.size()) 

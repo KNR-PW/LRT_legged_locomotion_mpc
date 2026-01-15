@@ -5,9 +5,9 @@
 
 #include <legged_locomotion_mpc/locomotion/QuinticSplineSwing.hpp>
 
-#include <ocs2_core/misc/Lookup.h>
-
 #include <Eigen/Sparse>
+
+#include <legged_locomotion_mpc/common/Utils.hpp>
 
 namespace legged_locomotion_mpc
 {
@@ -247,25 +247,25 @@ namespace legged_locomotion_mpc
 
     scalar_t QuinticSwing::position(scalar_t time) const 
     {
-      const auto index = ocs2::lookup::findIndexInTimeArray(nodeTimes, time);
+      const auto index = utils::findIndexInTimeArray(nodeTimes, time);
       return splines[index].position(time);
     }
 
     scalar_t QuinticSwing::velocity(scalar_t time) const 
     {
-      const auto index = ocs2::lookup::findIndexInTimeArray(nodeTimes, time);
+      const auto index = utils::findIndexInTimeArray(nodeTimes, time);
       return splines[index].velocity(time);
     }
 
     scalar_t QuinticSwing::acceleration(scalar_t time) const 
     {
-      const auto index = ocs2::lookup::findIndexInTimeArray(nodeTimes, time);
+      const auto index = utils::findIndexInTimeArray(nodeTimes, time);
       return splines[index].acceleration(time);
     }
 
     scalar_t QuinticSwing::jerk(scalar_t time) const 
     {
-      const auto index = ocs2::lookup::findIndexInTimeArray(nodeTimes, time);
+      const auto index = utils::findIndexInTimeArray(nodeTimes, time);
       return splines[index].jerk(time);
     }
   } // locomotion
