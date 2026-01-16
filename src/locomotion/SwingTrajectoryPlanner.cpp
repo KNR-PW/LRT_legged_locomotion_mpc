@@ -140,7 +140,6 @@ namespace legged_locomotion_mpc
     {
       const auto timeIndex = utils::findIndexInTimeArray(
         feetNormalTrajectoriesEvents_[endEffectorIndex], time);
-      // std::cerr << "leg: " << endEffectorIndex << ", Time: " << feetNormalTrajectoriesEvents_[endEffectorIndex][timeIndex] << std::endl;
       return *feetNormalTrajectories_[endEffectorIndex][timeIndex];
     }
 
@@ -302,61 +301,53 @@ namespace legged_locomotion_mpc
           swingProfile, terrainModel_));
       }
 
-        // Loop through contact phases
-        for (int i = 0; i < contactTimings.size(); ++i) 
+      // Loop through contact phases
+      for (int i = 0; i < contactTimings.size(); ++i) 
+      {
+        const auto &currentContactTiming = contactTimings[i];
+        const ConvexTerrain &nominalFoothold = nominalFootholdsPerLeg_[endEffectorIndex][i];
+        
+        // If phase starts after the horizon, we don't need to plan for it
+        if (currentContactTiming.start > finalTime) 
         {
-          const auto &currentContactTiming = contactTimings[i];
-          const ConvexTerrain &nominalFoothold = nominalFootholdsPerLeg_[endEffectorIndex][i];
-
-          // If phase starts after the horizon, we don't need to plan for it
-          if (currentContactTiming.start > finalTime) 
-          {
-            break;
-          }
-
-          // generate contact phase
-          if (hasStartTime(currentContactTiming)) 
-          {
-            eventTimes.push_back(currentContactTiming.start);
-          }
-
-          footPhases.emplace_back(new StancePhase(nominalFoothold, staticSettings_.terrainMargin));
-
-          // If contact phase extends beyond the horizon, we can stop planning.
-          if (!hasEndTime(currentContactTiming) || currentContactTiming.end > finalTime) 
-          {
-            break;
-          }
-
-          // generate swing phase afterwards
-          SwingPhase::SwingEvent liftOff{currentContactTiming.end, 
-            staticSettings_.liftOffVelocity, &nominalFoothold.getTerrainPlane()};
-          SwingPhase::SwingEvent touchDown = [&] 
-          {
-            const bool nextContactExists = (i + 1) < contactTimings.size();
-            if (nextContactExists) 
-            {
-              return SwingPhase::SwingEvent{contactTimings[i + 1].start, 
-                  staticSettings_.touchDownVelocity, 
-                  &nominalFootholdsPerLeg_[endEffectorIndex][i + 1].getTerrainPlane()};
-            } 
-            else 
-            {
-              return SwingPhase::SwingEvent{finalTime + staticSettings_.referenceExtensionAfterHorizon, 0.0, nullptr};
-            }}();
-
-          SwingPhase::SwingProfile swingProfile = getDefaultSwingProfile();
-          applySwingMotionScaling(liftOff, touchDown, swingProfile);
-
-          eventTimes.push_back(currentContactTiming.end);
-          footPhases.emplace_back(new SwingPhase(liftOff, touchDown, swingProfile, terrainModel_));
+          break;
         }
-      // std::cerr << "Noga: " << endEffectorIndex << ", rozmiary: " << eventTimes.size() << ", " << footPhases.size() << ", " << contactTimings.size() << std::endl;
-      // for(const auto timing: contactTimings)
-      // {
-      //   std::cerr << timing.start << " " << timing.end << ": ";
-      // }
-      // std::cerr << std::endl;
+
+        // generate contact phase
+        if (hasStartTime(currentContactTiming)) 
+        {
+          eventTimes.push_back(currentContactTiming.start);
+        }
+        footPhases.emplace_back(new StancePhase(nominalFoothold, staticSettings_.terrainMargin));
+        
+        // If contact phase extends beyond the horizon, we can stop planning.
+        if (!hasEndTime(currentContactTiming) || currentContactTiming.end > finalTime) 
+        {
+          break;
+        }
+
+        // generate swing phase afterwards
+        SwingPhase::SwingEvent liftOff{currentContactTiming.end, 
+          staticSettings_.liftOffVelocity, &nominalFoothold.getTerrainPlane()};
+        SwingPhase::SwingEvent touchDown = [&] 
+        {
+          const bool nextContactExists = (i + 1) < contactTimings.size();
+          if (nextContactExists) 
+          {
+            return SwingPhase::SwingEvent{contactTimings[i + 1].start, 
+              staticSettings_.touchDownVelocity, 
+              &nominalFootholdsPerLeg_[endEffectorIndex][i + 1].getTerrainPlane()};
+          } 
+          else 
+          {
+            return SwingPhase::SwingEvent{finalTime + 
+              staticSettings_.referenceExtensionAfterHorizon, 0.0, nullptr};
+          }}();
+        SwingPhase::SwingProfile swingProfile = getDefaultSwingProfile();
+        applySwingMotionScaling(liftOff, touchDown, swingProfile);
+        eventTimes.push_back(currentContactTiming.end);
+        footPhases.emplace_back(new SwingPhase(liftOff, touchDown, swingProfile, terrainModel_));
+      }
       return std::make_pair(eventTimes, std::move(footPhases));
     }
 
@@ -645,7 +636,7 @@ namespace legged_locomotion_mpc
       // Get orientation from terrain model, position from the kinematics
       const auto lastContactTerrain = terrainModel.getLocalTerrainAtPositionInWorldAlongGravity(currentFootPosition);
       TerrainPlane newPlane(currentFootPosition, lastContactTerrain.getOrientationToTerrain());
-      lastContacts_[endEffectorIndex] = {expectedLiftOff, lastContactTerrain};
+      lastContacts_[endEffectorIndex] = {expectedLiftOff, newPlane};
     }
 
     SwingPhase::SwingProfile SwingTrajectoryPlanner::getDefaultSwingProfile() const 
@@ -725,7 +716,7 @@ namespace legged_locomotion_mpc
       {
         const contact_flags_t contactFlags = modeNumber2ContactFlags(modeSequence[i]);
         std::vector<FootTangentialConstraintMatrix> newConstraints(numEndEffectors);
-        // std::cerr << "Time: " << eventTimes[i] << ", Flag: " << contactFlags.to_ulong() << std::endl;
+
         for(size_t j = 0; j < numEndEffectors; ++j)
         {
           const scalar_t midTime = eventTimes[i] + 0.5 * (eventTimes[i + 1] - eventTimes[i]);

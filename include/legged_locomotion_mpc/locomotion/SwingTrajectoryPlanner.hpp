@@ -39,7 +39,7 @@ namespace legged_locomotion_mpc
           ocs2::scalar_t touchDownVelocity = 0.0;
 
           /** Maximum height of foot at midpoint of swing phase */
-          ocs2::scalar_t swingHeight = 0.075;
+          ocs2::scalar_t swingHeight = 0.025;
           
           /** 
            * Proportional gain for returning to the planned swing trajectory.
@@ -68,7 +68,7 @@ namespace legged_locomotion_mpc
           ocs2::scalar_t previousFootholdTimeDeadzone = 0.0; 
           
           /** Leg extension beyond this length [m] will be penalized in terrain selection */
-          ocs2::scalar_t nominalLegExtension = 0.55;
+          ocs2::scalar_t nominalLegExtension = 0.35;
 
           /** Weight of the leg overextension penalty */
           ocs2::scalar_t legOverExtensionPenalty = 5.0; 

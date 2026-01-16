@@ -147,7 +147,7 @@ namespace legged_locomotion_mpc
            /** Time progress in the swing phase in [0, 1] */
             ocs2::scalar_t phase = 0.5;
            /** Swing height in normal direction */
-            ocs2::scalar_t swingHeight = 0.5;
+            ocs2::scalar_t swingHeight = 0.15;
            /** Velocity in normal direction */
             ocs2::scalar_t normalVelocity = 0.0;
            /** Swing progress in tangential direction in [0, 1] */
@@ -167,7 +167,7 @@ namespace legged_locomotion_mpc
           */
           ocs2::scalar_t sdfStartEndMargin = -0.02;
          /** Limits the amount of additional swing height from terrain adaptation. */
-          ocs2::scalar_t maxSwingHeightAdaptation = 0.3;
+          ocs2::scalar_t maxSwingHeightAdaptation = 0.2;
         };
 
         /**
