@@ -120,8 +120,8 @@ TEST(GaitPlannerTest, getModeSchedule)
   finalTime = 3 * staticParams.timeHorizion;
   modeSchedule = gaitPlanner.getModeSchedule(startTime, finalTime);
 
-  goodTimings = {0.65, 0.7, 1, 1.05, 1.35, 1.4, 1.7, 1.75, 2.05, 2.1};
-  goodSequence = {6, 15, 9, 15, 6, 15, 9, 15, 6, 15, 15};
+  goodTimings = {0.65, 0.7, 1, 1.05, 1.35, 1.4, 1.7, 1.75, 2.05};
+  goodSequence = {6, 15, 9, 15, 6, 15, 9, 15, 6, 15};
 
   EXPECT_TRUE(modeSchedule.modeSequence == goodSequence);
 
@@ -273,7 +273,6 @@ TEST(GaitPlannerTest, updateDynamicParameters)
 
 TEST(GaitPlannerTest, stayingInPlace)
 {
-  /* STANDING TROT */
   scalar_t currentPhase = 3.5 / 7.0;
 
   GaitStaticParameters staticParams;

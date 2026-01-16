@@ -4,6 +4,8 @@
 #include <limits>
 #include <iostream>
 
+#include <ocs2_core/misc/Numerics.h>
+
 #include <legged_locomotion_mpc/common/Utils.hpp>
 
 
@@ -185,6 +187,11 @@ namespace legged_locomotion_mpc
 
       // If no template subsystem is defined, the last subsystem should continue for ever
       if (numTemplateSubsystems == 0) 
+      {
+        return;
+      }
+
+      if(numerics::almost_eq(startTime, finalTime, SCALAR_EPSILON))
       {
         return;
       }
