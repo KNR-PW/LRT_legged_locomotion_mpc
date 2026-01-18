@@ -33,8 +33,8 @@ namespace legged_locomotion_mpc
       modeSchedule_.modeSequence.push_back(contactFlags2ModeNumber(initFlags));
       modeSchedule_.modeSequence.push_back(contactFlags2ModeNumber(initFlags));
       
-      insertModeSequenceTemplate(initTime, modeSequenceTemplate_.switchingTimes.back(),
-        modeSequenceTemplate_);
+      // insertModeSequenceTemplate(initTime, modeSequenceTemplate_.switchingTimes.back(),
+      //   modeSequenceTemplate_);
     }
 
     void GaitPlanner::setModeSchedule(const ModeSchedule &modeSchedule)
@@ -49,7 +49,7 @@ namespace legged_locomotion_mpc
       auto &modeSequence = modeSchedule_.modeSequence;
       const size_t index = utils::findIndexInTimeArray(eventTimes, startTime);
 
-      if(index > 0) 
+      if(index > 0 && eventTimes.size() > 0) 
       {
         // Update gait phase controller
         gaitPhaseController_.remove(startTime);
@@ -63,8 +63,11 @@ namespace legged_locomotion_mpc
       const auto tilingStartTime = eventTimes.empty() ? startTime : eventTimes.back();
 
       // delete the last default stance phase
-      eventTimes.erase(eventTimes.end() - 1, eventTimes.end());
-      modeSequence.erase(modeSequence.end() - 1, modeSequence.end());
+      if(eventTimes.size() > 0)
+      {
+        eventTimes.erase(eventTimes.end() - 1, eventTimes.end());
+        modeSequence.erase(modeSequence.end() - 1, modeSequence.end());
+      }
 
       // tile the template logic
       tileModeSequenceTemplate(tilingStartTime, finalTime);
@@ -185,6 +188,11 @@ namespace legged_locomotion_mpc
       const auto& templateModeSequence = modeSequenceTemplate_.modeSequence;
       const size_t numTemplateSubsystems = modeSequenceTemplate_.modeSequence.size();
 
+      // Get current mode first
+      const contact_flags_t currentFlags = gaitPhaseController_.getContactFlagsAtTime(startTime);
+      const size_t currentMode = contactFlags2ModeNumber(currentFlags);
+      modeSequence.back() = currentMode;
+
       // If no template subsystem is defined, the last subsystem should continue for ever
       if (numTemplateSubsystems == 0) 
       {
@@ -193,6 +201,15 @@ namespace legged_locomotion_mpc
 
       if(numerics::almost_eq(startTime, finalTime, SCALAR_EPSILON))
       {
+        const size_t standingMode = ((0x01 << (staticParams_.endEffectorNumber)) - 1);
+        if(modeSequence.back() == standingMode)
+        {
+          eventTimes.erase(eventTimes.end() - 1, eventTimes.end());
+        }
+        else
+        {
+          modeSequence.push_back(standingMode);
+        }
         return;
       }
 
@@ -245,8 +262,16 @@ namespace legged_locomotion_mpc
         } // end of i loop
       } // end of while loop
 
-      // default final phase
-      modeSequence.push_back(((0x01 << (staticParams_.endEffectorNumber)) - 1));
+      // default final phase (only if it is not the same one)
+      const size_t standingMode = ((0x01 << (staticParams_.endEffectorNumber)) - 1);
+      if(modeSequence.back() == standingMode)
+      {
+        eventTimes.erase(eventTimes.end() - 1, eventTimes.end());
+      }
+      else
+      {
+        modeSequence.push_back(standingMode);
+      }
     }
   }
 }

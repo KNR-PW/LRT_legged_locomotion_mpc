@@ -34,8 +34,10 @@ TEST(GaitPlannerTest, Constructor)
   scalar_t timeHorizon = 3 * staticParams.timeHorizion;
   auto modeSchedule = gaitPlanner.getModeSchedule(0.0, timeHorizon);
 
-  std::vector<scalar_t> goodTimings = {0.0, 0.3, 0.35, 0.65, 0.7, 1, 1.05, 1.35, 1.4, 1.7, 1.75, 2.05, 2.1};
-  std::vector<size_t> goodSequence = {15, 9, 15, 6, 15, 9, 15, 6, 15, 9, 15, 6, 15, 15};
+  std::vector<scalar_t> goodTimings = {0.0, 0.3, 0.35, 0.65, 0.7, 1, 1.05, 1.35, 1.4, 1.7, 1.75, 2.05};
+  std::vector<size_t> goodSequence = {15, 9, 15, 6, 15, 9, 15, 6, 15, 9, 15, 6, 15};
+
+  std::cerr << modeSchedule << std::endl;
 
   EXPECT_TRUE(modeSchedule.modeSequence == goodSequence);
 
@@ -88,8 +90,9 @@ TEST(GaitPlannerTest, getModeSchedule)
   scalar_t finalTime = 3 * staticParams.timeHorizion;
   auto modeSchedule = gaitPlanner.getModeSchedule(startTime, finalTime);
 
-  std::vector<scalar_t> goodTimings = {0.65, 0.7, 1, 1.05, 1.35, 1.4, 1.7, 1.75, 2.05, 2.1};
-  std::vector<size_t> goodSequence = {6, 15, 9, 15, 6, 15, 9, 15, 6, 15, 15};
+  std::vector<scalar_t> goodTimings = {0.5, 0.8, 0.85, 1.15, 1.2, 1.5, 1.55, 1.85, 1.9, 
+    2.2, 2.25, 2.55};
+  std::vector<size_t> goodSequence = {6, 9, 15, 6, 15, 9, 15, 6, 15, 9, 15, 6, 15};
 
   EXPECT_TRUE(modeSchedule.modeSequence == goodSequence);
   
@@ -120,8 +123,10 @@ TEST(GaitPlannerTest, getModeSchedule)
   finalTime = 3 * staticParams.timeHorizion;
   modeSchedule = gaitPlanner.getModeSchedule(startTime, finalTime);
 
-  goodTimings = {0.65, 0.7, 1, 1.05, 1.35, 1.4, 1.7, 1.75, 2.05};
-  goodSequence = {6, 15, 9, 15, 6, 15, 9, 15, 6, 15};
+  goodTimings = {0.8, 0.85, 1.15, 1.2, 1.5, 1.55, 1.85, 1.9, 2.2, 2.25, 2.55};
+  goodSequence = {9, 15, 6, 15, 9, 15, 6, 15, 9, 15, 6, 15};
+
+  std::cerr << modeSchedule << std::endl;
 
   EXPECT_TRUE(modeSchedule.modeSequence == goodSequence);
 
@@ -294,8 +299,8 @@ TEST(GaitPlannerTest, stayingInPlace)
   scalar_t timeHorizon = 3 * staticParams.timeHorizion;
   auto modeSchedule = gaitPlanner.getModeSchedule(0.0, timeHorizon);
 
-  std::vector<scalar_t> goodTimings = {2.1};
-  std::vector<size_t> goodSequence = {15, 15};
+  std::vector<scalar_t> goodTimings = {};
+  std::vector<size_t> goodSequence = {15};
 
   EXPECT_TRUE(modeSchedule.modeSequence == goodSequence);
 
