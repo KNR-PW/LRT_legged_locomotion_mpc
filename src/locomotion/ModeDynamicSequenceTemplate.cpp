@@ -14,34 +14,6 @@ namespace legged_locomotion_mpc
   {
     using namespace ocs2;
 
-    // If mode changes between modes are smaller than this, they are in same mode change!
-    constexpr scalar_t MIN_TIME_BETWEEN_CHANGES = 1e-4;
-
-    // std::unordered_map<scalar_t, std::set<size_t>> getDuplicateIndexes(
-    //   const std::vector<scalar_t>& vector)
-    // {
-    //   std::unordered_map<scalar_t, std::set<size_t>> duplicates;
-    //   for(int i = 0; i < vector.size(); ++i)
-    //   {
-    //     for(int j = i + 1; j < vector.size(); ++j)
-    //     {
-    //       if(vector[i] == vector[j])
-    //       {
-    //         auto duplicateIterator = duplicates.find(vector[i]);
-    //         if(duplicateIterator == duplicates.end())
-    //         {
-    //           duplicates.emplace(vector[i], {i, j});
-    //         }
-    //         else
-    //         {
-    //           duplicateIterator->second.insert(j);
-    //         }
-    //       }
-    //     }
-    //   }
-    //   return duplicates;
-    // }
-
      ModeSequenceTemplate getDynamicModeSequenceTemplate(
       scalar_t currentPhase,
       scalar_t timeHorizon,
@@ -82,15 +54,6 @@ namespace legged_locomotion_mpc
         frequency = Definitions::MAX_STEPPING_FREQUENCY;
       }
 
-      // /* Check if any offset phases are not the same */
-      // const auto duplicates = getDuplicateIndexes(phaseOffsets);
-      // bool areDuplicates = !duplicates.empty();
-
-      // if(areDuplicates)
-      // {
-        
-      // }
-
       /* Min queue that gets earliest change */
       using timeIndexQueue = std::priority_queue<std::pair<scalar_t, size_t>,
         std::vector<std::pair<scalar_t, size_t>>,
@@ -128,7 +91,7 @@ namespace legged_locomotion_mpc
           timeEndEffectorIndexQueue.push({nextTime + timeStance, nextIndex});
         }
 
-        while(std::abs(nextTime - timeEndEffectorIndexQueue.top().first) < MIN_TIME_BETWEEN_CHANGES)
+        while(std::abs(nextTime - timeEndEffectorIndexQueue.top().first) < Definitions::MIN_TIME_BETWEEN_CHANGES)
         {
           /* Found end effectors that have same time change */
           size_t anothertIndex = timeEndEffectorIndexQueue.top().second;

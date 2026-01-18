@@ -27,10 +27,8 @@
 #include <ocs2_core/Types.h>
 #include <ocs2_core/reference/ModeSchedule.h>
 
-#include <legged_locomotion_mpc/locomotion/GaitParameters.hpp>
 #include <legged_locomotion_mpc/locomotion/GaitCommon.hpp>
-#include <legged_locomotion_mpc/locomotion/GaitDynamicPhaseController.hpp>
-#include <legged_locomotion_mpc/locomotion/ModeDynamicSequenceTemplate.hpp>
+#include <legged_locomotion_mpc/locomotion/GaitParameters.hpp>
 
 namespace legged_locomotion_mpc
 {
@@ -40,15 +38,13 @@ namespace legged_locomotion_mpc
     {
       public:
 
-        GaitPlanner(const GaitStaticParameters& staticParams,
-          const GaitDynamicParameters initDynamicParams,
-          const ModeSequenceTemplate& initModeSequenceTemplate,
+        GaitPlanner(GaitStaticParameters staticParams,
+          GaitDynamicParameters initDynamicParams,
           ocs2::scalar_t initPhase,
           ocs2::scalar_t initTime);
 
-        void setModeSchedule(const ocs2::ModeSchedule &modeSchedule);
-
-        ocs2::ModeSchedule getModeSchedule(ocs2::scalar_t startTime, ocs2::scalar_t finalTime);
+        ocs2::ModeSchedule getModeSchedule(ocs2::scalar_t startTime, 
+          ocs2::scalar_t finalTime);
 
         void updateDynamicParameters(ocs2::scalar_t time,
           const GaitDynamicParameters& dynamicParams);
@@ -68,25 +64,15 @@ namespace legged_locomotion_mpc
 
         const GaitStaticParameters& getStaticParameters();
 
+        const GaitDynamicParameters& getDynamicParameters();
+
       private:
-
-        /**
-         * Extends the switch information from startTime to finalTime based on the internal template mode sequence.
-         *
-         * @param [in] startTime: The initial time from which the mode schedule should be appended with the template.
-         * @param [in] finalTime: The final time to which the mode schedule should be appended with the template.
-         */
-        void tileModeSequenceTemplate(ocs2::scalar_t startTime, ocs2::scalar_t finalTime);
-
-        void insertModeSequenceTemplate(ocs2::scalar_t startTime, ocs2::scalar_t finalTime,
-          const ModeSequenceTemplate& modeSequenceTemplate);
-
-        GaitDynamicPhaseController gaitPhaseController_;
-        
+  
+        ocs2::scalar_t currentPhase_;
         const GaitStaticParameters staticParams_;
 
-        ocs2::ModeSchedule modeSchedule_;
-        ModeSequenceTemplate modeSequenceTemplate_;
+        ocs2::scalar_t currentChangeTime_;
+        GaitDynamicParameters dynamicParams_;
     };
   } // namespace locomotion
 } // namespace legged_locomotion_mpc

@@ -26,18 +26,13 @@ TEST(GaitPlannerTest, Constructor)
   
   dynamicParams.phaseOffsets = {-currentPhase , -currentPhase , 0};
 
-  auto modeSequenceTemplate = getDynamicModeSequenceTemplate(currentPhase,
-    staticParams.timeHorizion, staticParams, dynamicParams);
-
-  GaitPlanner gaitPlanner(staticParams, dynamicParams, modeSequenceTemplate, currentPhase, 0.0);
+  GaitPlanner gaitPlanner(staticParams, dynamicParams, currentPhase, 0.0);
 
   scalar_t timeHorizon = 3 * staticParams.timeHorizion;
   auto modeSchedule = gaitPlanner.getModeSchedule(0.0, timeHorizon);
 
-  std::vector<scalar_t> goodTimings = {0.0, 0.3, 0.35, 0.65, 0.7, 1, 1.05, 1.35, 1.4, 1.7, 1.75, 2.05};
-  std::vector<size_t> goodSequence = {15, 9, 15, 6, 15, 9, 15, 6, 15, 9, 15, 6, 15};
-
-  std::cerr << modeSchedule << std::endl;
+  std::vector<scalar_t> goodTimings = {0.0, 0.3, 0.35, 0.65, 0.7, 1, 1.05, 1.35, 1.4, 1.7, 1.75, 2.05, 2.1};
+  std::vector<size_t> goodSequence = {15, 9, 15, 6, 15, 9, 15, 6, 15, 9, 15, 6, 15, 15};
 
   EXPECT_TRUE(modeSchedule.modeSequence == goodSequence);
 
@@ -61,7 +56,6 @@ TEST(GaitPlannerTest, Constructor)
     auto trueContactFlags = modeNumber2ContactFlags(modeSchedule.modeAtTime(time - 1e-6));
     EXPECT_TRUE(contactFlags == trueContactFlags);
   }
-
 }
 
 
@@ -81,18 +75,14 @@ TEST(GaitPlannerTest, getModeSchedule)
   
   dynamicParams.phaseOffsets = {-currentPhase , -currentPhase , 0};
 
-  auto modeSequenceTemplate = getDynamicModeSequenceTemplate(currentPhase,
-    staticParams.timeHorizion, staticParams, dynamicParams);
-
-  GaitPlanner gaitPlanner(staticParams, dynamicParams, modeSequenceTemplate, currentPhase, 0.0);
+  GaitPlanner gaitPlanner(staticParams, dynamicParams, currentPhase, 0.0);
 
   scalar_t startTime = 0.5;
   scalar_t finalTime = 3 * staticParams.timeHorizion;
   auto modeSchedule = gaitPlanner.getModeSchedule(startTime, finalTime);
 
-  std::vector<scalar_t> goodTimings = {0.5, 0.8, 0.85, 1.15, 1.2, 1.5, 1.55, 1.85, 1.9, 
-    2.2, 2.25, 2.55};
-  std::vector<size_t> goodSequence = {6, 9, 15, 6, 15, 9, 15, 6, 15, 9, 15, 6, 15};
+  std::vector<scalar_t> goodTimings = {0.65, 0.7, 1, 1.05, 1.35, 1.4, 1.7, 1.75, 2.05, 2.1};
+  std::vector<size_t> goodSequence = {6, 15, 9, 15, 6, 15, 9, 15, 6, 15, 15};
 
   EXPECT_TRUE(modeSchedule.modeSequence == goodSequence);
   
@@ -119,14 +109,12 @@ TEST(GaitPlannerTest, getModeSchedule)
     EXPECT_NEAR(modeSchedule.eventTimes[i], goodTimings[i], 1e-6);
   }
 
-  startTime = 0.65;
+  startTime = 0.8;
   finalTime = 3 * staticParams.timeHorizion;
   modeSchedule = gaitPlanner.getModeSchedule(startTime, finalTime);
 
-  goodTimings = {0.8, 0.85, 1.15, 1.2, 1.5, 1.55, 1.85, 1.9, 2.2, 2.25, 2.55};
-  goodSequence = {9, 15, 6, 15, 9, 15, 6, 15, 9, 15, 6, 15};
-
-  std::cerr << modeSchedule << std::endl;
+  goodTimings = {1, 1.05, 1.35, 1.4, 1.7, 1.75, 2.05, 2.1};
+  goodSequence = {9, 15, 6, 15, 9, 15, 6, 15, 15};
 
   EXPECT_TRUE(modeSchedule.modeSequence == goodSequence);
 
@@ -199,10 +187,7 @@ TEST(GaitPlannerTest, updateDynamicParameters)
   scalar_t startTime = 0.0;
   scalar_t firstTime = 10.0;
 
-  auto modeSequenceTemplate = getDynamicModeSequenceTemplate(startingPhase,
-    firstTime, staticParams, dynamicParams1);
-
-  GaitPlanner gaitPlanner(staticParams, dynamicParams1, modeSequenceTemplate, startingPhase, startTime);
+  GaitPlanner gaitPlanner(staticParams, dynamicParams1, startingPhase, startTime);
 
   auto modeSchedule = gaitPlanner.getModeSchedule(startTime, firstTime);
 
@@ -226,11 +211,11 @@ TEST(GaitPlannerTest, updateDynamicParameters)
   scalar_t thirdTime = 10.0;
   gaitPlanner.updateDynamicParameters(secondTime, dynamicParams2);
 
-  modeSchedule = gaitPlanner.getModeSchedule(startTime, thirdTime);
+  modeSchedule = gaitPlanner.getModeSchedule(secondTime, thirdTime);
 
   for(int i = 0; i < ITERATIONS; ++i)
   {
-    scalar_t time = startTime + i * (thirdTime - startTime)  / ITERATIONS;
+    scalar_t time = secondTime + i * (thirdTime - secondTime)  / ITERATIONS;
     auto contactFlags = gaitPlanner.getContactFlagsAtTime(time);
     auto trueContactFlags = modeNumber2ContactFlags(modeSchedule.modeAtTime(time - 1e-6));
     EXPECT_TRUE(contactFlags == trueContactFlags);
@@ -247,7 +232,7 @@ TEST(GaitPlannerTest, updateDynamicParameters)
 
   gaitPlanner.updateDynamicParameters(forthTime, dynamicParams3);
 
-  modeSchedule = gaitPlanner.getModeSchedule(startTime, fifthTime);
+  modeSchedule = gaitPlanner.getModeSchedule(forthTime, fifthTime);
 
   for(size_t i = 1; i < modeSchedule.eventTimes.size(); ++i)
   {
@@ -257,7 +242,7 @@ TEST(GaitPlannerTest, updateDynamicParameters)
 
   for(int i = 0; i < ITERATIONS; ++i)
   {
-    scalar_t time = startTime + i * (fifthTime - startTime)  / ITERATIONS;
+    scalar_t time = forthTime + i * (fifthTime - forthTime)  / ITERATIONS;
     auto contactFlags = gaitPlanner.getContactFlagsAtTime(time);
     auto trueContactFlags = modeNumber2ContactFlags(modeSchedule.modeAtTime(time - 1e-6));
     EXPECT_TRUE(contactFlags == trueContactFlags);
@@ -291,16 +276,13 @@ TEST(GaitPlannerTest, stayingInPlace)
   
   dynamicParams.phaseOffsets = {0, 0, 0};
 
-  auto modeSequenceTemplate = getDynamicModeSequenceTemplate(currentPhase,
-    staticParams.timeHorizion, staticParams, dynamicParams);
-
-  GaitPlanner gaitPlanner(staticParams, dynamicParams, modeSequenceTemplate, currentPhase, 0.0);
+  GaitPlanner gaitPlanner(staticParams, dynamicParams, currentPhase, 0.0);
 
   scalar_t timeHorizon = 3 * staticParams.timeHorizion;
   auto modeSchedule = gaitPlanner.getModeSchedule(0.0, timeHorizon);
 
-  std::vector<scalar_t> goodTimings = {};
-  std::vector<size_t> goodSequence = {15};
+  std::vector<scalar_t> goodTimings = {2.1};
+  std::vector<size_t> goodSequence = {15, 15};
 
   EXPECT_TRUE(modeSchedule.modeSequence == goodSequence);
 

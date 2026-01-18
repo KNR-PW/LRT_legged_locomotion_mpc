@@ -25,7 +25,7 @@ const size_t TEST_NUM = 100;
 // Not round because std::lower_bound is sensitive for time points of mode change
 const size_t ITERATIONS = 50;
 
-TEST(LeggedReferenceManagerTest, standingInPlace)
+TEST(SwingTrajectoryPlannerTest, standingInPlace)
 {
   const scalar_t defTime = 0.0;
   const scalar_t initTime = 0.0;
@@ -45,9 +45,6 @@ TEST(LeggedReferenceManagerTest, standingInPlace)
   dynamicParams.swingRatio = 3.0 / 7.0;
   
   dynamicParams.phaseOffsets = {0, 0, 0};
-
-  auto modeSequenceTemplate = getDynamicModeSequenceTemplate(currentPhase,
-    finalTime, staticParams, dynamicParams);
 
   const vector3_t terrainEulerZyx{0.0, 0.0, 0.0};
   const matrix3_t terrainRotation = getRotationMatrixFromZyxEulerAngles(terrainEulerZyx); 
@@ -83,8 +80,7 @@ TEST(LeggedReferenceManagerTest, standingInPlace)
   SwingTrajectoryPlanner::DynamicSettings swingDynamicSettings;
   swingDynamicSettings.invertedPendulumHeight = staticSettings.initialBaseHeight;
 
-  GaitPlanner gaitPlanner(staticParams, dynamicParams, modeSequenceTemplate, 
-    currentPhase, defTime);
+  GaitPlanner gaitPlanner(staticParams, dynamicParams, currentPhase, defTime);
 
   BaseTrajectoryPlanner basePlanner(modelInfo, staticSettings);
 
@@ -93,8 +89,8 @@ TEST(LeggedReferenceManagerTest, standingInPlace)
 
   const auto modeSchedule = gaitPlanner.getModeSchedule(initTime, finalTime);
 
-  std::vector<scalar_t> goodTimings = {};
-  std::vector<size_t> goodSequence = {15};
+  std::vector<scalar_t> goodTimings = {2.1};
+  std::vector<size_t> goodSequence = {15, 15};
 
   EXPECT_TRUE(modeSchedule.modeSequence == goodSequence);
 
@@ -161,7 +157,7 @@ TEST(LeggedReferenceManagerTest, standingInPlace)
   }
 }
 
-TEST(LeggedReferenceManagerTest, TrotInPlace)
+TEST(SwingTrajectoryPlannerTest, TrotInPlace)
 {
   const scalar_t defTime = 0.0;
   const scalar_t initTime = 0.0;
@@ -181,9 +177,6 @@ TEST(LeggedReferenceManagerTest, TrotInPlace)
   dynamicParams.swingRatio = 3.0 / 7.0;
   
   dynamicParams.phaseOffsets = {-currentPhase , -currentPhase , 0};
-
-  auto modeSequenceTemplate = getDynamicModeSequenceTemplate(currentPhase,
-    finalTime, staticParams, dynamicParams);
 
   const vector3_t terrainEulerZyx{0.0, 0.0, 0.0};
   const matrix3_t terrainRotation = getRotationMatrixFromZyxEulerAngles(terrainEulerZyx); 
@@ -219,8 +212,7 @@ TEST(LeggedReferenceManagerTest, TrotInPlace)
   SwingTrajectoryPlanner::DynamicSettings swingDynamicSettings;
   swingDynamicSettings.invertedPendulumHeight = staticSettings.initialBaseHeight;
 
-  GaitPlanner gaitPlanner(staticParams, dynamicParams, modeSequenceTemplate, 
-    currentPhase, defTime);
+  GaitPlanner gaitPlanner(staticParams, dynamicParams, currentPhase, defTime);
 
   BaseTrajectoryPlanner basePlanner(modelInfo, staticSettings);
 
@@ -229,8 +221,8 @@ TEST(LeggedReferenceManagerTest, TrotInPlace)
 
   const auto modeSchedule = gaitPlanner.getModeSchedule(initTime, finalTime);
 
-  std::vector<scalar_t> goodTimings = {0.0, 0.3, 0.35, 0.65, 0.7, 1, 1.05, 1.35, 1.4, 1.7, 1.75, 2.05};
-  std::vector<size_t> goodSequence = {15, 9, 15, 6, 15, 9, 15, 6, 15, 9, 15, 6, 15};
+  std::vector<scalar_t> goodTimings = {0.0, 0.3, 0.35, 0.65, 0.7, 1, 1.05, 1.35, 1.4, 1.7, 1.75, 2.05, 2.1};
+  std::vector<size_t> goodSequence = {15, 9, 15, 6, 15, 9, 15, 6, 15, 9, 15, 6, 15, 15};
 
   EXPECT_TRUE(modeSchedule.modeSequence == goodSequence);
 

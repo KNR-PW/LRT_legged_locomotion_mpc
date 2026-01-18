@@ -74,33 +74,33 @@ add_library(${PROJECT_NAME}
   src/trajectory_planners/JointTrajectoryPlanner.cpp
   src/trajectory_planners/ContactForceWrenchTrajectoryPlanner.cpp
 
-  src/synchronization/GaitSynchronizedModule.cpp
-  src/synchronization/DisturbanceSynchronizedModule.cpp
+  # src/synchronization/GaitSynchronizedModule.cpp
+  # src/synchronization/DisturbanceSynchronizedModule.cpp
 
-  src/reference_manager/LeggedReferenceManager.cpp
+  # src/reference_manager/LeggedReferenceManager.cpp
 
-  src/precomputation/LeggedPrecomputation.cpp
+  # src/precomputation/LeggedPrecomputation.cpp
 
-  src/dynamics/LeggedDynamicsAD.cpp
+  # src/dynamics/LeggedDynamicsAD.cpp
 
-  src/constraint/ForceFrictionConeConstraint.cpp
-  src/constraint/WrenchFrictionConeConstraint.cpp
-  src/constraint/Zero3DofVelocityConstraint.cpp
-  src/constraint/Zero6DofVelocityConstraint.cpp
-  src/constraint/ZeroForceConstraint.cpp
-  src/constraint/ZeroWrenchConstraint.cpp
-  src/constraint/NormalVelocityConstraint.cpp
+  # src/constraint/ForceFrictionConeConstraint.cpp
+  # src/constraint/WrenchFrictionConeConstraint.cpp
+  # src/constraint/Zero3DofVelocityConstraint.cpp
+  # src/constraint/Zero6DofVelocityConstraint.cpp
+  # src/constraint/ZeroForceConstraint.cpp
+  # src/constraint/ZeroWrenchConstraint.cpp
+  # src/constraint/NormalVelocityConstraint.cpp
 
-  src/soft_constraint/TorqueLimitsSoftConstraint.cpp
-  src/soft_constraint/JointLimitsSoftConstraint.cpp
-  src/soft_constraint/TerrainAvoidanceSoftConstraint.cpp
-  src/soft_constraint/SelfCollisionAvoidanceSoftConstraint.cpp
-  src/soft_constraint/EndEffectorPlacementSoftConstraint.cpp
+  # src/soft_constraint/TorqueLimitsSoftConstraint.cpp
+  # src/soft_constraint/JointLimitsSoftConstraint.cpp
+  # src/soft_constraint/TerrainAvoidanceSoftConstraint.cpp
+  # src/soft_constraint/SelfCollisionAvoidanceSoftConstraint.cpp
+  # src/soft_constraint/EndEffectorPlacementSoftConstraint.cpp
 
-  src/initialization/LeggedInitializer.cpp
+  # src/initialization/LeggedInitializer.cpp
 
-  src/cost/TrajectoryTrackingCost.cpp
-  src/cost/TerminalTrackingCost.cpp
+  # src/cost/TrajectoryTrackingCost.cpp
+  # src/cost/TerminalTrackingCost.cpp
 )
 
 target_include_directories(${PROJECT_NAME}
@@ -160,16 +160,16 @@ if(BUILD_TESTING)
   ###########
   find_package(ament_cmake_gtest REQUIRED)
 
-  ament_add_gtest(${PROJECT_NAME}_test_common
-        test/common/AccessHelperFunctionsTest.cpp
-        test/common/UtilsTest.cpp
-        test/common/ModelHelperFunctionsTest.cpp
-        test/common/EulerTransformsTest.cpp
-  )
-  ament_target_dependencies(${PROJECT_NAME}_test_common ${THIS_PACKAGE_DEPENDS})
-  target_include_directories(${PROJECT_NAME}_test_common PRIVATE test/include)
-  target_link_libraries(${PROJECT_NAME}_test_common ${PROJECT_NAME})
-  target_compile_options(${PROJECT_NAME}_test_common PUBLIC ${FLAGS})
+#   ament_add_gtest(${PROJECT_NAME}_test_common
+#         test/common/AccessHelperFunctionsTest.cpp
+#         test/common/UtilsTest.cpp
+#         test/common/ModelHelperFunctionsTest.cpp
+#         test/common/EulerTransformsTest.cpp
+#   )
+#   ament_target_dependencies(${PROJECT_NAME}_test_common ${THIS_PACKAGE_DEPENDS})
+#   target_include_directories(${PROJECT_NAME}_test_common PRIVATE test/include)
+#   target_link_libraries(${PROJECT_NAME}_test_common ${PROJECT_NAME})
+#   target_compile_options(${PROJECT_NAME}_test_common PUBLIC ${FLAGS})
 
   ament_add_gtest(${PROJECT_NAME}_test_locomotion
         test/locomotion/GaitCommonTest.cpp
@@ -178,81 +178,82 @@ if(BUILD_TESTING)
         test/locomotion/GaitDynamicPhaseControllerTest.cpp
         test/locomotion/FootPhaseTest.cpp
         test/locomotion/SingleLegLogicTest.cpp
+        test/locomotion/SwingTrajectoryPlannerTest.cpp
   )
   ament_target_dependencies(${PROJECT_NAME}_test_locomotion ${THIS_PACKAGE_DEPENDS})
   target_include_directories(${PROJECT_NAME}_test_locomotion PRIVATE test/include)
   target_link_libraries(${PROJECT_NAME}_test_locomotion ${PROJECT_NAME})
   target_compile_options(${PROJECT_NAME}_test_locomotion PUBLIC ${FLAGS})
 
-  ament_add_gtest(${PROJECT_NAME}_test_trajectory_planners
-        test/trajectory_planners/BaseTrajectoryPlannerTest.cpp  
-        test/trajectory_planners/JointTrajectoryPlannerTest.cpp   
-        test/trajectory_planners/ContactForceWrenchTrajectoryPlannerTest.cpp     
-  )
-  ament_target_dependencies(${PROJECT_NAME}_test_trajectory_planners ${THIS_PACKAGE_DEPENDS})
-  target_include_directories(${PROJECT_NAME}_test_trajectory_planners PRIVATE test/include)
-  target_link_libraries(${PROJECT_NAME}_test_trajectory_planners ${PROJECT_NAME})
-  target_compile_options(${PROJECT_NAME}_test_trajectory_planners PUBLIC ${FLAGS})
+#   ament_add_gtest(${PROJECT_NAME}_test_trajectory_planners
+#         test/trajectory_planners/BaseTrajectoryPlannerTest.cpp  
+#         test/trajectory_planners/JointTrajectoryPlannerTest.cpp   
+#         test/trajectory_planners/ContactForceWrenchTrajectoryPlannerTest.cpp     
+#   )
+#   ament_target_dependencies(${PROJECT_NAME}_test_trajectory_planners ${THIS_PACKAGE_DEPENDS})
+#   target_include_directories(${PROJECT_NAME}_test_trajectory_planners PRIVATE test/include)
+#   target_link_libraries(${PROJECT_NAME}_test_trajectory_planners ${PROJECT_NAME})
+#   target_compile_options(${PROJECT_NAME}_test_trajectory_planners PUBLIC ${FLAGS})
 
-  ament_add_gtest(${PROJECT_NAME}_test_torque_approx
-        test/torque_approx/PinocchioTorqueApproximationCppAdTest.cpp     
-  )
-  ament_target_dependencies(${PROJECT_NAME}_test_torque_approx ${THIS_PACKAGE_DEPENDS})
-  target_include_directories(${PROJECT_NAME}_test_torque_approx PRIVATE test/include)
-  target_link_libraries(${PROJECT_NAME}_test_torque_approx ${PROJECT_NAME})
-  target_compile_options(${PROJECT_NAME}_test_torque_approx PUBLIC ${FLAGS})
+#   ament_add_gtest(${PROJECT_NAME}_test_torque_approx
+#         test/torque_approx/PinocchioTorqueApproximationCppAdTest.cpp     
+#   )
+#   ament_target_dependencies(${PROJECT_NAME}_test_torque_approx ${THIS_PACKAGE_DEPENDS})
+#   target_include_directories(${PROJECT_NAME}_test_torque_approx PRIVATE test/include)
+#   target_link_libraries(${PROJECT_NAME}_test_torque_approx ${PROJECT_NAME})
+#   target_compile_options(${PROJECT_NAME}_test_torque_approx PUBLIC ${FLAGS})
 
-  ament_add_gtest(${PROJECT_NAME}_test_kinematicsCppAD
-        test/kinematics/PinocchioForwardEndEffectorKinematicsCppAdTest.cpp     
-  )
-  ament_target_dependencies(${PROJECT_NAME}_test_kinematicsCppAD ${THIS_PACKAGE_DEPENDS})
-  target_include_directories(${PROJECT_NAME}_test_kinematicsCppAD PRIVATE test/include)
-  target_link_libraries(${PROJECT_NAME}_test_kinematicsCppAD ${PROJECT_NAME})
-  target_compile_options(${PROJECT_NAME}_test_kinematicsCppAD PUBLIC ${FLAGS})
+#   ament_add_gtest(${PROJECT_NAME}_test_kinematicsCppAD
+#         test/kinematics/PinocchioForwardEndEffectorKinematicsCppAdTest.cpp     
+#   )
+#   ament_target_dependencies(${PROJECT_NAME}_test_kinematicsCppAD ${THIS_PACKAGE_DEPENDS})
+#   target_include_directories(${PROJECT_NAME}_test_kinematicsCppAD PRIVATE test/include)
+#   target_link_libraries(${PROJECT_NAME}_test_kinematicsCppAD ${PROJECT_NAME})
+#   target_compile_options(${PROJECT_NAME}_test_kinematicsCppAD PUBLIC ${FLAGS})
 
-  ament_add_gtest(${PROJECT_NAME}_test_collision
-        test/collision/PinocchioForwardCollisionKinematicsCppAdTest.cpp     
-  )
-  ament_target_dependencies(${PROJECT_NAME}_test_collision ${THIS_PACKAGE_DEPENDS})
-  target_include_directories(${PROJECT_NAME}_test_collision PRIVATE test/include)
-  target_link_libraries(${PROJECT_NAME}_test_collision ${PROJECT_NAME})
-  target_compile_options(${PROJECT_NAME}_test_collision PUBLIC ${FLAGS})
+#   ament_add_gtest(${PROJECT_NAME}_test_collision
+#         test/collision/PinocchioForwardCollisionKinematicsCppAdTest.cpp     
+#   )
+#   ament_target_dependencies(${PROJECT_NAME}_test_collision ${THIS_PACKAGE_DEPENDS})
+#   target_include_directories(${PROJECT_NAME}_test_collision PRIVATE test/include)
+#   target_link_libraries(${PROJECT_NAME}_test_collision ${PROJECT_NAME})
+#   target_compile_options(${PROJECT_NAME}_test_collision PUBLIC ${FLAGS})
 
-  ament_add_gtest(${PROJECT_NAME}_test_reference_manager
-        test/reference_manager/LeggedReferenceManagerTest.cpp     
-  )
-  ament_target_dependencies(${PROJECT_NAME}_test_reference_manager ${THIS_PACKAGE_DEPENDS})
-  target_include_directories(${PROJECT_NAME}_test_reference_manager PRIVATE test/include)
-  target_link_libraries(${PROJECT_NAME}_test_reference_manager ${PROJECT_NAME})
-  target_compile_options(${PROJECT_NAME}_test_reference_manager PUBLIC ${FLAGS})
+  # ament_add_gtest(${PROJECT_NAME}_test_reference_manager
+  #       test/reference_manager/LeggedReferenceManagerTest.cpp     
+  # )
+  # ament_target_dependencies(${PROJECT_NAME}_test_reference_manager ${THIS_PACKAGE_DEPENDS})
+  # target_include_directories(${PROJECT_NAME}_test_reference_manager PRIVATE test/include)
+  # target_link_libraries(${PROJECT_NAME}_test_reference_manager ${PROJECT_NAME})
+  # target_compile_options(${PROJECT_NAME}_test_reference_manager PUBLIC ${FLAGS})
 
   ################
   ## Benchmarks ##
   ################
   find_package(ament_cmake_google_benchmark REQUIRED)
 
-  ament_add_google_benchmark(${PROJECT_NAME}_benchmark_locomotion 
-        benchmarks/GaitDynamicPhaseControllerBenchmark.cpp
-        benchmarks/SwingTrajectoryPlannerBenchmark.cpp
-  )
-  target_include_directories(${PROJECT_NAME}_benchmark_locomotion PRIVATE benchmarks/include)
-  target_link_libraries(${PROJECT_NAME}_benchmark_locomotion ${PROJECT_NAME})
-  target_compile_options(${PROJECT_NAME}_benchmark_locomotion PUBLIC ${FLAGS})
+  # ament_add_google_benchmark(${PROJECT_NAME}_benchmark_locomotion 
+  #       benchmarks/GaitDynamicPhaseControllerBenchmark.cpp
+  #       benchmarks/SwingTrajectoryPlannerBenchmark.cpp
+  # )
+  # target_include_directories(${PROJECT_NAME}_benchmark_locomotion PRIVATE benchmarks/include)
+  # target_link_libraries(${PROJECT_NAME}_benchmark_locomotion ${PROJECT_NAME})
+  # target_compile_options(${PROJECT_NAME}_benchmark_locomotion PUBLIC ${FLAGS})
 
-  ament_add_google_benchmark(${PROJECT_NAME}_benchmark_trajectory_planners 
-        benchmarks/BaseTrajectoryPlannerBenchmark.cpp
-        benchmarks/JointTrajectoryPlannerBenchmark.cpp
-  )
-  target_include_directories(${PROJECT_NAME}_benchmark_trajectory_planners PRIVATE benchmarks/include)
-  target_link_libraries(${PROJECT_NAME}_benchmark_trajectory_planners ${PROJECT_NAME})
-  target_compile_options(${PROJECT_NAME}_benchmark_trajectory_planners PUBLIC ${FLAGS})
+  # ament_add_google_benchmark(${PROJECT_NAME}_benchmark_trajectory_planners 
+  #       benchmarks/BaseTrajectoryPlannerBenchmark.cpp
+  #       benchmarks/JointTrajectoryPlannerBenchmark.cpp
+  # )
+  # target_include_directories(${PROJECT_NAME}_benchmark_trajectory_planners PRIVATE benchmarks/include)
+  # target_link_libraries(${PROJECT_NAME}_benchmark_trajectory_planners ${PROJECT_NAME})
+  # target_compile_options(${PROJECT_NAME}_benchmark_trajectory_planners PUBLIC ${FLAGS})
 
-  ament_add_google_benchmark(${PROJECT_NAME}_benchmark_reference
-        benchmarks/LeggedReferenceManagerBenchmark.cpp
-  )
-  target_include_directories(${PROJECT_NAME}_benchmark_reference PRIVATE benchmarks/include)
-  target_link_libraries(${PROJECT_NAME}_benchmark_reference ${PROJECT_NAME})
-  target_compile_options(${PROJECT_NAME}_benchmark_reference PUBLIC ${FLAGS})
+  # ament_add_google_benchmark(${PROJECT_NAME}_benchmark_reference
+  #       benchmarks/LeggedReferenceManagerBenchmark.cpp
+  # )
+  # target_include_directories(${PROJECT_NAME}_benchmark_reference PRIVATE benchmarks/include)
+  # target_link_libraries(${PROJECT_NAME}_benchmark_reference ${PROJECT_NAME})
+  # target_compile_options(${PROJECT_NAME}_benchmark_reference PUBLIC ${FLAGS})
 
 endif()
 

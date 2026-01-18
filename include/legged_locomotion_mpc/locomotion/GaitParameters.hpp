@@ -37,6 +37,9 @@ namespace legged_locomotion_mpc
       static const size_t DEFAULT_BUFFER_SIZE = 10; 
       static const ocs2::scalar_t TOUCH_DOWN_WINDOW = 0.1; // [s]
       static const ocs2::scalar_t EPS = 1e-3;
+      
+      // If mode changes between modes are smaller than this, they are in same mode change!
+      static const ocs2::scalar_t MIN_TIME_BETWEEN_CHANGES = 1e-4;
     }
 
     enum class GaitFlags
