@@ -22,8 +22,38 @@ namespace legged_locomotion_mpc
 
     JointTrajectoryPlanner::JointTrajectoryPlanner(
       FloatingBaseModelInfo modelInfo,
-      MultiEndEffectorKinematics&& kinematicsSolver): modelInfo_(std::move(modelInfo)),
-        kinematicsSolver_(std::move(kinematicsSolver)) {}
+      MultiEndEffectorKinematics&& kinematicsSolver, vector_t jointPositionUpperLimits, 
+      vector_t jointPositionLowerLimits, vector_t jointVelocityLimits): 
+        modelInfo_(std::move(modelInfo)),
+        kinematicsSolver_(std::move(kinematicsSolver)),
+        jointPositionUpperLimits_(std::move(jointPositionUpperLimits)),
+        jointPositionLowerLimits_(std::move(jointPositionLowerLimits)),
+        jointVelocityLimits_(std::move(jointVelocityLimits))
+      {
+        if(jointPositionUpperLimits_.size() != modelInfo_.actuatedDofNum)
+        {
+          std::stringstream stringStream;
+          stringStream << "[JointTrajectoryPlanner]: Size of joint upper limits is " <<  jointPositionUpperLimits_.size() 
+            << ", should be " << modelInfo_.actuatedDofNum << "!";
+          throw std::invalid_argument(stringStream.str());
+        }
+
+        if(jointPositionLowerLimits_.size() != modelInfo_.actuatedDofNum)
+        {
+          std::stringstream stringStream;
+          stringStream << "[JointTrajectoryPlanner]: Size of joint lower limits is " <<  jointPositionLowerLimits_.size() 
+            << ", should be " << modelInfo_.actuatedDofNum << "!";
+          throw std::invalid_argument(stringStream.str());
+        }
+
+        if(jointVelocityLimits_.size() != modelInfo_.actuatedDofNum)
+        {
+          std::stringstream stringStream;
+          stringStream << "[JointTrajectoryPlanner]: Size of joint velocity limits is " << jointVelocityLimits_.size() 
+            << ", should be " << modelInfo_.actuatedDofNum << "!";
+          throw std::invalid_argument(stringStream.str());
+        }
+      }
     
     void JointTrajectoryPlanner::updateTrajectory(const state_vector_t& currentState,
       TargetTrajectories& targetTrajectories, 
@@ -93,8 +123,8 @@ namespace legged_locomotion_mpc
       }
     }
 
-    ocs2::vector_t JointTrajectoryPlanner::computeJointPositions(
-      const ocs2::vector_t& actualJointPositions,
+    vector_t JointTrajectoryPlanner::computeJointPositions(
+      const vector_t& actualJointPositions,
       const vector6_t& basePose,  
       const std::vector<vector3_t>& endEffectorPositions)
     {
@@ -121,29 +151,39 @@ namespace legged_locomotion_mpc
       else
       {
         switch (returnStatus.flag)
-          {
-            case TaskReturnFlag::IN_PROGRESS:
-              return newJointPositions;
-              break;
+        {
+          case TaskReturnFlag::IN_PROGRESS:
+            return newJointPositions;
+            break;
 
-            case TaskReturnFlag::SMALL_STEP_SIZE:
-              return newJointPositions;
-              break;
+          case TaskReturnFlag::SMALL_STEP_SIZE:
+            return newJointPositions;
+            break;
 
-            case TaskReturnFlag::NEW_POSITION_OUT_OF_BOUNDS:
-              throw std::runtime_error("[JointTrajectoryPlanner]: position error: " 
-                + returnStatus.toString());
-              break;
+          case TaskReturnFlag::NEW_POSITION_OUT_OF_BOUNDS:
+            for(size_t i = 0; i < modelInfo_.actuatedDofNum; ++i)
+            {
+              if(newJointPositions[i] > jointPositionUpperLimits_[i])
+              {
+                newJointPositions[i] = jointPositionUpperLimits_[i];
+              }
+              else if(newJointPositions[i] < jointPositionLowerLimits_[i])
+              {
+                newJointPositions[i] = jointPositionLowerLimits_[i];
+              }
+            }
+            return newJointPositions;
+            break;
 
-            default:
-              return newJointPositions;
-              break;
+          default:
+            return newJointPositions;
+            break;
         }
       }
     }
 
-    ocs2::vector_t JointTrajectoryPlanner::computeJointVelocities(
-      const ocs2::vector_t& actualJointPositions, const vector6_t& basePose, 
+    vector_t JointTrajectoryPlanner::computeJointVelocities(
+      const vector_t& actualJointPositions, const vector6_t& basePose, 
       const vector6_t& baseVelocity, const std::vector<vector3_t>& endEffectorVelocities)
     {
       const size_t numEndEffectors = kinematicsSolver_.getModelInternalSettings().numEndEffectors;
@@ -174,12 +214,21 @@ namespace legged_locomotion_mpc
       const ReturnStatus returnStatus = kinematicsSolver_.calculateJointVelocities(
         actualJointPositions, relativeEndEffectorVelocities, jointVelocities);
       
-      if(returnStatus.success) return jointVelocities;
-      else
+      if(!returnStatus.success)
       {
-        throw std::runtime_error("[JointTrajectoryPlanner]: velocity error: " 
-          + returnStatus.toString());
+        for(size_t i = 0; i < modelInfo_.actuatedDofNum; ++i)
+        {
+          if(jointVelocities[i] > jointVelocityLimits_[i])
+          {
+            jointVelocities[i] = jointVelocityLimits_[i];
+          }
+          else if(jointVelocities[i] < -jointVelocityLimits_[i])
+          {
+            jointVelocities[i] = -jointVelocityLimits_[i];
+          }
+        }
       }
+      return jointVelocities;
     }
 
     KinematicsModelSettings loadKinematicsModelSettings(

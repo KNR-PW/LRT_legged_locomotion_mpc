@@ -29,9 +29,9 @@ namespace legged_locomotion_mpc
         throw std::invalid_argument(message);
       }
 
-      if(currentPhase_ < 0.0)
+      if(currentPhase_ < 0.0 || currentPhase_ > 1.0)
       {
-        std::string message = "[GaitPlanner]: Phase lower than 0!";
+        std::string message = "[GaitPlanner]: Phase lower than 0.0 or higher than 1.0!";
         throw std::invalid_argument(message);
       }
     }

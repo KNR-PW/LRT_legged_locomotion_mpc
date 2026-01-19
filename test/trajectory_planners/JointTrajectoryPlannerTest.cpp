@@ -46,7 +46,13 @@ TEST(JointTrajectoryPlannerTest, computeJointPositions)
   ocs2::PinocchioInterface interface = createPinocchioInterfaceFromUrdfFile(urdfPathName, baseLink);
   const FloatingBaseModelInfo modelInfo = createFloatingBaseModelInfo(interface, meldog3DofContactNames, meldog6DofContactNames);
 
-  JointTrajectoryPlanner planner(modelInfo, std::move(kinematicsSolver));
+  const auto& pinocchioModel = interface.getModel();
+  const vector_t positionLowerLimits = pinocchioModel.lowerPositionLimit.block(6, 0, modelInfo.actuatedDofNum, 1);
+  const vector_t positionUpperLimits = pinocchioModel.upperPositionLimit.block(6, 0, modelInfo.actuatedDofNum, 1);
+  const vector_t velocityLimits = pinocchioModel.velocityLimit.block(6, 0, modelInfo.actuatedDofNum, 1);
+
+  JointTrajectoryPlanner planner(modelInfo, std::move(kinematicsSolver), 
+    positionUpperLimits, positionLowerLimits, velocityLimits);
   
   std::string modelName = "meldogForwardKinematics";
   PinocchioForwardEndEffectorKinematicsCppAd forwardKinematics(interface, 
@@ -93,7 +99,13 @@ TEST(JointTrajectoryPlannerTest, computeJointVelocities)
   ocs2::PinocchioInterface interface = createPinocchioInterfaceFromUrdfFile(urdfPathName, baseLink);
   const FloatingBaseModelInfo modelInfo = createFloatingBaseModelInfo(interface, meldog3DofContactNames, meldog6DofContactNames);
 
-  JointTrajectoryPlanner planner(modelInfo, std::move(kinematicsSolver));
+  const auto& pinocchioModel = interface.getModel();
+  const vector_t positionLowerLimits = pinocchioModel.lowerPositionLimit.block(6, 0, modelInfo.actuatedDofNum, 1);
+  const vector_t positionUpperLimits = pinocchioModel.upperPositionLimit.block(6, 0, modelInfo.actuatedDofNum, 1);
+  const vector_t velocityLimits = pinocchioModel.velocityLimit.block(6, 0, modelInfo.actuatedDofNum, 1);
+
+  JointTrajectoryPlanner planner(modelInfo, std::move(kinematicsSolver), 
+    positionUpperLimits, positionLowerLimits, velocityLimits);
   
   std::string modelName = "meldogForwardKinematics";
   PinocchioForwardEndEffectorKinematicsCppAd forwardKinematics(interface, 
@@ -146,8 +158,14 @@ TEST(JointTrajectoryPlannerTest, updateTrajectory)
 
   ocs2::PinocchioInterface interface = createPinocchioInterfaceFromUrdfFile(urdfPathName, baseLink);
   const FloatingBaseModelInfo modelInfo = createFloatingBaseModelInfo(interface, meldog3DofContactNames, meldog6DofContactNames);
+  
+  const auto& pinocchioModel = interface.getModel();
+  const vector_t positionLowerLimits = pinocchioModel.lowerPositionLimit.block(6, 0, modelInfo.actuatedDofNum, 1);
+  const vector_t positionUpperLimits = pinocchioModel.upperPositionLimit.block(6, 0, modelInfo.actuatedDofNum, 1);
+  const vector_t velocityLimits = pinocchioModel.velocityLimit.block(6, 0, modelInfo.actuatedDofNum, 1);
 
-  JointTrajectoryPlanner planner(modelInfo, std::move(kinematicsSolver));
+  JointTrajectoryPlanner planner(modelInfo, std::move(kinematicsSolver), 
+    positionUpperLimits, positionLowerLimits, velocityLimits);
   
   std::string modelName = "meldogForwardKinematics";
   PinocchioForwardEndEffectorKinematicsCppAd forwardKinematics(interface, 

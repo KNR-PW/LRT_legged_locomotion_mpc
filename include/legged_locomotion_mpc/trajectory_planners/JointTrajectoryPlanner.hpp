@@ -39,7 +39,9 @@ namespace legged_locomotion_mpc
       public:
 
         JointTrajectoryPlanner(floating_base_model::FloatingBaseModelInfo modelInfo,
-          multi_end_effector_kinematics::MultiEndEffectorKinematics&& kinematicsSolver);
+          multi_end_effector_kinematics::MultiEndEffectorKinematics&& kinematicsSolver,
+          ocs2::vector_t jointPositionUpperLimits, ocs2::vector_t jointPositionLowerLimits,
+          ocs2::vector_t jointVelocityLimits);
         
         using position_trajectories = std::vector<std::vector<vector3_t>>;
         using velocity_trajectories = std::vector<std::vector<vector3_t>>;
@@ -77,6 +79,10 @@ namespace legged_locomotion_mpc
       private:
   
         floating_base_model::FloatingBaseModelInfo modelInfo_;
+
+        const ocs2::vector_t jointPositionUpperLimits_; 
+        const ocs2::vector_t jointPositionLowerLimits_;
+        const ocs2::vector_t jointVelocityLimits_;
 
         multi_end_effector_kinematics::MultiEndEffectorKinematics kinematicsSolver_;
     };
