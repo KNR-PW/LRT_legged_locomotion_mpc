@@ -118,8 +118,7 @@ namespace legged_locomotion_mpc
       }
 
       // Find index of time larger that query time
-      const size_t index = std::lower_bound(eventTimes_.begin(), eventTimes_.end(),
-       time) - eventTimes_.begin();
+      const size_t index = utils::findIndexInTimeArray(eventTimes_, time);
 
       return dynamicParamsVec_[index - 1];
     }
@@ -127,8 +126,7 @@ namespace legged_locomotion_mpc
     void GaitDynamicPhaseController::remove(scalar_t time)
     {
       // Find index of time larger that query time
-      const size_t index = std::lower_bound(eventTimes_.begin(), eventTimes_.end(),
-       time) - eventTimes_.begin();
+     const size_t index = utils::findIndexInTimeArray(eventTimes_, time);
 
       if(index == 0) return;
 
