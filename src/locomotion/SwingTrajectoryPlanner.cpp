@@ -695,7 +695,7 @@ namespace legged_locomotion_mpc
 
     SwingTrajectoryPlanner::FootTangentialConstraintTrajectories 
       SwingTrajectoryPlanner::getFootTangentialConstraintTrajectories(
-        ModeSchedule modeSchedule, std::vector<scalar_t> times)
+        const ModeSchedule& modeSchedule, std::vector<scalar_t> times)
     {
       const auto& eventTimes = modeSchedule.eventTimes;
       const auto& modeSequence = modeSchedule.modeSequence;

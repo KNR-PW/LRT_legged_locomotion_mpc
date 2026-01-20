@@ -191,7 +191,7 @@ namespace legged_locomotion_mpc
         };
 
         FootTangentialConstraintTrajectories getFootTangentialConstraintTrajectories(
-          ocs2::ModeSchedule modeSchedule, std::vector<ocs2::scalar_t> times);
+          const ocs2::ModeSchedule& modeSchedule, std::vector<ocs2::scalar_t> times);
 
         /** Accessed by the controller for visualization */
         std::vector<terrain_model::ConvexTerrain> getNominalFootholds(

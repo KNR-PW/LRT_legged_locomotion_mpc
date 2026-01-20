@@ -4,9 +4,9 @@
 
 #include <floating_base_model/AccessHelperFunctions.hpp>
 #include <floating_base_model/FloatingBaseModelPinocchioMapping.hpp>
-
-
 #include <floating_base_model/FactoryFunctions.hpp>
+
+#include <legged_locomotion_mpc/locomotion/GaitCommon.hpp>
 
 #include "../include/definitions.hpp"
 
@@ -14,7 +14,7 @@ using namespace ocs2;
 using namespace floating_base_model;
 using namespace legged_locomotion_mpc;
 using namespace legged_locomotion_mpc::planners;
-
+using namespace legged_locomotion_mpc::locomotion;
 
 const scalar_t tolerance = 1e-9;
 
@@ -64,14 +64,25 @@ TEST(ContactForceWrenchTrajectoryPlanner, updateTrajectory)
   five[3] = 1;
   five[4] = 1;
 
-  std::vector<contact_flags_t> contactFlagsTrajectory{zero, one, two, three, four, five, 
-    twoAgain, threeAgain};
+  ModeSchedule modeSchedule;
+  modeSchedule.clear();
+  modeSchedule.eventTimes = {0.0, 0.2, 0.5, 0.7, 1.0, 1.5, 2.0};
+
+  modeSchedule.modeSequence.push_back(contactFlags2ModeNumber(zero));
+  modeSchedule.modeSequence.push_back(contactFlags2ModeNumber(one));
+  modeSchedule.modeSequence.push_back(contactFlags2ModeNumber(two));
+  modeSchedule.modeSequence.push_back(contactFlags2ModeNumber(three));
+  modeSchedule.modeSequence.push_back(contactFlags2ModeNumber(four));
+  modeSchedule.modeSequence.push_back(contactFlags2ModeNumber(five));
+  modeSchedule.modeSequence.push_back(contactFlags2ModeNumber(twoAgain));
+  modeSchedule.modeSequence.push_back(contactFlags2ModeNumber(threeAgain));
   
   TargetTrajectories targetTrajectories;
 
-  const size_t referenceSize = contactFlagsTrajectory.size();
+  targetTrajectories.timeTrajectory = modeSchedule.eventTimes;
+  targetTrajectories.timeTrajectory.push_back(2.5);
 
-  targetTrajectories.timeTrajectory.resize(referenceSize);
+  const size_t referenceSize = targetTrajectories.timeTrajectory.size();
 
   targetTrajectories.stateTrajectory.resize(referenceSize, 
     vector_t::Zero(modelInfo.stateDim));
@@ -95,7 +106,7 @@ TEST(ContactForceWrenchTrajectoryPlanner, updateTrajectory)
   const vector_t threeAgainInput = utils::weightCompensatingInput(modelInfo, threeAgain);
 
   ContactForceWrenchTrajectoryPlanner planner(modelInfo);
-  planner.updateTargetTrajectory(contactFlagsTrajectory, targetTrajectories);
+  planner.updateTargetTrajectory(modeSchedule, targetTrajectories);
 
   EXPECT_TRUE((targetTrajectories.inputTrajectory[0] - zeroInput).norm() < tolerance);
   EXPECT_TRUE((targetTrajectories.inputTrajectory[1] - oneInput).norm() < tolerance);

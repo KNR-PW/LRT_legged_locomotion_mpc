@@ -23,6 +23,7 @@
 #define __CONTACT_FORCE_WRENCH_TRAJECTORY_PLANNER_LEGGED_LOCOMOTION_MPC__
 
 #include <ocs2_core/Types.h>
+#include <ocs2_core/reference/ModeSchedule.h>
 #include <ocs2_core/reference/TargetTrajectories.h>
 
 #include <floating_base_model/FloatingBaseModelInfo.hpp>
@@ -57,7 +58,7 @@ namespace legged_locomotion_mpc
          * Generate contact trajectory with GaitPlanner::getContactFlagsAtTimes() 
          * using targetTrajectories.timeTrajectory.
          */
-        void updateTargetTrajectory(std::vector<contact_flags_t> contactFlagsTrajectory,
+        void updateTargetTrajectory(const ocs2::ModeSchedule& modeSchedule,
           ocs2::TargetTrajectories& targetTrajectories);
 
       private:
