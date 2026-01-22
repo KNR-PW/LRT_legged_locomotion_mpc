@@ -1,5 +1,6 @@
 #include <legged_locomotion_mpc/precomputation/LeggedPrecomputation.hpp>
 
+#include <terrain_model/core/TerrainPlane.hpp>
 
 namespace legged_locomotion_mpc
 {
@@ -18,7 +19,10 @@ namespace legged_locomotion_mpc
       modelInfo_(std::move(modelInfo)), 
       collisionLinkNumber_(collisionKinematics.getCollisionNumber()),
       referenceManager_(referenceManager),forwardKinematics_(forwardKinematics), 
-      collisionKinematics_(collisionKinematics), torqueApproximator_(torqueApproximator) {}
+      collisionKinematics_(collisionKinematics), torqueApproximator_(torqueApproximator) 
+  {
+    rotationWorldToTerrains_.resize(endEffectorNumber_);
+  }
 
   LeggedPrecomputation* LeggedPrecomputation::clone() const
   { 
@@ -56,7 +60,6 @@ namespace legged_locomotion_mpc
     // Constraints
     if(request.contains(Request::Constraint))
     {
-      updateContactData(t, x, u);
       updateEndEffectorAngularVelocities(t, x, u);
       if(request.contains(Request::Approximation))
       {
@@ -192,7 +195,6 @@ namespace legged_locomotion_mpc
     size_t endEffectorIndex) const
   {
     assert(endEffectorIndex < endEffectorNumber_);
-
     return rotationWorldToTerrains_[endEffectorIndex];
   }
 
@@ -200,8 +202,7 @@ namespace legged_locomotion_mpc
     size_t endEffectorIndex) const
   {
     assert(endEffectorIndex < endEffectorNumber_);
-
-    return surfaceNormals_[endEffectorIndex];
+    return referenceTrajectoryPoint_.surfaceNormals[endEffectorIndex];
   }
 
   const vector3_t& LeggedPrecomputation::getReferenceEndEffectorPosition(
@@ -223,21 +224,6 @@ namespace legged_locomotion_mpc
   {
     assert(endEffectorIndex < endEffectorNumber_);
     return referenceTrajectoryPoint_.clearances[endEffectorIndex];
-  }
-
-  void LeggedPrecomputation::updateContactData(scalar_t time,
-    const vector_t& state, const vector_t& input)
-  {
-    const TerrainModel& terrainModel = referenceManager_.getTerrainModel();
-
-    for(size_t i = 0; i < endEffectorNumber_; ++i)
-    {
-      const TerrainPlane terrainPlane = terrainModel.getLocalTerrainAtPositionInWorldAlongGravity(
-        endEffectorPositions_[i]);
-
-      rotationWorldToTerrains_[i] = terrainPlane.getOrientationToTerrain();
-      surfaceNormals_[i] = terrainPlane.getSurfaceNormalInWorld();
-    }
   }
 
   void LeggedPrecomputation::updateEndEffectorPositions(scalar_t time, 
@@ -308,6 +294,10 @@ namespace legged_locomotion_mpc
   void LeggedPrecomputation::updateReferenceEndEffectorData(scalar_t time)
   {
     referenceTrajectoryPoint_ = referenceManager_.getEndEffectorTrajectoryPoint(time);
+    for(const auto& normal: referenceTrajectoryPoint_.surfaceNormals)
+    {
+      rotationWorldToTerrains_[i] = TerrainPlane::getOrientationWorldToTerrainFromSurfaceNormalInWorld(normal);
+    }
   }
 
   void LeggedPrecomputation::updateCollisionKinematicsData(scalar_t time, 

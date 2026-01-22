@@ -183,6 +183,20 @@ namespace legged_locomotion_mpc
       return footClearances;
     }
 
+    std::vector<vector3_t> SwingTrajectoryPlanner::getEndEffectorSurfaceNormals(
+      ocs2::scalar_t time) const
+    {
+      const size_t numEndEffectors = modelInfo_.numThreeDofContacts + modelInfo_.numSixDofContacts;
+      std::vector<vector3_t> normals(numEndEffectors);
+
+      for(size_t i = 0; i < numEndEffectors; ++i)
+      {
+        const auto& footPhase = getFootPhase(i, time);
+        normals[i] = footPhase.normalDirectionInWorldFrame(time);
+      }
+      return normals;
+    }
+
     using position_trajectories = std::vector<std::vector<vector3_t>>;
     position_trajectories SwingTrajectoryPlanner::getEndEffectorPositionTrajectories(
       std::vector<scalar_t> times) const
@@ -192,7 +206,7 @@ namespace legged_locomotion_mpc
 
       for(const auto time: times)
       {
-        auto position = getEndEffectorPositions(time);
+        const auto position = getEndEffectorPositions(time);
         positions.emplace_back(std::move(position));
       }
       return positions;
@@ -207,7 +221,7 @@ namespace legged_locomotion_mpc
 
       for(const auto time: times)
       {
-        auto velocity = getEndEffectorVelocities(time);
+        const auto velocity = getEndEffectorVelocities(time);
         velocities.emplace_back(std::move(velocity));
       }
       return velocities;
@@ -221,10 +235,24 @@ namespace legged_locomotion_mpc
       footClerances.reserve(times.size());
       for(const auto time: times)
       {
-        auto footClerance = getEndEffectorClearances(time);
+        const auto footClerance = getEndEffectorClearances(time);
         footClerances.emplace_back(std::move(footClerance));
       }
       return footClerances;
+    }
+
+    using normal_trajectories = std::vector<std::vector<vector3_t>>;
+    normal_trajectories SwingTrajectoryPlanner::getEndEffectorNormalTrajectories(
+      std::vector<ocs2::scalar_t> times) const
+    {
+      normal_trajectories normals;
+      normals.reserve(times.size());
+      for(const auto time: times)
+      {
+        const auto normal = getEndEffectorSurfaceNormals(time);
+        normals.emplace_back(std::move(normal));
+      }
+      return normals;
     }
 
     SwingTrajectoryPlanner::EndEffectorTrajectoriesPoint SwingTrajectoryPlanner::getEndEffectorTrajectoryPoint(
@@ -236,6 +264,7 @@ namespace legged_locomotion_mpc
       point.positions.reserve(numEndEffectors);
       point.velocities.reserve(numEndEffectors);
       point.clearances.reserve(numEndEffectors);
+      point.surfaceNormals.reserve(numEndEffectors);
 
       for(size_t i = 0; i < numEndEffectors; ++i)
       {
@@ -243,6 +272,7 @@ namespace legged_locomotion_mpc
         point.positions.emplace_back(footPhase.getPositionInWorld(time));
         point.velocities.emplace_back(footPhase.getVelocityInWorld(time));
         point.clearances.emplace_back(footPhase.getMinimumFootClearance(time));
+        point.surfaceNormals.emplace_back(footPhase.normalDirectionInWorldFrame(time));
       }
       
       return point;
@@ -255,6 +285,7 @@ namespace legged_locomotion_mpc
       trajectories.positions.reserve(times.size());
       trajectories.velocities.reserve(times.size());
       trajectories.clearances.reserve(times.size());
+      trajectories.surfaceNormals.reserve(times.size());
 
       for(const auto time: times)
       {
@@ -262,6 +293,7 @@ namespace legged_locomotion_mpc
         trajectories.positions.emplace_back(std::move(point.positions));
         trajectories.velocities.emplace_back(std::move(point.velocities));
         trajectories.clearances.emplace_back(std::move(point.clearances));
+        trajectories.surfaceNormals.emplace_back(std::move(point.surfaceNormals));
       }
 
       return trajectories;

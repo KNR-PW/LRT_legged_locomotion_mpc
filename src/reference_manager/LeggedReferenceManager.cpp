@@ -4,6 +4,8 @@
 
 #include <ocs2_core/misc/LinearInterpolation.h>
 
+#include <legged_locomotion_mpc/common/Utils.hpp>
+
 namespace legged_locomotion_mpc
 {
 
@@ -68,7 +70,8 @@ namespace legged_locomotion_mpc
 
   const contact_flags_t LeggedReferenceManager::getContactFlags(scalar_t time) const
   {
-    return contact_flags_t(getModeSchedule().modeAtTime(time));
+    const size_t index = utils::findIndexInTimeArray(getModeSchedule().eventTimes, time);
+    return modeNumber2ContactFlags(getModeSchedule().modeSequence[index]);
   }
 
   const TerrainModel& LeggedReferenceManager::getTerrainModel() const
@@ -87,7 +90,6 @@ namespace legged_locomotion_mpc
     // Get previous time index if value is between (times[index - 1], times[index])
     if(index != 0 && (times[index] - time) > std::numeric_limits<scalar_t>::min())
     {
-      std::cerr << "Jestem" << std::endl;
       index -= 1;
     }
 
@@ -112,6 +114,9 @@ namespace legged_locomotion_mpc
 
     const auto& lhsClearances = referenceTrajectories.clearances[index];
     const auto& rhsClearances = referenceTrajectories.clearances[index + 1];
+
+    const auto& lhsNormals = referenceTrajectories.surfaceNormals[index];
+    const auto& rhsNormals = referenceTrajectories.surfaceNormals[index + 1];
     
     for(size_t i = 0; i < numEndEffectors; ++i)
     {
@@ -124,9 +129,13 @@ namespace legged_locomotion_mpc
       const scalar_t lhsClearance = lhsClearances[i];
       const scalar_t rhsClearance = rhsClearances[i];
 
+      const vector3_t& lhsNormal = lhsNormals[i];
+      const vector3_t& rhsNormal = rhsNormals[i];
+
       point.positions.emplace_back(alpha * lhsPosition + one_minus_alpha * rhsPosition);
       point.velocities.emplace_back(alpha * lhsVelocity + one_minus_alpha * rhsVelocity);
       point.clearances.emplace_back(alpha * lhsClearance + one_minus_alpha * rhsClearance);
+      point.surfaceNormals.emplace_back(alpha * lhsNormal + one_minus_alpha * rhsNormal);
     }
     return point;
   }
@@ -136,7 +145,7 @@ namespace legged_locomotion_mpc
   {
     const auto& footTangentialConstraintMatrixes = footConstraintTrajectories_.get();
     const auto& times = footTangentialConstraintMatrixes.times;
-    const size_t index = lookup::findIndexInTimeArray(times, time);
+    const size_t index = utils::findIndexInTimeArray(times, time);
     if(index > times.size()) return footTangentialConstraintMatrixes.constraints.back();
     return footTangentialConstraintMatrixes.constraints[index];
   }
@@ -222,30 +231,44 @@ namespace legged_locomotion_mpc
     
     jointTrajectory_.updateTrajectory(currentState, newTrajectory, 
       endEffectorTrajectories.positions, endEffectorTrajectories.velocities);
-    
-    TargetTrajectories subsampledTrajectory = utils::subsampleReferenceTrajectory(
-      newTrajectory, initTime, finalTime, settings_.maximumReferenceSampleInterval);
-
-    const std::vector<contact_flags_t> contactTrajectory = 
-      gaitPlanner_.getContactFlagsAtTimes(subsampledTrajectory.timeTrajectory);
-
-    forceTrajectory_.updateTargetTrajectory(contactTrajectory, subsampledTrajectory);
 
     // If trajectory was subsampled, get new reference for end effectors
     if(settings_.maximumReferenceSampleInterval < baseTrajectory_.getStaticSettings().deltaTime)
     {
+      TargetTrajectories subsampledTrajectory = utils::subsampleReferenceTrajectory(
+        newTrajectory, initTime, finalTime, settings_.maximumReferenceSampleInterval);
+
+      const std::vector<contact_flags_t> contactTrajectory = 
+        gaitPlanner_.getContactFlagsAtTimes(subsampledTrajectory.timeTrajectory);
+
+      forceTrajectory_.updateTargetTrajectory(contactTrajectory, subsampledTrajectory);
+
       endEffectorTrajectories = swingTrajectory_.getEndEffectorTrajectories(
         subsampledTrajectory.timeTrajectory);
+
+      const FootTangentialConstraintTrajectories footConstraintTrajectories = 
+        swingTrajectory_.getFootTangentialConstraintTrajectories(newModeSchedule, 
+        subsampledTrajectory.timeTrajectory);
+
+      setTargetTrajectories(std::move(subsampledTrajectory));
+      footConstraintTrajectories_.setBuffer(std::move(footConstraintTrajectories));
     }
+    else
+    {
+      const std::vector<contact_flags_t> contactTrajectory = 
+        gaitPlanner_.getContactFlagsAtTimes(newTrajectory.timeTrajectory);
 
-    const FootTangentialConstraintTrajectories footConstraintTrajectories = 
-      swingTrajectory_.getFootTangentialConstraintTrajectories(
-        contactTrajectory, subsampledTrajectory.timeTrajectory);
+      forceTrajectory_.updateTargetTrajectory(contactTrajectory, newTrajectory);
 
-    setTargetTrajectories(std::move(subsampledTrajectory));
-    setModeSchedule(std::move(newModeSchedule));
+      const FootTangentialConstraintTrajectories footConstraintTrajectories = 
+        swingTrajectory_.getFootTangentialConstraintTrajectories(newModeSchedule, 
+        newTrajectory.timeTrajectory);
+
+      setTargetTrajectories(std::move(newTrajectory));
+      footConstraintTrajectories_.setBuffer(std::move(footConstraintTrajectories));
+    }
     referenceTrajectories_.setBuffer(std::move(endEffectorTrajectories));
-    footConstraintTrajectories_.setBuffer(std::move(footConstraintTrajectories));
+    setModeSchedule(std::move(newModeSchedule));
   }
 
   void LeggedReferenceManager::updateState(const state_vector_t& currenState)

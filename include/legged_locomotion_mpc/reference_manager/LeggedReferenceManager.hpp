@@ -17,7 +17,6 @@
  * Authors: Bartłomiej Krajewski (https://github.com/BartlomiejK2)
  */
 
-
 #ifndef __LEGGED_REFERENCE_MANAGER_LEGGED_LOCOMOTION_MPC__
 #define __LEGGED_REFERENCE_MANAGER_LEGGED_LOCOMOTION_MPC__
 
@@ -47,6 +46,10 @@ namespace legged_locomotion_mpc
 
     struct Settings
     {
+      /**
+       * If deltaTime > maximumReferenceSampleInterval, subsampled target trajectory 
+       * and other references
+       */
       ocs2::scalar_t maximumReferenceSampleInterval = 0.05;
     };
   

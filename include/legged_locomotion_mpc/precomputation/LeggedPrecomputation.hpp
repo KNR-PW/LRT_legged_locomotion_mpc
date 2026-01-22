@@ -102,14 +102,6 @@ namespace legged_locomotion_mpc
 
       /**
        * Updates:
-       * - surface normals
-       * - rotation matrixes to terrain
-       */
-      void updateContactData(ocs2::scalar_t time, const ocs2::vector_t& state, 
-        const ocs2::vector_t& input);
-
-      /**
-       * Updates:
        * - end effector positions 
        */
       void updateEndEffectorPositions(ocs2::scalar_t time, const ocs2::vector_t& state);
@@ -177,9 +169,12 @@ namespace legged_locomotion_mpc
         const ocs2::vector_t& state, const ocs2::vector_t& input);
       
       /**
-       * Updates:
-       * - reference trajectory point for end effectors (position, 
-       *   linear velocities and terrain clearances)
+       * Updates reference trajectory point for end effector: 
+       * - position, 
+       * - linear velocities
+       * - terrain clearances
+       * - surface normals
+       * - rotation matrixes to terrain
        */
       void updateReferenceEndEffectorData(ocs2::scalar_t time);
       
@@ -220,7 +215,6 @@ namespace legged_locomotion_mpc
       std::vector<ocs2::VectorFunctionLinearApproximation> endEffectorAngularVelocityDerivaties_;
 
       std::vector<matrix3_t> rotationWorldToTerrains_;
-      std::vector<vector3_t> surfaceNormals_;
 
       std::vector<vector3_t> collisionLinkPositions_;
       std::vector<ocs2::VectorFunctionLinearApproximation> collisionLinkPositionDerivaties_;

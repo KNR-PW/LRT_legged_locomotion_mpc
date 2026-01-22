@@ -53,8 +53,9 @@ namespace legged_locomotion_mpc
         /** Returns the contact flag for this phase. Stance phase: True, Swing phase: false */
         virtual bool contactFlag() const = 0;
 
-        /** Returns the unit vector pointing in the normal direction 
-         * Call only when contactFlag() returns true!
+        /** Returns the unit vector pointing in the normal direction.
+         *  If stance mode, get terrain normal. When in motion, get interpolated normal
+         * from previous and next terrain normals.
          */
         virtual vector3_t normalDirectionInWorldFrame(ocs2::scalar_t time) const = 0;
 

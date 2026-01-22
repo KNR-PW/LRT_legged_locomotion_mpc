@@ -70,7 +70,7 @@ namespace legged_locomotion_mpc
           /** Leg extension beyond this length [m] will be penalized in terrain selection */
           ocs2::scalar_t nominalLegExtension = 0.35;
 
-          /** Weight of the leg overextension penalty */
+          /** Weight of the end effector overextension penalty */
           ocs2::scalar_t legOverExtensionPenalty = 5.0; 
           
           /** 
@@ -121,10 +121,13 @@ namespace legged_locomotion_mpc
 
         /** Main access method for generated cartesian reference terrain clerance */
         std::vector<ocs2::scalar_t> getEndEffectorClearances(ocs2::scalar_t time) const;
+
+        /** Main access method for generated cartesian reference surface normal */
+        std::vector<vector3_t> getEndEffectorSurfaceNormals(ocs2::scalar_t time) const;
         
         /** 
          * Main access method for generated cartesian reference position trajectories 
-         * 3D position of leg i in time (index) t: pos[t][i]
+         * 3D position of end effector i in time (index) t: pos[t][i]
          */
         using position_trajectories = std::vector<std::vector<vector3_t>>;
         position_trajectories getEndEffectorPositionTrajectories(
@@ -132,7 +135,7 @@ namespace legged_locomotion_mpc
 
         /** 
          * Main access method for generated cartesian reference velocity trajectories 
-         * 3D velocity of leg i in time (index) t: vel[t][i]
+         * 3D velocity of end effector i in time (index) t: vel[t][i]
          */
         using velocity_trajectories = std::vector<std::vector<vector3_t>>;
         velocity_trajectories getEndEffectorVelocityTrajectories(
@@ -140,10 +143,18 @@ namespace legged_locomotion_mpc
         
         /** 
          * Main access method for generated cartesian reference terrain clearance 
-         * trajectories of leg i in time (index) t: vel[t][i]
+         * trajectories of end effector i in time (index) t: vel[t][i]
          */
         using foot_clearance_trajectory = std::vector<std::vector<ocs2::scalar_t>>;
         foot_clearance_trajectory getEndEffectorClearanceTrajectories(
+          std::vector<ocs2::scalar_t> times) const;
+
+        /** 
+         * Main access method for generated cartesian reference surface normals 
+         * of end effector i in time (index) t: nrom[t][i]
+         */
+        using normal_trajectories = std::vector<std::vector<vector3_t>>;
+        normal_trajectories getEndEffectorNormalTrajectories(
           std::vector<ocs2::scalar_t> times) const;
         
         /**
@@ -153,6 +164,7 @@ namespace legged_locomotion_mpc
         {
           std::vector<vector3_t> positions;
           std::vector<vector3_t> velocities;
+          std::vector<vector3_t> surfaceNormals;
           std::vector<ocs2::scalar_t> clearances;
         };
 
@@ -164,6 +176,7 @@ namespace legged_locomotion_mpc
           position_trajectories positions;
           velocity_trajectories velocities;
           foot_clearance_trajectory clearances;
+          normal_trajectories surfaceNormals;
         };
 
         /** Main access method for generated end effector trajectory point */
@@ -172,7 +185,7 @@ namespace legged_locomotion_mpc
 
         /** 
          * Main, optimized version of upper 3 algorithms for generating reference foot
-         * trajectories. Access of leg i in time (index) t: points[t] -> pos[i], vel[i], cl[i]
+         * trajectories. Access of end effector i in time (index) t: points[t] -> pos[i], vel[i], cl[i]
          */
         EndEffectorTrajectories getEndEffectorTrajectories(
           std::vector<ocs2::scalar_t> times) const;
@@ -185,7 +198,7 @@ namespace legged_locomotion_mpc
           std::vector<ocs2::scalar_t> times;
           /**
            * Vector with constraints matrixes.
-           * Get constraint matrix of leg i in time (index) t: constraints[t][i]
+           * Get constraint matrix of end effector i in time (index) t: constraints[t][i]
            */
           std::vector<std::vector<FootTangentialConstraintMatrix>> constraints;
         };
