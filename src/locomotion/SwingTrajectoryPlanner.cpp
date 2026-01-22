@@ -73,10 +73,12 @@ namespace legged_locomotion_mpc
         throw std::runtime_error("[SwingTrajectoryPlanner] terrain cannot be null. " 
           "Update the terrain before planning swing motions");
       }
+
+      modeSchedule_ = modeSchedule;
       const size_t numEndEffectors = modelInfo_.numThreeDofContacts + modelInfo_.numSixDofContacts;
 
       const std::vector<std::vector<ContactTiming>> contactTimingsPerLeg =
-        extractContactTimingsPerLeg(modeSchedule, numEndEffectors);
+        extractContactTimingsPerLeg(modeSchedule_, numEndEffectors);
 
       const auto [optimState, optimInput] = utils::robotStateToOptimizationStateAndInput(
         modelInfo_, currentState);
@@ -728,16 +730,16 @@ namespace legged_locomotion_mpc
 
     SwingTrajectoryPlanner::FootTangentialConstraintTrajectories 
       SwingTrajectoryPlanner::getFootTangentialConstraintTrajectories(
-        const ModeSchedule& modeSchedule, std::vector<scalar_t> times)
+        std::vector<scalar_t> times)
     {
-      const auto& eventTimes = modeSchedule.eventTimes;
-      const auto& modeSequence = modeSchedule.modeSequence;
+      const auto& eventTimes = modeSchedule_.eventTimes;
+      const auto& modeSequence = modeSchedule_.modeSequence;
 
       const size_t numEndEffectors = modelInfo_.numThreeDofContacts + modelInfo_.numSixDofContacts;
       const size_t trajectorySize = modeSequence.size();
 
       FootTangentialConstraintTrajectories trajectory;
-      trajectory.times = modeSchedule.eventTimes;
+      trajectory.times = modeSchedule_.eventTimes;
       trajectory.constraints.reserve(trajectorySize);
 
       // Dont run first mode (foot is already on the ground)

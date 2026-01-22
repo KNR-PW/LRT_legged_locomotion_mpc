@@ -191,8 +191,8 @@ namespace legged_locomotion_mpc
         {
           position_trajectories positions;
           velocity_trajectories velocities;
-          foot_clearance_trajectory clearances;
           normal_trajectories surfaceNormals;
+          foot_clearance_trajectory clearances;
         };
 
         /** Main access method for generated end effector trajectory point */
@@ -220,7 +220,7 @@ namespace legged_locomotion_mpc
         };
 
         FootTangentialConstraintTrajectories getFootTangentialConstraintTrajectories(
-          const ocs2::ModeSchedule& modeSchedule, std::vector<ocs2::scalar_t> times);
+          std::vector<ocs2::scalar_t> times);
 
         /** Accessed by the controller for visualization */
         std::vector<terrain_model::ConvexTerrain> getNominalFootholds(
@@ -275,6 +275,8 @@ namespace legged_locomotion_mpc
         DynamicSettings dynamicSettings_;
         const forwardKinematics* kinematicsModel_;
 
+        ocs2::ModeSchedule modeSchedule_;
+
         std::vector<std::pair<ocs2::scalar_t, terrain_model::TerrainPlane>> lastContacts_;
         std::vector<std::vector<std::unique_ptr<FootPhase>>> feetNormalTrajectories_;
         std::vector<std::vector<ocs2::scalar_t>> feetNormalTrajectoriesEvents_;
@@ -287,8 +289,8 @@ namespace legged_locomotion_mpc
     /** Load static and dynamic settings from file */
     SwingTrajectoryPlanner::StaticSettings loadSwingStaticTrajectorySettings(
       const std::string &filename, bool verbose = true);
-    // SwingTrajectoryPlanner::DynamicSettings loadSwingDynamicTrajectorySettings(
-    //   const std::string &filename, bool verbose = true);
+    SwingTrajectoryPlanner::DynamicSettings loadSwingDynamicTrajectorySettings(
+      const std::string &filename, bool verbose = true);
   } // namespace locomotion
 } //  namespace legged_locomotion_mpc
 
