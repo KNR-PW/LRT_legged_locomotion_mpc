@@ -37,9 +37,6 @@ namespace legged_locomotion_mpc
 
           /** Velocity at the end of swing */
           ocs2::scalar_t touchDownVelocity = 0.0;
-
-          /** Maximum height of foot at midpoint of swing phase */
-          ocs2::scalar_t swingHeight = 0.025;
           
           /** 
            * Proportional gain for returning to the planned swing trajectory.
@@ -78,12 +75,31 @@ namespace legged_locomotion_mpc
            * after the horizon ends. 
            */
           ocs2::scalar_t referenceExtensionAfterHorizon = 0.2;
+
+          /** Limits the amount of additional swing height from terrain adaptation. */
+          ocs2::scalar_t maxSwingHeightAdaptation = 0.4;
         };
 
         struct DynamicSettings
         {
-          /** Height used for the inverted pendulum foothold adjustment */
+          /** Height used for the inverted pendulum foothold adjustment.
+           *  This is just base height.
+          */
           ocs2::scalar_t invertedPendulumHeight = 0.35;
+
+          /** Maximum height of foots at midpoint of swing phase */
+          std::vector<ocs2::scalar_t> swingHeights;
+
+          /** Time progress for midpoints in the swing phase in [0, 1] */
+          std::vector<ocs2::scalar_t> phases;
+
+          /** Swing progress for midpoints in tangential direction in [0, 1] */
+          std::vector<ocs2::scalar_t> tangentialProgresses;
+
+          /** Tangantial velocity as a factor of the average velocity.
+           *  The tangential velocity will be: velocityFactor * swingdistance / dt 
+           */
+          std::vector<ocs2::scalar_t> tangentialVelocityFactors;
         };
 
         SwingTrajectoryPlanner(floating_base_model::FloatingBaseModelInfo info,
@@ -243,7 +259,7 @@ namespace legged_locomotion_mpc
         void applySwingMotionScaling(SwingPhase::SwingEvent &liftOff, 
           SwingPhase::SwingEvent &touchDown, SwingPhase::SwingProfile &swingProfile) const;
 
-        SwingPhase::SwingProfile getDefaultSwingProfile() const;
+        SwingPhase::SwingProfile getDynamicSwingProfile(size_t endEffectorIndex) const;
 
         ocs2::scalar_t getContactEndTime(const ContactTiming &contactPhase,
           ocs2::scalar_t finalTime) const;
@@ -271,8 +287,8 @@ namespace legged_locomotion_mpc
     /** Load static and dynamic settings from file */
     SwingTrajectoryPlanner::StaticSettings loadSwingStaticTrajectorySettings(
       const std::string &filename, bool verbose = true);
-    SwingTrajectoryPlanner::DynamicSettings loadSwingDynamicTrajectorySettings(
-      const std::string &filename, bool verbose = true);
+    // SwingTrajectoryPlanner::DynamicSettings loadSwingDynamicTrajectorySettings(
+    //   const std::string &filename, bool verbose = true);
   } // namespace locomotion
 } //  namespace legged_locomotion_mpc
 

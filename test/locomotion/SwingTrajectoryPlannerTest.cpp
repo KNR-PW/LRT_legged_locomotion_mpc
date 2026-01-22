@@ -79,6 +79,18 @@ TEST(SwingTrajectoryPlannerTest, standingInPlace)
   SwingTrajectoryPlanner::StaticSettings swingStaticSettings;
   SwingTrajectoryPlanner::DynamicSettings swingDynamicSettings;
   swingDynamicSettings.invertedPendulumHeight = staticSettings.initialBaseHeight;
+  swingDynamicSettings.phases.resize(4);
+  swingDynamicSettings.swingHeights.resize(4);
+  swingDynamicSettings.tangentialProgresses.resize(4);
+  swingDynamicSettings.tangentialVelocityFactors.resize(4);
+  for(size_t i = 0; i < 4; ++i)
+  {
+    swingDynamicSettings.phases[i] = 0.5;
+    swingDynamicSettings.swingHeights[i] = 0.1;
+    swingDynamicSettings.tangentialProgresses[i] = 0.5;
+    swingDynamicSettings.tangentialVelocityFactors[i] = 2.0;
+  }
+
 
   GaitPlanner gaitPlanner(staticParams, dynamicParams, currentPhase, defTime);
 
@@ -211,6 +223,17 @@ TEST(SwingTrajectoryPlannerTest, TrotInPlace)
   SwingTrajectoryPlanner::StaticSettings swingStaticSettings;
   SwingTrajectoryPlanner::DynamicSettings swingDynamicSettings;
   swingDynamicSettings.invertedPendulumHeight = staticSettings.initialBaseHeight;
+  swingDynamicSettings.phases.resize(4);
+  swingDynamicSettings.swingHeights.resize(4);
+  swingDynamicSettings.tangentialProgresses.resize(4);
+  swingDynamicSettings.tangentialVelocityFactors.resize(4);
+  for(size_t i = 0; i < 4; ++i)
+  {
+    swingDynamicSettings.phases[i] = 0.5;
+    swingDynamicSettings.swingHeights[i] = 0.1;
+    swingDynamicSettings.tangentialProgresses[i] = 0.5;
+    swingDynamicSettings.tangentialVelocityFactors[i] = 2.0;
+  }
 
   GaitPlanner gaitPlanner(staticParams, dynamicParams, currentPhase, defTime);
 

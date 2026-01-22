@@ -326,7 +326,7 @@ namespace legged_locomotion_mpc
               0.0, nullptr};
           }}();
 
-        SwingPhase::SwingProfile swingProfile = getDefaultSwingProfile();
+        SwingPhase::SwingProfile swingProfile = getDynamicSwingProfile(endEffectorIndex);
         applySwingMotionScaling(liftOff, touchDown, swingProfile);
 
         footPhases.emplace_back(new SwingPhase(liftOff, touchDown, 
@@ -375,7 +375,7 @@ namespace legged_locomotion_mpc
             return SwingPhase::SwingEvent{finalTime + 
               staticSettings_.referenceExtensionAfterHorizon, 0.0, nullptr};
           }}();
-        SwingPhase::SwingProfile swingProfile = getDefaultSwingProfile();
+        SwingPhase::SwingProfile swingProfile = getDynamicSwingProfile(endEffectorIndex);
         applySwingMotionScaling(liftOff, touchDown, swingProfile);
         eventTimes.push_back(currentContactTiming.end);
         footPhases.emplace_back(new SwingPhase(liftOff, touchDown, swingProfile, terrainModel_));
@@ -671,20 +671,21 @@ namespace legged_locomotion_mpc
       lastContacts_[endEffectorIndex] = {expectedLiftOff, newPlane};
     }
 
-    SwingPhase::SwingProfile SwingTrajectoryPlanner::getDefaultSwingProfile() const 
+    SwingPhase::SwingProfile SwingTrajectoryPlanner::getDynamicSwingProfile(
+      size_t endEffectorIndex) const 
     {
-      SwingPhase::SwingProfile defaultSwingProfile;
-      defaultSwingProfile.sdfMidswingMargin = staticSettings_.sdfMidswingMargin;
-      defaultSwingProfile.maxSwingHeightAdaptation = 2.0 * staticSettings_.swingHeight;
+      SwingPhase::SwingProfile swingProfile;
+      swingProfile.sdfMidswingMargin = staticSettings_.sdfMidswingMargin;
+      swingProfile.maxSwingHeightAdaptation = staticSettings_.maxSwingHeightAdaptation;
 
       SwingPhase::SwingProfile::Node midPoint;
-      midPoint.phase = 0.5;
-      midPoint.swingHeight = staticSettings_.swingHeight;
+      midPoint.phase = dynamicSettings_.phases[endEffectorIndex];
+      midPoint.swingHeight = dynamicSettings_.swingHeights[endEffectorIndex];
       midPoint.normalVelocity = 0.0;
-      midPoint.tangentialProgress = 0.6;
-      midPoint.tangentialVelocityFactor = 2.0;
-      defaultSwingProfile.nodes.push_back(midPoint);
-      return defaultSwingProfile;
+      midPoint.tangentialProgress = dynamicSettings_.tangentialProgresses[endEffectorIndex];
+      midPoint.tangentialVelocityFactor = dynamicSettings_.tangentialVelocityFactors[endEffectorIndex];
+      swingProfile.nodes.push_back(midPoint);
+      return swingProfile;
     }
 
     scalar_t SwingTrajectoryPlanner::getContactEndTime(const ContactTiming &contactPhase, 
@@ -812,8 +813,6 @@ namespace legged_locomotion_mpc
         prefix + "liftOffVelocity", verbose);
       loadData::loadPtreeValue(pt, settings.touchDownVelocity, 
         prefix + "touchDownVelocity", verbose);
-      loadData::loadPtreeValue(pt, settings.swingHeight, 
-        prefix + "swingHeight", verbose);
       loadData::loadPtreeValue(pt, settings.errorGain, 
         prefix + "errorGain", verbose);
       loadData::loadPtreeValue(pt, settings.swingTimeScale, 
@@ -843,6 +842,7 @@ namespace legged_locomotion_mpc
 
       return settings;
     }
+
     SwingTrajectoryPlanner::DynamicSettings loadSwingDynamicTrajectorySettings(
       const std::string &filename, bool verbose)
     {
@@ -852,6 +852,10 @@ namespace legged_locomotion_mpc
       boost::property_tree::read_info(filename, pt);
 
       const std::string prefix{"model_settings.dynamic_swing_trajectory_settings."};
+      const std::string phasesPrefix{"model_settings.phases"};
+      const std::string swingheightsPrefix{"model_settings.swingheights"};
+      const std::string tangentialProgressesPrefix{"model_settings.tangentialProgresses"};
+      const std::string tangentialVelocityFactorsPrefix{"model_settings.tangentialVelocityFactors"};
 
       if (verbose) 
       {
@@ -861,7 +865,13 @@ namespace legged_locomotion_mpc
 
       loadData::loadPtreeValue(pt, settings.invertedPendulumHeight, 
         prefix + "invertedPendulumHeight", verbose);
-
+      loadData::loadStdVector(filename, phasesPrefix, settings.phases);
+      loadData::loadStdVector(filename, swingheightsPrefix, settings.phases);
+      loadData::loadStdVector(filename, tangentialProgressesPrefix, 
+        settings.tangentialProgresses);
+      loadData::loadStdVector(filename, tangentialVelocityFactorsPrefix, 
+        settings.tangentialVelocityFactors);
+    
       if (verbose) 
       {
         std::cerr << " #### ==================================================" << std::endl;
