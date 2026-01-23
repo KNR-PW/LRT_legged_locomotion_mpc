@@ -55,28 +55,32 @@ namespace legged_locomotion_mpc
   
     LeggedReferenceManager(floating_base_model::FloatingBaseModelInfo modelInfo,
       LeggedReferenceManager::Settings settings,
-      locomotion::GaitPlanner& gaitPlanner,
-      locomotion::SwingTrajectoryPlanner& swingTrajectory,
-      planners::BaseTrajectoryPlanner& baseTrajectory,
-      planners::JointTrajectoryPlanner& jointTrajectory,
-      planners::ContactForceWrenchTrajectoryPlanner& forceTrajectory);
+      locomotion::GaitPlanner&& gaitPlanner,
+      locomotion::SwingTrajectoryPlanner&& swingPlanner,
+      planners::BaseTrajectoryPlanner&& basePlanner,
+      planners::JointTrajectoryPlanner&& jointPlanner,
+      planners::ContactForceWrenchTrajectoryPlanner&& forcePlanner,
+      bool threaded = true);
 
     ~LeggedReferenceManager() override;
 
     void initialize(ocs2::scalar_t initTime, ocs2::scalar_t finalTime, 
       const state_vector_t& currenState, const contact_flags_t& currentContactFlags,
-      locomotion::GaitDynamicParameters&& currentGaitParameters,
+      const locomotion::GaitDynamicParameters& currentGaitParameters,
+      const locomotion::SwingTrajectoryPlanner::DynamicSettings& currentSwingParameters,
       std::unique_ptr<terrain_model::TerrainModel> currentTerrainModel);
 
     void updateState(const state_vector_t& currenState);
 
     void updateContactFlags(const contact_flags_t& currentContactFlags);
 
-    void updateGaitParemeters(
-      locomotion::GaitDynamicParameters&& currentGaitParameters);
+    void updateGaitParemeters(const locomotion::GaitDynamicParameters& currentGaitParameters);
 
     void updateTerrainModel(
       std::unique_ptr<terrain_model::TerrainModel> currentTerrainModel);
+
+    void updateSwingParameters(
+      const locomotion::SwingTrajectoryPlanner::DynamicSettings& currentSwingParameters);
 
     void preSolverRun(ocs2::scalar_t initTime, ocs2::scalar_t finalTime, 
       const ocs2::vector_t& initState) override;
@@ -96,14 +100,16 @@ namespace legged_locomotion_mpc
 
       void generateNewTargetTrajectories(ocs2::scalar_t initTime, ocs2::scalar_t finalTime);
     
-      floating_base_model::FloatingBaseModelInfo modelInfo_;
-      Settings settings_;
+      const floating_base_model::FloatingBaseModelInfo modelInfo_;
+      const Settings settings_;
+      const bool threaded_;
 
       std::future<void> newTrajectories_;
 
       ocs2::BufferedValue<state_vector_t> currentState_;
       ocs2::BufferedValue<contact_flags_t> currentContactFlags_;
       ocs2::BufferedValue<locomotion::GaitDynamicParameters> currentGaitParameters_;
+      ocs2::BufferedValue<locomotion::SwingTrajectoryPlanner::DynamicSettings> currentSwingParameters_;
       ocs2::BufferedValue<planners::BaseTrajectoryPlanner::BaseReferenceCommand> currentCommand_;
 
       using EndEffectorTrajectories = legged_locomotion_mpc::locomotion::SwingTrajectoryPlanner::EndEffectorTrajectories;
@@ -115,11 +121,11 @@ namespace legged_locomotion_mpc
       std::unique_ptr<terrain_model::TerrainModel> currentTerrainModel_;
       ocs2::BufferedPointer<terrain_model::TerrainModel> bufferedTerrainModel_;
 
-      locomotion::GaitPlanner& gaitPlanner_;
-      locomotion::SwingTrajectoryPlanner& swingTrajectory_;
-      planners::BaseTrajectoryPlanner& baseTrajectory_;
-      planners::JointTrajectoryPlanner& jointTrajectory_;
-      planners::ContactForceWrenchTrajectoryPlanner& forceTrajectory_;
+      locomotion::GaitPlanner gaitPlanner_;
+      locomotion::SwingTrajectoryPlanner swingPlanner_;
+      planners::BaseTrajectoryPlanner basePlanner_;
+      planners::JointTrajectoryPlanner jointPlanner_;
+      planners::ContactForceWrenchTrajectoryPlanner forcePlanner_;
   };
 } // namespace legged_locomotion_mpc
 

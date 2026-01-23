@@ -20,22 +20,24 @@ namespace legged_locomotion_mpc
   LeggedReferenceManager::LeggedReferenceManager(
     FloatingBaseModelInfo modelInfo,
     LeggedReferenceManager::Settings settings,
-    locomotion::GaitPlanner& gaitPlanner,
-    locomotion::SwingTrajectoryPlanner& swingTrajectory,
-    planners::BaseTrajectoryPlanner& baseTrajectory,
-    planners::JointTrajectoryPlanner& jointTrajectory,
-    planners::ContactForceWrenchTrajectoryPlanner& forceTrajectory):
+    GaitPlanner&& gaitPlanner,
+    SwingTrajectoryPlanner&& swingPlanner,
+    BaseTrajectoryPlanner&& basePlanner,
+    JointTrajectoryPlanner&& jointPlanner,
+    ContactForceWrenchTrajectoryPlanner&& forcePlanner, bool threaded):
       ReferenceManager(TargetTrajectories(), ModeSchedule()),
       modelInfo_(std::move(modelInfo)),
       settings_(std::move(settings)),
-      gaitPlanner_(gaitPlanner), 
-      swingTrajectory_(swingTrajectory),
-      baseTrajectory_(baseTrajectory), 
-      jointTrajectory_(jointTrajectory),
-      forceTrajectory_(forceTrajectory),
+      threaded_(threaded),
+      gaitPlanner_(std::move(gaitPlanner)), 
+      swingPlanner_(std::move(swingPlanner)),
+      basePlanner_(std::move(basePlanner)), 
+      jointPlanner_(std::move(jointPlanner)),
+      forcePlanner_(std::move(forcePlanner)),
       currentState_(state_vector_t()),
       currentContactFlags_(contact_flags_t()),
       currentGaitParameters_(GaitDynamicParameters()),
+      currentSwingParameters_(SwingTrajectoryPlanner::DynamicSettings()),
       currentCommand_(BaseTrajectoryPlanner::BaseReferenceCommand()),
       bufferedTerrainModel_(nullptr),
       referenceTrajectories_(EndEffectorTrajectories()),
@@ -43,21 +45,30 @@ namespace legged_locomotion_mpc
 
   void LeggedReferenceManager::initialize(scalar_t initTime, scalar_t finalTime, 
     const state_vector_t& currenState, const contact_flags_t& currentContactFlags,
-    locomotion::GaitDynamicParameters&& currentGaitParameters,
+    const GaitDynamicParameters& currentGaitParameters,
+    const SwingTrajectoryPlanner::DynamicSettings& currentSwingParameters,
     std::unique_ptr<terrain_model::TerrainModel> currentTerrainModel)
   {
     updateState(currenState);
     updateContactFlags(currentContactFlags);
-    updateGaitParemeters(std::move(currentGaitParameters));
+    updateGaitParemeters(currentGaitParameters);
+    updateSwingParameters(currentSwingParameters);
 
     // Get copy of current terrain for getter, buffered value might be changed in parallel task
     currentTerrainModel_ = std::unique_ptr<TerrainModel>(currentTerrainModel->clone());
 
     updateTerrainModel(std::move(currentTerrainModel));
     
-    newTrajectories_ = std::async(std::launch::async, [this, initTime, finalTime]()
+    if(threaded_)
+    {
+      newTrajectories_ = std::async(std::launch::async, [this, initTime, finalTime]()
       {return generateNewTargetTrajectories(initTime, finalTime);});
-    newTrajectories_.wait();
+      newTrajectories_.wait();
+    }
+    else
+    {
+      generateNewTargetTrajectories(initTime, finalTime);
+    }
 
     // Get reference trajectories and constraints
     referenceTrajectories_.updateFromBuffer();
@@ -86,14 +97,13 @@ namespace legged_locomotion_mpc
     const auto indexAlpha = LinearInterpolation::timeSegment(time, times);
     size_t index = indexAlpha.first;
     const scalar_t alpha = indexAlpha.second;
+    const scalar_t one_minus_alpha = 1.0 - alpha;
 
     // Get previous time index if value is between (times[index - 1], times[index])
     if(index != 0 && (times[index] - time) > std::numeric_limits<scalar_t>::min())
     {
       index -= 1;
     }
-
-    const scalar_t one_minus_alpha = 1.0 - alpha;
 
     const size_t numEndEffectors = modelInfo_.numThreeDofContacts + 
       modelInfo_.numSixDofContacts;
@@ -141,7 +151,7 @@ namespace legged_locomotion_mpc
   }
 
   const std::vector<FootTangentialConstraintMatrix>& LeggedReferenceManager::getEndEffectorConstraintMatrixes(
-    ocs2::scalar_t time) const
+    scalar_t time) const
   {
     const auto& footTangentialConstraintMatrixes = footConstraintTrajectories_.get();
     const auto& times = footTangentialConstraintMatrixes.times;
@@ -153,22 +163,38 @@ namespace legged_locomotion_mpc
   void LeggedReferenceManager::preSolverRun(scalar_t initTime, scalar_t finalTime, 
     const vector_t& initState)
   {
-    if(newTrajectories_.wait_for(std::chrono::seconds(0)) == std::future_status::timeout)
+    if(threaded_)
     {
-      return;
+      if(newTrajectories_.wait_for(std::chrono::seconds(0)) == std::future_status::timeout)
+      {
+        return;
+      }
+
+      ReferenceManager::preSolverRun(initTime, finalTime, initState);
+
+      // Get reference trajectories and constraints
+      referenceTrajectories_.updateFromBuffer();
+      footConstraintTrajectories_.updateFromBuffer();
+
+      // Get copy of current terrain for getter, active value might be changed in parallel task
+      currentTerrainModel_ = std::unique_ptr<TerrainModel>(bufferedTerrainModel_.get().clone());
+
+      newTrajectories_ = std::async(std::launch::async, [this, initTime, finalTime]()
+        {return generateNewTargetTrajectories(initTime, finalTime);});
     }
+    else
+    {
+      generateNewTargetTrajectories(initTime, finalTime);
 
-    ReferenceManager::preSolverRun(initTime, finalTime, initState);
+      ReferenceManager::preSolverRun(initTime, finalTime, initState);
 
-    // Get reference trajectories and constraints
-    referenceTrajectories_.updateFromBuffer();
-    footConstraintTrajectories_.updateFromBuffer();
+      // Get reference trajectories and constraints
+      referenceTrajectories_.updateFromBuffer();
+      footConstraintTrajectories_.updateFromBuffer();
 
-    // Get copy of current terrain for getter, active value might be changed in parallel task
-    currentTerrainModel_ = std::unique_ptr<TerrainModel>(bufferedTerrainModel_.get().clone());
-
-    newTrajectories_ = std::async(std::launch::async, [this, initTime, finalTime]()
-      {return generateNewTargetTrajectories(initTime, finalTime);});
+       // Get copy of current terrain for getter, active value might be changed in parallel task
+      currentTerrainModel_ = std::unique_ptr<TerrainModel>(bufferedTerrainModel_.get().clone());
+    }
   }
 
   void LeggedReferenceManager::generateNewTargetTrajectories(
@@ -184,6 +210,13 @@ namespace legged_locomotion_mpc
       gaitPlanner_.updateDynamicParameters(initTime, currentGaitParameters);
     }
 
+    // No new swing parameters -> no update
+    if(currentSwingParameters_.updateFromBuffer())
+    {
+      const SwingTrajectoryPlanner::DynamicSettings& currentSwingParameters = currentSwingParameters_.get();
+      swingPlanner_.updateDynamicSettings(currentSwingParameters);
+    }
+
     // No new contact flag -> no update
     if(currentContactFlags_.updateFromBuffer())
     {
@@ -191,17 +224,14 @@ namespace legged_locomotion_mpc
       gaitPlanner_.updateCurrentContacts(initTime, currentContactFlags);
     }
 
-    const ModeSchedule newModeSchedule = gaitPlanner_.getModeSchedule(initTime, 
-      finalTime);
-
     // No new terrain model -> no update
     if(bufferedTerrainModel_.updateFromBuffer())
     {
       const TerrainModel& currentTerrainModel = bufferedTerrainModel_.get();
 
-      baseTrajectory_.updateTerrain(currentTerrainModel);
+      basePlanner_.updateTerrain(currentTerrainModel);
     
-      swingTrajectory_.updateTerrain(currentTerrainModel);
+      swingPlanner_.updateTerrain(currentTerrainModel);
     }
     
     // No new command -> stay in place
@@ -220,49 +250,44 @@ namespace legged_locomotion_mpc
 
     TargetTrajectories newTrajectory;
 
-    baseTrajectory_.updateTargetTrajectory(initTime, finalTime, currentCommand, 
+    const ModeSchedule newModeSchedule = gaitPlanner_.getModeSchedule(initTime, 
+      finalTime);
+
+    basePlanner_.updateTargetTrajectory(initTime, finalTime, currentCommand, 
       currentState, newTrajectory);
 
-    swingTrajectory_.updateSwingMotions(initTime, finalTime, currentState, 
+    swingPlanner_.updateSwingMotions(initTime, finalTime, currentState, 
       newTrajectory, newModeSchedule);
 
     EndEffectorTrajectories endEffectorTrajectories = 
-      swingTrajectory_.getEndEffectorTrajectories(newTrajectory.timeTrajectory);
+      swingPlanner_.getEndEffectorTrajectories(newTrajectory.timeTrajectory);
     
-    jointTrajectory_.updateTrajectory(currentState, newTrajectory, 
+    jointPlanner_.updateTrajectory(currentState, newTrajectory, 
       endEffectorTrajectories.positions, endEffectorTrajectories.velocities);
 
     // If trajectory was subsampled, get new reference for end effectors
-    if(settings_.maximumReferenceSampleInterval < baseTrajectory_.getStaticSettings().deltaTime)
+    if(settings_.maximumReferenceSampleInterval < basePlanner_.getStaticSettings().deltaTime)
     {
       TargetTrajectories subsampledTrajectory = utils::subsampleReferenceTrajectory(
         newTrajectory, initTime, finalTime, settings_.maximumReferenceSampleInterval);
 
-      const std::vector<contact_flags_t> contactTrajectory = 
-        gaitPlanner_.getContactFlagsAtTimes(subsampledTrajectory.timeTrajectory);
+      forcePlanner_.updateTargetTrajectory(newModeSchedule, subsampledTrajectory);
 
-      forceTrajectory_.updateTargetTrajectory(contactTrajectory, subsampledTrajectory);
-
-      endEffectorTrajectories = swingTrajectory_.getEndEffectorTrajectories(
+      endEffectorTrajectories = swingPlanner_.getEndEffectorTrajectories(
         subsampledTrajectory.timeTrajectory);
 
       const FootTangentialConstraintTrajectories footConstraintTrajectories = 
-        swingTrajectory_.getFootTangentialConstraintTrajectories(newModeSchedule, 
-        subsampledTrajectory.timeTrajectory);
+        swingPlanner_.getFootTangentialConstraintTrajectories();
 
       setTargetTrajectories(std::move(subsampledTrajectory));
       footConstraintTrajectories_.setBuffer(std::move(footConstraintTrajectories));
     }
     else
     {
-      const std::vector<contact_flags_t> contactTrajectory = 
-        gaitPlanner_.getContactFlagsAtTimes(newTrajectory.timeTrajectory);
-
-      forceTrajectory_.updateTargetTrajectory(contactTrajectory, newTrajectory);
+      forcePlanner_.updateTargetTrajectory(newModeSchedule, newTrajectory);
 
       const FootTangentialConstraintTrajectories footConstraintTrajectories = 
-        swingTrajectory_.getFootTangentialConstraintTrajectories(newModeSchedule, 
-        newTrajectory.timeTrajectory);
+        swingPlanner_.getFootTangentialConstraintTrajectories();
 
       setTargetTrajectories(std::move(newTrajectory));
       footConstraintTrajectories_.setBuffer(std::move(footConstraintTrajectories));
@@ -283,9 +308,15 @@ namespace legged_locomotion_mpc
   }
 
   void LeggedReferenceManager::updateGaitParemeters(
-    GaitDynamicParameters&& currentGaitParameters)
+    const GaitDynamicParameters& currentGaitParameters)
   {
-    currentGaitParameters_.setBuffer(std::move(currentGaitParameters));
+    currentGaitParameters_.setBuffer(currentGaitParameters);
+  }
+
+  void LeggedReferenceManager::updateSwingParameters(
+    const SwingTrajectoryPlanner::DynamicSettings& currentSwingParameters)
+  {
+    currentSwingParameters_.setBuffer(currentSwingParameters);
   }
   
   void LeggedReferenceManager::updateTerrainModel(
