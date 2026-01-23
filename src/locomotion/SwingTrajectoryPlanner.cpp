@@ -186,7 +186,7 @@ namespace legged_locomotion_mpc
     }
 
     std::vector<vector3_t> SwingTrajectoryPlanner::getEndEffectorSurfaceNormals(
-      ocs2::scalar_t time) const
+      scalar_t time) const
     {
       const size_t numEndEffectors = modelInfo_.numThreeDofContacts + modelInfo_.numSixDofContacts;
       std::vector<vector3_t> normals(numEndEffectors);
@@ -245,7 +245,7 @@ namespace legged_locomotion_mpc
 
     using normal_trajectories = std::vector<std::vector<vector3_t>>;
     normal_trajectories SwingTrajectoryPlanner::getEndEffectorNormalTrajectories(
-      std::vector<ocs2::scalar_t> times) const
+      std::vector<scalar_t> times) const
     {
       normal_trajectories normals;
       normals.reserve(times.size());
@@ -258,7 +258,7 @@ namespace legged_locomotion_mpc
     }
 
     SwingTrajectoryPlanner::EndEffectorTrajectoriesPoint SwingTrajectoryPlanner::getEndEffectorTrajectoryPoint(
-      ocs2::scalar_t time) const
+      scalar_t time) const
     {
       const size_t numEndEffectors = modelInfo_.numThreeDofContacts + modelInfo_.numSixDofContacts;
 
@@ -281,7 +281,7 @@ namespace legged_locomotion_mpc
     }
 
     SwingTrajectoryPlanner::EndEffectorTrajectories SwingTrajectoryPlanner::getEndEffectorTrajectories(
-      std::vector<ocs2::scalar_t> times) const
+      std::vector<scalar_t> times) const
     {
       EndEffectorTrajectories trajectories;
       trajectories.positions.reserve(times.size());
@@ -729,8 +729,7 @@ namespace legged_locomotion_mpc
     }
 
     SwingTrajectoryPlanner::FootTangentialConstraintTrajectories 
-      SwingTrajectoryPlanner::getFootTangentialConstraintTrajectories(
-        std::vector<scalar_t> times)
+      SwingTrajectoryPlanner::getFootTangentialConstraintTrajectories()
     {
       const auto& eventTimes = modeSchedule_.eventTimes;
       const auto& modeSequence = modeSchedule_.modeSequence;

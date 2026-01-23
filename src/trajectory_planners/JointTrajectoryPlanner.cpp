@@ -22,13 +22,12 @@ namespace legged_locomotion_mpc
 
     JointTrajectoryPlanner::JointTrajectoryPlanner(
       FloatingBaseModelInfo modelInfo,
-      MultiEndEffectorKinematics&& kinematicsSolver, vector_t jointPositionUpperLimits, 
-      vector_t jointPositionLowerLimits, vector_t jointVelocityLimits): 
+      MultiEndEffectorKinematics&& kinematicsSolver): 
         modelInfo_(std::move(modelInfo)),
         kinematicsSolver_(std::move(kinematicsSolver)),
-        jointPositionUpperLimits_(std::move(jointPositionUpperLimits)),
-        jointPositionLowerLimits_(std::move(jointPositionLowerLimits)),
-        jointVelocityLimits_(std::move(jointVelocityLimits))
+        jointPositionUpperLimits_(std::move(kinematicsSolver_.getPinocchioModel().lowerPositionLimit)),
+        jointPositionLowerLimits_(std::move(kinematicsSolver_.getPinocchioModel().upperPositionLimit)),
+        jointVelocityLimits_(std::move(kinematicsSolver_.getPinocchioModel().velocityLimit))
       {
         if(jointPositionUpperLimits_.size() != modelInfo_.actuatedDofNum)
         {

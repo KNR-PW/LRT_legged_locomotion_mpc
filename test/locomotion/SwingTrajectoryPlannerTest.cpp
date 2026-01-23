@@ -440,10 +440,8 @@ TEST(SwingTrajectoryPlannerTest, Troting)
     modeSchedule);
   
   scalar_t testTime = initTime;
-  std::vector<scalar_t> times;
   while(testTime < finalTime)
   { 
-    times.push_back(testTime);
     const auto trajectoryPoint = swingPlanner.getEndEffectorTrajectoryPoint(testTime);
     const auto nextTrajectoryPoint = swingPlanner.getEndEffectorTrajectoryPoint(testTime + deltaTime);
     const auto flags = gaitPlanner.getContactFlagsAtTime(testTime);
@@ -487,7 +485,7 @@ TEST(SwingTrajectoryPlannerTest, Troting)
     testTime += deltaTime;
   }
 
-  const auto footTangentialConstraints = swingPlanner.getFootTangentialConstraintTrajectories(times);
+  const auto footTangentialConstraints = swingPlanner.getFootTangentialConstraintTrajectories();
   const auto& constraintTimes = footTangentialConstraints.times;
   const auto& constraintsTrajectory = footTangentialConstraints.constraints;
 

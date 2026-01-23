@@ -219,8 +219,7 @@ namespace legged_locomotion_mpc
           std::vector<std::vector<FootTangentialConstraintMatrix>> constraints;
         };
 
-        FootTangentialConstraintTrajectories getFootTangentialConstraintTrajectories(
-          std::vector<ocs2::scalar_t> times);
+        FootTangentialConstraintTrajectories getFootTangentialConstraintTrajectories();
 
         /** Accessed by the controller for visualization */
         std::vector<terrain_model::ConvexTerrain> getNominalFootholds(
