@@ -89,7 +89,6 @@ namespace legged_locomotion_mpc
 
     const floating_base_model::FloatingBaseModelInfo info_;
   };
-
 } // namespace legged_locomotion_mpc
 
 #endif

@@ -1,6 +1,9 @@
 #include <gtest/gtest.h>
 
+#include <legged_locomotion_mpc/precomputation/LeggedPrecomputation.hpp>
 #include <legged_locomotion_mpc/reference_manager/LeggedReferenceManager.hpp>
+#include <legged_locomotion_mpc/collision/PinocchioForwardCollisionKinematicsCppAd.hpp>
+#include <legged_locomotion_mpc/torque_approx/PinocchioTorqueApproximationCppAd.hpp>
 #include <legged_locomotion_mpc/common/AccessHelperFunctions.hpp>
 
 #include <floating_base_model/FactoryFunctions.hpp>
@@ -24,12 +27,12 @@ const size_t TEST_NUM = 100;
 // Not round because std::lower_bound is sensitive for time points of mode change
 const size_t ITERATIONS = 50;
 
-TEST(LeggedReferenceManagerTest, getContactFlags) 
+TEST(LeggedPrecomputationTest, getEndEffector) 
 {
   const scalar_t defTime = 0.0;
   const scalar_t initTime = 0.0;
   const scalar_t finalTime = 2.1;
-  const scalar_t deltaTime = 0.01;
+  const scalar_t deltaTime = 0.1;
 
   /* STANDING TROT */
   scalar_t currentPhase = 3.5 / 7.0;
@@ -65,6 +68,9 @@ TEST(LeggedReferenceManagerTest, getContactFlags)
 
   std::string solverName = "NewtonRaphson";
 
+  const std::vector<std::string> meldogFake3DofContactNames = {"RFF_link", "RRF_link"};
+  const std::vector<std::string> meldogFake6DofContactNames = {"LFF_link", "LRF_link"};
+
   KinematicsModelSettings modelSettings;
   modelSettings.baseLinkName = baseLink;
   modelSettings.threeDofEndEffectorNames = meldog3DofContactNames;
@@ -76,7 +82,7 @@ TEST(LeggedReferenceManagerTest, getContactFlags)
     solverSettings, solverName);
 
   ocs2::PinocchioInterface interface = createPinocchioInterfaceFromUrdfFile(urdfPathName, baseLink);
-  const FloatingBaseModelInfo modelInfo = createFloatingBaseModelInfo(interface, meldog3DofContactNames, meldog6DofContactNames);
+  const FloatingBaseModelInfo modelInfo = createFloatingBaseModelInfo(interface, meldogFake3DofContactNames, meldogFake6DofContactNames);
   
   BaseTrajectoryPlanner::BaseReferenceCommand command;
   command.baseHeadingVelocity = std::rand() / scalar_t(RAND_MAX);
@@ -84,9 +90,9 @@ TEST(LeggedReferenceManagerTest, getContactFlags)
   command.baseVerticalVelocity = 0.0;
   command.yawRate = std::rand() / scalar_t(RAND_MAX);
   
-  std::string modelName = "meldogForwardKinematics";
+  std::string kinematicsModelName = "meldogForwardKinematics";
   PinocchioForwardEndEffectorKinematicsCppAd forwardKinematics(interface, 
-    modelInfo, modelName);
+    modelInfo, kinematicsModelName);
 
   SwingTrajectoryPlanner::StaticSettings swingStaticSettings;
   SwingTrajectoryPlanner::DynamicSettings swingDynamicSettings;
@@ -125,7 +131,7 @@ TEST(LeggedReferenceManagerTest, getContactFlags)
     managerSettings, std::move(gaitPlanner), std::move(swingPlanner), std::move(basePlanner), 
     std::move(jointPlanner), std::move(forcePlanner));
 
-  const vector3_t initPosition = vector3_t{0.0, 0.0, 0.0};
+    const vector3_t initPosition = vector3_t{0.0, 0.0, 0.0};
 
   const vector3_t planeLocalEulerZyx = vector3_t{0.0, 0.0, 0.0};
 
@@ -163,523 +169,647 @@ TEST(LeggedReferenceManagerTest, getContactFlags)
   manager.initialize(initTime, finalTime, initialState, contactFlag, 
     dynamicParams, swingDynamicSettings, std::move(terrainModelPtr));
 
-  std::vector<scalar_t> goodTimings = {0.0, 0.3, 0.35, 0.65, 0.7, 1, 1.05, 1.35, 1.4, 1.7, 1.75, 2.05, 2.1};
-  std::vector<size_t> goodSequence = {15, 9, 15, 6, 15, 9, 15, 6, 15, 9, 15, 6, 15, 15};
-  const auto mySequence = manager.getModeSchedule().modeSequence;
+  const std::vector<std::string> collisionNames = meldogCollisions;
 
-  EXPECT_TRUE(mySequence == goodSequence);
-  for(size_t i = 0; i < goodTimings.size(); ++i)
-  {
-    const scalar_t time = goodTimings[i];
-    const auto mode = contactFlags2ModeNumber(manager.getContactFlags(time));
-    const auto trueMode = goodSequence[i];
-    const auto gaitMode = contactFlags2ModeNumber(trueGaitPlanner.getContactFlagsAtTime(time));
-    EXPECT_TRUE(mode == trueMode);
-    EXPECT_TRUE(gaitMode == trueMode);
-  }
-}
+  const std::string collisionKinematicsModelName = "collision_kinematics";
 
-TEST(LeggedReferenceManagerTest, getTerrainModel) 
-{
-  const scalar_t defTime = 0.0;
-  const scalar_t initTime = 0.0;
-  const scalar_t finalTime = 2.1;
-  const scalar_t deltaTime = 0.05;
+  ocs2::PinocchioInterface collisionInterface = createPinocchioInterfaceFromUrdfFile(
+    urdfPathName, baseLink);
 
-  /* STANDING TROT */
-  scalar_t currentPhase = 3.5 / 7.0;
+  PinocchioForwardCollisionKinematicsCppAd collisionKinematics(collisionInterface, modelInfo, 
+    collisionNames, collisionKinematicsModelName);
 
-  GaitStaticParameters staticParams;
-  staticParams.endEffectorNumber = 4;
-  staticParams.plannerFrequency = 2.0;
-  staticParams.timeHorizion = 0.7;
+  const std::string torqueModelName = "torque_approx";
+  PinocchioTorqueApproximationCppAd torqueApproximator(interface, modelInfo,
+    vector_t::Zero(modelInfo.actuatedDofNum), torqueModelName);
 
-  GaitDynamicParameters dynamicParams;
-  dynamicParams.steppingFrequency = 1.0 / 0.7;
-  dynamicParams.swingRatio = 3.0 / 7.0;
-  
-  dynamicParams.phaseOffsets = {-currentPhase , -currentPhase , 0};
+  LeggedPrecomputation precomputation(modelInfo, manager, forwardKinematics, 
+    collisionKinematics, torqueApproximator);
 
-  const scalar_t slope = 0.0;
-  const vector3_t terrainEulerZyx{0.0, slope, 0.0};
-  const matrix3_t terrainRotation = getRotationMatrixFromZyxEulerAngles(terrainEulerZyx); 
-
-  TerrainPlane slopyTerrain(vector3_t::Zero(), terrainRotation.transpose());
-
-  PlanarTerrainModel terrainModel(slopyTerrain);
-
-  BaseTrajectoryPlanner::StaticSettings staticSettings;
-  staticSettings.deltaTime = deltaTime;
-  staticSettings.initialBaseHeight = 0.25 * std::sqrt(2.0);
-  staticSettings.minimumBaseHeight = 0.1;
-  staticSettings.maximumBaseHeight = 5.0;
-  staticSettings.nominalBaseWidthHeading = 0.2;
-  staticSettings.nominalBaseWidtLateral = 0.2;
-
-  std::string urdfPathName = meldogWithBaseLinkUrdfFile;
-
-  std::string solverName = "NewtonRaphson";
-
-  KinematicsModelSettings modelSettings;
-  modelSettings.baseLinkName = baseLink;
-  modelSettings.threeDofEndEffectorNames = meldog3DofContactNames;
-
-  InverseSolverSettings solverSettings;
-  // solverSettings.stepCoefficient = 0.1;
-  solverSettings.tolerance = 1e-3;
-  MultiEndEffectorKinematics kinematicsSolver(urdfPathName, modelSettings, 
-    solverSettings, solverName);
-
-  ocs2::PinocchioInterface interface = createPinocchioInterfaceFromUrdfFile(urdfPathName, baseLink);
-  const FloatingBaseModelInfo modelInfo = createFloatingBaseModelInfo(interface, meldog3DofContactNames, meldog6DofContactNames);
-  
-  BaseTrajectoryPlanner::BaseReferenceCommand command;
-  command.baseHeadingVelocity = std::rand() / scalar_t(RAND_MAX);
-  command.baseLateralVelocity = std::rand() / scalar_t(RAND_MAX);
-  command.baseVerticalVelocity = 0.0;
-  command.yawRate = std::rand() / scalar_t(RAND_MAX);
-  
-  std::string modelName = "meldogForwardKinematics";
-  PinocchioForwardEndEffectorKinematicsCppAd forwardKinematics(interface, 
-    modelInfo, modelName);
-
-  SwingTrajectoryPlanner::StaticSettings swingStaticSettings;
-  SwingTrajectoryPlanner::DynamicSettings swingDynamicSettings;
-  swingDynamicSettings.invertedPendulumHeight = staticSettings.initialBaseHeight;
-  swingDynamicSettings.phases.resize(4);
-  swingDynamicSettings.swingHeights.resize(4);
-  swingDynamicSettings.tangentialProgresses.resize(4);
-  swingDynamicSettings.tangentialVelocityFactors.resize(4);
-  for(size_t i = 0; i < 4; ++i)
-  {
-    swingDynamicSettings.phases[i] = 0.5;
-    swingDynamicSettings.swingHeights[i] = 0.1;
-    swingDynamicSettings.tangentialProgresses[i] = 0.5;
-    swingDynamicSettings.tangentialVelocityFactors[i] = 2.0;
-  }
-
-  GaitPlanner gaitPlanner(staticParams, dynamicParams, currentPhase, defTime);
-
-  GaitPlanner trueGaitPlanner = gaitPlanner;
-
-  BaseTrajectoryPlanner basePlanner(modelInfo, staticSettings);
-
-  SwingTrajectoryPlanner swingPlanner(modelInfo, swingStaticSettings, 
-    swingDynamicSettings, forwardKinematics);
-
-  JointTrajectoryPlanner jointPlanner(modelInfo, std::move(kinematicsSolver));
-
-  ContactForceWrenchTrajectoryPlanner forcePlanner(modelInfo);
-  
-  LeggedReferenceManager::Settings managerSettings;
-
-  const auto modeSchedule = gaitPlanner.getModeSchedule(initTime, finalTime);
-  contact_flags_t contactFlag = modeSchedule.modeAtTime(initTime);
-
-  LeggedReferenceManager manager(modelInfo, 
-    managerSettings, std::move(gaitPlanner), std::move(swingPlanner), std::move(basePlanner), 
-    std::move(jointPlanner), std::move(forcePlanner));
-
-  const vector3_t initPosition = vector3_t{0.0, 0.0, 0.0};
-
-  const vector3_t planeLocalEulerZyx = vector3_t{0.0, 0.0, 0.0};
-
-  matrix3_t initRotationOnPlane = getRotationMatrixFromZyxEulerAngles(planeLocalEulerZyx);
-
-  const vector3_t headingVector = initRotationOnPlane.col(0);
-  const vector3_t xAxis = slopyTerrain.projectVectorInWorldOntoPlaneAlongGravity(headingVector).normalized();
-  const vector3_t zAxis = slopyTerrain.getSurfaceNormalInWorld();
-  const vector3_t yAxis = zAxis.cross(xAxis);
-
-  matrix3_t initRotationMatrix;
-  initRotationMatrix.col(0) = xAxis;
-  initRotationMatrix.col(1) = yAxis;
-  initRotationMatrix.col(2) = zAxis;
-
-  const vector3_t initEulerZyx = quaterion_euler_transforms::getEulerAnglesFromRotationMatrix(
-    initRotationMatrix);
-
-  const vector2_t initPositionXY{initPosition.x(), initPosition.y()};
-
-  vector3_t initialBasePosition(initPosition.x(), initPosition.y(),
-    terrainModel.getSmoothedPositon(initPositionXY).z());
-  
-  initialBasePosition.z() += staticSettings.initialBaseHeight / slopyTerrain.getSurfaceNormalInWorld().z();
-  
-  state_vector_t initialState = state_vector_t::Zero(12 + modelInfo.actuatedDofNum * 2);
-  initialState.block<3,1>(6, 0) = initialBasePosition;
-  initialState.block<3,1>(9, 0) = initEulerZyx;
-
-  legged_locomotion_mpc::access_helper_functions::getJointPositions(initialState, modelInfo) << 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326;
-
-  std::unique_ptr<TerrainModel> terrainModelPtr = 
-    std::make_unique<PlanarTerrainModel>(slopyTerrain);
-  
-  manager.initialize(initTime, finalTime, initialState, contactFlag, 
-    dynamicParams, swingDynamicSettings, std::move(terrainModelPtr));
-  
-  const TerrainModel& terrain = manager.getTerrainModel();
-
-  for(size_t i = 0; i < TEST_NUM; ++i)
-  {
-    const vector3_t positon = vector3_t::Random() * 100.0;
-    const vector2_t position2D{positon.x(), positon.y()};
-    EXPECT_TRUE((slopyTerrain.projectPositionInWorldOntoPlane(positon) - 
-      terrain.getSmoothedPositon(position2D)).norm() < eps);
-  }
-}
-
-TEST(LeggedReferenceManagerTest, getEndEffectorTrajectoryPoint) 
-{
-  const scalar_t defTime = 0.0;
-  const scalar_t initTime = 0.0;
-  const scalar_t finalTime = 2.1;
-  const scalar_t deltaTime = 0.01;
-
-  /* STANDING TROT */
-  scalar_t currentPhase = 3.5 / 7.0;
-
-  GaitStaticParameters staticParams;
-  staticParams.endEffectorNumber = 4;
-  staticParams.plannerFrequency = 2.0;
-  staticParams.timeHorizion = 0.7;
-
-  GaitDynamicParameters dynamicParams;
-  dynamicParams.steppingFrequency = 1.0 / 0.7;
-  dynamicParams.swingRatio = 3.0 / 7.0;
-  
-  dynamicParams.phaseOffsets = {-currentPhase , -currentPhase , 0};
-
-  const scalar_t slope = 0.0;
-  const vector3_t terrainEulerZyx{0.0, slope, 0.0};
-  const matrix3_t terrainRotation = getRotationMatrixFromZyxEulerAngles(terrainEulerZyx); 
-
-  TerrainPlane slopyTerrain(vector3_t::Zero(), terrainRotation.transpose());
-
-  PlanarTerrainModel terrainModel(slopyTerrain);
-
-  BaseTrajectoryPlanner::StaticSettings staticSettings;
-  staticSettings.deltaTime = deltaTime;
-  staticSettings.initialBaseHeight = 0.25 * std::sqrt(2.0);
-  staticSettings.minimumBaseHeight = 0.1;
-  staticSettings.maximumBaseHeight = 5.0;
-  staticSettings.nominalBaseWidthHeading = 0.2;
-  staticSettings.nominalBaseWidtLateral = 0.2;
-
-  std::string urdfPathName = meldogWithBaseLinkUrdfFile;
-
-  std::string solverName = "NewtonRaphson";
-
-  KinematicsModelSettings modelSettings;
-  modelSettings.baseLinkName = baseLink;
-  modelSettings.threeDofEndEffectorNames = meldog3DofContactNames;
-
-  InverseSolverSettings solverSettings;
-  // solverSettings.stepCoefficient = 0.1;
-  solverSettings.tolerance = 1e-3;
-  MultiEndEffectorKinematics kinematicsSolver(urdfPathName, modelSettings, 
-    solverSettings, solverName);
-
-  ocs2::PinocchioInterface interface = createPinocchioInterfaceFromUrdfFile(urdfPathName, baseLink);
-  const FloatingBaseModelInfo modelInfo = createFloatingBaseModelInfo(interface, meldog3DofContactNames, meldog6DofContactNames);
-  
-  BaseTrajectoryPlanner::BaseReferenceCommand command;
-  command.baseHeadingVelocity = std::rand() / scalar_t(RAND_MAX);
-  command.baseLateralVelocity = std::rand() / scalar_t(RAND_MAX);
-  command.baseVerticalVelocity = 0.0;
-  command.yawRate = std::rand() / scalar_t(RAND_MAX);
-  
-  std::string modelName = "meldogForwardKinematics";
-  PinocchioForwardEndEffectorKinematicsCppAd forwardKinematics(interface, 
-    modelInfo, modelName);
-
-  SwingTrajectoryPlanner::StaticSettings swingStaticSettings;
-  SwingTrajectoryPlanner::DynamicSettings swingDynamicSettings;
-  swingDynamicSettings.invertedPendulumHeight = staticSettings.initialBaseHeight;
-  swingDynamicSettings.phases.resize(4);
-  swingDynamicSettings.swingHeights.resize(4);
-  swingDynamicSettings.tangentialProgresses.resize(4);
-  swingDynamicSettings.tangentialVelocityFactors.resize(4);
-  for(size_t i = 0; i < 4; ++i)
-  {
-    swingDynamicSettings.phases[i] = 0.5;
-    swingDynamicSettings.swingHeights[i] = 0.1;
-    swingDynamicSettings.tangentialProgresses[i] = 0.5;
-    swingDynamicSettings.tangentialVelocityFactors[i] = 2.0;
-  }
-
-  GaitPlanner gaitPlanner(staticParams, dynamicParams, currentPhase, defTime);
-
-  GaitPlanner trueGaitPlanner = gaitPlanner;
-
-  BaseTrajectoryPlanner basePlanner(modelInfo, staticSettings);
-
-  SwingTrajectoryPlanner swingPlanner(modelInfo, swingStaticSettings, 
-    swingDynamicSettings, forwardKinematics);
-
-  JointTrajectoryPlanner jointPlanner(modelInfo, std::move(kinematicsSolver));
-
-  ContactForceWrenchTrajectoryPlanner forcePlanner(modelInfo);
-  
-  LeggedReferenceManager::Settings managerSettings;
-
-  const auto modeSchedule = gaitPlanner.getModeSchedule(initTime, finalTime);
-  contact_flags_t contactFlag = modeSchedule.modeAtTime(initTime);
-
-  LeggedReferenceManager manager(modelInfo, 
-    managerSettings, std::move(gaitPlanner), std::move(swingPlanner), std::move(basePlanner), 
-    std::move(jointPlanner), std::move(forcePlanner));
-
-  const vector3_t initPosition = vector3_t{0.0, 0.0, 0.0};
-
-  const vector3_t planeLocalEulerZyx = vector3_t{0.0, 0.0, 0.0};
-
-  matrix3_t initRotationOnPlane = getRotationMatrixFromZyxEulerAngles(planeLocalEulerZyx);
-
-  const vector3_t headingVector = initRotationOnPlane.col(0);
-  const vector3_t xAxis = slopyTerrain.projectVectorInWorldOntoPlaneAlongGravity(headingVector).normalized();
-  const vector3_t zAxis = slopyTerrain.getSurfaceNormalInWorld();
-  const vector3_t yAxis = zAxis.cross(xAxis);
-
-  matrix3_t initRotationMatrix;
-  initRotationMatrix.col(0) = xAxis;
-  initRotationMatrix.col(1) = yAxis;
-  initRotationMatrix.col(2) = zAxis;
-
-  const vector3_t initEulerZyx = quaterion_euler_transforms::getEulerAnglesFromRotationMatrix(
-    initRotationMatrix);
-
-  const vector2_t initPositionXY{initPosition.x(), initPosition.y()};
-
-  vector3_t initialBasePosition(initPosition.x(), initPosition.y(),
-    terrainModel.getSmoothedPositon(initPositionXY).z());
-  
-  initialBasePosition.z() += staticSettings.initialBaseHeight / slopyTerrain.getSurfaceNormalInWorld().z();
-  
-  state_vector_t initialState = state_vector_t::Zero(12 + modelInfo.actuatedDofNum * 2);
-  initialState.block<3,1>(6, 0) = initialBasePosition;
-  initialState.block<3,1>(9, 0) = initEulerZyx;
-
-  legged_locomotion_mpc::access_helper_functions::getJointPositions(initialState, modelInfo) << 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326;
-
-  std::unique_ptr<TerrainModel> terrainModelPtr = 
-    std::make_unique<PlanarTerrainModel>(slopyTerrain);
-  
-  manager.initialize(initTime, finalTime, initialState, contactFlag, 
-    dynamicParams, swingDynamicSettings, std::move(terrainModelPtr));
-  
-  std::vector<scalar_t> alphaValues{0.0, 0.1, 0.2, 0.5, 0.7, 1.0};
-
-  for(const auto alpha: alphaValues)
-  {
-    scalar_t testTime = 0.0;
-    scalar_t testDeltaTime = deltaTime * alpha;
+  scalar_t testTime = 0.0;
+  scalar_t testDeltaTime = 0.5 * deltaTime;
     
-    while((testTime + testDeltaTime) < finalTime)
+  for(size_t iter = 0; iter < ITERATIONS; ++iter)
+  {
+    const vector_t state = vector_t::Random(modelInfo.stateDim);
+    const vector_t input = vector_t::Random(modelInfo.inputDim);
+    RequestSet set{Request::Constraint + Request::Approximation};
+    precomputation.request(set, testTime, state, input);
+
+    const auto truePositions = forwardKinematics.getPosition(state);
+    const auto truePositionDerivatives = forwardKinematics.getPositionLinearApproximation(state);
+    const auto trueEulerAngles = forwardKinematics.getOrientation(state);
+    const auto trueEulerAngleDerivatives = forwardKinematics.getOrientationLinearApproximation(state);
+    const auto trueLinearVelocities = forwardKinematics.getLinearVelocity(state, input);
+    const auto trueLinearVelocityDerivatives = forwardKinematics.getLinearVelocityLinearApproximation(state, input);
+    const auto trueAngularVelocities = forwardKinematics.getAngularVelocity(state, input);
+    const auto trueAngularVelocityDerivatives = forwardKinematics.getAngularVelocityLinearApproximation(state, input);
+
+    for(size_t i = 0; i < 2; ++i)
     {
-      const auto point1 = manager.getEndEffectorTrajectoryPoint(testTime);
-      const auto point2 = manager.getEndEffectorTrajectoryPoint(testTime + deltaTime);
-      const auto pointMiddle = manager.getEndEffectorTrajectoryPoint(testTime + testDeltaTime);
-      EXPECT_TRUE(point1.positions.size() == 4);
-      EXPECT_TRUE(point1.velocities.size() == 4);
-      EXPECT_TRUE(point1.clearances.size() == 4);
-      for(size_t i = 0; i < point1.positions.size(); ++i)
-      {
-        const vector3_t truePosition = (1 - alpha) * point1.positions[i] + alpha * point2.positions[i];
-        const vector3_t trueVelocity = (1 - alpha) * point1.velocities[i] + alpha * point2.velocities[i];
-        const scalar_t trueClearance = (1 - alpha) * point1.clearances[i] + alpha * point2.clearances[i];
-        const vector3_t trueNormal = (1 - alpha) * point1.surfaceNormals[i] + alpha * point2.surfaceNormals[i];
-        EXPECT_TRUE((pointMiddle.positions[i] - truePosition).norm() < eps);
-        EXPECT_TRUE((pointMiddle.velocities[i] - trueVelocity).norm() < eps);
-        EXPECT_TRUE(std::abs(pointMiddle.clearances[i] - trueClearance) < eps);
-        EXPECT_TRUE((pointMiddle.surfaceNormals[i] - trueNormal).norm() < eps);
-      }
-      testTime += managerSettings.maximumReferenceSampleInterval;
-    }
-  } 
-}
-
-TEST(LeggedReferenceManagerTest, getEndEffectorConstraintMatrixes) 
-{
-  const scalar_t defTime = 0.0;
-  const scalar_t initTime = 0.0;
-  const scalar_t finalTime = 2.1;
-  const scalar_t deltaTime = 0.01;
-
-  /* STANDING TROT */
-  scalar_t currentPhase = 3.5 / 7.0;
-
-  GaitStaticParameters staticParams;
-  staticParams.endEffectorNumber = 4;
-  staticParams.plannerFrequency = 2.0;
-  staticParams.timeHorizion = 0.7;
-
-  GaitDynamicParameters dynamicParams;
-  dynamicParams.steppingFrequency = 1.0 / 0.7;
-  dynamicParams.swingRatio = 3.0 / 7.0;
-  
-  dynamicParams.phaseOffsets = {-currentPhase , -currentPhase , 0};
-
-  const scalar_t slope = 0.0;
-  const vector3_t terrainEulerZyx{0.0, slope, 0.0};
-  const matrix3_t terrainRotation = getRotationMatrixFromZyxEulerAngles(terrainEulerZyx); 
-
-  TerrainPlane slopyTerrain(vector3_t::Zero(), terrainRotation.transpose());
-
-  PlanarTerrainModel terrainModel(slopyTerrain);
-
-  BaseTrajectoryPlanner::StaticSettings staticSettings;
-  staticSettings.deltaTime = deltaTime;
-  staticSettings.initialBaseHeight = 0.25 * std::sqrt(2.0);
-  staticSettings.minimumBaseHeight = 0.1;
-  staticSettings.maximumBaseHeight = 5.0;
-  staticSettings.nominalBaseWidthHeading = 0.2;
-  staticSettings.nominalBaseWidtLateral = 0.2;
-
-  std::string urdfPathName = meldogWithBaseLinkUrdfFile;
-
-  std::string solverName = "NewtonRaphson";
-
-  KinematicsModelSettings modelSettings;
-  modelSettings.baseLinkName = baseLink;
-  modelSettings.threeDofEndEffectorNames = meldog3DofContactNames;
-
-  InverseSolverSettings solverSettings;
-  // solverSettings.stepCoefficient = 0.1;
-  solverSettings.tolerance = 1e-3;
-  MultiEndEffectorKinematics kinematicsSolver(urdfPathName, modelSettings, 
-    solverSettings, solverName);
-
-  ocs2::PinocchioInterface interface = createPinocchioInterfaceFromUrdfFile(urdfPathName, baseLink);
-  const FloatingBaseModelInfo modelInfo = createFloatingBaseModelInfo(interface, meldog3DofContactNames, meldog6DofContactNames);
-  
-  BaseTrajectoryPlanner::BaseReferenceCommand command;
-  command.baseHeadingVelocity = std::rand() / scalar_t(RAND_MAX);
-  command.baseLateralVelocity = std::rand() / scalar_t(RAND_MAX);
-  command.baseVerticalVelocity = 0.0;
-  command.yawRate = std::rand() / scalar_t(RAND_MAX);
-  
-  std::string modelName = "meldogForwardKinematics";
-  PinocchioForwardEndEffectorKinematicsCppAd forwardKinematics(interface, 
-    modelInfo, modelName);
-
-  SwingTrajectoryPlanner::StaticSettings swingStaticSettings;
-  SwingTrajectoryPlanner::DynamicSettings swingDynamicSettings;
-  swingDynamicSettings.invertedPendulumHeight = staticSettings.initialBaseHeight;
-  swingDynamicSettings.phases.resize(4);
-  swingDynamicSettings.swingHeights.resize(4);
-  swingDynamicSettings.tangentialProgresses.resize(4);
-  swingDynamicSettings.tangentialVelocityFactors.resize(4);
-  for(size_t i = 0; i < 4; ++i)
-  {
-    swingDynamicSettings.phases[i] = 0.5;
-    swingDynamicSettings.swingHeights[i] = 0.1;
-    swingDynamicSettings.tangentialProgresses[i] = 0.5;
-    swingDynamicSettings.tangentialVelocityFactors[i] = 2.0;
-  }
-
-  GaitPlanner gaitPlanner(staticParams, dynamicParams, currentPhase, defTime);
-
-  GaitPlanner trueGaitPlanner = gaitPlanner;
-
-  BaseTrajectoryPlanner basePlanner(modelInfo, staticSettings);
-
-  SwingTrajectoryPlanner swingPlanner(modelInfo, swingStaticSettings, 
-    swingDynamicSettings, forwardKinematics);
-
-  JointTrajectoryPlanner jointPlanner(modelInfo, std::move(kinematicsSolver));
-
-  ContactForceWrenchTrajectoryPlanner forcePlanner(modelInfo);
-  
-  LeggedReferenceManager::Settings managerSettings;
-
-  const auto modeSchedule = gaitPlanner.getModeSchedule(initTime, finalTime);
-  contact_flags_t contactFlag = modeSchedule.modeAtTime(initTime);
-
-  LeggedReferenceManager manager(modelInfo, 
-    managerSettings, std::move(gaitPlanner), std::move(swingPlanner), std::move(basePlanner), 
-    std::move(jointPlanner), std::move(forcePlanner));
-
-  const vector3_t initPosition = vector3_t{0.0, 0.0, 0.0};
-
-  const vector3_t planeLocalEulerZyx = vector3_t{0.0, 0.0, 0.0};
-
-  matrix3_t initRotationOnPlane = getRotationMatrixFromZyxEulerAngles(planeLocalEulerZyx);
-
-  const vector3_t headingVector = initRotationOnPlane.col(0);
-  const vector3_t xAxis = slopyTerrain.projectVectorInWorldOntoPlaneAlongGravity(headingVector).normalized();
-  const vector3_t zAxis = slopyTerrain.getSurfaceNormalInWorld();
-  const vector3_t yAxis = zAxis.cross(xAxis);
-
-  matrix3_t initRotationMatrix;
-  initRotationMatrix.col(0) = xAxis;
-  initRotationMatrix.col(1) = yAxis;
-  initRotationMatrix.col(2) = zAxis;
-
-  const vector3_t initEulerZyx = quaterion_euler_transforms::getEulerAnglesFromRotationMatrix(
-    initRotationMatrix);
-
-  const vector2_t initPositionXY{initPosition.x(), initPosition.y()};
-
-  vector3_t initialBasePosition(initPosition.x(), initPosition.y(),
-    terrainModel.getSmoothedPositon(initPositionXY).z());
-  
-  initialBasePosition.z() += staticSettings.initialBaseHeight / slopyTerrain.getSurfaceNormalInWorld().z();
-  
-  state_vector_t initialState = state_vector_t::Zero(12 + modelInfo.actuatedDofNum * 2);
-  initialState.block<3,1>(6, 0) = initialBasePosition;
-  initialState.block<3,1>(9, 0) = initEulerZyx;
-
-  legged_locomotion_mpc::access_helper_functions::getJointPositions(initialState, modelInfo) << 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326;
-
-  std::unique_ptr<TerrainModel> terrainModelPtr = 
-    std::make_unique<PlanarTerrainModel>(slopyTerrain);
-  
-  manager.initialize(initTime, finalTime, initialState, contactFlag, 
-    dynamicParams, swingDynamicSettings, std::move(terrainModelPtr));
-
-  std::vector<scalar_t> goodTimings = {0.0, 0.3, 0.35, 0.65, 0.7, 1, 1.05, 1.35, 1.4, 1.7, 1.75, 2.05, 2.1};
-  std::vector<size_t> goodSequence = {15, 9, 15, 6, 15, 9, 15, 6, 15, 9, 15, 6, 15, 15};
-  const auto mySequence = manager.getModeSchedule().modeSequence;
-
-  EXPECT_TRUE(mySequence == goodSequence);
-
-  scalar_t testTime = initTime;
-  scalar_t testDeltaTime = managerSettings.maximumReferenceSampleInterval;
-
-  std::vector<bool> isInFirstContact(staticParams.endEffectorNumber);
-  for(size_t i = 0; i < staticParams.endEffectorNumber; ++i)
-  {
-    isInFirstContact[i] = contactFlag[i];
-  }
-    
-  while((testTime + testDeltaTime) < finalTime)
-  {
-    const auto contactFlags = manager.getContactFlags(testTime);
-    const auto& constraints  = manager.getEndEffectorConstraintMatrixes(testTime);
-    for(size_t i = 0; i < staticParams.endEffectorNumber; ++i)
-    {
-      // When robot leg is already in contact at the start, constraint does not work
-      if(contactFlags[i] && isInFirstContact[i])  EXPECT_TRUE(!constraints[i].isActive() && isInFirstContact[i]);
+      const auto& position = precomputation.getEndEffectorPosition(i);
+      const auto& positionDerivative = precomputation.getEndEffectorPositionDerivatives(i);
+      const auto& linearVelocity = precomputation.getEndEffectorLinearVelocity(i);
+      const auto& linearVelocityDerivative = precomputation.getEndEffectorLinearVelocityDerivatives(i);
       
-      // When robot legs in in motion after first contact, constraint does not work
-      if(!contactFlags[i] && isInFirstContact[i])  
-      {
-        isInFirstContact[i] = !isInFirstContact[i];
-        EXPECT_TRUE(!constraints[i].isActive());
-      }
+      EXPECT_TRUE((truePositions[i] - position).norm() < eps);
+      EXPECT_TRUE((trueLinearVelocities[i] - linearVelocity).norm() < eps);
+      EXPECT_TRUE((truePositionDerivatives[i].dfdx - positionDerivative.dfdx).norm() < eps);
+      EXPECT_TRUE((truePositionDerivatives[i].dfdu - positionDerivative.dfdu).norm() < eps);
+      EXPECT_TRUE((trueLinearVelocityDerivatives[i].dfdx - linearVelocityDerivative.dfdx).norm() < eps);
+      EXPECT_TRUE((trueLinearVelocityDerivatives[i].dfdu - linearVelocityDerivative.dfdu).norm() < eps);
+    }
+    for(size_t i = 2; i < 4; ++i)
+    {
+      const auto& position = precomputation.getEndEffectorPosition(i);
+      const auto& positionDerivative = precomputation.getEndEffectorPositionDerivatives(i);
+      const auto& eulerAngles = precomputation.getEndEffectorOrientation(i);
+      const auto& eulerAngleDerivative = precomputation.getEndEffectorOrientationDerivatives(i);
+      const auto& linearVelocity = precomputation.getEndEffectorLinearVelocity(i);
+      const auto& linearVelocityDerivative = precomputation.getEndEffectorLinearVelocityDerivatives(i);
+      const auto& angularVelocity = precomputation.getEndEffectorAngularVelocity(i);
+      const auto& angularVelocityDerivative = precomputation.getEndEffectorAngularVelocityDerivatives(i);
 
-      // Later contacts (after first one, if leg started from contact)
-      if(contactFlags[i] && !isInFirstContact[i])
-      {
-        EXPECT_TRUE(constraints[i].isActive() && constraints[i].A.rows() == 3);
-      }
+      const size_t forwardIndex = i - 2;
+      EXPECT_TRUE((truePositions[i] - position).norm() < eps);
+      EXPECT_TRUE((trueEulerAngles[forwardIndex] - eulerAngles).norm() < eps);
+      EXPECT_TRUE((trueLinearVelocities[i] - linearVelocity).norm() < eps);
+      EXPECT_TRUE((trueAngularVelocities[forwardIndex] - angularVelocity).norm() < eps);
+      EXPECT_TRUE((truePositionDerivatives[i].dfdx - positionDerivative.dfdx).norm() < eps);
+      EXPECT_TRUE((truePositionDerivatives[i].dfdu - positionDerivative.dfdu).norm() < eps);
+      EXPECT_TRUE((trueEulerAngleDerivatives[forwardIndex].dfdx - eulerAngleDerivative.dfdx).norm() < eps);
+      EXPECT_TRUE((trueEulerAngleDerivatives[forwardIndex].dfdu - eulerAngleDerivative.dfdu).norm() < eps);
+      EXPECT_TRUE((trueLinearVelocityDerivatives[i].dfdx - linearVelocityDerivative.dfdx).norm() < eps);
+      EXPECT_TRUE((trueLinearVelocityDerivatives[i].dfdu - linearVelocityDerivative.dfdu).norm() < eps);
+      EXPECT_TRUE((trueAngularVelocityDerivatives[forwardIndex].dfdx - angularVelocityDerivative.dfdx).norm() < eps);
+      EXPECT_TRUE((trueAngularVelocityDerivatives[forwardIndex].dfdu - angularVelocityDerivative.dfdu).norm() < eps);
+    }
+    testTime += testDeltaTime;
+  }
+}
 
-      // Later motions (after first one, if leg started from contact)
-      if(!contactFlags[i] && !isInFirstContact[i])
-      {
-        EXPECT_TRUE(!constraints[i].isActive() && !isInFirstContact[i]);
-      }
+TEST(LeggedPrecomputationTest, getCollisionLinks) 
+{
+  const scalar_t defTime = 0.0;
+  const scalar_t initTime = 0.0;
+  const scalar_t finalTime = 2.1;
+  const scalar_t deltaTime = 0.1;
+
+  /* STANDING TROT */
+  scalar_t currentPhase = 3.5 / 7.0;
+
+  GaitStaticParameters staticParams;
+  staticParams.endEffectorNumber = 4;
+  staticParams.plannerFrequency = 2.0;
+  staticParams.timeHorizion = 0.7;
+
+  GaitDynamicParameters dynamicParams;
+  dynamicParams.steppingFrequency = 1.0 / 0.7;
+  dynamicParams.swingRatio = 3.0 / 7.0;
+  
+  dynamicParams.phaseOffsets = {-currentPhase , -currentPhase , 0};
+
+  const scalar_t slope = 0.0;
+  const vector3_t terrainEulerZyx{0.0, slope, 0.0};
+  const matrix3_t terrainRotation = getRotationMatrixFromZyxEulerAngles(terrainEulerZyx); 
+
+  TerrainPlane slopyTerrain(vector3_t::Zero(), terrainRotation.transpose());
+
+  PlanarTerrainModel terrainModel(slopyTerrain);
+
+  BaseTrajectoryPlanner::StaticSettings staticSettings;
+  staticSettings.deltaTime = deltaTime;
+  staticSettings.initialBaseHeight = 0.25 * std::sqrt(2.0);
+  staticSettings.minimumBaseHeight = 0.1;
+  staticSettings.maximumBaseHeight = 5.0;
+  staticSettings.nominalBaseWidthHeading = 0.2;
+  staticSettings.nominalBaseWidtLateral = 0.2;
+
+  std::string urdfPathName = meldogWithBaseLinkUrdfFile;
+
+  std::string solverName = "NewtonRaphson";
+
+  const std::vector<std::string> meldogFake3DofContactNames = {"RFF_link", "RRF_link"};
+  const std::vector<std::string> meldogFake6DofContactNames = {"LFF_link", "LRF_link"};
+
+  KinematicsModelSettings modelSettings;
+  modelSettings.baseLinkName = baseLink;
+  modelSettings.threeDofEndEffectorNames = meldog3DofContactNames;
+
+  InverseSolverSettings solverSettings;
+  // solverSettings.stepCoefficient = 0.1;
+  solverSettings.tolerance = 1e-3;
+  MultiEndEffectorKinematics kinematicsSolver(urdfPathName, modelSettings, 
+    solverSettings, solverName);
+
+  ocs2::PinocchioInterface interface = createPinocchioInterfaceFromUrdfFile(urdfPathName, baseLink);
+  const FloatingBaseModelInfo modelInfo = createFloatingBaseModelInfo(interface, meldogFake3DofContactNames, meldogFake6DofContactNames);
+  
+  BaseTrajectoryPlanner::BaseReferenceCommand command;
+  command.baseHeadingVelocity = std::rand() / scalar_t(RAND_MAX);
+  command.baseLateralVelocity = std::rand() / scalar_t(RAND_MAX);
+  command.baseVerticalVelocity = 0.0;
+  command.yawRate = std::rand() / scalar_t(RAND_MAX);
+  
+  std::string kinematicsModelName = "meldogForwardKinematics";
+  PinocchioForwardEndEffectorKinematicsCppAd forwardKinematics(interface, 
+    modelInfo, kinematicsModelName);
+
+  SwingTrajectoryPlanner::StaticSettings swingStaticSettings;
+  SwingTrajectoryPlanner::DynamicSettings swingDynamicSettings;
+  swingDynamicSettings.invertedPendulumHeight = staticSettings.initialBaseHeight;
+  swingDynamicSettings.phases.resize(4);
+  swingDynamicSettings.swingHeights.resize(4);
+  swingDynamicSettings.tangentialProgresses.resize(4);
+  swingDynamicSettings.tangentialVelocityFactors.resize(4);
+  for(size_t i = 0; i < 4; ++i)
+  {
+    swingDynamicSettings.phases[i] = 0.5;
+    swingDynamicSettings.swingHeights[i] = 0.1;
+    swingDynamicSettings.tangentialProgresses[i] = 0.5;
+    swingDynamicSettings.tangentialVelocityFactors[i] = 2.0;
+  }
+
+  GaitPlanner gaitPlanner(staticParams, dynamicParams, currentPhase, defTime);
+
+  GaitPlanner trueGaitPlanner = gaitPlanner;
+
+  BaseTrajectoryPlanner basePlanner(modelInfo, staticSettings);
+
+  SwingTrajectoryPlanner swingPlanner(modelInfo, swingStaticSettings, 
+    swingDynamicSettings, forwardKinematics);
+
+  JointTrajectoryPlanner jointPlanner(modelInfo, std::move(kinematicsSolver));
+
+  ContactForceWrenchTrajectoryPlanner forcePlanner(modelInfo);
+  
+  LeggedReferenceManager::Settings managerSettings;
+
+  const auto modeSchedule = gaitPlanner.getModeSchedule(initTime, finalTime);
+  contact_flags_t contactFlag = modeSchedule.modeAtTime(initTime);
+
+  LeggedReferenceManager manager(modelInfo, 
+    managerSettings, std::move(gaitPlanner), std::move(swingPlanner), std::move(basePlanner), 
+    std::move(jointPlanner), std::move(forcePlanner));
+
+    const vector3_t initPosition = vector3_t{0.0, 0.0, 0.0};
+
+  const vector3_t planeLocalEulerZyx = vector3_t{0.0, 0.0, 0.0};
+
+  matrix3_t initRotationOnPlane = getRotationMatrixFromZyxEulerAngles(planeLocalEulerZyx);
+
+  const vector3_t headingVector = initRotationOnPlane.col(0);
+  const vector3_t xAxis = slopyTerrain.projectVectorInWorldOntoPlaneAlongGravity(headingVector).normalized();
+  const vector3_t zAxis = slopyTerrain.getSurfaceNormalInWorld();
+  const vector3_t yAxis = zAxis.cross(xAxis);
+
+  matrix3_t initRotationMatrix;
+  initRotationMatrix.col(0) = xAxis;
+  initRotationMatrix.col(1) = yAxis;
+  initRotationMatrix.col(2) = zAxis;
+
+  const vector3_t initEulerZyx = quaterion_euler_transforms::getEulerAnglesFromRotationMatrix(
+    initRotationMatrix);
+
+  const vector2_t initPositionXY{initPosition.x(), initPosition.y()};
+
+  vector3_t initialBasePosition(initPosition.x(), initPosition.y(),
+    terrainModel.getSmoothedPositon(initPositionXY).z());
+  
+  initialBasePosition.z() += staticSettings.initialBaseHeight / slopyTerrain.getSurfaceNormalInWorld().z();
+  
+  state_vector_t initialState = state_vector_t::Zero(12 + modelInfo.actuatedDofNum * 2);
+  initialState.block<3,1>(6, 0) = initialBasePosition;
+  initialState.block<3,1>(9, 0) = initEulerZyx;
+
+  legged_locomotion_mpc::access_helper_functions::getJointPositions(initialState, modelInfo) << 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326;
+
+  std::unique_ptr<TerrainModel> terrainModelPtr = 
+    std::make_unique<PlanarTerrainModel>(slopyTerrain);
+  
+  manager.initialize(initTime, finalTime, initialState, contactFlag, 
+    dynamicParams, swingDynamicSettings, std::move(terrainModelPtr));
+
+  const std::vector<std::string> collisionNames = meldogCollisions;
+
+  const std::string collisionKinematicsModelName = "collision_kinematics";
+
+  ocs2::PinocchioInterface collisionInterface = createPinocchioInterfaceFromUrdfFile(
+    urdfPathName, baseLink);
+
+  PinocchioForwardCollisionKinematicsCppAd collisionKinematics(collisionInterface, modelInfo, 
+    collisionNames, collisionKinematicsModelName);
+
+  const std::string torqueModelName = "torque_approx";
+  PinocchioTorqueApproximationCppAd torqueApproximator(interface, modelInfo,
+    vector_t::Zero(modelInfo.actuatedDofNum), torqueModelName);
+
+  LeggedPrecomputation precomputation(modelInfo, manager, forwardKinematics, 
+    collisionKinematics, torqueApproximator);
+
+  scalar_t testTime = 0.0;
+  scalar_t testDeltaTime = 0.5 * deltaTime;
+    
+  for(size_t iter = 0; iter < ITERATIONS; ++iter)
+  {
+    const vector_t state = vector_t::Random(modelInfo.stateDim);
+    const vector_t input = vector_t::Random(modelInfo.inputDim);
+    RequestSet set{Request::SoftConstraint + Request::Approximation};
+    precomputation.request(set, testTime, state, input);
+
+    const auto truePositions = collisionKinematics.getPosition(state);
+    const auto truePositionDerivatives = collisionKinematics.getPositionLinearApproximation(state);
+    const auto trueEulerAngles = collisionKinematics.getOrientation(state);
+    const auto trueEulerAngleDerivatives = collisionKinematics.getOrientationLinearApproximation(state);
+
+    for(size_t i = 0; i < collisionNames.size(); ++i)
+    {
+      const size_t collisionIndex = i + 4;
+      const auto& position = precomputation.getCollisionLinkPosition(collisionIndex);
+      const auto& positionDerivative = precomputation.getCollisionLinkPositionDerivatives(collisionIndex);
+      const auto& eulerAngles = precomputation.getCollisionLinkOrientation(collisionIndex);
+      const auto& eulerAngleDerivative = precomputation.getCollisionLinkOrientationDerivatives(collisionIndex);
+
+      EXPECT_TRUE((truePositions[i] - position).norm() < eps);
+      EXPECT_TRUE((trueEulerAngles[i] - eulerAngles).norm() < eps);
+      EXPECT_TRUE((truePositionDerivatives[i].dfdx - positionDerivative.dfdx).norm() < eps);
+      EXPECT_TRUE((truePositionDerivatives[i].dfdu - positionDerivative.dfdu).norm() < eps);
+      EXPECT_TRUE((trueEulerAngleDerivatives[i].dfdx - eulerAngleDerivative.dfdx).norm() < eps);
+      EXPECT_TRUE((trueEulerAngleDerivatives[i].dfdu - eulerAngleDerivative.dfdu).norm() < eps);
+    }
+    testTime += testDeltaTime;
+  }
+}
+
+TEST(LeggedPrecomputationTest, getTorque) 
+{
+  const scalar_t defTime = 0.0;
+  const scalar_t initTime = 0.0;
+  const scalar_t finalTime = 2.1;
+  const scalar_t deltaTime = 0.1;
+
+  /* STANDING TROT */
+  scalar_t currentPhase = 3.5 / 7.0;
+
+  GaitStaticParameters staticParams;
+  staticParams.endEffectorNumber = 4;
+  staticParams.plannerFrequency = 2.0;
+  staticParams.timeHorizion = 0.7;
+
+  GaitDynamicParameters dynamicParams;
+  dynamicParams.steppingFrequency = 1.0 / 0.7;
+  dynamicParams.swingRatio = 3.0 / 7.0;
+  
+  dynamicParams.phaseOffsets = {-currentPhase , -currentPhase , 0};
+
+  const scalar_t slope = 0.0;
+  const vector3_t terrainEulerZyx{0.0, slope, 0.0};
+  const matrix3_t terrainRotation = getRotationMatrixFromZyxEulerAngles(terrainEulerZyx); 
+
+  TerrainPlane slopyTerrain(vector3_t::Zero(), terrainRotation.transpose());
+
+  PlanarTerrainModel terrainModel(slopyTerrain);
+
+  BaseTrajectoryPlanner::StaticSettings staticSettings;
+  staticSettings.deltaTime = deltaTime;
+  staticSettings.initialBaseHeight = 0.25 * std::sqrt(2.0);
+  staticSettings.minimumBaseHeight = 0.1;
+  staticSettings.maximumBaseHeight = 5.0;
+  staticSettings.nominalBaseWidthHeading = 0.2;
+  staticSettings.nominalBaseWidtLateral = 0.2;
+
+  std::string urdfPathName = meldogWithBaseLinkUrdfFile;
+
+  std::string solverName = "NewtonRaphson";
+
+  const std::vector<std::string> meldogFake3DofContactNames = {"RFF_link", "RRF_link"};
+  const std::vector<std::string> meldogFake6DofContactNames = {"LFF_link", "LRF_link"};
+
+  KinematicsModelSettings modelSettings;
+  modelSettings.baseLinkName = baseLink;
+  modelSettings.threeDofEndEffectorNames = meldog3DofContactNames;
+
+  InverseSolverSettings solverSettings;
+  // solverSettings.stepCoefficient = 0.1;
+  solverSettings.tolerance = 1e-3;
+  MultiEndEffectorKinematics kinematicsSolver(urdfPathName, modelSettings, 
+    solverSettings, solverName);
+
+  ocs2::PinocchioInterface interface = createPinocchioInterfaceFromUrdfFile(urdfPathName, baseLink);
+  const FloatingBaseModelInfo modelInfo = createFloatingBaseModelInfo(interface, meldogFake3DofContactNames, meldogFake6DofContactNames);
+  
+  BaseTrajectoryPlanner::BaseReferenceCommand command;
+  command.baseHeadingVelocity = std::rand() / scalar_t(RAND_MAX);
+  command.baseLateralVelocity = std::rand() / scalar_t(RAND_MAX);
+  command.baseVerticalVelocity = 0.0;
+  command.yawRate = std::rand() / scalar_t(RAND_MAX);
+  
+  std::string kinematicsModelName = "meldogForwardKinematics";
+  PinocchioForwardEndEffectorKinematicsCppAd forwardKinematics(interface, 
+    modelInfo, kinematicsModelName);
+
+  SwingTrajectoryPlanner::StaticSettings swingStaticSettings;
+  SwingTrajectoryPlanner::DynamicSettings swingDynamicSettings;
+  swingDynamicSettings.invertedPendulumHeight = staticSettings.initialBaseHeight;
+  swingDynamicSettings.phases.resize(4);
+  swingDynamicSettings.swingHeights.resize(4);
+  swingDynamicSettings.tangentialProgresses.resize(4);
+  swingDynamicSettings.tangentialVelocityFactors.resize(4);
+  for(size_t i = 0; i < 4; ++i)
+  {
+    swingDynamicSettings.phases[i] = 0.5;
+    swingDynamicSettings.swingHeights[i] = 0.1;
+    swingDynamicSettings.tangentialProgresses[i] = 0.5;
+    swingDynamicSettings.tangentialVelocityFactors[i] = 2.0;
+  }
+
+  GaitPlanner gaitPlanner(staticParams, dynamicParams, currentPhase, defTime);
+
+  GaitPlanner trueGaitPlanner = gaitPlanner;
+
+  BaseTrajectoryPlanner basePlanner(modelInfo, staticSettings);
+
+  SwingTrajectoryPlanner swingPlanner(modelInfo, swingStaticSettings, 
+    swingDynamicSettings, forwardKinematics);
+
+  JointTrajectoryPlanner jointPlanner(modelInfo, std::move(kinematicsSolver));
+
+  ContactForceWrenchTrajectoryPlanner forcePlanner(modelInfo);
+  
+  LeggedReferenceManager::Settings managerSettings;
+
+  const auto modeSchedule = gaitPlanner.getModeSchedule(initTime, finalTime);
+  contact_flags_t contactFlag = modeSchedule.modeAtTime(initTime);
+
+  LeggedReferenceManager manager(modelInfo, 
+    managerSettings, std::move(gaitPlanner), std::move(swingPlanner), std::move(basePlanner), 
+    std::move(jointPlanner), std::move(forcePlanner));
+
+    const vector3_t initPosition = vector3_t{0.0, 0.0, 0.0};
+
+  const vector3_t planeLocalEulerZyx = vector3_t{0.0, 0.0, 0.0};
+
+  matrix3_t initRotationOnPlane = getRotationMatrixFromZyxEulerAngles(planeLocalEulerZyx);
+
+  const vector3_t headingVector = initRotationOnPlane.col(0);
+  const vector3_t xAxis = slopyTerrain.projectVectorInWorldOntoPlaneAlongGravity(headingVector).normalized();
+  const vector3_t zAxis = slopyTerrain.getSurfaceNormalInWorld();
+  const vector3_t yAxis = zAxis.cross(xAxis);
+
+  matrix3_t initRotationMatrix;
+  initRotationMatrix.col(0) = xAxis;
+  initRotationMatrix.col(1) = yAxis;
+  initRotationMatrix.col(2) = zAxis;
+
+  const vector3_t initEulerZyx = quaterion_euler_transforms::getEulerAnglesFromRotationMatrix(
+    initRotationMatrix);
+
+  const vector2_t initPositionXY{initPosition.x(), initPosition.y()};
+
+  vector3_t initialBasePosition(initPosition.x(), initPosition.y(),
+    terrainModel.getSmoothedPositon(initPositionXY).z());
+  
+  initialBasePosition.z() += staticSettings.initialBaseHeight / slopyTerrain.getSurfaceNormalInWorld().z();
+  
+  state_vector_t initialState = state_vector_t::Zero(12 + modelInfo.actuatedDofNum * 2);
+  initialState.block<3,1>(6, 0) = initialBasePosition;
+  initialState.block<3,1>(9, 0) = initEulerZyx;
+
+  legged_locomotion_mpc::access_helper_functions::getJointPositions(initialState, modelInfo) << 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326;
+
+  std::unique_ptr<TerrainModel> terrainModelPtr = 
+    std::make_unique<PlanarTerrainModel>(slopyTerrain);
+  
+  manager.initialize(initTime, finalTime, initialState, contactFlag, 
+    dynamicParams, swingDynamicSettings, std::move(terrainModelPtr));
+
+  const std::vector<std::string> collisionNames = meldogCollisions;
+
+  const std::string collisionKinematicsModelName = "collision_kinematics";
+
+  ocs2::PinocchioInterface collisionInterface = createPinocchioInterfaceFromUrdfFile(
+    urdfPathName, baseLink);
+
+  PinocchioForwardCollisionKinematicsCppAd collisionKinematics(collisionInterface, modelInfo, 
+    collisionNames, collisionKinematicsModelName);
+
+  const std::string torqueModelName = "torque_approx";
+  PinocchioTorqueApproximationCppAd torqueApproximator(interface, modelInfo,
+    vector_t::Zero(modelInfo.actuatedDofNum), torqueModelName);
+
+  LeggedPrecomputation precomputation(modelInfo, manager, forwardKinematics, 
+    collisionKinematics, torqueApproximator);
+
+  scalar_t testTime = 0.0;
+  scalar_t testDeltaTime = 0.5 * deltaTime;
+    
+  for(size_t iter = 0; iter < ITERATIONS; ++iter)
+  {
+    const vector_t state = vector_t::Random(modelInfo.stateDim);
+    const vector_t input = vector_t::Random(modelInfo.inputDim);
+    RequestSet set{Request::SoftConstraint + Request::Approximation};
+    precomputation.request(set, testTime, state, input);
+
+    const auto trueTorque = torqueApproximator.getValue(state, input);
+    const auto trueTorqueDerivative = torqueApproximator.getLinearApproximation(state, input);
+    const auto& torque = precomputation.getApproximatedJointTorques();
+    const auto& torqueDerivative = precomputation.getApproximatedJointTorquesDerivatives();
+
+    EXPECT_TRUE((torque - trueTorque).norm() < eps);
+    EXPECT_TRUE((trueTorqueDerivative.dfdx - torqueDerivative.dfdx).norm() < eps);
+    EXPECT_TRUE((trueTorqueDerivative.dfdu - torqueDerivative.dfdu).norm() < eps);
+    testTime += testDeltaTime;
+  }
+}
+
+TEST(LeggedPrecomputationTest, getReference) 
+{
+  const scalar_t defTime = 0.0;
+  const scalar_t initTime = 0.0;
+  const scalar_t finalTime = 2.1;
+  const scalar_t deltaTime = 0.1;
+
+  /* STANDING TROT */
+  scalar_t currentPhase = 3.5 / 7.0;
+
+  GaitStaticParameters staticParams;
+  staticParams.endEffectorNumber = 4;
+  staticParams.plannerFrequency = 2.0;
+  staticParams.timeHorizion = 0.7;
+
+  GaitDynamicParameters dynamicParams;
+  dynamicParams.steppingFrequency = 1.0 / 0.7;
+  dynamicParams.swingRatio = 3.0 / 7.0;
+  
+  dynamicParams.phaseOffsets = {-currentPhase , -currentPhase , 0};
+
+  const scalar_t slope = 0.0;
+  const vector3_t terrainEulerZyx{0.0, slope, 0.0};
+  const matrix3_t terrainRotation = getRotationMatrixFromZyxEulerAngles(terrainEulerZyx); 
+
+  TerrainPlane slopyTerrain(vector3_t::Zero(), terrainRotation.transpose());
+
+  PlanarTerrainModel terrainModel(slopyTerrain);
+
+  BaseTrajectoryPlanner::StaticSettings staticSettings;
+  staticSettings.deltaTime = deltaTime;
+  staticSettings.initialBaseHeight = 0.25 * std::sqrt(2.0);
+  staticSettings.minimumBaseHeight = 0.1;
+  staticSettings.maximumBaseHeight = 5.0;
+  staticSettings.nominalBaseWidthHeading = 0.2;
+  staticSettings.nominalBaseWidtLateral = 0.2;
+
+  std::string urdfPathName = meldogWithBaseLinkUrdfFile;
+
+  std::string solverName = "NewtonRaphson";
+
+  const std::vector<std::string> meldogFake3DofContactNames = {"RFF_link", "RRF_link"};
+  const std::vector<std::string> meldogFake6DofContactNames = {"LFF_link", "LRF_link"};
+
+  KinematicsModelSettings modelSettings;
+  modelSettings.baseLinkName = baseLink;
+  modelSettings.threeDofEndEffectorNames = meldog3DofContactNames;
+
+  InverseSolverSettings solverSettings;
+  // solverSettings.stepCoefficient = 0.1;
+  solverSettings.tolerance = 1e-3;
+  MultiEndEffectorKinematics kinematicsSolver(urdfPathName, modelSettings, 
+    solverSettings, solverName);
+
+  ocs2::PinocchioInterface interface = createPinocchioInterfaceFromUrdfFile(urdfPathName, baseLink);
+  const FloatingBaseModelInfo modelInfo = createFloatingBaseModelInfo(interface, meldogFake3DofContactNames, meldogFake6DofContactNames);
+  
+  BaseTrajectoryPlanner::BaseReferenceCommand command;
+  command.baseHeadingVelocity = std::rand() / scalar_t(RAND_MAX);
+  command.baseLateralVelocity = std::rand() / scalar_t(RAND_MAX);
+  command.baseVerticalVelocity = 0.0;
+  command.yawRate = std::rand() / scalar_t(RAND_MAX);
+  
+  std::string kinematicsModelName = "meldogForwardKinematics";
+  PinocchioForwardEndEffectorKinematicsCppAd forwardKinematics(interface, 
+    modelInfo, kinematicsModelName);
+
+  SwingTrajectoryPlanner::StaticSettings swingStaticSettings;
+  SwingTrajectoryPlanner::DynamicSettings swingDynamicSettings;
+  swingDynamicSettings.invertedPendulumHeight = staticSettings.initialBaseHeight;
+  swingDynamicSettings.phases.resize(4);
+  swingDynamicSettings.swingHeights.resize(4);
+  swingDynamicSettings.tangentialProgresses.resize(4);
+  swingDynamicSettings.tangentialVelocityFactors.resize(4);
+  for(size_t i = 0; i < 4; ++i)
+  {
+    swingDynamicSettings.phases[i] = 0.5;
+    swingDynamicSettings.swingHeights[i] = 0.1;
+    swingDynamicSettings.tangentialProgresses[i] = 0.5;
+    swingDynamicSettings.tangentialVelocityFactors[i] = 2.0;
+  }
+
+  GaitPlanner gaitPlanner(staticParams, dynamicParams, currentPhase, defTime);
+
+  GaitPlanner trueGaitPlanner = gaitPlanner;
+
+  BaseTrajectoryPlanner basePlanner(modelInfo, staticSettings);
+
+  SwingTrajectoryPlanner swingPlanner(modelInfo, swingStaticSettings, 
+    swingDynamicSettings, forwardKinematics);
+
+  JointTrajectoryPlanner jointPlanner(modelInfo, std::move(kinematicsSolver));
+
+  ContactForceWrenchTrajectoryPlanner forcePlanner(modelInfo);
+  
+  LeggedReferenceManager::Settings managerSettings;
+
+  const auto modeSchedule = gaitPlanner.getModeSchedule(initTime, finalTime);
+  contact_flags_t contactFlag = modeSchedule.modeAtTime(initTime);
+
+  LeggedReferenceManager manager(modelInfo, 
+    managerSettings, std::move(gaitPlanner), std::move(swingPlanner), std::move(basePlanner), 
+    std::move(jointPlanner), std::move(forcePlanner));
+
+    const vector3_t initPosition = vector3_t{0.0, 0.0, 0.0};
+
+  const vector3_t planeLocalEulerZyx = vector3_t{0.0, 0.0, 0.0};
+
+  matrix3_t initRotationOnPlane = getRotationMatrixFromZyxEulerAngles(planeLocalEulerZyx);
+
+  const vector3_t headingVector = initRotationOnPlane.col(0);
+  const vector3_t xAxis = slopyTerrain.projectVectorInWorldOntoPlaneAlongGravity(headingVector).normalized();
+  const vector3_t zAxis = slopyTerrain.getSurfaceNormalInWorld();
+  const vector3_t yAxis = zAxis.cross(xAxis);
+
+  matrix3_t initRotationMatrix;
+  initRotationMatrix.col(0) = xAxis;
+  initRotationMatrix.col(1) = yAxis;
+  initRotationMatrix.col(2) = zAxis;
+
+  const vector3_t initEulerZyx = quaterion_euler_transforms::getEulerAnglesFromRotationMatrix(
+    initRotationMatrix);
+
+  const vector2_t initPositionXY{initPosition.x(), initPosition.y()};
+
+  vector3_t initialBasePosition(initPosition.x(), initPosition.y(),
+    terrainModel.getSmoothedPositon(initPositionXY).z());
+  
+  initialBasePosition.z() += staticSettings.initialBaseHeight / slopyTerrain.getSurfaceNormalInWorld().z();
+  
+  state_vector_t initialState = state_vector_t::Zero(12 + modelInfo.actuatedDofNum * 2);
+  initialState.block<3,1>(6, 0) = initialBasePosition;
+  initialState.block<3,1>(9, 0) = initEulerZyx;
+
+  legged_locomotion_mpc::access_helper_functions::getJointPositions(initialState, modelInfo) << 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326;
+
+  std::unique_ptr<TerrainModel> terrainModelPtr = 
+    std::make_unique<PlanarTerrainModel>(slopyTerrain);
+  
+  manager.initialize(initTime, finalTime, initialState, contactFlag, 
+    dynamicParams, swingDynamicSettings, std::move(terrainModelPtr));
+
+  const std::vector<std::string> collisionNames = meldogCollisions;
+
+  const std::string collisionKinematicsModelName = "collision_kinematics";
+
+  ocs2::PinocchioInterface collisionInterface = createPinocchioInterfaceFromUrdfFile(
+    urdfPathName, baseLink);
+
+  PinocchioForwardCollisionKinematicsCppAd collisionKinematics(collisionInterface, modelInfo, 
+    collisionNames, collisionKinematicsModelName);
+
+  const std::string torqueModelName = "torque_approx";
+  PinocchioTorqueApproximationCppAd torqueApproximator(interface, modelInfo,
+    vector_t::Zero(modelInfo.actuatedDofNum), torqueModelName);
+
+  LeggedPrecomputation precomputation(modelInfo, manager, forwardKinematics, 
+    collisionKinematics, torqueApproximator);
+
+  scalar_t testTime = 0.0;
+  scalar_t testDeltaTime = 0.5 * deltaTime;
+    
+  while(testTime < finalTime)
+  {
+    const vector_t state = vector_t::Random(modelInfo.stateDim);
+    const vector_t input = vector_t::Random(modelInfo.inputDim);
+    RequestSet set{Request::SoftConstraint + Request::Approximation};
+    precomputation.request(set, testTime, state, input);
+
+    const auto trueReference = manager.getEndEffectorTrajectoryPoint(testTime);
+    const auto& truePositons = trueReference.positions;
+    const auto& trueVelocities = trueReference.velocities;
+    const auto& trueClearances = trueReference.clearances;
+    const auto& trueNormals = trueReference.surfaceNormals;
+
+    for(size_t i = 0; i < 4; ++i)
+    {
+      const auto& position = precomputation.getReferenceEndEffectorPosition(i);
+      const auto& velocity = precomputation.getReferenceEndEffectorLinearVelocity(i);
+      const auto clearance = precomputation.getReferenceEndEffectorTerrainClearance(i);
+      const auto& normal = precomputation.getSurfaceNormal(i);
+      const auto& rotationMatrix = precomputation.getRotationWorldToTerrain(i);
+
+      EXPECT_TRUE((truePositons[i] - position).norm() < eps);
+      EXPECT_TRUE((trueVelocities[i] - velocity).norm() < eps);
+      EXPECT_TRUE((trueNormals[i] - normal).norm() < eps);
+      EXPECT_TRUE((trueNormals[i] - rotationMatrix.transpose().col(2)).norm() < eps);
+      EXPECT_TRUE(std::abs(trueClearances[i] - clearance) < eps);
     }
     testTime += testDeltaTime;
   }

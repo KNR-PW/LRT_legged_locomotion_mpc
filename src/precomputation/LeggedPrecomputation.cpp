@@ -32,6 +32,9 @@ namespace legged_locomotion_mpc
   void LeggedPrecomputation::request(RequestSet request, scalar_t t, 
     const vector_t &x, const vector_t &u)
   {
+    assert(x.size() == modelInfo_.stateDim);
+    assert(u.size() == modelInfo_.inputDim);
+    
     // Constraints || soft constraints || cost
     if(request.containsAny(Request::Constraint + Request::SoftConstraint + Request::Cost))
     {
@@ -294,8 +297,10 @@ namespace legged_locomotion_mpc
   void LeggedPrecomputation::updateReferenceEndEffectorData(scalar_t time)
   {
     referenceTrajectoryPoint_ = referenceManager_.getEndEffectorTrajectoryPoint(time);
-    for(const auto& normal: referenceTrajectoryPoint_.surfaceNormals)
+    
+    for(size_t i = 0; i < endEffectorNumber_; ++i)
     {
+      const auto& normal = referenceTrajectoryPoint_.surfaceNormals[i];
       rotationWorldToTerrains_[i] = TerrainPlane::getOrientationWorldToTerrainFromSurfaceNormalInWorld(normal);
     }
   }
