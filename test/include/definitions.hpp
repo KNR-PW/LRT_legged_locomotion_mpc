@@ -23,7 +23,7 @@ namespace legged_locomotion_mpc
   // Contact frames
   static const std::vector<std::string> meldog3DofContactNames = {"RFF_link", "RRF_link", "LFF_link", "LRF_link"};
   static const std::vector<std::string> meldog6DofContactNames;
-
+  
   // Example collision names
   static const std::vector<std::string> meldogCollisions = {"LFLL_link", "RFLL_link", "LRLL_link", "RRLL_link"};
 

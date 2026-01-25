@@ -66,6 +66,7 @@ namespace legged_locomotion_mpc
          * self collision
          * @param [in] maxExcesses: vector of maximum allowed distances between 
          * the surfaces of the collision primitives and collision spheres
+         * (size: number of end effectors + number of other collision links)
          * @param [in] shrinkRatio: shrinking ratio for maxExcess to 
          * recursively approximate the circular base of the cylinder when more than one
          * collision sphere is required along the radial direction

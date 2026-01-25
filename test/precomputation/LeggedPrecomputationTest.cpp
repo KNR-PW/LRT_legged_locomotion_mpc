@@ -173,10 +173,7 @@ TEST(LeggedPrecomputationTest, getEndEffector)
 
   const std::string collisionKinematicsModelName = "collision_kinematics";
 
-  ocs2::PinocchioInterface collisionInterface = createPinocchioInterfaceFromUrdfFile(
-    urdfPathName, baseLink);
-
-  PinocchioForwardCollisionKinematicsCppAd collisionKinematics(collisionInterface, modelInfo, 
+  PinocchioForwardCollisionKinematicsCppAd collisionKinematics(interface, modelInfo, 
     collisionNames, collisionKinematicsModelName);
 
   const std::string torqueModelName = "torque_approx";
@@ -394,10 +391,7 @@ TEST(LeggedPrecomputationTest, getCollisionLinks)
 
   const std::string collisionKinematicsModelName = "collision_kinematics";
 
-  ocs2::PinocchioInterface collisionInterface = createPinocchioInterfaceFromUrdfFile(
-    urdfPathName, baseLink);
-
-  PinocchioForwardCollisionKinematicsCppAd collisionKinematics(collisionInterface, modelInfo, 
+  PinocchioForwardCollisionKinematicsCppAd collisionKinematics(interface, modelInfo, 
     collisionNames, collisionKinematicsModelName);
 
   const std::string torqueModelName = "torque_approx";
@@ -587,10 +581,7 @@ TEST(LeggedPrecomputationTest, getTorque)
 
   const std::string collisionKinematicsModelName = "collision_kinematics";
 
-  ocs2::PinocchioInterface collisionInterface = createPinocchioInterfaceFromUrdfFile(
-    urdfPathName, baseLink);
-
-  PinocchioForwardCollisionKinematicsCppAd collisionKinematics(collisionInterface, modelInfo, 
+  PinocchioForwardCollisionKinematicsCppAd collisionKinematics(interface, modelInfo, 
     collisionNames, collisionKinematicsModelName);
 
   const std::string torqueModelName = "torque_approx";
@@ -768,10 +759,7 @@ TEST(LeggedPrecomputationTest, getReference)
 
   const std::string collisionKinematicsModelName = "collision_kinematics";
 
-  ocs2::PinocchioInterface collisionInterface = createPinocchioInterfaceFromUrdfFile(
-    urdfPathName, baseLink);
-
-  PinocchioForwardCollisionKinematicsCppAd collisionKinematics(collisionInterface, modelInfo, 
+  PinocchioForwardCollisionKinematicsCppAd collisionKinematics(interface, modelInfo, 
     collisionNames, collisionKinematicsModelName);
 
   const std::string torqueModelName = "torque_approx";

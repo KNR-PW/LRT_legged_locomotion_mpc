@@ -74,6 +74,12 @@
       <origin rpy="0 0 0" xyz="0.0008010000000000001 0.0 -0.13983600000000002"/>
       <inertia ixx="0.0005982219999999999" ixy="0.0" ixz="-2.447e-06" iyy="0.0006030879999999999" iyz="0.0" izz="1.3771e-05"/>
     </inertial>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <sphere radius="0.1"/>
+      </geometry>
+    </collision>
   </link>
   <link name="LFF_link">
     <inertial>
@@ -81,6 +87,12 @@
       <origin rpy="0 0 0" xyz="0.0 0.0 -0.008417"/>
       <inertia ixx="1.4919e-05" ixy="0.0" ixz="0.0" iyy="2.5291e-05" iyz="0.0" izz="2.3389999999999998e-05"/>
     </inertial>
+    <collision>
+      <origin rpy="0 0 0" xyz="0.0 0.0 0"/>   
+      <geometry> 
+        <sphere radius="0.1"/>
+      </geometry>
+    </collision> 
   </link>
   <!-- Right front leg links -->
   <link name="RFH_link">
@@ -103,6 +115,12 @@
       <origin rpy="0 0 0" xyz="0.0008010000000000001 0.0 -0.13983600000000002"/>
       <inertia ixx="0.0005982219999999999" ixy="-0.0" ixz="-2.447e-06" iyy="0.0006030879999999999" iyz="-0.0" izz="1.3771e-05"/>
     </inertial>
+    <collision>
+      <origin xyz="1.0 0 0" rpy="0 0 0" />
+      <geometry>
+        <sphere radius="1.0"/>
+      </geometry>
+    </collision>
   </link>
   <link name="RFF_link">
     <inertial>
@@ -110,6 +128,12 @@
       <origin rpy="0 0 0" xyz="0.0 -0.0 -0.008417"/>
       <inertia ixx="1.4919e-05" ixy="-0.0" ixz="0.0" iyy="2.5291e-05" iyz="-0.0" izz="2.3389999999999998e-05"/>
     </inertial>
+    <collision>
+      <origin rpy="0 0 0" xyz="0.0 0.0 0"/>   
+      <geometry> 
+        <sphere radius="0.1"/>
+      </geometry>
+    </collision> 
   </link>
   <!-- Left rear leg links -->
   <link name="LRH_link">
@@ -132,6 +156,12 @@
       <origin rpy="0 0 0" xyz="-0.0008010000000000001 0.0 -0.13983600000000002"/>
       <inertia ixx="0.0005982219999999999" ixy="-0.0" ixz="2.447e-06" iyy="0.0006030879999999999" iyz="0.0" izz="1.3771e-05"/>
     </inertial>
+    <collision>
+      <origin xyz="1.0 1.0 1.0" rpy="1.0 0.5 0" />
+      <geometry>
+        <sphere radius="0.5"/>
+      </geometry>
+    </collision>
   </link>
   <link name="LRF_link">
     <inertial>
@@ -139,6 +169,12 @@
       <origin rpy="0 0 0" xyz="-0.0 0.0 -0.008417"/>
       <inertia ixx="1.4919e-05" ixy="-0.0" ixz="-0.0" iyy="2.5291e-05" iyz="0.0" izz="2.3389999999999998e-05"/>
     </inertial>
+    <collision>
+      <origin rpy="0 0 0" xyz="0.0 0.0 0"/>   
+      <geometry> 
+        <sphere radius="0.1"/>
+      </geometry>
+    </collision> 
   </link>
   <!-- Right rear leg links -->
   <link name="RRH_link">
@@ -161,6 +197,12 @@
       <origin rpy="0 0 0" xyz="-0.0008010000000000001 0.0 -0.13983600000000002"/>
       <inertia ixx="0.0005982219999999999" ixy="0.0" ixz="2.447e-06" iyy="0.0006030879999999999" iyz="-0.0" izz="1.3771e-05"/>
     </inertial>
+    <collision>
+      <origin xyz="1.0 2.0 3.0" rpy="0.5 0.2 0.4" />
+      <geometry>
+        <cylinder radius="0." length="1.5"/>
+      </geometry>
+    </collision>
   </link>
   <link name="RRF_link">
     <inertial>
@@ -168,6 +210,12 @@
       <origin rpy="0 0 0" xyz="-0.0 -0.0 -0.008417"/>
       <inertia ixx="1.4919e-05" ixy="0.0" ixz="-0.0" iyy="2.5291e-05" iyz="-0.0" izz="2.3389999999999998e-05"/>
     </inertial>
+    <collision>
+      <origin rpy="0 0 0" xyz="0.0 0.0 0"/>   
+      <geometry> 
+        <sphere radius="0.1"/>
+      </geometry>
+    </collision> 
   </link>
   <!-- JOINTS -->
   <joint name="base_joint" type="fixed">

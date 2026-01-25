@@ -44,7 +44,7 @@ namespace legged_locomotion_mpc
       const std::vector<scalar_t>& maxExcesses, scalar_t shrinkRatio,
       const std::string& modelFolder, bool recompileLibraries, bool verbose)
     {
-      if(maxExcesses.size() != otherCollisionLinks.size())
+      if(maxExcesses.size() != (info.endEffectorFrameIndices.size() + otherCollisionLinks.size()))
       {
         throw std::invalid_argument("[PinocchioCollisionInterface]: "
           "maxExcesses is not the same size as otherCollisionLinks!");
@@ -84,7 +84,7 @@ namespace legged_locomotion_mpc
 
       frameNumber_ = collisionFrames.size();
 
-      for(size_t i = 0; i < collisionFrames.size(); ++i)
+      for(size_t i = 0; i < frameNumber_; ++i)
       {
         const size_t frameIndex = collisionFrames[i];
         const auto& framePlacement = pinocchioInterface.getModel().frames[
@@ -129,7 +129,6 @@ namespace legged_locomotion_mpc
         sphereRadiuses_.push_back(std::move(sphereRadiuses));
         frameToSpherePositons_.push_back(std::move(spherePositions));
       }
-
       auto systemFlowMapFunc = [&](const ocs2::ad_vector_t& x, const ocs2::ad_vector_t& p, 
         ocs2::ad_vector_t& y) 
       {
