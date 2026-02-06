@@ -74,7 +74,14 @@ namespace legged_locomotion_mpc
 
     if(modelSettings.maxExcesses.size() != collisionSize)
     {
-      throw std::invalid_argument("[ModelSettings]: maxExcesses not equal all collision size!");
+      throw std::invalid_argument("[ModelSettings]: Max excesses not equal all collision size!");
+    }
+
+    loadData::loadStdVector(filename, fieldName + ".relaxations", modelSettings.relaxations, verbose);
+
+    if(modelSettings.relaxations.size() != collisionSize)
+    {
+      throw std::invalid_argument("[ModelSettings]: Relaxations not equal all collision size!");
     }
 
     loadData::loadPtreeValue(pt, modelSettings.shrinkRatio, fieldName + ".shrinkRatio", verbose);

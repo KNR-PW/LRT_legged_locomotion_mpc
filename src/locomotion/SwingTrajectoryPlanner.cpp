@@ -794,47 +794,102 @@ namespace legged_locomotion_mpc
       return dynamicSettings_; 
     }
 
-     SwingTrajectoryPlanner::StaticSettings loadSwingStaticTrajectorySettings(
-      const std::string& filename, bool verbose)
+    SwingTrajectoryPlanner::StaticSettings loadSwingStaticTrajectorySettings(
+      const std::string& filename, const std::string& fieldName, bool verbose)
     {
-      SwingTrajectoryPlanner::StaticSettings settings{};
-
       boost::property_tree::ptree pt;
       boost::property_tree::read_info(filename, pt);
 
-      const std::string prefix{"model_settings.static_swing_trajectory_settings."};
-
       if(verbose) 
       {
-        std::cerr << "\n #### Static Swing trajectory Settings:" << std::endl;
-        std::cerr << " #### ==================================================" << std::endl;
+        std::cerr << "\n #### Legged Locomotion MPC Swing Planner Static Settings:";
+        std::cerr << "\n #### =============================================================================\n";
       }
 
+      SwingTrajectoryPlanner::StaticSettings settings;
+
       loadData::loadPtreeValue(pt, settings.liftOffVelocity, 
-        prefix + "liftOffVelocity", verbose);
+        fieldName + ".liftOffVelocity", verbose);
+      if(settings.liftOffVelocity < 0.0)
+      {
+        throw std::invalid_argument("[SwingTrajectoryPlanner]: Liftoff velocity smaller than 0!");
+      }
+
       loadData::loadPtreeValue(pt, settings.touchDownVelocity, 
-        prefix + "touchDownVelocity", verbose);
+        fieldName + ".touchDownVelocity", verbose);
+      if(settings.touchDownVelocity > 0.0)
+      {
+        throw std::invalid_argument("[SwingTrajectoryPlanner]: Touchdown velocity bigger than 0!");
+      }
+
       loadData::loadPtreeValue(pt, settings.errorGain, 
-        prefix + "errorGain", verbose);
+        fieldName + ".errorGain", verbose);
+      if(settings.errorGain > 1.0 && settings.errorGain < 0.0)
+      {
+        throw std::invalid_argument("[SwingTrajectoryPlanner]: Error gain needs to be between [0.0, 1.0]!");
+      }
+
       loadData::loadPtreeValue(pt, settings.swingTimeScale, 
-        prefix + "swingTimeScale", verbose);
+        fieldName + ".swingTimeScale", verbose);
+      if(settings.swingTimeScale < 0.0)
+      {
+        throw std::invalid_argument("[SwingTrajectoryPlanner]: Swing time scale smaller than 0.0!");
+      }
+
       loadData::loadPtreeValue(pt, settings.sdfMidswingMargin, 
-        prefix + "sdfMidswingMargin", verbose);
+        fieldName + ".sdfMidswingMargin", verbose);
+
       loadData::loadPtreeValue(pt, settings.terrainMargin, 
-        prefix + "terrainMargin", verbose);
+        fieldName + ".terrainMargin", verbose);
+
       loadData::loadPtreeValue(pt, settings.previousFootholdFactor, 
-        prefix + "previousFootholdFactor", verbose);
+        fieldName + ".previousFootholdFactor", verbose);
+       if(settings.previousFootholdFactor < 0.0 || settings.previousFootholdFactor > 1.0)
+      {
+        throw std::invalid_argument("[SwingTrajectoryPlanner]: Previous foothold factor needs to be between [0.0, 1.0]!");
+      }
+
       loadData::loadPtreeValue(pt, settings.previousFootholdDeadzone, 
-        prefix + "previousFootholdDeadzone",
-        verbose);
+        fieldName + ".previousFootholdDeadzone", verbose);
+       if(settings.previousFootholdDeadzone < 0.0)
+      {
+        throw std::invalid_argument("[SwingTrajectoryPlanner]: Previous foothold deadzone smaller than 0.0!");
+      }
+
       loadData::loadPtreeValue(pt, settings.previousFootholdTimeDeadzone, 
-        prefix + "previousFootholdTimeDeadzone", verbose);
+        fieldName + ".previousFootholdTimeDeadzone", verbose);
+       if(settings.previousFootholdTimeDeadzone < 0.0)
+      {
+        throw std::invalid_argument("[SwingTrajectoryPlanner]: Previous foothold time deadzone smaller than 0.0!");
+      }
+
       loadData::loadPtreeValue(pt, settings.nominalLegExtension, 
-        prefix + "nominalLegExtension", verbose);
+        fieldName + ".nominalLegExtension", verbose);
+       if(settings.nominalLegExtension < 0.0)
+      {
+        throw std::invalid_argument("[SwingTrajectoryPlanner]: Nominal leg extension smaller than 0.0!");
+      }
+
       loadData::loadPtreeValue(pt, settings.legOverExtensionPenalty, 
-        prefix + "legOverExtensionPenalty", verbose);
+        fieldName + ".legOverExtensionPenalty", verbose);
+       if(settings.legOverExtensionPenalty < 0.0)
+      {
+        throw std::invalid_argument("[SwingTrajectoryPlanner]: Leg over extension penalty weight smaller than 0.0!");
+      }
+
       loadData::loadPtreeValue(pt, settings.referenceExtensionAfterHorizon, 
-        prefix + "referenceExtensionAfterHorizon", verbose);
+        fieldName + ".referenceExtensionAfterHorizon", verbose);
+       if(settings.referenceExtensionAfterHorizon < 0.0)
+      {
+        throw std::invalid_argument("[SwingTrajectoryPlanner]: Reference extension after horizon smaller than 0.0!");
+      }
+
+      loadData::loadPtreeValue(pt, settings.maxSwingHeightAdaptation, 
+        fieldName + ".maxSwingHeightAdaptation", verbose);
+       if(settings.maxSwingHeightAdaptation < 0.0)
+      {
+        throw std::invalid_argument("[SwingTrajectoryPlanner]: Max swing height adaptation smaller than 0.0!");
+      }
 
       if(verbose) 
       {
@@ -845,37 +900,79 @@ namespace legged_locomotion_mpc
     }
 
     SwingTrajectoryPlanner::DynamicSettings loadSwingDynamicTrajectorySettings(
-      const std::string& filename, bool verbose)
+      const std::string& filename, const FloatingBaseModelInfo& info,
+      const std::string& fieldName, bool verbose)
     {
-      SwingTrajectoryPlanner::DynamicSettings settings{};
-
       boost::property_tree::ptree pt;
       boost::property_tree::read_info(filename, pt);
 
-      const std::string prefix{"model_settings.dynamic_swing_trajectory_settings."};
-      const std::string phasesPrefix{"model_settings.phases"};
-      const std::string swingheightsPrefix{"model_settings.swingheights"};
-      const std::string tangentialProgressesPrefix{"model_settings.tangentialProgresses"};
-      const std::string tangentialVelocityFactorsPrefix{"model_settings.tangentialVelocityFactors"};
+      SwingTrajectoryPlanner::DynamicSettings settings;
 
       if(verbose) 
       {
-        std::cerr << "\n #### Dynamic Swing trajectory Settings:" << std::endl;
-        std::cerr << " #### ==================================================" << std::endl;
+        std::cerr << "\n #### Legged Locomotion MPC Swing Planner Static Settings:";
+        std::cerr << "\n #### =============================================================================\n";
       }
 
       loadData::loadPtreeValue(pt, settings.invertedPendulumHeight, 
-        prefix + "invertedPendulumHeight", verbose);
-      loadData::loadStdVector(filename, phasesPrefix, settings.phases);
-      loadData::loadStdVector(filename, swingheightsPrefix, settings.phases);
-      loadData::loadStdVector(filename, tangentialProgressesPrefix, 
-        settings.tangentialProgresses);
-      loadData::loadStdVector(filename, tangentialVelocityFactorsPrefix, 
-        settings.tangentialVelocityFactors);
-    
-      if(verbose) 
+        fieldName + ".invertedPendulumHeight", verbose);
+      if(settings.invertedPendulumHeight < 0.0)
       {
-        std::cerr << " #### ==================================================" << std::endl;
+        throw std::invalid_argument("[SwingTrajectoryPlanner]: Inverted pendulum height smaller than 0.0!");
+      }
+
+      const size_t endEffectorNum = info.numThreeDofContacts + info.numSixDofContacts;
+
+      loadData::loadStdVector(filename, fieldName + ".swingHeights", settings.swingHeights, verbose);
+      if(settings.swingHeights.size() != endEffectorNum)
+      {
+        throw std::invalid_argument("[SwingTrajectoryPlanner]: Swing heights have wrong size!");
+      }
+      for(const auto& swingHeight: settings.swingHeights)
+      {
+        if(swingHeight < 0.0)
+        {
+          throw std::invalid_argument("[SwingTrajectoryPlanner]: Swing height smaller than 0.0!");
+        }
+      }
+
+      loadData::loadStdVector(filename, fieldName + ".phases", settings.phases, verbose);
+      if(settings.phases.size() != (endEffectorNum - 1))
+      {
+        throw std::invalid_argument("[SwingTrajectoryPlanner]: Phases have wrong size!");
+      }
+      for(const auto& phase: settings.phases)
+      {
+        if(phase < 0.0 || phase > 1.0)
+        {
+          throw std::invalid_argument("[SwingTrajectoryPlanner]: Phase needs to be between [0.0, 1.0)!");
+        }
+      }
+
+      loadData::loadStdVector(filename, fieldName + ".tangentialProgresses", settings.tangentialProgresses, verbose);
+      if(settings.tangentialProgresses.size() != endEffectorNum)
+      {
+        throw std::invalid_argument("[SwingTrajectoryPlanner]: Tangential progresses have wrong size!");
+      }
+      for(const auto& tangentialProgress: settings.tangentialProgresses)
+      {
+        if(tangentialProgress < 0.0 || tangentialProgress > 1.0)
+        {
+          throw std::invalid_argument("[SwingTrajectoryPlanner]: Tangential progress needs to be between [0.0, 1.0]!");
+        }
+      }
+
+      loadData::loadStdVector(filename, fieldName + ".tangentialProgresses", settings.tangentialVelocityFactors, verbose);
+      if(settings.tangentialVelocityFactors.size() != endEffectorNum)
+      {
+        throw std::invalid_argument("[SwingTrajectoryPlanner]: Tangential velocity factors have wrong size!");
+      }
+      for(const auto& tangentialVelocityFactor: settings.tangentialVelocityFactors)
+      {
+        if(tangentialVelocityFactor < 0.0)
+        {
+          throw std::invalid_argument("[SwingTrajectoryPlanner]: Tangential velocity factor smaller than 0.0!");
+        }
       }
 
       return settings;

@@ -56,6 +56,7 @@ namespace legged_locomotion_mpc
     std::vector<std::string> collisionLinkNames;
     std::vector<std::pair<std::string, std::string>> selfCollisionPairNames;
     std::vector<ocs2::scalar_t> maxExcesses;
+    std::vector<ocs2::scalar_t> relaxations;
     ocs2::scalar_t shrinkRatio = 0.75;
   };
 

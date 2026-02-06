@@ -90,7 +90,7 @@ namespace legged_locomotion_mpc
           /** Maximum height of foots at midpoint of swing phase */
           std::vector<ocs2::scalar_t> swingHeights;
 
-          /** Time progress for midpoints in the swing phase in [0, 1] */
+          /** Time progress for midpoints in the swing phase in [0, 1) */
           std::vector<ocs2::scalar_t> phases;
 
           /** Swing progress for midpoints in tangential direction in [0, 1] */
@@ -285,11 +285,30 @@ namespace legged_locomotion_mpc
         const terrain_model::TerrainModel* terrainModel_;
     };
 
-    /** Load static and dynamic settings from file */
+    /**
+     * Creates SwingTrajectoryPlannr Static Settings settings 
+     * @param [in] filename: file path with model settings.
+     * @param [in] fieldName: field where settings are defined
+     * @param [in] verbose: verbose flag
+     * @return SwingTrajectoryPlanner::StaticSettings struct
+     */
     SwingTrajectoryPlanner::StaticSettings loadSwingStaticTrajectorySettings(
-      const std::string& filename, bool verbose = true);
+      const std::string& filename, 
+      const std::string& fieldName = "swing_planner_static_settings",
+      bool verbose = true);
+
+    /**
+     * Creates SwingTrajectoryPlannr Dynamic Settings setting 
+     * @param [in] filename: file path with model settings.
+     * @param [in] fieldName: field where settings are defined
+     * @param [in] verbose: verbose flag
+     * @return SwingTrajectoryPlanner::DynamicSettings struct
+     */
     SwingTrajectoryPlanner::DynamicSettings loadSwingDynamicTrajectorySettings(
-      const std::string& filename, bool verbose = true);
+      const std::string& filename, 
+      const floating_base_model::FloatingBaseModelInfo& info,
+      const std::string& fieldName = "swing_planner_dynamic_settings",
+      bool verbose = true);
   } // namespace locomotion
 } //  namespace legged_locomotion_mpc
 
