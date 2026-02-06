@@ -50,14 +50,9 @@ namespace legged_locomotion_mpc
       */
       struct Config 
       {
-        ocs2::scalar_t frictionCoefficient;
+        ocs2::scalar_t frictionCoefficient = 0.7;
         ocs2::scalar_t footHalfLengthX;
         ocs2::scalar_t footHalfLengthY;
-
-        explicit Config(
-          ocs2::scalar_t footLengthX,
-          ocs2::scalar_t footLengthY,
-          ocs2::scalar_t frictionCoefficientParam = 0.7);
       };
 
       /**

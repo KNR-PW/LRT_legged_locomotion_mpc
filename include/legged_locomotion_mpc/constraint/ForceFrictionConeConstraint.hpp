@@ -65,16 +65,9 @@ namespace legged_locomotion_mpc
       */
       struct Config 
       {
-        ocs2::scalar_t frictionCoefficient;
-        ocs2::scalar_t regularization;
-        ocs2::scalar_t hessianDiagonalShift;
-
-
-        explicit Config(
-          ocs2::scalar_t frictionCoefficientParam = 0.7,
-          ocs2::scalar_t regularizationParam = 25.0,
-          ocs2::scalar_t hessianDiagonalShiftParam = 1e-6);
-
+        ocs2::scalar_t frictionCoefficient = 0.7;
+        ocs2::scalar_t regularization = 25.0;
+        ocs2::scalar_t hessianDiagonalShift = 1e-6;
       };
 
       /**
@@ -114,7 +107,7 @@ namespace legged_locomotion_mpc
 
     private:
       
-      ForceFrictionConeConstraint(const ForceFrictionConeConstraint&other) = default;
+      ForceFrictionConeConstraint(const ForceFrictionConeConstraint &other) = default;
 
       ocs2::vector_t coneConstraint(const vector3_t &localForce) const;
 

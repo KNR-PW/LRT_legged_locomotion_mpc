@@ -46,22 +46,6 @@ namespace legged_locomotion_mpc
   /******************************************************************************************************/
   /******************************************************************************************************/
   /******************************************************************************************************/
-  ForceFrictionConeConstraint::Config::Config(
-    scalar_t frictionCoefficientParam,
-    scalar_t regularizationParam,
-    scalar_t hessianDiagonalShiftParam): 
-      frictionCoefficient(frictionCoefficientParam),
-      regularization(regularizationParam),
-      hessianDiagonalShift(hessianDiagonalShiftParam) 
-  {
-    assert(frictionCoefficient > 0.0);
-    assert(regularization > 0.0);
-    assert(hessianDiagonalShift >= 0.0);
-  }
-
-  /******************************************************************************************************/
-  /******************************************************************************************************/
-  /******************************************************************************************************/
   ForceFrictionConeConstraint::ForceFrictionConeConstraint(
     const LeggedReferenceManager &referenceManager, Config config,
     floating_base_model::FloatingBaseModelInfo info, size_t endEffectorIndex): 
@@ -69,7 +53,23 @@ namespace legged_locomotion_mpc
       referenceManager_(referenceManager),
       config_(std::move(config)),
       endEffectorIndex_(endEffectorIndex),
-      info_(std::move(info)) {}
+      info_(std::move(info)) 
+  {
+    if(config_.frictionCoefficient < 0)
+    {
+      throw std::invalid_argument("[ForceFrictionConeConstraint]: Friction coefficient smaller than 0!");
+    }
+
+    if(config_.regularization < 0)
+    {
+      throw std::invalid_argument("[ForceFrictionConeConstraint]: Regularization smaller than 0!");
+    }
+    
+    if(config_.hessianDiagonalShift < 0)
+    {
+      throw std::invalid_argument("[ForceFrictionConeConstraint]: Hessian diagonal shift smaller than 0!");
+    }
+  }
 
   /******************************************************************************************************/
   /******************************************************************************************************/
@@ -247,12 +247,10 @@ namespace legged_locomotion_mpc
   ForceFrictionConeConstraint::Config loadForceFrictionConeConfig(
     const std::string& filename, const std::string& fieldName, bool verbose)
   {
-    scalar_t frictionCoefficient = -1.0;
-    scalar_t regularization = -1.0;
-    scalar_t hessianDiagonalShift = -1.0;
-
     boost::property_tree::ptree pt;
     read_info(filename, pt);
+
+    ForceFrictionConeConstraint::Config config;
 
     if(verbose) 
     {
@@ -260,29 +258,26 @@ namespace legged_locomotion_mpc
       std::cerr << "\n #### =============================================================================\n";
     }
 
-    ocs2::loadData::loadPtreeValue(pt, frictionCoefficient, fieldName + ".frictionCoefficient", verbose);
+    ocs2::loadData::loadPtreeValue(pt, config.frictionCoefficient, fieldName + ".frictionCoefficient", verbose);
 
-    if(frictionCoefficient < 0)
+    if(config.frictionCoefficient < 0)
     {
       throw std::invalid_argument("[ForceFrictionConeConstraint]: Friction coefficient smaller than 0!");
     }
 
-    ocs2::loadData::loadPtreeValue(pt, regularization, fieldName + ".regularization", verbose);
+    ocs2::loadData::loadPtreeValue(pt, config.regularization, fieldName + ".regularization", verbose);
 
-    if(regularization < 0)
+    if(config.regularization < 0)
     {
       throw std::invalid_argument("[ForceFrictionConeConstraint]: Regularization smaller than 0!");
     }
 
-    ocs2::loadData::loadPtreeValue(pt, hessianDiagonalShift, fieldName + ".hessianDiagonalShift", verbose);
+    ocs2::loadData::loadPtreeValue(pt, config.hessianDiagonalShift, fieldName + ".hessianDiagonalShift", verbose);
     
-    if(hessianDiagonalShift < 0)
+    if(config.hessianDiagonalShift < 0)
     {
       throw std::invalid_argument("[ForceFrictionConeConstraint]: Hessian diagonal shift smaller than 0!");
     }
-    
-    ForceFrictionConeConstraint::Config config = ForceFrictionConeConstraint::Config(
-      frictionCoefficient, regularization, hessianDiagonalShift);
 
     if(verbose) 
     {

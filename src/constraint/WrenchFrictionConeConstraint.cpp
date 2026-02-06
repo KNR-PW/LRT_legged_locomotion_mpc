@@ -36,22 +36,6 @@ namespace legged_locomotion_mpc
   /******************************************************************************************************/
   /******************************************************************************************************/
   /******************************************************************************************************/
-  WrenchFrictionConeConstraint::Config::Config(
-    scalar_t footLengthX,
-    scalar_t footLengthY,
-    scalar_t frictionCoefficientParam):
-      footHalfLengthX(footLengthX * 0.5),
-      footHalfLengthY(footLengthY * 0.5),
-      frictionCoefficient(frictionCoefficientParam)
-  {
-    assert(frictionCoefficient > 0.0);
-    assert(footHalfLengthX > 0.0);
-    assert(footHalfLengthY > 0.0);
-  }
-
-  /******************************************************************************************************/
-  /******************************************************************************************************/
-  /******************************************************************************************************/
   WrenchFrictionConeConstraint::WrenchFrictionConeConstraint(
     const LeggedReferenceManager &referenceManager,
     Config config,
@@ -63,6 +47,21 @@ namespace legged_locomotion_mpc
       info_(std::move(info)) ,
       endEffectorIndex_(endEffectorIndex)
   {
+    if(config_.frictionCoefficient < 0)
+    {
+      throw std::invalid_argument("[WrenchFrictionConeConstraint]: Fricition coefficient smaller than 0!");
+    }
+
+    if(config_.footHalfLengthX < 0)
+    {
+      throw std::invalid_argument("[WrenchFrictionConeConstraint]: Foot length in direction X smaller than 0!");
+    }
+
+    if(config_.footHalfLengthY < 0)
+    {
+      throw std::invalid_argument("[WrenchFrictionConeConstraint]: Foot length in direction Y smaller than 0!");
+    }
+
     coneConstraintMatrix_ = generateConeConstraintMatrix(config_);
   }
 
@@ -271,12 +270,10 @@ namespace legged_locomotion_mpc
   WrenchFrictionConeConstraint::Config loadWrenchFrictionConeConfig(
     const std::string& filename, const std::string& fieldName,bool verbose)
   {
-    scalar_t frictionCoefficient = -1.0;
-    scalar_t footHalfLengthX = -1.0;
-    scalar_t footHalfLengthY = -1.0;
-
     boost::property_tree::ptree pt;
     read_info(filename, pt);
+
+    WrenchFrictionConeConstraint::Config config;
 
     if(verbose) 
     {
@@ -284,31 +281,28 @@ namespace legged_locomotion_mpc
       std::cerr << "\n #### =============================================================================\n";
     }
 
-    ocs2::loadData::loadPtreeValue(pt, frictionCoefficient, fieldName + ".frictionCoefficient", verbose);
+    ocs2::loadData::loadPtreeValue(pt, config.frictionCoefficient, fieldName + ".frictionCoefficient", verbose);
 
-    if(frictionCoefficient < 0)
+    if(config.frictionCoefficient < 0)
     {
       throw std::invalid_argument("[WrenchFrictionConeConstraint]: Fricition coefficient smaller than 0!");
     }
 
-    ocs2::loadData::loadPtreeValue(pt, footHalfLengthX, fieldName + ".footLengthX", verbose);
-    footHalfLengthX *= 0.5;
+    ocs2::loadData::loadPtreeValue(pt, config.footHalfLengthX, fieldName + ".footLengthX", verbose);
+    config.footHalfLengthX *= 0.5;
 
-    if(footHalfLengthX < 0)
+    if(config.footHalfLengthX < 0)
     {
       throw std::invalid_argument("[WrenchFrictionConeConstraint]: Foot length in direction X smaller than 0!");
     }
     
-    ocs2::loadData::loadPtreeValue(pt, footHalfLengthY, fieldName + ".footLengthY", verbose);
-    footHalfLengthY *= 0.5;
+    ocs2::loadData::loadPtreeValue(pt, config.footHalfLengthY, fieldName + ".footLengthY", verbose);
+    config.footHalfLengthY *= 0.5;
 
-    if(footHalfLengthY < 0)
+    if(config.footHalfLengthY < 0)
     {
       throw std::invalid_argument("[WrenchFrictionConeConstraint]: Foot length in direction Y smaller than 0!");
     }
-
-    WrenchFrictionConeConstraint::Config config = WrenchFrictionConeConstraint::Config(
-      footHalfLengthX, footHalfLengthY, frictionCoefficient);
 
     if(verbose) 
     {
