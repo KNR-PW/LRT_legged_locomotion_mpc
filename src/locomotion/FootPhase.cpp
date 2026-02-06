@@ -24,7 +24,7 @@ namespace legged_locomotion_mpc
       constraints.A.resize(numberOfConstraints, 3);
       constraints.b.resize(numberOfConstraints, 1);
 
-      if (numberOfConstraints > 0) 
+      if(numberOfConstraints > 0) 
 			{
         for (size_t i = 0; i < numberOfConstraints; ++i) 
 		    {
@@ -96,7 +96,7 @@ namespace legged_locomotion_mpc
 
     const FootTangentialConstraintMatrix *StancePhase::getFootTangentialConstraintInWorldFrame() const 
     {
-      if (footTangentialConstraint_.A.rows() > 0) 
+      if(footTangentialConstraint_.A.rows() > 0) 
       {
         return &footTangentialConstraint_;
       } 
@@ -110,7 +110,7 @@ namespace legged_locomotion_mpc
       const SwingProfile &swingProfile,
       const TerrainModel *terrainModel): liftOff_(liftOff), touchDown_(touchDown) 
     {
-      if (touchDown_.terrainPlane == nullptr) 
+      if(touchDown_.terrainPlane == nullptr) 
       {
         setHalveSwing(swingProfile, terrainModel);
       } 
@@ -140,14 +140,14 @@ namespace legged_locomotion_mpc
       // Apex
       std::vector<SwingNode3d> swingPoints = {start};
       const vector3_t swingVector = touchDownPositionInWorld - liftOffPositionInWorld;
-      if (swingVector.head<2>().norm() > 0.01) 
+      if(swingVector.head<2>().norm() > 0.01) 
       {
         // Get a unit vector perpendicular to the swing vector and in the plane formed by the World-Z axis and the swing vector.
         const vector3_t swingTrajectoryNormal = swingVector.cross(vector3_t(0.0, 0.0, 1.0).cross(swingVector)).normalized();
 
         // Terrain adaptation if information is available
         scalar_t maxObstacleHeight = 0.0;
-        if (terrainModel != nullptr) 
+        if(terrainModel != nullptr) 
         {
           const auto heightProfile = terrainModel->getHeightProfileAlongLine(
             liftOffPositionInWorld, touchDownPositionInWorld);
@@ -159,7 +159,7 @@ namespace legged_locomotion_mpc
             const scalar_t pointHeight = point[1];
             const scalar_t heightRelativeToSwingLine = pointHeight - (liftOffPositionInWorld.z() + pointProgress * swingVector.z());
             const scalar_t relativeHeightProjectedOnNormal = heightRelativeToSwingLine * swingTrajectoryNormal.z();
-            if (relativeHeightProjectedOnNormal > maxObstacleHeight) 
+            if(relativeHeightProjectedOnNormal > maxObstacleHeight) 
             {
               maxObstacleHeight = relativeHeightProjectedOnNormal;
             }
@@ -201,7 +201,7 @@ namespace legged_locomotion_mpc
         motion_.reset(new SwingSpline3d(swingPoints));
 
         // Terrain clearance
-        if (terrainModel != nullptr && terrainModel->getSignedDistanceField() != nullptr) 
+        if(terrainModel != nullptr && terrainModel->getSignedDistanceField() != nullptr) 
         {
           const auto &sdf = *terrainModel->getSignedDistanceField();
           const scalar_t sdfStartClearance = std::min(sdf.value(liftOffPositionInWorld), 0.0) + sdfStartEndMargin;
@@ -252,7 +252,7 @@ namespace legged_locomotion_mpc
       motion_.reset(new SwingSpline3d(swingPoints)); 
       {
         // Terrain clearance
-        if (terrainModel != nullptr && terrainModel->getSignedDistanceField() != nullptr) 
+        if(terrainModel != nullptr && terrainModel->getSignedDistanceField() != nullptr) 
         {
           const auto &sdf = *terrainModel->getSignedDistanceField();
           const scalar_t sdfStartClearance = std::min(sdf.value(liftOffPositionInWorld), 0.0) + sdfStartEndMargin;
@@ -275,9 +275,9 @@ namespace legged_locomotion_mpc
       static const CubicSpline scalingSpline({startInterpolation, 0.0, 0.0}, {endInterpolation, 1.0, 0.0});
 
       const scalar_t normalizedTime = (time - liftOff_.time) / (touchDown_.time - liftOff_.time);
-      if (normalizedTime < startInterpolation) {
+      if(normalizedTime < startInterpolation) {
           return 0.0;
-      } else if (normalizedTime < endInterpolation) {
+      } else if(normalizedTime < endInterpolation) {
           return scalingSpline.position(normalizedTime);
       } else {
           return 1.0;
@@ -318,7 +318,7 @@ namespace legged_locomotion_mpc
 
     scalar_t SwingPhase::getMinimumFootClearance(scalar_t time) const 
     {
-      if (terrainClearanceMotion_ != nullptr) 
+      if(terrainClearanceMotion_ != nullptr) 
       {
         return terrainClearanceMotion_->position(time);
       } 

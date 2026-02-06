@@ -269,7 +269,7 @@ namespace legged_locomotion_mpc
   }
 
   WrenchFrictionConeConstraint::Config loadWrenchFrictionConeConfig(
-    const std::string &filename, const std::string &fieldName,bool verbose)
+    const std::string& filename, const std::string& fieldName,bool verbose)
   {
     scalar_t frictionCoefficient = -1.0;
     scalar_t footHalfLengthX = -1.0;
@@ -278,9 +278,9 @@ namespace legged_locomotion_mpc
     boost::property_tree::ptree pt;
     read_info(filename, pt);
 
-    if (verbose) 
+    if(verbose) 
     {
-      std::cerr << "\n #### 3D Friction Cone Constraint Config:";
+      std::cerr << "\n #### Legged Locomotion MPC Wrench Friction Cone Constraint Config:";
       std::cerr << "\n #### =============================================================================\n";
     }
 
@@ -309,6 +309,12 @@ namespace legged_locomotion_mpc
 
     WrenchFrictionConeConstraint::Config config = WrenchFrictionConeConstraint::Config(
       footHalfLengthX, footHalfLengthY, frictionCoefficient);
+
+    if(verbose) 
+    {
+      std::cerr << " #### =============================================================================" <<
+      std::endl;
+    }
       
     return config;
   }

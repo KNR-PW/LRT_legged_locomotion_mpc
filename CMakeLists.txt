@@ -83,8 +83,8 @@ add_library(${PROJECT_NAME}
 
   # src/dynamics/LeggedDynamicsAD.cpp
 
-  # src/constraint/ForceFrictionConeConstraint.cpp
-  # src/constraint/WrenchFrictionConeConstraint.cpp
+  src/constraint/ForceFrictionConeConstraint.cpp
+  src/constraint/WrenchFrictionConeConstraint.cpp
   # src/constraint/Zero3DofVelocityConstraint.cpp
   # src/constraint/Zero6DofVelocityConstraint.cpp
   # src/constraint/ZeroForceConstraint.cpp
@@ -99,7 +99,7 @@ add_library(${PROJECT_NAME}
 
   # src/initialization/LeggedInitializer.cpp
 
-  # src/cost/TrajectoryTrackingCost.cpp
+  src/cost/TrajectoryTrackingCost.cpp
   # src/cost/TerminalTrackingCost.cpp
 )
 
@@ -119,7 +119,7 @@ target_compile_options(${PROJECT_NAME} PUBLIC ${FLAGS})
 #########################
 
 find_package(cmake_clang_tools QUIET)
-if (cmake_clang_tools_FOUND)
+if(cmake_clang_tools_FOUND)
     message(STATUS "Run clang tooling for target " ${PROJECT_NAME})
     add_clang_tooling(
             TARGETS ${PROJECT_NAME}

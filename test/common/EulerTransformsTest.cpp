@@ -32,7 +32,7 @@ class RotationVectorMultiplicationAD final
       systemFlowMapCppAdInterfacePtr_.reset(
           new ocs2::CppAdInterface(systemFlowMapFunc, 3, 3, "euler_to_matrix_systemFlowMap", modelFolder));
     
-      if (recompileLibraries) {
+      if(recompileLibraries) {
         systemFlowMapCppAdInterfacePtr_->createModels(ocs2::CppAdInterface::ApproximationOrder::First, verbose);
       } else {
         systemFlowMapCppAdInterfacePtr_->loadModelsIfAvailable(ocs2::CppAdInterface::ApproximationOrder::First, verbose);

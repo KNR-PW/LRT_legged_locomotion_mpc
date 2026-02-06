@@ -29,6 +29,7 @@
 #include <floating_base_model/FloatingBaseModelInfo.hpp>
 
 #include <legged_locomotion_mpc/common/Types.hpp>
+#include <legged_locomotion_mpc/common/ModelSettings.hpp>
 #include <legged_locomotion_mpc/common/Utils.hpp>
 #include <legged_locomotion_mpc/reference_manager/LeggedReferenceManager.hpp>
 
@@ -39,46 +40,46 @@ namespace legged_locomotion_mpc
   {
     class TrajectoryTrackingCost: public ocs2::StateInputCost
     {
-
-      struct BaseWeights
-      {
-        vector3_t position;
-        vector3_t rotation;
-        vector3_t linearVelocity;
-        vector3_t angularVelocity;
-      };
-
-      struct JointWeights
-      {
-        ocs2::vector_t positions;
-        ocs2::vector_t velocities;
-      };
-
-      struct EndEffectorWeights
-      {
-        std::vector<vector3_t> positions;
-        std::vector<vector3_t> velocities; // linear
-        std::vector<vector3_t> forces;
-      };
-
-      TrajectoryTrackingCost(floating_base_model::FloatingBaseModelInfo info,
-        const LeggedReferenceManager& referenceManager,
-        BaseWeights baseWeights, JointWeights jointWeights,
-        EndEffectorWeights endEffectorWeights, 
-        const std::string& modelFolder = "/tmp/legged_locomotion_mp",
-        bool recompileLibraries = true,
-        bool verbose = false);
-
-      TrajectoryTrackingCost* clone() const override;
-
-      ocs2::scalar_t getValue(ocs2::scalar_t time, const ocs2::vector_t& state, 
-        const ocs2::vector_t& input, const ocs2::TargetTrajectories& targetTrajectories, 
-        const ocs2::PreComputation& preComp) const override;
-
-      ocs2::ScalarFunctionQuadraticApproximation getQuadraticApproximation(
-        ocs2::scalar_t time, const ocs2::vector_t& state, const ocs2::vector_t& input,
-        const ocs2::TargetTrajectories& targetTrajectories,
-        const ocs2::PreComputation& preComp) const override;
+      public: 
+        struct BaseWeights
+        {
+          vector3_t position;
+          vector3_t rotation;
+          vector3_t linearVelocity;
+          vector3_t angularVelocity;
+        };
+      
+        struct JointWeights
+        {
+          ocs2::vector_t positions;
+          ocs2::vector_t velocities;
+        };
+      
+        struct EndEffectorWeights
+        {
+          std::vector<vector3_t> positions;
+          std::vector<vector3_t> velocities; // linear
+          std::vector<vector3_t> forces;
+        };
+      
+        TrajectoryTrackingCost(floating_base_model::FloatingBaseModelInfo info,
+          const LeggedReferenceManager& referenceManager,
+          BaseWeights baseWeights, JointWeights jointWeights,
+          EndEffectorWeights endEffectorWeights, 
+          const std::string& modelFolder = "/tmp/legged_locomotion_mp",
+          bool recompileLibraries = true,
+          bool verbose = false);
+        
+        TrajectoryTrackingCost* clone() const override;
+        
+        ocs2::scalar_t getValue(ocs2::scalar_t time, const ocs2::vector_t& state, 
+          const ocs2::vector_t& input, const ocs2::TargetTrajectories& targetTrajectories, 
+          const ocs2::PreComputation& preComp) const override;
+        
+        ocs2::ScalarFunctionQuadraticApproximation getQuadraticApproximation(
+          ocs2::scalar_t time, const ocs2::vector_t& state, const ocs2::vector_t& input,
+          const ocs2::TargetTrajectories& targetTrajectories,
+          const ocs2::PreComputation& preComp) const override;
 
       private:
         TrajectoryTrackingCost(const TrajectoryTrackingCost& rhs);
@@ -101,10 +102,49 @@ namespace legged_locomotion_mpc
 
         /**
          * Helper Cpp AD function for getting partial derivative w.r.t euler ZYX angles
-         * from log3 of tagret (parameter) and actual euler angles (differentiable values)
+         * from log3 of tagret (parameter) and actual euler angles (differentiable values):
+         * dlog3(e)/de
          */
         std::unique_ptr<ocs2::CppAdInterface> log3AdInterfacePtr_;
     };
+
+  /**
+   * Creates base weights 
+   * @param [in] filename: file path with model settings.
+   * @param [in] fieldName: field where settings are defined
+   * @param [in] verbose: verbose flag
+   * @return BaseWeights struct
+   */
+  TrajectoryTrackingCost::BaseWeights loadBaseWeights(const std::string& filename,
+    const std::string& fieldName = "base_weights",
+    bool verbose = "true");
+
+  /**
+   * Creates joint weights 
+   * @param [in] filename: file path with model settings.
+   * @param [in] fieldName: field where settings are defined
+   * @param [in] verbose: verbose flag
+   * @return JointWeights struct
+   */
+  TrajectoryTrackingCost::JointWeights loadJointWeights(const std::string& filename,
+    const floating_base_model::FloatingBaseModelInfo& info,
+    const std::string& fieldName = "joint_weights",
+    bool verbose = "true");
+
+  /**
+   * Creates end effector weights 
+   * @param [in] filename: file path with model settings.
+   * @param [in] fieldName: field where settings are defined
+   * @param [in] verbose: verbose flag
+   * @return EndEffectorWeights struct
+   */
+  TrajectoryTrackingCost::EndEffectorWeights loadEndEffectorWeights(
+    const std::string& filename,
+    const ModelSettings& modelSettings,
+    const floating_base_model::FloatingBaseModelInfo& info,
+    const std::string& fieldName = "end_effector_weights",
+    bool verbose = "true");
+
   } // namespace cost
 } // namespace legged_locomotion_mpc
 

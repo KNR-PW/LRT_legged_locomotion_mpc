@@ -71,7 +71,7 @@ namespace legged_locomotion_mpc
       const state_vector_t& initialState,
       TargetTrajectories& targetTrajectories)
     {
-      if (!terrainModel_) 
+      if(!terrainModel_) 
       {
         throw std::runtime_error("[BaseTrajectoryPlanner] terrain cannot be null. " 
           "Update the terrain before planning base trajectory");

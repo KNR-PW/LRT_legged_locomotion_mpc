@@ -38,7 +38,7 @@ namespace legged_locomotion_mpc
       // 1. possibly overwrite joint references later (adapted with inverse kinematics)
       // 2. ensure a maximum interval between references points.
       // 3. unsure we have samples at start and end of the MPC horizon.
-      if (targetTrajectories.empty()) 
+      if(targetTrajectories.empty()) 
       {
         throw std::runtime_error("[Utils] provided target "
           "trajectory cannot be empty.");
@@ -62,11 +62,11 @@ namespace legged_locomotion_mpc
 
       for (int k = 0; k < targetTrajectories.timeTrajectory.size(); ++k) 
       {
-        if (targetTrajectories.timeTrajectory[k] <= initTime) 
+        if(targetTrajectories.timeTrajectory[k] <= initTime) 
         {
           continue; // Drop all samples before init time
         } 
-        else if (targetTrajectories.timeTrajectory[k] > finalTime && finalTimeFlag) 
+        else if(targetTrajectories.timeTrajectory[k] > finalTime && finalTimeFlag) 
         {
           // Do it one time only!
           finalTimeFlag = false;
@@ -129,13 +129,13 @@ namespace legged_locomotion_mpc
       const auto numStanceLegs = numberOfClosedContacts(info, contactFlags);
       size_t numEndEffectors = info.numThreeDofContacts + info.numSixDofContacts;
       vector_t input = vector_t::Zero(info.inputDim);
-      if (numStanceLegs > 0) 
+      if(numStanceLegs > 0) 
       {
         const scalar_t totalWeight = info.robotMass * PLUS_GRAVITY_VALUE;
         const vector3_t forceInInertialFrame(0.0, 0.0, totalWeight / numStanceLegs);
         for (size_t i = 0; i < numEndEffectors; i++) 
         {
-          if (contactFlags[i]) {
+          if(contactFlags[i]) {
             access_helper_functions::getContactForces(input, i, info) = forceInInertialFrame;
           }
         } 
@@ -151,13 +151,13 @@ namespace legged_locomotion_mpc
     {
       const auto numStanceLegs = numberOfClosedContacts(info, contactFlags);
       size_t numEndEffectors = info.numThreeDofContacts + info.numSixDofContacts;
-      if (numStanceLegs > 0) 
+      if(numStanceLegs > 0) 
       {
         const scalar_t totalWeight = info.robotMass * PLUS_GRAVITY_VALUE;
         const vector3_t forceInInertialFrame(0.0, 0.0, totalWeight / numStanceLegs);
         for (size_t i = 0; i < numEndEffectors; i++) 
         {
-          if (contactFlags[i]) {
+          if(contactFlags[i]) {
             access_helper_functions::getContactForces(input, i, info) = forceInInertialFrame;
           }
         } 

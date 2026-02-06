@@ -132,8 +132,8 @@ namespace legged_locomotion_mpc
    * @param [in] verbose: verbose flag
    * @return ForceFrictionConeConstraint::Config struct
    */
-  ForceFrictionConeConstraint::Config loadForceFrictionConeConfig(const std::string &filename,
-    const std::string &fieldName = "force_friction_cone_settings",
+  ForceFrictionConeConstraint::Config loadForceFrictionConeConfig(const std::string& filename,
+    const std::string& fieldName = "force_friction_cone_settings",
     bool verbose = "true");
 } // namespace legged_locomotion_mpc
 

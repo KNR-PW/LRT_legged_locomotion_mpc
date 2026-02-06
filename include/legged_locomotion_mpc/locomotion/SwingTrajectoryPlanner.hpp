@@ -287,9 +287,9 @@ namespace legged_locomotion_mpc
 
     /** Load static and dynamic settings from file */
     SwingTrajectoryPlanner::StaticSettings loadSwingStaticTrajectorySettings(
-      const std::string &filename, bool verbose = true);
+      const std::string& filename, bool verbose = true);
     SwingTrajectoryPlanner::DynamicSettings loadSwingDynamicTrajectorySettings(
-      const std::string &filename, bool verbose = true);
+      const std::string& filename, bool verbose = true);
   } // namespace locomotion
 } //  namespace legged_locomotion_mpc
 

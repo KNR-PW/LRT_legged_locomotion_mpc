@@ -37,7 +37,7 @@ namespace legged_locomotion_mpc
     {
       for (const auto &contactPhase: contactTimings) 
       {
-        if (hasEndTime(contactPhase) && contactPhase.end > currentTime) 
+        if(hasEndTime(contactPhase) && contactPhase.end > currentTime) 
         {
           return contactPhase.end;
         }
@@ -51,7 +51,7 @@ namespace legged_locomotion_mpc
     {
       for (const auto &contactPhase: contactTimings) 
       {
-        if (hasStartTime(contactPhase) && contactPhase.start > currentTime) 
+        if(hasStartTime(contactPhase) && contactPhase.start > currentTime) 
         {
           return contactPhase.start;
         }
@@ -79,7 +79,7 @@ namespace legged_locomotion_mpc
         {
           ++currentPhase;
         }
-        if (currentPhase >= numPhases) 
+        if(currentPhase >= numPhases) 
         {
           break; // No more contact phases
         }

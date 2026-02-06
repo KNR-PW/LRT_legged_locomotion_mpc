@@ -46,7 +46,7 @@ namespace legged_locomotion_mpc
     torqueApproxCppAdInterfacePtr_.reset(new CppAdInterface(torqueApproxFunc,
       info_.stateDim + info_.inputDim, modelName + "_torque_approx", modelFolder));
 
-    if (recompileLibraries) 
+    if(recompileLibraries) 
     {
       torqueApproxCppAdInterfacePtr_->createModels(CppAdInterface::ApproximationOrder::First, verbose);
     } 

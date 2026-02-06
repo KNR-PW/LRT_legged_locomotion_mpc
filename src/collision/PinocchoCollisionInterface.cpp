@@ -50,7 +50,7 @@ namespace legged_locomotion_mpc
           "maxExcesses is not the same size as otherCollisionLinks!");
       }
 
-      if (!pinocchioInterface.getUrdfModelPtr()) 
+      if(!pinocchioInterface.getUrdfModelPtr()) 
       {
         throw std::invalid_argument(
           "[PinocchioCollisionInterface]: The PinocchioInterface passed to "
@@ -99,7 +99,7 @@ namespace legged_locomotion_mpc
           const pinocchio::GeometryObject& object = geometryModel_.geometryObjects[j];
           const size_t parentFrameIndex = object.parentFrame;
 
-          if (parentFrameIndex == frameIndex) 
+          if(parentFrameIndex == frameIndex) 
           {
             const auto& objectCenterPlacement = object.placement;
             const auto frameToCenterPlacement = framePlacement.actInv(objectCenterPlacement);
@@ -140,7 +140,7 @@ namespace legged_locomotion_mpc
       rotationMatrixVectorAdInterfacePtr_.reset(
           new ocs2::CppAdInterface(systemFlowMapFunc, 3, 3, "rotation_times_vector_euler", modelFolder));
     
-      if (recompileLibraries) {
+      if(recompileLibraries) {
         rotationMatrixVectorAdInterfacePtr_->createModels(ocs2::CppAdInterface::ApproximationOrder::First, verbose);
       } else {
         rotationMatrixVectorAdInterfacePtr_->loadModelsIfAvailable(ocs2::CppAdInterface::ApproximationOrder::First, verbose);

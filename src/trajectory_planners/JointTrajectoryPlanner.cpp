@@ -231,7 +231,7 @@ namespace legged_locomotion_mpc
     }
 
     KinematicsModelSettings loadKinematicsModelSettings(
-      const std::string &filename, bool verbose)
+      const std::string& filename, bool verbose)
     {
       KinematicsModelSettings settings{};
 
@@ -242,7 +242,7 @@ namespace legged_locomotion_mpc
       const std::string threeDofContactsPrefix{"threeDofEndEffectorNames"};
       const std::string sixDofContactsPrefix{"sixDofEndEffectorNames"};
 
-      if (verbose) 
+      if(verbose) 
       {
         std::cerr << "\n #### Inverse Kinematics Model Settings:" << std::endl;
         std::cerr << "#### IMPORTANT: Six DOF end effectors not supported, added to three DOF!" << std::endl;
@@ -260,7 +260,7 @@ namespace legged_locomotion_mpc
         settings.sixDofEndEffectorNames.begin(), settings.sixDofEndEffectorNames.end());
 
       settings.sixDofEndEffectorNames.clear();
-      if (verbose) 
+      if(verbose) 
       {
         std::cerr << " #### ==================================================" << std::endl;
       }
@@ -269,7 +269,7 @@ namespace legged_locomotion_mpc
     }
 
     InverseSolverSettings loadInverseSolverSettings(
-      const std::string &filename, bool verbose)
+      const std::string& filename, bool verbose)
     {
       InverseSolverSettings settings;
 
@@ -278,7 +278,7 @@ namespace legged_locomotion_mpc
 
       const std::string prefix{"model_settings.inverse_kinematics_solver_settings."};
 
-      if (verbose) 
+      if(verbose) 
       {
         std::cerr << "\n #### Inverse Kinematics Solver Settings:" << std::endl;
         std::cerr << " #### ==================================================" << std::endl;
@@ -295,7 +295,7 @@ namespace legged_locomotion_mpc
       loadData::loadPtreeValue(pt, settings.stepCoefficient, 
         prefix + "stepCoefficient", verbose);
 
-      if (verbose) 
+      if(verbose) 
       {
         std::cerr << " #### ==================================================" << std::endl;
       }
@@ -303,7 +303,7 @@ namespace legged_locomotion_mpc
       return settings;
     }
 
-    std::string loadInverseSolverName(const std::string &filename, bool verbose)
+    std::string loadInverseSolverName(const std::string& filename, bool verbose)
     {
 
       std::string solverName;
@@ -313,7 +313,7 @@ namespace legged_locomotion_mpc
 
       const std::string prefix{"model_settings.inverse_kinematics_solver_name."};
 
-      if (verbose) 
+      if(verbose) 
       {
         std::cerr << "\n #### Inverse Kinematics Solver Name:" << std::endl;
         std::cerr << " #### ==================================================" << std::endl;
@@ -322,7 +322,7 @@ namespace legged_locomotion_mpc
       loadData::loadPtreeValue(pt, solverName, 
         prefix + "", verbose);
 
-      if (verbose) 
+      if(verbose) 
       {
         std::cerr << " #### ==================================================" << std::endl;
       }

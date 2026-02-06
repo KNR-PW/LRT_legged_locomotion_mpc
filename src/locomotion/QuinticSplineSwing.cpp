@@ -166,7 +166,7 @@ namespace legged_locomotion_mpc
 
     QuinticSwing::QuinticSwing(const std::vector<SwingNode> &nodes) 
     {
-      if (nodes.size() < 3) 
+      if(nodes.size() < 3) 
       {
         throw std::invalid_argument("[QuinticSwing] need at least 3 nodes for spline fitting");
       }
@@ -199,17 +199,17 @@ namespace legged_locomotion_mpc
         addEndVelocityConstraint(nodes[splineNum + 1].velocity, dt, A, b, constraintIdx++, splineIdx);
 
         // Acceleration is 0.0 at start and end of the curve
-        if (splineNum == 0) 
+        if(splineNum == 0) 
         {
             addStartAccelerationConstraint(0.0, dt, A, b, constraintIdx++, splineIdx);
         }
-        if (splineNum == (numSplines - 1)) 
+        if(splineNum == (numSplines - 1)) 
         {
             addEndAccelerationConstraint(0.0, dt, A, b, constraintIdx++, splineIdx);
         }
 
         // Acceleration and jerk continuity for middle nodes
-        if (splineNum != (numSplines - 1)) 
+        if(splineNum != (numSplines - 1)) 
         {
           const scalar_t dt_next = nodes[splineNum + 2].time - nodes[splineNum + 1].time;
           addAccelerationContinuity(dt, dt_next, A, b, constraintIdx++, 
@@ -238,7 +238,7 @@ namespace legged_locomotion_mpc
           nodes[splineNum].time, dt));
 
         // add when this spline ends (except for the last one)
-        if (splineNum != (numSplines - 1)) 
+        if(splineNum != (numSplines - 1)) 
         {
           nodeTimes.push_back(nodes[splineNum + 1].time);
         }

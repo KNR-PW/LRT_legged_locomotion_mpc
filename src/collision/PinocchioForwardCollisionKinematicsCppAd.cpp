@@ -56,7 +56,7 @@ namespace legged_locomotion_mpc
     };
     orientationCppAdInterfacePtr_.reset(new CppAdInterface(orientationFunc, info.stateDim, modelName + "_orientation", modelFolder));
 
-    if (recompileLibraries) 
+    if(recompileLibraries) 
     {
       positionCppAdInterfacePtr_->createModels(CppAdInterface::ApproximationOrder::First, verbose);
       orientationCppAdInterfacePtr_->createModels(CppAdInterface::ApproximationOrder::First, verbose);

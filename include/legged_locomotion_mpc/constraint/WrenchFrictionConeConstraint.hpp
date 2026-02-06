@@ -110,7 +110,7 @@ namespace legged_locomotion_mpc
    * @return WrenchFrictionConeConstraint::Config struct
    */
   WrenchFrictionConeConstraint::Config loadWrenchFrictionConeConfig(
-    const std::string &filename, const std::string &fieldName = "wrench_friction_cone_settings",
+    const std::string& filename, const std::string& fieldName = "wrench_friction_cone_settings",
     bool verbose = "true");
 } // namespace legged_locomotion_mpc
 

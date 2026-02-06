@@ -6,8 +6,8 @@
 namespace legged_locomotion_mpc
 {
   using namespace ocs2;
-  ModelSettings loadModelSettings(const std::string &filename,
-    const std::string &fieldName,
+  ModelSettings loadModelSettings(const std::string& filename,
+    const std::string& fieldName,
     bool verbose)
   {
     ModelSettings modelSettings;
@@ -15,7 +15,7 @@ namespace legged_locomotion_mpc
     boost::property_tree::ptree pt;
     read_info(filename, pt);
 
-    if (verbose) 
+    if(verbose) 
     {
       std::cerr << "\n #### Legged Locomotion MPC Common Model Settings:";
       std::cerr << "\n #### =============================================================================\n";
@@ -84,7 +84,8 @@ namespace legged_locomotion_mpc
       throw std::invalid_argument("[ModelSettings]: Shrink ratio must be between (0.0, 1.0)!");
     }
 
-    if (verbose) {
+    if(verbose) 
+    {
       std::cerr << " #### =============================================================================" <<
       std::endl;
     }

@@ -54,7 +54,7 @@ namespace legged_locomotion_mpc
 
     const SignedDistanceField* SwingTrajectoryPlanner::getSignedDistanceField() const 
     {
-      if (terrainModel_) 
+      if(terrainModel_) 
       {
         return terrainModel_->getSignedDistanceField();
       } 
@@ -68,7 +68,7 @@ namespace legged_locomotion_mpc
      const state_vector_t& currentState, const TargetTrajectories& targetTrajectories,
       const ModeSchedule& modeSchedule) 
     {
-      if (!terrainModel_) 
+      if(!terrainModel_) 
       {
         throw std::runtime_error("[SwingTrajectoryPlanner] terrain cannot be null. " 
           "Update the terrain before planning swing motions");
@@ -89,13 +89,13 @@ namespace legged_locomotion_mpc
         const auto &contactTimings = contactTimingsPerLeg[i];
 
         // Update last contacts
-        if (!contactTimings.empty()) 
+        if(!contactTimings.empty()) 
         {
           scalar_t expectedLiftOffTime;
-          if (startsWithStancePhase(contactTimings)) 
+          if(startsWithStancePhase(contactTimings)) 
           {
             // If currently in contact -> update expected liftoff.
-            if (hasEndTime(contactTimings.front())) 
+            if(hasEndTime(contactTimings.front())) 
             {
               expectedLiftOffTime = contactTimings.front().end;
               updateLastContact(i, expectedLiftOffTime, feetPositions[i], *terrainModel_);
@@ -113,7 +113,7 @@ namespace legged_locomotion_mpc
              * If currently in swing -> verify that liftoff was before the horizon.
              * If not, assume liftoff happened exactly at initTime 
              */ 
-            if (lastContacts_[i].first > initTime) 
+            if(lastContacts_[i].first > initTime) 
             {
               expectedLiftOffTime = initTime;
               updateLastContact(i, expectedLiftOffTime, feetPositions[i], *terrainModel_);
@@ -310,13 +310,13 @@ namespace legged_locomotion_mpc
       std::vector<std::unique_ptr<FootPhase>> footPhases;
 
       // First swing phase
-      if (startsWithSwingPhase(contactTimings)) 
+      if(startsWithSwingPhase(contactTimings)) 
       {
         SwingPhase::SwingEvent liftOff{lastContacts_[endEffectorIndex].first, 
           staticSettings_.liftOffVelocity, &lastContacts_[endEffectorIndex].second};
         SwingPhase::SwingEvent touchDown = [&] 
         {
-          if (touchesDownAtLeastOnce(contactTimings)) 
+          if(touchesDownAtLeastOnce(contactTimings)) 
           {
             return SwingPhase::SwingEvent{contactTimings.front().start,
                staticSettings_.touchDownVelocity, 
@@ -342,20 +342,20 @@ namespace legged_locomotion_mpc
         const ConvexTerrain &nominalFoothold = nominalFootholdsPerLeg_[endEffectorIndex][i];
         
         // If phase starts after the horizon, we don't need to plan for it
-        if (currentContactTiming.start > finalTime) 
+        if(currentContactTiming.start > finalTime) 
         {
           break;
         }
 
         // generate contact phase
-        if (hasStartTime(currentContactTiming)) 
+        if(hasStartTime(currentContactTiming)) 
         {
           eventTimes.push_back(currentContactTiming.start);
         }
         footPhases.emplace_back(new StancePhase(nominalFoothold, staticSettings_.terrainMargin));
         
         // If contact phase extends beyond the horizon, we can stop planning.
-        if (!hasEndTime(currentContactTiming) || currentContactTiming.end > finalTime) 
+        if(!hasEndTime(currentContactTiming) || currentContactTiming.end > finalTime) 
         {
           break;
         }
@@ -366,7 +366,7 @@ namespace legged_locomotion_mpc
         SwingPhase::SwingEvent touchDown = [&] 
         {
           const bool nextContactExists = (i + 1) < contactTimings.size();
-          if (nextContactExists) 
+          if(nextContactExists) 
           {
             return SwingPhase::SwingEvent{contactTimings[i + 1].start, 
               staticSettings_.touchDownVelocity, 
@@ -391,7 +391,7 @@ namespace legged_locomotion_mpc
     {
       const scalar_t scaling = [&]() 
       {
-        if (std::isnan(liftOff.time) || std::isnan(touchDown.time)) 
+        if(std::isnan(liftOff.time) || std::isnan(touchDown.time)) 
         {
           return 1.0;
         } 
@@ -401,7 +401,7 @@ namespace legged_locomotion_mpc
         }
       }();
 
-      if (scaling < 1.0) 
+      if(scaling < 1.0) 
       {
         liftOff.velocity *= scaling;
         touchDown.velocity *= scaling;
@@ -455,7 +455,7 @@ namespace legged_locomotion_mpc
       std::vector<vector3_t> heuristicFootholds;
 
       // Heuristic foothold is equal to current foothold for legs in contact
-      if (startsWithStancePhase(contactTimings)) 
+      if(startsWithStancePhase(contactTimings)) 
       {
         heuristicFootholds.push_back(lastContacts_[endEffectorIndex].second.getPosition());
       }
@@ -464,7 +464,7 @@ namespace legged_locomotion_mpc
       size_t contactCount = 0;
       for (const auto &contactPhase: contactTimings) 
       {
-        if (hasStartTime(contactPhase)) 
+        if(hasStartTime(contactPhase)) 
         {
           const scalar_t contactEndTime = getContactEndTime(contactPhase, finalTime);
           const scalar_t middleContactTime = 0.5 * (contactEndTime + contactPhase.start);
@@ -481,7 +481,7 @@ namespace legged_locomotion_mpc
           vector3_t referenceFootholdPositionInWorld = kinematicsModel_->getPosition(state)[endEffectorIndex];
 
           // Add ZMP offset to the first upcoming foothold.
-          if (contactCount == 0) 
+          if(contactCount == 0) 
           {
             referenceFootholdPositionInWorld += zmpReactiveOffset;
           }
@@ -493,7 +493,7 @@ namespace legged_locomotion_mpc
            * Can stop for this end effector if we have processed one contact
            * phase after (or extending across) the horizon
            */ 
-          if (contactEndTime > finalTime) 
+          if(contactEndTime > finalTime) 
           {
             break;
           }
@@ -516,7 +516,7 @@ namespace legged_locomotion_mpc
       std::vector<ConvexTerrain> nominalFootholdTerrain;
 
       // Nominal foothold is equal to current foothold for end effectors in contact
-      if (startsWithStancePhase(contactTimings)) 
+      if(startsWithStancePhase(contactTimings)) 
       {
         std::vector<vector2_t> emptyBoundry;
         const auto plane = lastContacts_[endEffectorIndex].second;
@@ -528,7 +528,7 @@ namespace legged_locomotion_mpc
       // For future contact phases
       for (const auto &contactPhase: contactTimings) 
       {
-        if (hasStartTime(contactPhase)) 
+        if(hasStartTime(contactPhase)) 
         {
           const scalar_t timeTillContact = contactPhase.start - initTime;
           const scalar_t contactEndTime = getContactEndTime(contactPhase, finalTime);
@@ -538,7 +538,7 @@ namespace legged_locomotion_mpc
           const FootPhase *previousIterationContact = getFootPhaseIfInContact(endEffectorIndex, 
             middleContactTime);
 
-          if (timeTillContact < staticSettings_.previousFootholdTimeDeadzone 
+          if(timeTillContact < staticSettings_.previousFootholdTimeDeadzone 
             && previousIterationContact != nullptr) 
           {
             // Simply copy the information out of the previous iteration
@@ -551,7 +551,7 @@ namespace legged_locomotion_mpc
             vector3_t referenceFootholdPositionInWorld = *heuristicFootholdIt;
 
             // Filter w.r.t. previous foothold
-            if (previousIterationContact != nullptr) 
+            if(previousIterationContact != nullptr) 
             {
               referenceFootholdPositionInWorld = filterFoothold(
                 referenceFootholdPositionInWorld, 
@@ -582,7 +582,7 @@ namespace legged_locomotion_mpc
               //                                    hipOrientationInWorldLiftoff, config);
               // };
 
-            if (contactPhase.start < finalTime) 
+            if(contactPhase.start < finalTime) 
             {
               ConvexTerrain convexTerrain = terrainModel.getConvexTerrainAtPositionInWorld(
                   referenceFootholdPositionInWorld);
@@ -605,7 +605,7 @@ namespace legged_locomotion_mpc
            * Can stop for this end effector if we have processed one contact 
            * phase after (or extending across) the horizon
            */
-          if (contactEndTime > finalTime) 
+          if(contactEndTime > finalTime) 
           {
             break;
           }
@@ -657,7 +657,7 @@ namespace legged_locomotion_mpc
     //         }
 
     //         // Can stop adaptation as soon as we have processed a point beyond the horizon.
-    //         if (t > finalTime) {
+    //         if(t > finalTime) {
     //             break;
     //         }
     //     }
@@ -701,10 +701,10 @@ namespace legged_locomotion_mpc
       scalar_t time) const 
     {
       const FootPhase *previousIterationContact = nullptr;
-      if (!feetNormalTrajectories_[endEffectorIndex].empty()) 
+      if(!feetNormalTrajectories_[endEffectorIndex].empty()) 
       {
         const auto &footPhase = getFootPhase(endEffectorIndex, time);
-        if (footPhase.contactFlag()) 
+        if(footPhase.contactFlag()) 
         {
           previousIterationContact = &footPhase;
         }
@@ -716,7 +716,7 @@ namespace legged_locomotion_mpc
       const vector3_t &previousFoothold) const 
     {
       // Apply Position deadzone and low pass filter
-      if ((newFoothold - previousFoothold).norm() < staticSettings_.previousFootholdDeadzone) 
+      if((newFoothold - previousFoothold).norm() < staticSettings_.previousFootholdDeadzone) 
       {
         return previousFoothold;
       } 
@@ -795,7 +795,7 @@ namespace legged_locomotion_mpc
     }
 
      SwingTrajectoryPlanner::StaticSettings loadSwingStaticTrajectorySettings(
-      const std::string &filename, bool verbose)
+      const std::string& filename, bool verbose)
     {
       SwingTrajectoryPlanner::StaticSettings settings{};
 
@@ -804,7 +804,7 @@ namespace legged_locomotion_mpc
 
       const std::string prefix{"model_settings.static_swing_trajectory_settings."};
 
-      if (verbose) 
+      if(verbose) 
       {
         std::cerr << "\n #### Static Swing trajectory Settings:" << std::endl;
         std::cerr << " #### ==================================================" << std::endl;
@@ -836,7 +836,7 @@ namespace legged_locomotion_mpc
       loadData::loadPtreeValue(pt, settings.referenceExtensionAfterHorizon, 
         prefix + "referenceExtensionAfterHorizon", verbose);
 
-      if (verbose) 
+      if(verbose) 
       {
         std::cerr << " #### ==================================================" << std::endl;
       }
@@ -845,7 +845,7 @@ namespace legged_locomotion_mpc
     }
 
     SwingTrajectoryPlanner::DynamicSettings loadSwingDynamicTrajectorySettings(
-      const std::string &filename, bool verbose)
+      const std::string& filename, bool verbose)
     {
       SwingTrajectoryPlanner::DynamicSettings settings{};
 
@@ -858,7 +858,7 @@ namespace legged_locomotion_mpc
       const std::string tangentialProgressesPrefix{"model_settings.tangentialProgresses"};
       const std::string tangentialVelocityFactorsPrefix{"model_settings.tangentialVelocityFactors"};
 
-      if (verbose) 
+      if(verbose) 
       {
         std::cerr << "\n #### Dynamic Swing trajectory Settings:" << std::endl;
         std::cerr << " #### ==================================================" << std::endl;
@@ -873,7 +873,7 @@ namespace legged_locomotion_mpc
       loadData::loadStdVector(filename, tangentialVelocityFactorsPrefix, 
         settings.tangentialVelocityFactors);
     
-      if (verbose) 
+      if(verbose) 
       {
         std::cerr << " #### ==================================================" << std::endl;
       }

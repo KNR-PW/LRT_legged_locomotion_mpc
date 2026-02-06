@@ -59,7 +59,7 @@ namespace legged_locomotion_mpc
     };
     angularVelocityCppAdInterfacePtr_.reset(new CppAdInterface(angularVelocityFunc, info_.stateDim + info_.inputDim, modelName + "_angular_velocity", modelFolder));
 
-    if (recompileLibraries) 
+    if(recompileLibraries) 
     {
       positionCppAdInterfacePtr_->createModels(CppAdInterface::ApproximationOrder::First, verbose);
       orientationCppAdInterfacePtr_->createModels(CppAdInterface::ApproximationOrder::First, verbose);

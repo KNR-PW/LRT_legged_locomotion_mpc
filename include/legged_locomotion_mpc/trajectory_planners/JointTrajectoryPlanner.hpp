@@ -86,12 +86,12 @@ namespace legged_locomotion_mpc
     };
     
     multi_end_effector_kinematics::KinematicsModelSettings loadKinematicsModelSettings(
-      const std::string &filename, bool verbose = true);
+      const std::string& filename, bool verbose = true);
 
     multi_end_effector_kinematics::InverseSolverSettings loadInverseSolverSettings(
-      const std::string &filename, bool verbose = true);
+      const std::string& filename, bool verbose = true);
 
-    std::string loadInverseSolverName(const std::string &filename, bool verbose = true);
+    std::string loadInverseSolverName(const std::string& filename, bool verbose = true);
   };
 } // namespace legged_locomotion_mpc
 

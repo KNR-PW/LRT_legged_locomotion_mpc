@@ -245,7 +245,7 @@ namespace legged_locomotion_mpc
   }
 
   ForceFrictionConeConstraint::Config loadForceFrictionConeConfig(
-    const std::string &filename, const std::string &fieldName, bool verbose)
+    const std::string& filename, const std::string& fieldName, bool verbose)
   {
     scalar_t frictionCoefficient = -1.0;
     scalar_t regularization = -1.0;
@@ -254,9 +254,9 @@ namespace legged_locomotion_mpc
     boost::property_tree::ptree pt;
     read_info(filename, pt);
 
-    if (verbose) 
+    if(verbose) 
     {
-      std::cerr << "\n #### 3D Friction Cone Constraint Config:";
+      std::cerr << "\n #### Legged Locomotion MPC Force Friction Cone Constraint Config:";
       std::cerr << "\n #### =============================================================================\n";
     }
 
@@ -283,6 +283,12 @@ namespace legged_locomotion_mpc
     
     ForceFrictionConeConstraint::Config config = ForceFrictionConeConstraint::Config(
       frictionCoefficient, regularization, hessianDiagonalShift);
+
+    if(verbose) 
+    {
+      std::cerr << " #### =============================================================================" <<
+      std::endl;
+    }
       
     return config;
   }
