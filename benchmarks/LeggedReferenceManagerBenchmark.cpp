@@ -78,10 +78,10 @@ static void LeggedReferenceManager_PRESOLVE(benchmark::State & state)
   const FloatingBaseModelInfo modelInfo = createFloatingBaseModelInfo(interface, meldog3DofContactNames, meldog6DofContactNames);
 
   BaseTrajectoryPlanner::BaseReferenceCommand command;
-  command.baseHeadingVelocity = std::rand() / scalar_t(RAND_MAX) / 100.0;
-  command.baseLateralVelocity = std::rand() / scalar_t(RAND_MAX) / 100.0;
+  command.baseHeadingVelocity = std::rand() / scalar_t(RAND_MAX);
+  command.baseLateralVelocity = std::rand() / scalar_t(RAND_MAX);
   command.baseVerticalVelocity = 0.0;
-  command.yawRate = std::rand() / scalar_t(RAND_MAX) / 100.0;
+  command.yawRate = std::rand() / scalar_t(RAND_MAX);
   
   std::string modelName = "meldogForwardKinematics";
   PinocchioForwardEndEffectorKinematicsCppAd forwardKinematics(interface, 
@@ -111,7 +111,7 @@ static void LeggedReferenceManager_PRESOLVE(benchmark::State & state)
 
   const vector3_t initPosition = vector3_t::Random();
 
-  const vector3_t planeLocalEulerZyx = vector3_t{std::rand() / scalar_t(RAND_MAX), 0.0, 
+  const vector3_t planeLocalEulerZyx = vector3_t{std::rand() / scalar_t(RAND_MAX);, 0.0, 
     0.0};
   matrix3_t initRotationOnPlane = getRotationMatrixFromZyxEulerAngles(planeLocalEulerZyx);
 

@@ -123,6 +123,17 @@ namespace legged_locomotion_mpc
       const size_t endEffectorIndex_;
       const floating_base_model::FloatingBaseModelInfo info_;
   };
+
+  /**
+   * Creates Force Friction Cone settings 
+   * @param [in] filename: file path with model settings.
+   * @param [in] fieldName: field where settings are defined
+   * @param [in] verbose: verbose flag
+   * @return ForceFrictionConeConstraint::Config struct
+   */
+  ForceFrictionConeConstraint::Config loadForceFrictionConeConfig(const std::string &filename,
+    const std::string &fieldName = "friction_cone_settings",
+    bool verbose = "true");
 } // namespace legged_locomotion_mpc
 
 #endif

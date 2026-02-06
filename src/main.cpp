@@ -1,209 +1,164 @@
-#include <ocs2_core/Types.h>
-#include <chrono>
-#include <iostream>
+#include <legged_locomotion_mpc/reference_manager/LeggedReferenceManager.hpp>
+#include <legged_locomotion_mpc/common/AccessHelperFunctions.hpp>
 
+#include <floating_base_model/FactoryFunctions.hpp>
 
-class ConstLocalObject
-{
-  public:
-  ocs2::VectorFunctionLinearApproximation get(size_t inputDim, size_t stateDim) const
-  {
-    ocs2::VectorFunctionLinearApproximation linearApprox;
-    linearApprox.f = ocs2::vector_t::Zero(inputDim);
-    linearApprox.dfdx = ocs2::matrix_t::Zero(stateDim, stateDim);
-    linearApprox.dfdu = ocs2::matrix_t::Zero(inputDim, inputDim);
-    linearApprox.f = ocs2::vector_t::Random(inputDim);
-    return linearApprox;
-  }
-};
+#include <terrain_model/core/TerrainPlane.hpp>
+#include <terrain_model/planar_model/PlanarTerrainModel.hpp>
 
-class NonConstClassObject
-{
-  public:
+#include "../test/include/definitions.hpp"
 
-  NonConstClassObject(size_t inputDim, size_t stateDim)
-  {
-    inputDim_ = inputDim;
-    a_.f = ocs2::vector_t::Zero(inputDim);
-    a_.dfdx = ocs2::matrix_t::Zero(stateDim, stateDim);
-    a_.dfdu = ocs2::matrix_t::Zero(inputDim, inputDim);
-  }
-
-  ocs2::VectorFunctionLinearApproximation get() 
-  {
-    a_.f = ocs2::vector_t::Random(inputDim_); 
-    return a_;
-  }
-
-  private:
-  size_t inputDim_;
-  ocs2::VectorFunctionLinearApproximation a_;
-
-};
-
-class ConstMutableClassObject
-{
-  public:
-
-  ConstMutableClassObject(size_t inputDim, size_t stateDim)
-  {
-    inputDim_ = inputDim;
-    a_.f = ocs2::vector_t::Zero(inputDim);
-    a_.dfdx = ocs2::matrix_t::Zero(stateDim, stateDim);
-    a_.dfdu = ocs2::matrix_t::Zero(inputDim, inputDim);
-  }
-
-  ocs2::VectorFunctionLinearApproximation get() const
-  {
-    a_.f = ocs2::vector_t::Random(inputDim_); 
-    return a_;
-  }
-
-  private:
-  size_t inputDim_;
-  mutable ocs2::VectorFunctionLinearApproximation a_;
-};
-
-
-ocs2::VectorFunctionLinearApproximation test_func_1(size_t inputDim, size_t stateDim)
-{
-  ocs2::VectorFunctionLinearApproximation linearApprox;
-  linearApprox.f = ocs2::vector_t::Zero(inputDim);
-  linearApprox.dfdx = ocs2::matrix_t::Zero(stateDim, stateDim);
-  linearApprox.dfdu = ocs2::matrix_t::Zero(inputDim, inputDim);
-  linearApprox.f = ocs2::vector_t::Random(inputDim); 
-  return linearApprox;
-};
-
-
-ocs2::VectorFunctionLinearApproximation test_func_2(size_t inputDim, ocs2::VectorFunctionLinearApproximation& a)
-{
-  a.f = ocs2::vector_t::Random(inputDim); 
-  return a;
-};
-
-void test_func_3(size_t inputDim, ocs2::VectorFunctionLinearApproximation& a)
-{
-  a.f = ocs2::vector_t::Random(inputDim); 
-};
+using namespace legged_locomotion_mpc;
+using namespace legged_locomotion_mpc::locomotion;
+using namespace legged_locomotion_mpc::planners;
+using namespace floating_base_model;
+using namespace ocs2;
+using namespace terrain_model;
+using namespace multi_end_effector_kinematics;
 
 int main()
 {
-  size_t inputDim = 100;
-  size_t stateDim = 50;
-  std::cout << "Type input dimension: " << std::endl;
-  std::cin >> inputDim;
-  std::cout << "Type state dimension: " << std::endl;
-  std::cin >> stateDim;
-  std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-  for(size_t i = 0; i < 10000; ++i)
-  {
-    const auto output = test_func_1(inputDim, stateDim);
-  }
-  std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-  std::cout << "Time difference: first test = " << std::chrono::duration_cast<std::chrono::nanoseconds> (end - begin).count() << "[ns]" << std::endl;
+  const scalar_t defTime = 0.0;
+  const scalar_t initTime = 0.0;
+  const scalar_t finalTime = 2.1;
+  const scalar_t deltaTime = 0.2;
 
-  int firstTime = std::chrono::duration_cast<std::chrono::nanoseconds> (end - begin).count();
+  /* STANDING TROT */
+  scalar_t currentPhase = 3.5 / 7.0;
 
-  begin = std::chrono::steady_clock::now();
+  GaitStaticParameters staticParams;
+  staticParams.endEffectorNumber = 4;
+  staticParams.plannerFrequency = 2.0;
+  staticParams.timeHorizion = 0.7;
 
-  ocs2::VectorFunctionLinearApproximation linearApprox;
-  linearApprox.f = ocs2::vector_t::Zero(inputDim);
-  linearApprox.dfdx = ocs2::matrix_t::Zero(stateDim, stateDim);
-  linearApprox.dfdu = ocs2::matrix_t::Zero(inputDim, inputDim);
-  for(size_t i = 0; i < 10000; ++i)
-  {
-    const auto output = test_func_2(inputDim, linearApprox);
-  }
-  end = std::chrono::steady_clock::now();
-  std::cout << "Time difference: second test = " << std::chrono::duration_cast<std::chrono::nanoseconds> (end - begin).count() << "[ns]" << std::endl;
-
-  int secondTime = std::chrono::duration_cast<std::chrono::nanoseconds> (end - begin).count();
-  begin = std::chrono::steady_clock::now();
-
-  linearApprox.f = ocs2::vector_t::Zero(inputDim);
-  linearApprox.dfdx = ocs2::matrix_t::Zero(stateDim, stateDim);
-  linearApprox.dfdu = ocs2::matrix_t::Zero(inputDim, inputDim);
-  for(size_t i = 0; i < 10000; ++i)
-  {
-    test_func_3(inputDim, linearApprox);
-  }
-  end = std::chrono::steady_clock::now();
-  std::cout << "Time difference: third test = " << std::chrono::duration_cast<std::chrono::nanoseconds> (end - begin).count() << "[ns]" << std::endl;
-  int thirdTime = std::chrono::duration_cast<std::chrono::nanoseconds> (end - begin).count();
-
-  std::cout << "second/first: " << (double) firstTime / (double) secondTime << std::endl;
-  std::cout << "third/first: " << (double) firstTime / (double) thirdTime << std::endl;
-  Eigen::VectorXd testVector = Eigen::VectorXd::Random(100);
-
-  Eigen::VectorXd vector = Eigen::VectorXd::Random(100);
-
-  Eigen::MatrixXd testMatrix = Eigen::MatrixXd::Zero(100, 100);
-  testMatrix.diagonal() = Eigen::VectorXd::Random(100);
-
-  begin = std::chrono::steady_clock::now();
-  for(int i = 0; i < 10000; ++i)
-  {
-    Eigen::VectorXd result = testVector.asDiagonal() * vector;
-  }
-  end = std::chrono::steady_clock::now();
-  std::cout << "asDiagonal(): " << std::chrono::duration_cast<std::chrono::microseconds> (end - begin).count() << "[us]" << std::endl;
+  GaitDynamicParameters dynamicParams;
+  dynamicParams.steppingFrequency = 1.0 / 0.7;
+  dynamicParams.swingRatio = 3.0 / 7.0;
   
-  int diagonalTime = std::chrono::duration_cast<std::chrono::microseconds> (end - begin).count();
+  dynamicParams.phaseOffsets = {-currentPhase , -currentPhase , 0};
 
-  begin = std::chrono::steady_clock::now();
-  for(int i = 0; i < 10000; ++i)
-  {
-    Eigen::VectorXd result = testMatrix * vector;
-  }
-  end = std::chrono::steady_clock::now();
-  std::cout << "Matrix: " << std::chrono::duration_cast<std::chrono::microseconds> (end - begin).count() << "[us]" << std::endl;
+  auto modeSequenceTemplate = getDynamicModeSequenceTemplate(currentPhase,
+    finalTime, staticParams, dynamicParams);
+
+  const scalar_t slope = 0.0;
+  const vector3_t terrainEulerZyx{0.0, slope, 0.0};
+  const matrix3_t terrainRotation = getRotationMatrixFromZyxEulerAngles(terrainEulerZyx); 
+
+  TerrainPlane slopyTerrain(vector3_t::Random(), terrainRotation.transpose());
+
+  PlanarTerrainModel terrainModel(slopyTerrain);
+
+  BaseTrajectoryPlanner::StaticSettings staticSettings;
+  staticSettings.deltaTime = deltaTime;
+  staticSettings.initialBaseHeight = 0.4;
+  staticSettings.minimumBaseHeight = 0.1;
+  staticSettings.maximumBaseHeight = 5.0;
+  staticSettings.nominalBaseWidthHeading = 0.2;
+  staticSettings.nominalBaseWidtLateral = 0.2;
+
+  std::string urdfPathName = meldogWithBaseLinkUrdfFile;
+
+  std::string solverName = "NewtonRaphson";
+
+  KinematicsModelSettings modelSettings;
+  modelSettings.baseLinkName = baseLink;
+  modelSettings.threeDofEndEffectorNames = meldog3DofContactNames;
+
+  InverseSolverSettings solverSettings;
+  // solverSettings.stepCoefficient = 0.1;
+  solverSettings.tolerance = 1e-3;
+  MultiEndEffectorKinematics kinematicsSolver(urdfPathName, modelSettings, 
+    solverSettings, solverName);
+
+  ocs2::PinocchioInterface interface = createPinocchioInterfaceFromUrdfFile(urdfPathName, baseLink);
+  const FloatingBaseModelInfo modelInfo = createFloatingBaseModelInfo(interface, meldog3DofContactNames, meldog6DofContactNames);
+
+  BaseTrajectoryPlanner::BaseReferenceCommand command;
+  command.baseHeadingVelocity = std::rand() / scalar_t(RAND_MAX);
+  command.baseLateralVelocity = std::rand() / scalar_t(RAND_MAX);
+  command.baseVerticalVelocity = 0.0;
+  command.yawRate = std::rand() / scalar_t(RAND_MAX);
   
-  int matrixTime = std::chrono::duration_cast<std::chrono::microseconds> (end - begin).count();
+  std::string modelName = "meldogForwardKinematics";
+  PinocchioForwardEndEffectorKinematicsCppAd forwardKinematics(interface, 
+    modelInfo, modelName);
+
+  SwingTrajectoryPlanner::StaticSettings swingStaticSettings;
+  SwingTrajectoryPlanner::DynamicSettings swingDynamicSettings;
+
+  GaitPlanner gaitPlanner(staticParams, dynamicParams, modeSequenceTemplate, 
+    currentPhase, defTime);
+
+  BaseTrajectoryPlanner basePlanner(modelInfo, staticSettings);
+
+  SwingTrajectoryPlanner swingPlanner(modelInfo, swingStaticSettings, 
+    swingDynamicSettings, forwardKinematics);
+
+  JointTrajectoryPlanner jointPlanner(modelInfo, std::move(kinematicsSolver));
+
+  ContactForceWrenchTrajectoryPlanner forcePlanner(modelInfo);
   
-  std::cout << "matrix/diagonal: " << (double) matrixTime / (double) diagonalTime << std::endl;
+  LeggedReferenceManager::Settings managerSettings;
+
+  LeggedReferenceManager manager(modelInfo, managerSettings, gaitPlanner, swingPlanner, basePlanner, 
+    jointPlanner, forcePlanner);
+
+  const auto modeSchedule = gaitPlanner.getModeSchedule(initTime, finalTime);
+
+  const vector3_t initPosition = vector3_t::Random();
+
+  const vector3_t planeLocalEulerZyx = vector3_t{std::rand() / scalar_t(RAND_MAX);, 0.0, 
+    0.0};
+  matrix3_t initRotationOnPlane = getRotationMatrixFromZyxEulerAngles(planeLocalEulerZyx);
+
+  const vector3_t headingVector = initRotationOnPlane.col(0);
+  const vector3_t xAxis = slopyTerrain.projectVectorInWorldOntoPlaneAlongGravity(headingVector).normalized();
+  const vector3_t zAxis = slopyTerrain.getSurfaceNormalInWorld();
+  const vector3_t yAxis = zAxis.cross(xAxis);
+
+  matrix3_t initRotationMatrix;
+  initRotationMatrix.col(0) = xAxis;
+  initRotationMatrix.col(1) = yAxis;
+  initRotationMatrix.col(2) = zAxis;
+
+  const vector3_t initEulerZyx = quaterion_euler_transforms::getEulerAnglesFromRotationMatrix(
+    initRotationMatrix);
+
+  const vector2_t initPositionXY{initPosition.x(), initPosition.y()};
+
+  vector3_t initialBasePosition(initPosition.x(), initPosition.y(),
+    terrainModel.getSmoothedPositon(initPositionXY).z());
   
-  ConstLocalObject constLocalObject;
+  initialBasePosition.z() += staticSettings.initialBaseHeight / slopyTerrain.getSurfaceNormalInWorld().z();
+  
+  state_vector_t initialState = state_vector_t::Zero(12 + modelInfo.actuatedDofNum * 2);
+  initialState.block<3,1>(6, 0) = initialBasePosition;
+  initialState.block<3,1>(9, 0) = initEulerZyx;
 
-  begin = std::chrono::steady_clock::now();
+  legged_locomotion_mpc::access_helper_functions::getJointPositions(initialState, modelInfo) << 0, -0.52359877559, 1.0471975512, 0, -0.52359877559, 1.0471975512, 0, -0.52359877559, 1.0471975512, 0, -0.52359877559, 1.0471975512;
+  
+  contact_flags_t contactFlag = modeSchedule.modeAtTime(initTime);
 
-  for(size_t i = 0; i < 10000; ++i)
+  std::unique_ptr<TerrainModel> terrainModelPtr = 
+    std::make_unique<PlanarTerrainModel>(slopyTerrain);
+  
+  manager.initialize(initTime, finalTime, initialState, contactFlag, 
+    std::move(dynamicParams), std::move(terrainModelPtr));
+  // manager.updateState(initialState);
+  // manager.updateContactFlags(contactFlag);
+  // manager.updateGaitParemeters(std::move(dynamicParams));
+  // manager.updateTerrainModel(std::move(terrainModelPtr));
+  // manager.generateNewTargetTrajectories(initTime, finalTime);
+  // manager.preSolverRun(initTime, finalTime, vector_t::Zero(modelInfo.stateDim));
+
+  std::vector<scalar_t> goodTimings = {0, 0.3, 0.35, 0.65, 0.7, 1, 1.05, 1.35, 1.4, 1.7, 1.75, 2.05, 2.1};
+  std::vector<size_t> goodSequence = {15, 9, 15, 6, 15, 9, 15, 6, 15, 9, 15, 6, 15, 15};
+  const auto mySequence = manager.getModeSchedule().modeSequence;
+
+  for(size_t i = 0; i < goodSequence.size(); ++i)
   {
-    const ocs2::VectorFunctionLinearApproximation output = constLocalObject.get(inputDim, stateDim);
+    std::cerr << "Mine: " << mySequence[i] << std::endl;
+    std::cerr << "True: " << goodSequence[i] << std::endl;
   }
-  end = std::chrono::steady_clock::now();
-
-  int constLocalTime = std::chrono::duration_cast<std::chrono::microseconds> (end - begin).count();
-
-  NonConstClassObject nonConstClassObject(inputDim, stateDim);
-
-  begin = std::chrono::steady_clock::now();
-
-  for(size_t i = 0; i < 10000; ++i)
-  {
-    const ocs2::VectorFunctionLinearApproximation output = nonConstClassObject.get();
-  }
-  end = std::chrono::steady_clock::now();
-
-  int nonConstClassTime = std::chrono::duration_cast<std::chrono::microseconds> (end - begin).count();
-
-
-  ConstMutableClassObject constMutableClassObject(inputDim, stateDim);
-
-  begin = std::chrono::steady_clock::now();
-
-  for(size_t i = 0; i < 10000; ++i)
-  {
-    const ocs2::VectorFunctionLinearApproximation output = constMutableClassObject.get();
-  }
-  end = std::chrono::steady_clock::now();
-
-  int constMutableClassTime = std::chrono::duration_cast<std::chrono::microseconds> (end - begin).count();
-
-
-  std::cout << "constLocalObject/nonConstClassObject: " << (double) constLocalTime / (double) nonConstClassTime << std::endl;
-  std::cout << "constLocalObject/mutableConstClassObject: " << (double) constLocalTime / (double) constMutableClassTime << std::endl;
   return 0;
-
-
 }

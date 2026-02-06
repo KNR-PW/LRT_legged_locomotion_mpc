@@ -240,4 +240,10 @@ namespace legged_locomotion_mpc
     const scalar_t coneConstraint = frictionForce - tangentForce;
     return (vector_t(1) << coneConstraint).finished();
   }
+
+  ForceFrictionConeConstraint::Config loadForceFrictionConeConfig(
+    const std::string &filename, const std::string &fieldName, bool verbose)
+  {
+    
+  }
 } // namespace legged_locomotion_mpc

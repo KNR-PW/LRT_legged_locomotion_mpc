@@ -4,8 +4,6 @@
 
 #include <legged_locomotion_mpc/collision/PinocchoCollisionInterface.hpp>
 
-#include <pinocchio/math/rpy.hpp>
-
 #include <floating_base_model/FactoryFunctions.hpp>
 
 using namespace ocs2;

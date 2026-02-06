@@ -65,7 +65,7 @@ namespace legged_locomotion_mpc
         const LeggedReferenceManager& referenceManager,
         BaseWeights baseWeights, JointWeights jointWeights,
         EndEffectorWeights endEffectorWeights, 
-        const std::string& modelFolder = "/tmp/ocs2",
+        const std::string& modelFolder = "/tmp/legged_locomotion_mp",
         bool recompileLibraries = true,
         bool verbose = false);
 
