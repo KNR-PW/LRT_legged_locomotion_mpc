@@ -48,14 +48,45 @@ namespace legged_locomotion_mpc
       baseWeights_(std::move(baseWeights)), jointWeights_(std::move(jointWeights)),
       endEffectorWeights_(std::move(endEffectorWeights)) 
     {
-      if(jointWeights_.positions.size() != info_.actuatedDofNum)
+
+      if((baseWeights_.position.array() < 0.0).any())
       {
-        throw std::invalid_argument("[TrajectoryTrackingCost]: Wrong size for joint position weights!");
+        throw std::invalid_argument("[TrajectoryTrackingCost]: Base positon weights vector element smaller than 0!");
+      }
+     
+      if((baseWeights_.rotation.array() < 0.0).any())
+      {
+        throw std::invalid_argument("[TrajectoryTrackingCost]: Base rotation weights vector element smaller than 0!");
       }
 
-      if(jointWeights_.velocities.size() != info_.actuatedDofNum)
+      if((baseWeights_.linearVelocity.array() < 0.0).any())
       {
-        throw std::invalid_argument("[TrajectoryTrackingCost]: Wrong size for joint velocity weights!");
+        throw std::invalid_argument("[TrajectoryTrackingCost]: Base linear velocity weights vector element smaller than 0!");
+      }
+
+      if((baseWeights_.angularVelocity.array() < 0.0).any())
+      {
+        throw std::invalid_argument("[TrajectoryTrackingCost]: Base angular velocity weights vector element smaller than 0!");
+      }
+
+      if((jointWeights_.positions.array() < 0.0).any())
+      {
+        throw std::invalid_argument("[TrajectoryTrackingCost]: Joint positon weights vector element smaller than 0!");
+      }
+
+      if(jointWeights_.positions.size() != info.actuatedDofNum)
+      {
+        throw std::invalid_argument("[TrajectoryTrackingCost]: Joint positon weights vector wrong size!");
+      }
+
+      if((jointWeights_.velocities.array() < 0.0).any())
+      {
+        throw std::invalid_argument("[TrajectoryTrackingCost]: Joint velocity weights vector element smaller than 0!");
+      }
+
+      if(jointWeights_.velocities.size() != info.actuatedDofNum)
+      {
+        throw std::invalid_argument("[TrajectoryTrackingCost]: Joint velocity weights vector wrong size!");
       }
       
       const size_t endEffectorNum = info_.numThreeDofContacts + info_.numSixDofContacts;
@@ -73,6 +104,28 @@ namespace legged_locomotion_mpc
       if(endEffectorWeights_.forces.size() != endEffectorNum)
       {
         throw std::invalid_argument("[TrajectoryTrackingCost]: Wrong size for end effectors force weights!");
+      }
+
+      for(size_t i = 0; i < endEffectorNum; ++i)
+      {
+        const auto& position = endEffectorWeights_.positions[i];
+        const auto& velocity = endEffectorWeights_.velocities[i];
+        const auto& force = endEffectorWeights_.forces[i];
+  
+        if((position.array() < 0.0).any())
+        {
+          throw std::invalid_argument("[TrajectoryTrackingCost]: End effector position weights vector element smaller than 0!");
+        }
+
+        if((velocity.array() < 0.0).any())
+        {
+          throw std::invalid_argument("[TrajectoryTrackingCost]: End effector velocity weights vector element smaller than 0!");
+        }
+
+        if((force.array() < 0.0).any())
+        {
+          throw std::invalid_argument("[TrajectoryTrackingCost]: End effector force weights vector element smaller than 0!");
+        }
       }
 
       auto systemFlowMapFunc = [&](const ad_vector_t& x, const ad_vector_t& p, 
