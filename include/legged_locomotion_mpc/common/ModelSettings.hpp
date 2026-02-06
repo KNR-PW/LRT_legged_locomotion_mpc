@@ -45,16 +45,21 @@ namespace legged_locomotion_mpc
 {
   struct ModelSettings 
   {
+    // CppAD
     bool verboseCppAd = true;
     bool recompileLibrariesCppAd = true;
     std::string modelFolderCppAd = "/tmp/legged_locomotion_mpc";
 
+    // Kinematics
     std::string baseLinkName;
     std::vector<std::string> contactNames3DoF;
     std::vector<std::string> contactNames6DoF;
 
+    // Collision
     std::vector<std::string> collisionLinkNames;
     std::vector<std::pair<std::string, std::string>> selfCollisionPairNames;
+    std::vector<ocs2::scalar_t> maxExcesses;
+    ocs2::scalar_t shrinkRatio = 0.75;
   };
 
   /**
