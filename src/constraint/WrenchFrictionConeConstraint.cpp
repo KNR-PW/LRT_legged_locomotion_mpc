@@ -19,6 +19,9 @@
 
 #include <legged_locomotion_mpc/constraint/WrenchFrictionConeConstraint.hpp>
 
+#include <boost/property_tree/info_parser.hpp>
+#include <boost/property_tree/ptree.hpp>
+
 #include <ocs2_robotic_tools/common/RotationTransforms.h>
 
 #include <floating_base_model/AccessHelperFunctions.hpp>
@@ -37,8 +40,8 @@ namespace legged_locomotion_mpc
     scalar_t footLengthX,
     scalar_t footLengthY,
     scalar_t frictionCoefficientParam):
-      footHalfLengthX(footLengthX / 2.0),
-      footHalfLengthY(footLengthY / 2.0),
+      footHalfLengthX(footLengthX * 0.5),
+      footHalfLengthY(footLengthY * 0.5),
       frictionCoefficient(frictionCoefficientParam)
   {
     assert(frictionCoefficient > 0.0);
@@ -263,6 +266,51 @@ namespace legged_locomotion_mpc
     coneConstraintMatrix(15, 5) = -1;
 
     return coneConstraintMatrix;
+  }
+
+  WrenchFrictionConeConstraint::Config loadWrenchFrictionConeConfig(
+    const std::string &filename, const std::string &fieldName,bool verbose)
+  {
+    scalar_t frictionCoefficient = -1.0;
+    scalar_t footHalfLengthX = -1.0;
+    scalar_t footHalfLengthY = -1.0;
+
+    boost::property_tree::ptree pt;
+    read_info(filename, pt);
+
+    if (verbose) 
+    {
+      std::cerr << "\n #### 3D Friction Cone Constraint Config:";
+      std::cerr << "\n #### =============================================================================\n";
+    }
+
+    ocs2::loadData::loadPtreeValue(pt, frictionCoefficient, fieldName + ".frictionCoefficient", verbose);
+
+    if(frictionCoefficient < 0)
+    {
+      throw std::invalid_argument("[WrenchFrictionConeConstraint]: Fricition coefficient smaller than 0!");
+    }
+
+    ocs2::loadData::loadPtreeValue(pt, footHalfLengthX, fieldName + ".footLengthX", verbose);
+    footHalfLengthX *= 0.5;
+
+    if(footHalfLengthX < 0)
+    {
+      throw std::invalid_argument("[WrenchFrictionConeConstraint]: Foot length in direction X smaller than 0!");
+    }
+    
+    ocs2::loadData::loadPtreeValue(pt, footHalfLengthY, fieldName + ".footLengthY", verbose);
+    footHalfLengthY *= 0.5;
+
+    if(footHalfLengthY < 0)
+    {
+      throw std::invalid_argument("[WrenchFrictionConeConstraint]: Foot length in direction Y smaller than 0!");
+    }
+
+    WrenchFrictionConeConstraint::Config config = WrenchFrictionConeConstraint::Config(
+      footHalfLengthX, footHalfLengthY, frictionCoefficient);
+      
+    return config;
   }
 
 } // namespace legged_locomotion_mpc

@@ -1,7 +1,11 @@
 #include "legged_locomotion_mpc/common/ModelSettings.hpp"
 
+#include <boost/property_tree/info_parser.hpp>
+#include <boost/property_tree/ptree.hpp>
+
 namespace legged_locomotion_mpc
 {
+  using namespace ocs2;
   ModelSettings loadModelSettings(const std::string &filename,
     const std::string &fieldName,
     bool verbose)
@@ -17,24 +21,24 @@ namespace legged_locomotion_mpc
       std::cerr << "\n #### =============================================================================\n";
     }
 
-    ocs2::loadData::loadPtreeValue(pt, modelSettings.verboseCppAd, fieldName + ".verboseCppAd", verbose);
+    loadData::loadPtreeValue(pt, modelSettings.verboseCppAd, fieldName + ".verboseCppAd", verbose);
 
-    ocs2::loadData::loadPtreeValue(pt, modelSettings.recompileLibrariesCppAd, fieldName + ".recompileLibrariesCppAd", verbose);
+    loadData::loadPtreeValue(pt, modelSettings.recompileLibrariesCppAd, fieldName + ".recompileLibrariesCppAd", verbose);
 
-    ocs2::loadData::loadPtreeValue(pt, modelSettings.modelFolderCppAd, fieldName + ".modelFolderCppAd", verbose);
+    loadData::loadPtreeValue(pt, modelSettings.modelFolderCppAd, fieldName + ".modelFolderCppAd", verbose);
     
-    ocs2::loadData::loadPtreeValue(pt, modelSettings.baseLinkName, fieldName + ".baseLinkName", verbose);
+    loadData::loadPtreeValue(pt, modelSettings.baseLinkName, fieldName + ".baseLinkName", verbose);
 
-    ocs2::loadData::loadStdVector(filename, fieldName + ".contactNames3DoF", modelSettings.contactNames3DoF, verbose);
+    loadData::loadStdVector(filename, fieldName + ".contactNames3DoF", modelSettings.contactNames3DoF, verbose);
     
-    ocs2::loadData::loadStdVector(filename, fieldName + ".contactNames6DoF", modelSettings.contactNames6DoF, verbose);
+    loadData::loadStdVector(filename, fieldName + ".contactNames6DoF", modelSettings.contactNames6DoF, verbose);
 
-    ocs2::loadData::loadStdVector(filename, fieldName + ".collisionLinkNames", modelSettings.collisionLinkNames, verbose);
+    loadData::loadStdVector(filename, fieldName + ".collisionLinkNames", modelSettings.collisionLinkNames, verbose);
 
     std::vector<std::string> firstCollisionNames;
     std::vector<std::string> secondCollisionNames;
-    ocs2::loadData::loadStdVector(filename, fieldName + ".firstCollisionLinkNames", firstCollisionNames, verbose);
-    ocs2::loadData::loadStdVector(filename, fieldName + ".secondCollisionLinkNames", secondCollisionNames, verbose);
+    loadData::loadStdVector(filename, fieldName + ".firstCollisionLinkNames", firstCollisionNames, verbose);
+    loadData::loadStdVector(filename, fieldName + ".secondCollisionLinkNames", secondCollisionNames, verbose);
 
     if(firstCollisionNames.size() != secondCollisionNames.size())
     {
@@ -63,7 +67,7 @@ namespace legged_locomotion_mpc
       modelSettings.selfCollisionPairNames.push_back(std::move(collisionPair));
     }
 
-    ocs2::loadData::loadStdVector(filename, fieldName + ".maxExcesses", modelSettings.maxExcesses, verbose);
+    loadData::loadStdVector(filename, fieldName + ".maxExcesses", modelSettings.maxExcesses, verbose);
 
     const size_t collisionSize = modelSettings.contactNames3DoF.size() 
       + modelSettings.contactNames6DoF.size() + modelSettings.collisionLinkNames.size();
@@ -73,7 +77,7 @@ namespace legged_locomotion_mpc
       throw std::invalid_argument("[ModelSettings]: maxExcesses not equal all collision size!");
     }
 
-    ocs2::loadData::loadPtreeValue(pt, modelSettings.shrinkRatio, fieldName + ".shrinkRatio", verbose);
+    loadData::loadPtreeValue(pt, modelSettings.shrinkRatio, fieldName + ".shrinkRatio", verbose);
     
     if(modelSettings.shrinkRatio <= 0.0 || modelSettings.shrinkRatio >= 1.0)
     {

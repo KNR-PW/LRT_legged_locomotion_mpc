@@ -31,6 +31,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <legged_locomotion_mpc/constraint/ForceFrictionConeConstraint.hpp>
 
+#include <boost/property_tree/info_parser.hpp>
+#include <boost/property_tree/ptree.hpp>
+
 #include <floating_base_model/AccessHelperFunctions.hpp>
 
 #include <legged_locomotion_mpc/precomputation/LeggedPrecomputation.hpp>
@@ -244,6 +247,43 @@ namespace legged_locomotion_mpc
   ForceFrictionConeConstraint::Config loadForceFrictionConeConfig(
     const std::string &filename, const std::string &fieldName, bool verbose)
   {
+    scalar_t frictionCoefficient = -1.0;
+    scalar_t regularization = -1.0;
+    scalar_t hessianDiagonalShift = -1.0;
+
+    boost::property_tree::ptree pt;
+    read_info(filename, pt);
+
+    if (verbose) 
+    {
+      std::cerr << "\n #### 3D Friction Cone Constraint Config:";
+      std::cerr << "\n #### =============================================================================\n";
+    }
+
+    ocs2::loadData::loadPtreeValue(pt, frictionCoefficient, fieldName + ".frictionCoefficient", verbose);
+
+    if(frictionCoefficient < 0)
+    {
+      throw std::invalid_argument("[ForceFrictionConeConstraint]: Friction coefficient smaller than 0!");
+    }
+
+    ocs2::loadData::loadPtreeValue(pt, regularization, fieldName + ".regularization", verbose);
+
+    if(regularization < 0)
+    {
+      throw std::invalid_argument("[ForceFrictionConeConstraint]: Regularization smaller than 0!");
+    }
+
+    ocs2::loadData::loadPtreeValue(pt, hessianDiagonalShift, fieldName + ".hessianDiagonalShift", verbose);
     
+    if(hessianDiagonalShift < 0)
+    {
+      throw std::invalid_argument("[ForceFrictionConeConstraint]: Hessian diagonal shift smaller than 0!");
+    }
+    
+    ForceFrictionConeConstraint::Config config = ForceFrictionConeConstraint::Config(
+      frictionCoefficient, regularization, hessianDiagonalShift);
+      
+    return config;
   }
 } // namespace legged_locomotion_mpc

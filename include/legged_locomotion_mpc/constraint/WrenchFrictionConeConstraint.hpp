@@ -21,6 +21,7 @@
 #define __FORCE_WRENCH_CONSTRAINT_LEGGED_LOCOMOTION_MPC__
 
 #include <ocs2_core/constraint/StateInputConstraint.h>
+#include <ocs2_core/misc/LoadData.h>
 
 #include <floating_base_model/FloatingBaseModelInfo.hpp>
 
@@ -100,6 +101,17 @@ namespace legged_locomotion_mpc
 
       Eigen::Matrix<ocs2::scalar_t, 16, 6> coneConstraintMatrix_;
   };
+
+  /**
+   * Creates Wrench Friction Cone settings 
+   * @param [in] filename: file path with model settings.
+   * @param [in] fieldName: field where settings are defined
+   * @param [in] verbose: verbose flag
+   * @return WrenchFrictionConeConstraint::Config struct
+   */
+  WrenchFrictionConeConstraint::Config loadWrenchFrictionConeConfig(
+    const std::string &filename, const std::string &fieldName = "wrench_friction_cone_settings",
+    bool verbose = "true");
 } // namespace legged_locomotion_mpc
 
 #endif

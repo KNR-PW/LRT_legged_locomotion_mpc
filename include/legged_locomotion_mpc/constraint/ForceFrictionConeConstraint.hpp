@@ -33,6 +33,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define __FORCE_FRICTION_CONSTRAINT_LEGGED_LOCOMOTION_MPC__
 
 #include <ocs2_core/constraint/StateInputConstraint.h>
+#include <ocs2_core/misc/LoadData.h>
 
 #include <floating_base_model/FloatingBaseModelInfo.hpp>
 
@@ -132,7 +133,7 @@ namespace legged_locomotion_mpc
    * @return ForceFrictionConeConstraint::Config struct
    */
   ForceFrictionConeConstraint::Config loadForceFrictionConeConfig(const std::string &filename,
-    const std::string &fieldName = "friction_cone_settings",
+    const std::string &fieldName = "force_friction_cone_settings",
     bool verbose = "true");
 } // namespace legged_locomotion_mpc
 
