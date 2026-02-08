@@ -1,0 +1,6 @@
+force_friction_cone_settings
+{
+  frictionCoefficient   0.9
+  regularization        0.5
+  hessianDiagonalShift  0.1
+}

@@ -7,8 +7,6 @@
 using namespace ocs2;
 using namespace legged_locomotion_mpc;
 
-const scalar_t tolerance = 1e-9;
-
 TEST(ModelSettingsTest, loader)
 {
   const std::string filePath = meldogConfigFolder + "model_settings.info";
