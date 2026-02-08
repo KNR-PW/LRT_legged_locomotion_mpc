@@ -68,7 +68,7 @@ namespace legged_locomotion_mpc
    * @return ModelSettings struct
    */
   ModelSettings loadModelSettings(const std::string& filename,
-    const std::string& fieldName = "model_settings",
+    const std::string& fieldName = "legged_model_settings",
     bool verbose = "true");
 
 } // namespace legged_locomotion_mpc

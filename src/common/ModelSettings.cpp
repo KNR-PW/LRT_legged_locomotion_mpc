@@ -1,4 +1,4 @@
-#include "legged_locomotion_mpc/common/ModelSettings.hpp"
+#include <legged_locomotion_mpc/common/ModelSettings.hpp>
 
 #include <boost/property_tree/info_parser.hpp>
 #include <boost/property_tree/ptree.hpp>

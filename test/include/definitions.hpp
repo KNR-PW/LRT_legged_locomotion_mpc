@@ -30,6 +30,7 @@ namespace legged_locomotion_mpc
   // Two urdfs, one with additional link before base link (will be removed by factory function)
   static const std::string meldogWithBaseLinkUrdfFile = legged_locomotion_mpc::package_path::getPath() + "/test/test_models/meldog_base_link.urdf";
   static const std::string meldogWithoutBaseLinkUrdfFile = legged_locomotion_mpc::package_path::getPath() + "/test/test_models/meldog_no_base_link.urdf";
+  static const std::string meldogConfigFolder = legged_locomotion_mpc::package_path::getPath() + "/test/config/";
   
   // Base link name
   static const std::string baseLink = "trunk_link";
