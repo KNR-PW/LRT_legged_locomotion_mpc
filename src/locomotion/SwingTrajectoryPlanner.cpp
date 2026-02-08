@@ -794,7 +794,7 @@ namespace legged_locomotion_mpc
       return dynamicSettings_; 
     }
 
-    SwingTrajectoryPlanner::StaticSettings loadSwingStaticTrajectorySettings(
+    SwingTrajectoryPlanner::StaticSettings loadSwingPlannerStaticSettings(
       const std::string& filename, const std::string& fieldName, bool verbose)
     {
       boost::property_tree::ptree pt;
@@ -824,7 +824,7 @@ namespace legged_locomotion_mpc
 
       loadData::loadPtreeValue(pt, settings.errorGain, 
         fieldName + ".errorGain", verbose);
-      if(settings.errorGain > 1.0 && settings.errorGain < 0.0)
+      if(settings.errorGain > 1.0 || settings.errorGain < 0.0)
       {
         throw std::invalid_argument("[SwingTrajectoryPlanner]: Error gain needs to be between [0.0, 1.0]!");
       }
@@ -899,7 +899,7 @@ namespace legged_locomotion_mpc
       return settings;
     }
 
-    SwingTrajectoryPlanner::DynamicSettings loadSwingDynamicTrajectorySettings(
+    SwingTrajectoryPlanner::DynamicSettings loadSwingPlannerDynamicSettings(
       const std::string& filename, const FloatingBaseModelInfo& info,
       const std::string& fieldName, bool verbose)
     {

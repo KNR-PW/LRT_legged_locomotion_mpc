@@ -7,6 +7,7 @@
 #define __SWING_TRAJECTORY_PLANNER_LEGGED_LOCOMOTION_MPC__
 
 #include <ocs2_core/Types.h>
+#include <ocs2_core/misc/LoadData.h>
 #include <ocs2_core/reference/TargetTrajectories.h>
 
 #include <floating_base_model/FloatingBaseModelInfo.hpp>
@@ -286,25 +287,25 @@ namespace legged_locomotion_mpc
     };
 
     /**
-     * Creates SwingTrajectoryPlannr Static Settings settings 
+     * Creates SwingTrajectoryPlanner Static Settings settings 
      * @param [in] filename: file path with model settings.
      * @param [in] fieldName: field where settings are defined
      * @param [in] verbose: verbose flag
      * @return SwingTrajectoryPlanner::StaticSettings struct
      */
-    SwingTrajectoryPlanner::StaticSettings loadSwingStaticTrajectorySettings(
+    SwingTrajectoryPlanner::StaticSettings loadSwingPlannerStaticSettings(
       const std::string& filename, 
       const std::string& fieldName = "swing_planner_static_settings",
       bool verbose = true);
 
     /**
-     * Creates SwingTrajectoryPlannr Dynamic Settings setting 
+     * Creates SwingTrajectoryPlanner Dynamic Settings setting 
      * @param [in] filename: file path with model settings.
      * @param [in] fieldName: field where settings are defined
      * @param [in] verbose: verbose flag
      * @return SwingTrajectoryPlanner::DynamicSettings struct
      */
-    SwingTrajectoryPlanner::DynamicSettings loadSwingDynamicTrajectorySettings(
+    SwingTrajectoryPlanner::DynamicSettings loadSwingPlannerDynamicSettings(
       const std::string& filename, 
       const floating_base_model::FloatingBaseModelInfo& info,
       const std::string& fieldName = "swing_planner_dynamic_settings",

@@ -1,4 +1,4 @@
-#include "legged_locomotion_mpc/constraint/ZeroWrenchConstraint.hpp"
+#include <legged_locomotion_mpc/constraint/ZeroWrenchConstraint.hpp>
 
 using namespace floating_base_model;
 

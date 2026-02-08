@@ -3,16 +3,18 @@
 
 #include <algorithm>
 
-#include <terrain_model/planar_model/PlanarFactoryFunctions.hpp>
-
-#include <legged_locomotion_mpc/common/AccessHelperFunctions.hpp>
+#include <boost/property_tree/info_parser.hpp>
+#include <boost/property_tree/ptree.hpp>
 
 #include <ocs2_core/misc/LinearInterpolation.h>
-
 #include <ocs2_robotic_tools/common/RotationTransforms.h>
 
 #include <floating_base_model/QuaterionEulerTransforms.hpp>
 #include <floating_base_model/AccessHelperFunctions.hpp>
+
+#include <terrain_model/planar_model/PlanarFactoryFunctions.hpp>
+
+#include <legged_locomotion_mpc/common/AccessHelperFunctions.hpp>
 
 namespace legged_locomotion_mpc
 {
@@ -237,6 +239,70 @@ namespace legged_locomotion_mpc
       const matrix3_t newRotationMatrix = projectRotationMatrixOnPlane(oldRotation, basePlane);
 
       return TerrainPlane(basePlane.getPosition(), newRotationMatrix.transpose());
+    }
+
+    BaseTrajectoryPlanner::StaticSettings loadBasePlannerStaticSettings(
+      const std::string& filename, const std::string& fieldName, bool verbose)
+    {
+      boost::property_tree::ptree pt;
+      boost::property_tree::read_info(filename, pt);
+
+      if(verbose) 
+      {
+        std::cerr << "\n #### Legged Locomotion MPC Base Planner Static Settings:";
+        std::cerr << "\n #### =============================================================================\n";
+      }
+
+      BaseTrajectoryPlanner::StaticSettings settings;
+
+      loadData::loadPtreeValue(pt, settings.deltaTime, 
+        fieldName + ".deltaTime", verbose);
+      if(settings.deltaTime < 0.0)
+      {
+        throw std::invalid_argument("[BaseTrajectoryPlanner]: Delta time smaller than 0.0!");
+      }
+
+      loadData::loadPtreeValue(pt, settings.minimumBaseHeight, 
+        fieldName + ".minimumBaseHeight", verbose);
+      if(settings.minimumBaseHeight < 0.0)
+      {
+        throw std::invalid_argument("[BaseTrajectoryPlanner]: Minimum base height smaller than 0.0!");
+      }
+
+      loadData::loadPtreeValue(pt, settings.maximumBaseHeight, 
+        fieldName + ".maximumBaseHeight", verbose);
+      if(settings.maximumBaseHeight < 0.0 || settings.maximumBaseHeight < settings.minimumBaseHeight)
+      {
+        throw std::invalid_argument("[BaseTrajectoryPlanner]: Maximum base height smaller than 0.0 or minimum base height!");
+      }
+
+      loadData::loadPtreeValue(pt, settings.initialBaseHeight, 
+        fieldName + ".initialBaseHeight", verbose);
+      if(settings.initialBaseHeight > settings.maximumBaseHeight || settings.initialBaseHeight < settings.minimumBaseHeight)
+      {
+        throw std::invalid_argument("[BaseTrajectoryPlanner]: Initial base height needs to be between [minimumBaseHeight, maximumBaseHeight]!");
+      }
+
+      loadData::loadPtreeValue(pt, settings.nominalBaseWidtLateral, 
+        fieldName + ".nominalBaseWidtLateral", verbose);
+       if(settings.nominalBaseWidtLateral < 0.0)
+      {
+        throw std::invalid_argument("[BaseTrajectoryPlanner]: Nominal lateral base width smaller than 0.0!");
+      }
+
+      loadData::loadPtreeValue(pt, settings.nominalBaseWidthHeading, 
+        fieldName + ".nominalBaseWidthHeading", verbose);
+       if(settings.nominalBaseWidthHeading < 0.0)
+      {
+        throw std::invalid_argument("[BaseTrajectoryPlanner]: Nominal heading base width smaller than 0.0!");
+      }
+
+      if(verbose) 
+      {
+        std::cerr << " #### ==================================================" << std::endl;
+      }
+
+      return settings;
     }
 	} // namespace planners
 } // namespace legged_locomotion_mpc

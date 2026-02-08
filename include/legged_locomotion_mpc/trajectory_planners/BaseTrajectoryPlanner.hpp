@@ -23,6 +23,7 @@
 #define __BASE_TRAJECTORY_PLANNER_LEGGED_LOCOMOTION_MPC__
 
 #include <ocs2_core/Types.h>
+#include <ocs2_core/misc/LoadData.h>
 #include <ocs2_core/reference/TargetTrajectories.h>
 
 #include <floating_base_model/FloatingBaseModelInfo.hpp>
@@ -51,7 +52,7 @@ namespace legged_locomotion_mpc
           // Minimum base height
           ocs2::scalar_t minimumBaseHeight;
 
-          // Maximumbase height
+          // Maximum base height
           ocs2::scalar_t maximumBaseHeight;
 
           // Nominal lateral base width
@@ -78,7 +79,7 @@ namespace legged_locomotion_mpc
           StaticSettings settings);
         
         /** 
-         * Update terrain model 
+         * Update base height 
          * @param [in] baseHeight: New base height
          */
         void updateBaseHeight(ocs2::scalar_t baseHeight);
@@ -124,6 +125,18 @@ namespace legged_locomotion_mpc
         StaticSettings settings_;
         const terrain_model::TerrainModel* terrainModel_;
     };
+
+    /**
+     * Creates BaseTrajectoryPlanner Static Settings settings 
+     * @param [in] filename: file path with model settings.
+     * @param [in] fieldName: field where settings are defined
+     * @param [in] verbose: verbose flag
+     * @return BaseTrajectoryPlanner::StaticSettings struct
+     */
+    BaseTrajectoryPlanner::StaticSettings loadBasePlannerStaticSettings(
+      const std::string& filename, 
+      const std::string& fieldName = "base_planner_static_settings",
+      bool verbose = true);
   } // namespace planners
 } // namespace legged_locomotion_mpc
 
