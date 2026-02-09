@@ -27,18 +27,11 @@ legged_model_settings
       [3] RRLL_link
     }
 
-    firstCollisionLinkNames
+    selfCollisionPairNames
     {
-      [0] LFLL_link
-      [1] RRLL_link
+      [0] "LFLL_link, RFLL_link"
+      [1] "RRLL_link, LRLL_link"
     }
-
-    secondCollisionLinkNames
-    {
-      [0] RFLL_link
-      [1] LRLL_link
-    }
-
     
     maxExcesses
     {

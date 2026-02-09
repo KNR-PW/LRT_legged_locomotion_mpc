@@ -81,25 +81,25 @@ add_library(${PROJECT_NAME}
 
   src/precomputation/LeggedPrecomputation.cpp
 
-  # src/dynamics/LeggedDynamicsAD.cpp
+  src/dynamics/LeggedDynamicsAD.cpp
 
   src/constraint/ForceFrictionConeConstraint.cpp
   src/constraint/WrenchFrictionConeConstraint.cpp
-  # src/constraint/Zero3DofVelocityConstraint.cpp
-  # src/constraint/Zero6DofVelocityConstraint.cpp
-  # src/constraint/ZeroForceConstraint.cpp
-  # src/constraint/ZeroWrenchConstraint.cpp
-  # src/constraint/NormalVelocityConstraint.cpp
+  src/constraint/Zero3DofVelocityConstraint.cpp
+  src/constraint/Zero6DofVelocityConstraint.cpp
+  src/constraint/ZeroForceConstraint.cpp
+  src/constraint/ZeroWrenchConstraint.cpp
+  src/constraint/NormalVelocityConstraint.cpp
 
-  # src/soft_constraint/TorqueLimitsSoftConstraint.cpp
-  # src/soft_constraint/JointLimitsSoftConstraint.cpp
-  # src/soft_constraint/TerrainAvoidanceSoftConstraint.cpp
-  # src/soft_constraint/SelfCollisionAvoidanceSoftConstraint.cpp
-  # src/soft_constraint/EndEffectorPlacementSoftConstraint.cpp
+  src/soft_constraint/TorqueLimitsSoftConstraint.cpp
+  src/soft_constraint/JointLimitsSoftConstraint.cpp
+  src/soft_constraint/TerrainAvoidanceSoftConstraint.cpp
+  src/soft_constraint/SelfCollisionAvoidanceSoftConstraint.cpp
+  src/soft_constraint/EndEffectorPlacementSoftConstraint.cpp
 
-  # src/initialization/LeggedInitializer.cpp
+  # # src/initialization/LeggedInitializer.cpp
 
-  src/cost/TrajectoryTrackingCost.cpp
+  # src/cost/TrajectoryTrackingCost.cpp
   # src/cost/TerminalTrackingCost.cpp
 )
 
@@ -160,16 +160,17 @@ if(BUILD_TESTING)
   ###########
   find_package(ament_cmake_gtest REQUIRED)
 
-  # ament_add_gtest(${PROJECT_NAME}_test_common
-  #       test/common/AccessHelperFunctionsTest.cpp
-  #       test/common/UtilsTest.cpp
-  #       test/common/ModelHelperFunctionsTest.cpp
-  #       test/common/EulerTransformsTest.cpp
-  # )
-  # ament_target_dependencies(${PROJECT_NAME}_test_common ${THIS_PACKAGE_DEPENDS})
-  # target_include_directories(${PROJECT_NAME}_test_common PRIVATE test/include)
-  # target_link_libraries(${PROJECT_NAME}_test_common ${PROJECT_NAME})
-  # target_compile_options(${PROJECT_NAME}_test_common PUBLIC ${FLAGS})
+  ament_add_gtest(${PROJECT_NAME}_test_common
+        test/common/AccessHelperFunctionsTest.cpp
+        test/common/UtilsTest.cpp
+        test/common/ModelHelperFunctionsTest.cpp
+        test/common/EulerTransformsTest.cpp
+        test/common/ModelSettingsTest.cpp
+  )
+  ament_target_dependencies(${PROJECT_NAME}_test_common ${THIS_PACKAGE_DEPENDS})
+  target_include_directories(${PROJECT_NAME}_test_common PRIVATE test/include)
+  target_link_libraries(${PROJECT_NAME}_test_common ${PROJECT_NAME})
+  target_compile_options(${PROJECT_NAME}_test_common PUBLIC ${FLAGS})
 
   # ament_add_gtest(${PROJECT_NAME}_test_locomotion
   #       test/locomotion/GaitCommonTest.cpp
@@ -235,6 +236,15 @@ if(BUILD_TESTING)
   # target_include_directories(${PROJECT_NAME}_test_precomputation PRIVATE test/include)
   # target_link_libraries(${PROJECT_NAME}_test_precomputation ${PROJECT_NAME})
   # target_compile_options(${PROJECT_NAME}_test_precomputation PUBLIC ${FLAGS})
+
+  ament_add_gtest(${PROJECT_NAME}_test_constraints
+        test/constraint/ForceFrictionConeConstraintTest.cpp
+        test/constraint/WrenchFrictionConeConstraintTest.cpp
+  )
+  ament_target_dependencies(${PROJECT_NAME}_test_constraints ${THIS_PACKAGE_DEPENDS})
+  target_include_directories(${PROJECT_NAME}_test_constraints PRIVATE test/include)
+  target_link_libraries(${PROJECT_NAME}_test_constraints ${PROJECT_NAME})
+  target_compile_options(${PROJECT_NAME}_test_constraints PUBLIC ${FLAGS})
 
   ################
   ## Benchmarks ##

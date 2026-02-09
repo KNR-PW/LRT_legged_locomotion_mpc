@@ -35,36 +35,26 @@ namespace legged_locomotion_mpc
 
     loadData::loadStdVector(filename, fieldName + ".collisionLinkNames", modelSettings.collisionLinkNames, verbose);
 
-    std::vector<std::string> firstCollisionNames;
-    std::vector<std::string> secondCollisionNames;
-    loadData::loadStdVector(filename, fieldName + ".firstCollisionLinkNames", firstCollisionNames, verbose);
-    loadData::loadStdVector(filename, fieldName + ".secondCollisionLinkNames", secondCollisionNames, verbose);
+    loadData::loadStdVectorOfPair(filename, fieldName + ".selfCollisionPairNames", modelSettings.selfCollisionPairNames, verbose);
 
-    if(firstCollisionNames.size() != secondCollisionNames.size())
+    for(size_t i = 0; i < modelSettings.selfCollisionPairNames.size(); ++i)
     {
-      throw std::invalid_argument("[ModelSettings]: First and second collision link names have to be same length!");
-    }
-
-    for(size_t i = 0; i < firstCollisionNames.size(); ++i)
-    {
-      if(firstCollisionNames[i] == secondCollisionNames[i])
+      const auto& [firstCollisionName, secondCollisionName] = modelSettings.selfCollisionPairNames[i];
+      
+      if(firstCollisionName == secondCollisionName)
       {
         throw std::invalid_argument("[ModelSettings]: Same name for first and second collision link!");
       }
 
-      if(std::find(modelSettings.collisionLinkNames.cbegin(), modelSettings.collisionLinkNames.cend(), firstCollisionNames[i]) == modelSettings.collisionLinkNames.cend())
+      if(std::find(modelSettings.collisionLinkNames.cbegin(), modelSettings.collisionLinkNames.cend(), firstCollisionName) == modelSettings.collisionLinkNames.cend())
       {
         throw std::invalid_argument("[ModelSettings]: First collision link not found in collision link names!");
       }
 
-      if(std::find(modelSettings.collisionLinkNames.cbegin(), modelSettings.collisionLinkNames.cend(), secondCollisionNames[i]) == modelSettings.collisionLinkNames.cend())
+      if(std::find(modelSettings.collisionLinkNames.cbegin(), modelSettings.collisionLinkNames.cend(), secondCollisionName) == modelSettings.collisionLinkNames.cend())
       {
         throw std::invalid_argument("[ModelSettings]: Second collision link not found in collision link names!");
       }
-
-      auto collisionPair = std::make_pair(
-        firstCollisionNames[i], secondCollisionNames[i]);
-      modelSettings.selfCollisionPairNames.push_back(std::move(collisionPair));
     }
 
     loadData::loadStdVector(filename, fieldName + ".maxExcesses", modelSettings.maxExcesses, verbose);
