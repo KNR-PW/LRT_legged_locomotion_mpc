@@ -1,0 +1,6 @@
+wrench_friction_cone_settings
+{
+  frictionCoefficient   0.2
+  footLengthX           0.5
+  footLengthY           0.8
+}

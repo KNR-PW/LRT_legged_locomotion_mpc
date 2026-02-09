@@ -16,4 +16,5 @@ TEST(ForceFrictionConeConstraint, loader)
   EXPECT_TRUE(config.frictionCoefficient == 0.9);
   EXPECT_TRUE(config.regularization == 0.5);
   EXPECT_TRUE(config.hessianDiagonalShift == 0.1);
+  
 }
