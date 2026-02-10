@@ -85,13 +85,40 @@ namespace legged_locomotion_mpc
         const ocs2::vector_t jointVelocityLimits_;
     };
     
+     /**
+     * Creates KinematicsModel settings 
+     * @param [in] filename: file path with model settings.
+     * @param [in] fieldName: field where settings are defined
+     * @param [in] verbose: verbose flag
+     * @return multi_end_effector_kinematics::KinematicsModelSettings struct
+     */
     multi_end_effector_kinematics::KinematicsModelSettings loadKinematicsModelSettings(
-      const std::string& filename, bool verbose = true);
-
+      const std::string& filename, 
+      const std::string& fieldName = "legged_model_settings", 
+      bool verbose = true);
+    
+     /**
+     * Creates InverseSolver settings 
+     * @param [in] filename: file path with model settings.
+     * @param [in] fieldName: field where settings are defined
+     * @param [in] verbose: verbose flag
+     * @return multi_end_effector_kinematics::InverseSolverSettings struct
+     */
     multi_end_effector_kinematics::InverseSolverSettings loadInverseSolverSettings(
-      const std::string& filename, bool verbose = true);
+      const std::string& filename, 
+      const std::string& fieldName = "inverse_solver_settings", 
+      bool verbose = true);
 
-    std::string loadInverseSolverName(const std::string& filename, bool verbose = true);
+     /**
+     * Creates InverseSolver model name
+     * @param [in] filename: file path with model settings.
+     * @param [in] fieldName: field where settings are defined
+     * @param [in] verbose: verbose flag
+     * @return Inverse solver name string
+     */
+    std::string loadInverseSolverName(const std::string& filename, 
+      const std::string& fieldName = "inverse_solver_name", 
+      bool verbose = true);
   };
 } // namespace legged_locomotion_mpc
 

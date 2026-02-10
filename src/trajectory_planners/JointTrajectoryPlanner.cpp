@@ -231,100 +231,123 @@ namespace legged_locomotion_mpc
     }
 
     KinematicsModelSettings loadKinematicsModelSettings(
-      const std::string& filename, bool verbose)
+      const std::string& filename, const std::string& fieldName, bool verbose)
     {
-      KinematicsModelSettings settings{};
-
       boost::property_tree::ptree pt;
       boost::property_tree::read_info(filename, pt);
 
-      const std::string prefix{"model_settings.inverse_kinematics_model_settings."};
-      const std::string threeDofContactsPrefix{"threeDofEndEffectorNames"};
-      const std::string sixDofContactsPrefix{"sixDofEndEffectorNames"};
+      KinematicsModelSettings settings;
 
       if(verbose) 
       {
-        std::cerr << "\n #### Inverse Kinematics Model Settings:" << std::endl;
-        std::cerr << "#### IMPORTANT: Six DOF end effectors not supported, added to three DOF!" << std::endl;
-        std::cerr << " #### ==================================================" << std::endl;
+        std::cerr << "\n #### Legged Locomotion MPC Inverse Kinematics Model Settings:";
+        std::cerr << "\n #### =============================================================================\n";
+        std::cerr << "\n #### (IMPORTANT: Six DOF end effectors not supported, added to three DOF!)";
       }
 
-      loadData::loadPtreeValue(pt, settings.baseLinkName, 
-        prefix + "baseLinkName", verbose);
-      loadData::loadStdVector(filename, threeDofContactsPrefix, 
-        settings.threeDofEndEffectorNames);
-      loadData::loadStdVector(filename, sixDofContactsPrefix, 
-        settings.sixDofEndEffectorNames);
+      loadData::loadPtreeValue(pt, settings.baseLinkName, fieldName + ".baseLinkName", verbose);
+      
+      loadData::loadStdVector(filename, fieldName + ".contactNames3DoF", settings.threeDofEndEffectorNames, verbose);
+    
+      loadData::loadStdVector(filename, fieldName + ".contactNames6DoF", settings.sixDofEndEffectorNames, verbose);
+
 
       settings.threeDofEndEffectorNames.insert(settings.threeDofEndEffectorNames.end(), 
         settings.sixDofEndEffectorNames.begin(), settings.sixDofEndEffectorNames.end());
 
       settings.sixDofEndEffectorNames.clear();
+
       if(verbose) 
       {
-        std::cerr << " #### ==================================================" << std::endl;
+        std::cerr << " #### =============================================================================" <<
+        std::endl;
       }
 
       return settings;
     }
 
-    InverseSolverSettings loadInverseSolverSettings(
-      const std::string& filename, bool verbose)
+    InverseSolverSettings loadInverseSolverSettings(const std::string& filename, 
+      const std::string& fieldName, bool verbose)
     {
-      InverseSolverSettings settings;
-
       boost::property_tree::ptree pt;
       boost::property_tree::read_info(filename, pt);
 
-      const std::string prefix{"model_settings.inverse_kinematics_solver_settings."};
+      InverseSolverSettings settings;
 
       if(verbose) 
       {
-        std::cerr << "\n #### Inverse Kinematics Solver Settings:" << std::endl;
-        std::cerr << " #### ==================================================" << std::endl;
+        std::cerr << "\n #### Legged Locomotion MPC Inverse Kinematics Solver Settings:";
+        std::cerr << "\n #### =============================================================================\n";
+        std::cerr << "\n #### (IMPORTANT: Six DOF end effectors not supported, added to three DOF!)";
       }
 
-      loadData::loadPtreeValue(pt, settings.maxIterations, 
-        prefix + "maxIterations", verbose);
-      loadData::loadPtreeValue(pt, settings.tolerance, 
-        prefix + "tolerance", verbose);
-      loadData::loadPtreeValue(pt, settings.minimumStepSize, 
-        prefix + "minimumStepSize", verbose);
-      loadData::loadPtreeValue(pt, settings.dampingCoefficient, 
-        prefix + "dampingCoefficient", verbose);
-      loadData::loadPtreeValue(pt, settings.stepCoefficient, 
-        prefix + "stepCoefficient", verbose);
+      loadData::loadPtreeValue(pt, settings.maxIterations, fieldName + ".maxIterations", verbose);
+      if(settings.maxIterations < 0)
+      {
+        throw std::invalid_argument("[JointTrajectoryPlanner]: Max iterations smaller than 0!");
+      }
+
+      loadData::loadPtreeValue(pt, settings.tolerance, fieldName + ".tolerance", verbose);
+      if(settings.tolerance < 0.0)
+      {
+        throw std::invalid_argument("[JointTrajectoryPlanner]: Tolerance smaller than 0.0!");
+      }
+
+      loadData::loadPtreeValue(pt, settings.minimumStepSize, fieldName + ".minimumStepSize", verbose);
+      if(settings.minimumStepSize < 0.0)
+      {
+        throw std::invalid_argument("[JointTrajectoryPlanner]: Minimum step size smaller than 0.0!");
+      }
+
+      loadData::loadPtreeValue(pt, settings.dampingCoefficient, fieldName + ".dampingCoefficient", verbose);
+      if(settings.dampingCoefficient < 0.0)
+      {
+        throw std::invalid_argument("[JointTrajectoryPlanner]: Damping coefficient smaller than 0.0!");
+      }
+
+      loadData::loadPtreeValue(pt, settings.stepCoefficient, fieldName + ".stepCoefficient", verbose);
+      if(settings.stepCoefficient < 0.0)
+      {
+        throw std::invalid_argument("[JointTrajectoryPlanner]: Step coefficient smaller than 0.0!");
+      }
+
+      loadData::loadPtreeValue(pt, settings.singularityThreshold, fieldName + ".singularityThreshold", verbose);
+      if(settings.singularityThreshold < 0.0)
+      {
+        throw std::invalid_argument("[JointTrajectoryPlanner]: Singularity threshold smaller than 0.0!");
+      }
 
       if(verbose) 
       {
-        std::cerr << " #### ==================================================" << std::endl;
+        std::cerr << " #### =============================================================================" <<
+        std::endl;
       }
 
       return settings;
     }
 
-    std::string loadInverseSolverName(const std::string& filename, bool verbose)
+    std::string loadInverseSolverName(const std::string& filename, 
+      const std::string& fieldName, bool verbose)
     {
+
+      boost::property_tree::ptree pt;
+      boost::property_tree::read_info(filename, pt);
 
       std::string solverName;
 
-      boost::property_tree::ptree pt;
-      boost::property_tree::read_info(filename, pt);
-
-      const std::string prefix{"model_settings.inverse_kinematics_solver_name."};
-
       if(verbose) 
       {
-        std::cerr << "\n #### Inverse Kinematics Solver Name:" << std::endl;
-        std::cerr << " #### ==================================================" << std::endl;
+        std::cerr << "\n #### Legged Locomotion MPC Inverse Kinematics Solver Name:";
+        std::cerr << "\n #### =============================================================================\n";
+        std::cerr << "\n #### (IMPORTANT: Six DOF end effectors not supported, added to three DOF!)";
       }
 
-      loadData::loadPtreeValue(pt, solverName, 
-        prefix + "", verbose);
+      loadData::loadPtreeValue(pt, solverName, fieldName + "", verbose);
 
       if(verbose) 
       {
-        std::cerr << " #### ==================================================" << std::endl;
+        std::cerr << " #### =============================================================================" <<
+        std::endl;
       }
 
       return solverName;

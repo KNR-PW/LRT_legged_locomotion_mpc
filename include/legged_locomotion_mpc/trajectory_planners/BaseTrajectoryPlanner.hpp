@@ -127,7 +127,7 @@ namespace legged_locomotion_mpc
     };
 
     /**
-     * Creates BaseTrajectoryPlanner Static Settings settings 
+     * Creates BaseTrajectoryPlanner static settings 
      * @param [in] filename: file path with model settings.
      * @param [in] fieldName: field where settings are defined
      * @param [in] verbose: verbose flag

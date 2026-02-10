@@ -287,7 +287,7 @@ namespace legged_locomotion_mpc
     };
 
     /**
-     * Creates SwingTrajectoryPlanner Static Settings settings 
+     * Creates SwingTrajectoryPlanner static settings 
      * @param [in] filename: file path with model settings.
      * @param [in] fieldName: field where settings are defined
      * @param [in] verbose: verbose flag
@@ -299,7 +299,7 @@ namespace legged_locomotion_mpc
       bool verbose = true);
 
     /**
-     * Creates SwingTrajectoryPlanner Dynamic Settings setting 
+     * Creates SwingTrajectoryPlanner dynamic settings
      * @param [in] filename: file path with model settings.
      * @param [in] fieldName: field where settings are defined
      * @param [in] verbose: verbose flag
