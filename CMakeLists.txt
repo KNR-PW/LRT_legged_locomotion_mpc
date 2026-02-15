@@ -56,6 +56,7 @@ add_library(${PROJECT_NAME}
   src/kinematics/PinocchioForwardEndEffectorKinematicsCppAd.cpp
   src/torque_approx/PinocchioTorqueApproximationCppAd.cpp
 
+  src/collision/CollisionSettings.cpp
   src/collision/PinocchoCollisionInterface.cpp
   src/collision/PinocchioForwardCollisionKinematicsCppAd.cpp
 
@@ -212,14 +213,15 @@ if(BUILD_TESTING)
 #   target_link_libraries(${PROJECT_NAME}_test_kinematicsCppAD ${PROJECT_NAME})
 #   target_compile_options(${PROJECT_NAME}_test_kinematicsCppAD PUBLIC ${FLAGS})
 
-  # ament_add_gtest(${PROJECT_NAME}_test_collision
-  #       # test/collision/PinocchioForwardCollisionKinematicsCppAdTest.cpp     
-  #       test/collision/PinocchoCollisionInterfaceTest.cpp
-  # )
-  # ament_target_dependencies(${PROJECT_NAME}_test_collision ${THIS_PACKAGE_DEPENDS})
-  # target_include_directories(${PROJECT_NAME}_test_collision PRIVATE test/include)
-  # target_link_libraries(${PROJECT_NAME}_test_collision ${PROJECT_NAME})
-  # target_compile_options(${PROJECT_NAME}_test_collision PUBLIC ${FLAGS})
+  ament_add_gtest(${PROJECT_NAME}_test_collision
+        test/collision/CollisionSettingsTest.cpp
+        test/collision/PinocchioForwardCollisionKinematicsCppAdTest.cpp     
+        test/collision/PinocchoCollisionInterfaceTest.cpp
+  )
+  ament_target_dependencies(${PROJECT_NAME}_test_collision ${THIS_PACKAGE_DEPENDS})
+  target_include_directories(${PROJECT_NAME}_test_collision PRIVATE test/include)
+  target_link_libraries(${PROJECT_NAME}_test_collision ${PROJECT_NAME})
+  target_compile_options(${PROJECT_NAME}_test_collision PUBLIC ${FLAGS})
 
   # ament_add_gtest(${PROJECT_NAME}_test_reference_manager
   #       test/reference_manager/LeggedReferenceManagerTest.cpp     

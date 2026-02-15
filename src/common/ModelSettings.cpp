@@ -33,54 +33,6 @@ namespace legged_locomotion_mpc
     
     loadData::loadStdVector(filename, fieldName + ".contactNames6DoF", modelSettings.contactNames6DoF, verbose);
 
-    loadData::loadStdVector(filename, fieldName + ".collisionLinkNames", modelSettings.collisionLinkNames, verbose);
-
-    loadData::loadStdVectorOfPair(filename, fieldName + ".selfCollisionPairNames", modelSettings.selfCollisionPairNames, verbose);
-
-    for(size_t i = 0; i < modelSettings.selfCollisionPairNames.size(); ++i)
-    {
-      const auto& [firstCollisionName, secondCollisionName] = modelSettings.selfCollisionPairNames[i];
-      
-      if(firstCollisionName == secondCollisionName)
-      {
-        throw std::invalid_argument("[ModelSettings]: Same name for first and second collision link!");
-      }
-
-      if(std::find(modelSettings.collisionLinkNames.cbegin(), modelSettings.collisionLinkNames.cend(), firstCollisionName) == modelSettings.collisionLinkNames.cend())
-      {
-        throw std::invalid_argument("[ModelSettings]: First collision link not found in collision link names!");
-      }
-
-      if(std::find(modelSettings.collisionLinkNames.cbegin(), modelSettings.collisionLinkNames.cend(), secondCollisionName) == modelSettings.collisionLinkNames.cend())
-      {
-        throw std::invalid_argument("[ModelSettings]: Second collision link not found in collision link names!");
-      }
-    }
-
-    loadData::loadStdVector(filename, fieldName + ".maxExcesses", modelSettings.maxExcesses, verbose);
-
-    const size_t collisionSize = modelSettings.contactNames3DoF.size() 
-      + modelSettings.contactNames6DoF.size() + modelSettings.collisionLinkNames.size();
-
-    if(modelSettings.maxExcesses.size() != collisionSize)
-    {
-      throw std::invalid_argument("[ModelSettings]: Max excesses not equal all collision size!");
-    }
-
-    loadData::loadStdVector(filename, fieldName + ".relaxations", modelSettings.relaxations, verbose);
-
-    if(modelSettings.relaxations.size() != collisionSize)
-    {
-      throw std::invalid_argument("[ModelSettings]: Relaxations not equal all collision size!");
-    }
-
-    loadData::loadPtreeValue(pt, modelSettings.shrinkRatio, fieldName + ".shrinkRatio", verbose);
-    
-    if(modelSettings.shrinkRatio <= 0.0 || modelSettings.shrinkRatio >= 1.0)
-    {
-      throw std::invalid_argument("[ModelSettings]: Shrink ratio must be between (0.0, 1.0)!");
-    }
-
     if(verbose) 
     {
       std::cerr << " #### =============================================================================" <<

@@ -1,61 +1,21 @@
 legged_model_settings
 {
-    verboseCppAd              false
-    recompileLibrariesCppAd   false
-    modelFolderCppAd          /tmp/legged_locomotion_mpc
+  verboseCppAd              false
+  recompileLibrariesCppAd   false
 
-    baseLinkName              trunk_link
+  modelFolderCppAd          /tmp/legged_locomotion_mpc
+  baseLinkName              trunk_link
+  
+  contactNames3DoF
+  {
+    [0] RFF_link
+    [1] RRF_link
+    [2] LFF_link
+    [3] LRF_link
+  }
 
-    contactNames3DoF
-    {
-      [0] RFF_link
-      [1] RRF_link
-      [2] LFF_link
-      [3] LRF_link
-    }
+  contactNames6DoF
+  {
 
-    contactNames6DoF
-    {
-
-    }
-
-    collisionLinkNames
-    {
-      [0] LFLL_link
-      [1] RFLL_link
-      [2] LRLL_link
-      [3] RRLL_link
-    }
-
-    selfCollisionPairNames
-    {
-      [0] "LFLL_link, RFLL_link"
-      [1] "RRLL_link, LRLL_link"
-    }
-    
-    maxExcesses
-    {
-      [0] 0.1
-      [1] 0.2
-      [2] 0.3
-      [3] 0.4
-      [4] 0.5
-      [5] 0.6
-      [6] 0.7
-      [7] 0.8
-    }
-
-    relaxations
-    {
-      [0] 0.8
-      [1] 0.7
-      [2] 0.6
-      [3] 0.5
-      [4] 0.4
-      [5] 0.3
-      [6] 0.2
-      [7] 0.1
-    }
-
-    shrinkRatio 0.1
+  }
 }

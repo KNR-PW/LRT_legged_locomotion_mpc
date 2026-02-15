@@ -32,9 +32,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef __MODEL_SETTINGS_LEGGED_LOCOMOTION_MPC__
 #define __MODEL_SETTINGS_LEGGED_LOCOMOTION_MPC__
 
-#include <string>
-#include <vector>
-
 #include <ocs2_core/Types.h>
 #include <ocs2_core/misc/LoadData.h>
 #include <ocs2_core/misc/LoadStdVectorOfPair.h>
@@ -48,17 +45,9 @@ namespace legged_locomotion_mpc
     bool recompileLibrariesCppAd = true;
     std::string modelFolderCppAd = "/tmp/legged_locomotion_mpc";
 
-    // Kinematics
     std::string baseLinkName;
     std::vector<std::string> contactNames3DoF;
     std::vector<std::string> contactNames6DoF;
-
-    // Collision
-    std::vector<std::string> collisionLinkNames;
-    std::vector<std::pair<std::string, std::string>> selfCollisionPairNames;
-    std::vector<ocs2::scalar_t> maxExcesses;
-    std::vector<ocs2::scalar_t> relaxations;
-    ocs2::scalar_t shrinkRatio = 0.75;
   };
 
   /**
