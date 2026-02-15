@@ -80,7 +80,7 @@ namespace legged_locomotion_mpc
           const ocs2::PinocchioInterface& pinocchioInterface,
           const std::vector<std::string>& otherCollisionLinks, 
           const std::vector<ocs2::scalar_t>& maxExcesses, ocs2::scalar_t shrinkRatio,
-          const std::string& modelFolder = "/tmp/legged_locomotion_mp",
+          const std::string& modelFolder = "/tmp/legged_locomotion_mpc",
           bool recompileLibraries = true,
           bool verbose = false);
         

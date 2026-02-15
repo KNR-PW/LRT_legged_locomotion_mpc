@@ -66,7 +66,7 @@ namespace legged_locomotion_mpc
           const LeggedReferenceManager& referenceManager,
           BaseWeights baseWeights, JointWeights jointWeights,
           EndEffectorWeights endEffectorWeights, 
-          const std::string& modelFolder = "/tmp/legged_locomotion_mp",
+          const std::string& modelFolder = "/tmp/legged_locomotion_mpc",
           bool recompileLibraries = true,
           bool verbose = false);
         
@@ -122,12 +122,15 @@ namespace legged_locomotion_mpc
   /**
    * Creates joint weights 
    * @param [in] filename: file path with model settings.
+   * @param [in] info: The floating base model information.
+   * @param [in] robotModel: pinocchio robot model from pinocchioInterface
    * @param [in] fieldName: field where settings are defined
    * @param [in] verbose: verbose flag
    * @return JointWeights struct
    */
   TrajectoryTrackingCost::JointWeights loadJointWeights(const std::string& filename,
     const floating_base_model::FloatingBaseModelInfo& info,
+    const pinocchio::Model robotModel,
     const std::string& fieldName = "joint_weights",
     bool verbose = "true");
 
@@ -141,7 +144,6 @@ namespace legged_locomotion_mpc
   TrajectoryTrackingCost::EndEffectorWeights loadEndEffectorWeights(
     const std::string& filename,
     const ModelSettings& modelSettings,
-    const floating_base_model::FloatingBaseModelInfo& info,
     const std::string& fieldName = "end_effector_weights",
     bool verbose = "true");
 

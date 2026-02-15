@@ -1,0 +1,204 @@
+base_weights
+{
+  position
+  {
+    (0,0)  0.1
+    (1,0)  0.2
+    (2,0)  0.3
+  }
+
+  rotation
+  {
+    (0,0)  0.4
+    (1,0)  0.5
+    (2,0)  0.6
+  }
+
+  linearVelocity
+  {
+    (0,0)  0.7
+    (1,0)  0.8
+    (2,0)  0.9
+  }
+
+  angularVelocity
+  {
+    (0,0)  1.0
+    (1,0)  1.1
+    (2,0)  1.2
+  }
+}
+
+joint_weights
+{
+  LFT_joint
+  {
+    position 0.1
+    velocity 0.2
+  }
+
+  LFH_joint
+  {
+    position 0.3
+    velocity 0.4
+  }
+
+  LFK_joint
+  {
+    position 0.5
+    velocity 0.6
+  }
+
+  LRT_joint
+  {
+    position 0.7
+    velocity 0.8
+  }
+
+  LRH_joint
+  {
+    position 0.9
+    velocity 1.0
+  }
+
+  LRK_joint
+  {
+    position 1.1
+    velocity 1.2
+  }
+
+  RFT_joint
+  {
+    position 1.3
+    velocity 1.4
+  }
+
+  RFH_joint
+  {
+    position 1.5
+    velocity 1.6
+  }
+
+  RFK_joint
+  {
+    position 1.7
+    velocity 1.8
+  }
+
+  RRT_joint
+  {
+    position 1.9
+    velocity 2.0
+  }
+
+  RRH_joint
+  {
+    position 2.1
+    velocity 2.2
+  }
+
+  RRK_joint
+  {
+    position 2.3
+    velocity 2.4
+  }
+}
+
+end_effector_weights
+{
+  RFF_link
+  {
+    position
+    {
+      (0,0)  0.1
+      (1,0)  0.2
+      (2,0)  0.3
+    }
+
+    velocity
+    {
+      (0,0)  0.4
+      (1,0)  0.5
+      (2,0)  0.6
+    }
+
+    force
+    {
+      (0,0)  0.7
+      (1,0)  0.8
+      (2,0)  0.9
+    }
+  }
+
+  RRF_link
+  {
+    position
+    {
+      (0,0)  1.0
+      (1,0)  1.1
+      (2,0)  1.2
+    }
+
+    velocity
+    {
+      (0,0)  1.3
+      (1,0)  1.4
+      (2,0)  1.5
+    }
+
+    force
+    {
+      (0,0)  1.6
+      (1,0)  1.7
+      (2,0)  1.8
+    }
+  }
+
+  LFF_link
+  {
+    position
+    {
+      (0,0)  1.9
+      (1,0)  2.0
+      (2,0)  2.1
+    }
+
+    velocity
+    {
+      (0,0)  2.2
+      (1,0)  2.3
+      (2,0)  2.4
+    }
+
+    force
+    {
+      (0,0)  2.5
+      (1,0)  2.6
+      (2,0)  2.7
+    }
+  }
+
+  LRF_link
+  {
+    position
+    {
+      (0,0)  2.8
+      (1,0)  2.9
+      (2,0)  3.0
+    }
+
+    velocity
+    {
+      (0,0)  3.1
+      (1,0)  3.2
+      (2,0)  3.3
+    }
+
+    force
+    {
+      (0,0)  3.4
+      (1,0)  3.5
+      (2,0)  3.6
+    }
+  }
+}

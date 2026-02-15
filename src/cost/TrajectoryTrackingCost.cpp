@@ -498,7 +498,7 @@ namespace legged_locomotion_mpc
       const Eigen::Matrix<ad_scalar_t, 3, 1>& targetEulerAngles)
     {
       const auto targetRotation = getRotationMatrixFromZyxEulerAngles(targetEulerAngles);
-      const auto currentRotation = getRotationMatrixFromZyxEulerAngles(targetEulerAngles);
+      const auto currentRotation = getRotationMatrixFromZyxEulerAngles(currentEulerAngles);
       return pinocchio::log3(targetRotation.transpose() * currentRotation);
     }
 
@@ -523,7 +523,7 @@ namespace legged_locomotion_mpc
         throw std::invalid_argument("[TrajectoryTrackingCost]: Base positon weights vector element smaller than 0!");
       }
      
-      loadData::loadEigenMatrix(filename, fieldName + ".rotationn", baseWeights.rotation);
+      loadData::loadEigenMatrix(filename, fieldName + ".rotation", baseWeights.rotation);
       if((baseWeights.rotation.array() < 0.0).any())
       {
         throw std::invalid_argument("[TrajectoryTrackingCost]: Base rotation weights vector element smaller than 0!");
@@ -551,7 +551,8 @@ namespace legged_locomotion_mpc
     }
  
     TrajectoryTrackingCost::JointWeights loadJointWeights(const std::string& filename,
-      const FloatingBaseModelInfo& info, const std::string& fieldName, bool verbose)
+      const FloatingBaseModelInfo& info, const pinocchio::Model robotModel,
+      const std::string& fieldName, bool verbose)
     {
       boost::property_tree::ptree pt;
       read_info(filename, pt);
@@ -564,24 +565,37 @@ namespace legged_locomotion_mpc
       
       TrajectoryTrackingCost::JointWeights jointWeights;
 
-      loadData::loadEigenMatrix(filename, fieldName + ".positions", jointWeights.positions);
-      if((jointWeights.positions.array() < 0.0).any())
+      std::vector<std::string> jointNames = robotModel.names;
+
+      // Remove "universe" and "root_joint" joints from joint names
+      jointNames.erase(std::remove(jointNames.begin(), jointNames.end(), "universe"), jointNames.end());
+      jointNames.erase(std::remove(jointNames.begin(), jointNames.end(), "root_joint"), jointNames.end()); 
+
+      if(jointNames.size() != info.actuatedDofNum)
       {
-        throw std::invalid_argument("[TrajectoryTrackingCost]: Joint positon weights vector element smaller than 0!");
-      }
-      if(jointWeights.positions.size() != info.actuatedDofNum)
-      {
-        throw std::invalid_argument("[TrajectoryTrackingCost]: Joint positon weights vector wrong size!");
+        throw std::invalid_argument("[TrajectoryTrackingCost]: Wrong sieze of joint names vector!");
       }
 
-      loadData::loadEigenMatrix(filename, fieldName + ".velocities", jointWeights.velocities);
-      if((jointWeights.velocities.array() < 0.0).any())
+      jointWeights.positions = Eigen::VectorXd::Zero(info.actuatedDofNum);
+      jointWeights.velocities = Eigen::VectorXd::Zero(info.actuatedDofNum);
+
+      for(size_t i = 0; i < info.actuatedDofNum; ++i)
       {
-        throw std::invalid_argument("[TrajectoryTrackingCost]: Joint velocity weights vector element smaller than 0!");
-      }
-      if(jointWeights.velocities.size() != info.actuatedDofNum)
-      {
-        throw std::invalid_argument("[TrajectoryTrackingCost]: Joint velocity weights vector wrong size!");
+        const std::string& jointName = jointNames[i];
+        
+        ocs2::loadData::loadPtreeValue(pt, jointWeights.positions[i], fieldName + "." + jointName + ".position", verbose);
+        if(jointWeights.positions[i] < 0.0)
+        {
+          std::string message = "[TrajectoryTrackingCost]: Joint positon weights element for joint " + jointName + " smaller than 0!";
+          throw std::invalid_argument(message);
+        }
+
+        ocs2::loadData::loadPtreeValue(pt, jointWeights.velocities[i], fieldName + "." + jointName + ".velocity", verbose);
+        if(jointWeights.velocities[i] < 0.0)
+        {
+          std::string message = "[TrajectoryTrackingCost]: Joint velocity weights element for joint " + jointName + " smaller than 0!";
+          throw std::invalid_argument(message);
+        }
       }
 
       if(verbose) 
@@ -595,14 +609,14 @@ namespace legged_locomotion_mpc
 
     TrajectoryTrackingCost::EndEffectorWeights loadEndEffectorWeights(
       const std::string& filename, const ModelSettings& modelSettings, 
-      const FloatingBaseModelInfo& info, const std::string& fieldName, bool verbose)
+      const std::string& fieldName, bool verbose)
     {
       boost::property_tree::ptree pt;
       read_info(filename, pt);
 
       TrajectoryTrackingCost::EndEffectorWeights endEffectorWeights;
 
-      const size_t endEffectorNum = info.numThreeDofContacts + info.numSixDofContacts;
+      const size_t endEffectorNum = modelSettings.contactNames3DoF.size() + modelSettings.contactNames6DoF.size();
 
       endEffectorWeights.positions.resize(endEffectorNum);
       endEffectorWeights.velocities.resize(endEffectorNum);
@@ -652,6 +666,12 @@ namespace legged_locomotion_mpc
           std::string message = "[TrajectoryTrackingCost]: " + name + " force weights vector element smaller than 0!";
           throw std::invalid_argument(message);
         }
+      }
+
+      if(verbose) 
+      {
+        std::cerr << " #### =============================================================================" <<
+        std::endl;
       }
       
       return endEffectorWeights;

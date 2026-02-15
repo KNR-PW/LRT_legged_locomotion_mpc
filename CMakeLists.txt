@@ -99,7 +99,7 @@ add_library(${PROJECT_NAME}
 
   # # src/initialization/LeggedInitializer.cpp
 
-  # src/cost/TrajectoryTrackingCost.cpp
+  src/cost/TrajectoryTrackingCost.cpp
   # src/cost/TerminalTrackingCost.cpp
 )
 
@@ -172,19 +172,19 @@ if(BUILD_TESTING)
   target_link_libraries(${PROJECT_NAME}_test_common ${PROJECT_NAME})
   target_compile_options(${PROJECT_NAME}_test_common PUBLIC ${FLAGS})
 
-  # ament_add_gtest(${PROJECT_NAME}_test_locomotion
-  #       test/locomotion/GaitCommonTest.cpp
-  #       test/locomotion/ModeDynamicSequenceTemplateTest.cpp
-  #       test/locomotion/GaitPlannerTest.cpp
-  #       test/locomotion/GaitDynamicPhaseControllerTest.cpp
-  #       test/locomotion/FootPhaseTest.cpp
-  #       test/locomotion/SingleLegLogicTest.cpp
-  #       test/locomotion/SwingTrajectoryPlannerTest.cpp
-  # )
-  # ament_target_dependencies(${PROJECT_NAME}_test_locomotion ${THIS_PACKAGE_DEPENDS})
-  # target_include_directories(${PROJECT_NAME}_test_locomotion PRIVATE test/include)
-  # target_link_libraries(${PROJECT_NAME}_test_locomotion ${PROJECT_NAME})
-  # target_compile_options(${PROJECT_NAME}_test_locomotion PUBLIC ${FLAGS})
+  ament_add_gtest(${PROJECT_NAME}_test_locomotion
+        test/locomotion/GaitCommonTest.cpp
+        test/locomotion/ModeDynamicSequenceTemplateTest.cpp
+        test/locomotion/GaitPlannerTest.cpp
+        test/locomotion/GaitDynamicPhaseControllerTest.cpp
+        test/locomotion/FootPhaseTest.cpp
+        test/locomotion/SingleLegLogicTest.cpp
+        test/locomotion/SwingTrajectoryPlannerTest.cpp
+  )
+  ament_target_dependencies(${PROJECT_NAME}_test_locomotion ${THIS_PACKAGE_DEPENDS})
+  target_include_directories(${PROJECT_NAME}_test_locomotion PRIVATE test/include)
+  target_link_libraries(${PROJECT_NAME}_test_locomotion ${PROJECT_NAME})
+  target_compile_options(${PROJECT_NAME}_test_locomotion PUBLIC ${FLAGS})
 
   # ament_add_gtest(${PROJECT_NAME}_test_trajectory_planners
   #       test/trajectory_planners/BaseTrajectoryPlannerTest.cpp  
@@ -245,6 +245,15 @@ if(BUILD_TESTING)
   target_include_directories(${PROJECT_NAME}_test_constraints PRIVATE test/include)
   target_link_libraries(${PROJECT_NAME}_test_constraints ${PROJECT_NAME})
   target_compile_options(${PROJECT_NAME}_test_constraints PUBLIC ${FLAGS})
+
+  ament_add_gtest(${PROJECT_NAME}_test_cost
+        test/cost/TrajectoryTrackingCostTest.cpp
+  )
+  ament_target_dependencies(${PROJECT_NAME}_test_cost ${THIS_PACKAGE_DEPENDS})
+  target_include_directories(${PROJECT_NAME}_test_cost PRIVATE test/include)
+  target_link_libraries(${PROJECT_NAME}_test_cost ${PROJECT_NAME})
+  target_compile_options(${PROJECT_NAME}_test_cost PUBLIC ${FLAGS})
+
 
   ################
   ## Benchmarks ##

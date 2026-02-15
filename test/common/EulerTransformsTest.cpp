@@ -18,7 +18,7 @@ class RotationVectorMultiplicationAD final
     public:
 
     RotationVectorMultiplicationAD(
-      const std::string& modelFolder = "/tmp/legged_locomotion_mp",
+      const std::string& modelFolder = "/tmp/legged_locomotion_mpc",
       bool recompileLibraries = true,
       bool verbose = false)
     {
