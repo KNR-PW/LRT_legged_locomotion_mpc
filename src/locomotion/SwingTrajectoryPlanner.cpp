@@ -962,7 +962,7 @@ namespace legged_locomotion_mpc
         }
       }
 
-      loadData::loadStdVector(filename, fieldName + ".tangentialProgresses", settings.tangentialVelocityFactors, verbose);
+      loadData::loadStdVector(filename, fieldName + ".tangentialVelocityFactors", settings.tangentialVelocityFactors, verbose);
       if(settings.tangentialVelocityFactors.size() != endEffectorNum)
       {
         throw std::invalid_argument("[SwingTrajectoryPlanner]: Tangential velocity factors have wrong size!");

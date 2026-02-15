@@ -1,0 +1,60 @@
+swing_planner_static_settings
+{
+  liftOffVelocity                 0.1
+
+  touchDownVelocity               -0.2
+        
+  errorGain                       0.3
+          
+  swingTimeScale                  0.4
+
+  sdfMidswingMargin               0.5
+
+  terrainMargin                   0.6
+          
+  previousFootholdFactor          0.7
+
+  previousFootholdDeadzone        0.8
+
+  previousFootholdTimeDeadzone    0.9
+          
+  nominalLegExtension             1.0
+
+  legOverExtensionPenalty         1.1
+          
+  referenceExtensionAfterHorizon  1.2
+
+  maxSwingHeightAdaptation        1.3
+}
+
+swing_planner_dynamic_settings
+{
+  invertedPendulumHeight 0.1
+
+  swingHeights
+  {
+    [0] 0.2
+    [1] 0.3
+    [2] 0.4
+  }
+
+  phases
+   {
+    [0] 0.5
+    [1] 0.6
+  }
+
+  tangentialProgresses
+   {
+    [0] 0.7
+    [1] 0.8
+    [2] 0.9
+  }
+
+  tangentialVelocityFactors
+   {
+    [0] 0.95
+    [1] 0.97
+    [2] 0.99
+  }
+}

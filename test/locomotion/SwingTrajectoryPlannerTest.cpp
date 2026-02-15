@@ -526,3 +526,45 @@ TEST(SwingTrajectoryPlannerTest, Troting)
     }
   }
 }
+
+TEST(SwingTrajectoryPlannerTest, loaders)
+{
+  const std::string filePath = meldogConfigFolder + "swing_trajectory_planner_settings.info";
+
+  const auto staticSettings = loadSwingPlannerStaticSettings(filePath);
+
+  EXPECT_TRUE(staticSettings.liftOffVelocity                 == 0.1);
+  EXPECT_TRUE(staticSettings.touchDownVelocity               == -0.2);  
+  EXPECT_TRUE(staticSettings.errorGain                       == 0.3);  
+  EXPECT_TRUE(staticSettings.swingTimeScale                  == 0.4);
+  EXPECT_TRUE(staticSettings.sdfMidswingMargin               == 0.5);
+  EXPECT_TRUE(staticSettings.terrainMargin                   == 0.6);  
+  EXPECT_TRUE(staticSettings.previousFootholdFactor          == 0.7);
+  EXPECT_TRUE(staticSettings.previousFootholdDeadzone        == 0.8);
+  EXPECT_TRUE(staticSettings.previousFootholdTimeDeadzone    == 0.9);       
+  EXPECT_TRUE(staticSettings.nominalLegExtension             == 1.0);
+  EXPECT_TRUE(staticSettings.legOverExtensionPenalty         == 1.1);  
+  EXPECT_TRUE(staticSettings.referenceExtensionAfterHorizon  == 1.2);
+  EXPECT_TRUE(staticSettings.maxSwingHeightAdaptation        == 1.3);
+
+  // Just for test
+  FloatingBaseModelInfo modelInfo;
+  modelInfo.numThreeDofContacts = 3;
+  modelInfo.numSixDofContacts = 0;
+
+  const auto dynamicSettings = loadSwingPlannerDynamicSettings(filePath, modelInfo);
+
+  const std::vector<scalar_t> trueSwingHeights{0.2, 0.3, 0.4};
+
+  const std::vector<scalar_t> truePhases{0.5, 0.6};
+
+  const std::vector<scalar_t> trueTangentialProgresses{0.7, 0.8, 0.9};
+
+  const std::vector<scalar_t> trueTangentialVelocityFactors{0.95, 0.97, 0.99};
+
+  EXPECT_TRUE(dynamicSettings.invertedPendulumHeight == 0.1);
+  EXPECT_TRUE(dynamicSettings.swingHeights == trueSwingHeights);
+  EXPECT_TRUE(dynamicSettings.phases == truePhases);
+  EXPECT_TRUE(dynamicSettings.tangentialProgresses == trueTangentialProgresses);
+  EXPECT_TRUE(dynamicSettings.tangentialVelocityFactors == trueTangentialVelocityFactors);
+}
