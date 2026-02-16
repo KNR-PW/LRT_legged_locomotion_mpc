@@ -392,3 +392,25 @@ TEST(BaseTrajectoryPlannerTest, translationAndrotationOnSlopyTerrain)
       newRotation);
   }
 }
+
+TEST(BaseTrajectoryPlannerTest, loader) 
+{
+  const std::string modelFilePath = meldogConfigFolder + "model_settings.info";
+
+  const auto modelSettings = loadModelSettings(modelFilePath);
+
+  std::string urdfPathName = meldogWithBaseLinkUrdfFile;
+
+  PinocchioInterface interface = createPinocchioInterfaceFromUrdfFile(urdfPathName, baseLink);
+  const FloatingBaseModelInfo modelInfo = createFloatingBaseModelInfo(interface, meldog3DofContactNames, meldog6DofContactNames);
+  
+  const std::string baseFilePath = meldogConfigFolder + "base_settings.info";
+
+  const auto baseSettings = loadBasePlannerStaticSettings(baseFilePath);
+
+  EXPECT_TRUE(baseSettings.initialBaseHeight        == 0.1);
+  EXPECT_TRUE(baseSettings.minimumBaseHeight        == 0.05);
+  EXPECT_TRUE(baseSettings.maximumBaseHeight        == 0.2);
+  EXPECT_TRUE(baseSettings.nominalBaseWidtLateral   == 0.2);
+  EXPECT_TRUE(baseSettings.nominalBaseWidthHeading  == 0.3);
+}
