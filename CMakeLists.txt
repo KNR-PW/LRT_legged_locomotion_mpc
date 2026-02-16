@@ -187,15 +187,15 @@ if(BUILD_TESTING)
   target_link_libraries(${PROJECT_NAME}_test_locomotion ${PROJECT_NAME})
   target_compile_options(${PROJECT_NAME}_test_locomotion PUBLIC ${FLAGS})
 
-  # ament_add_gtest(${PROJECT_NAME}_test_trajectory_planners
-  #       test/trajectory_planners/BaseTrajectoryPlannerTest.cpp  
-  #       test/trajectory_planners/JointTrajectoryPlannerTest.cpp   
-  #       test/trajectory_planners/ContactForceWrenchTrajectoryPlannerTest.cpp     
-  # )
-  # ament_target_dependencies(${PROJECT_NAME}_test_trajectory_planners ${THIS_PACKAGE_DEPENDS})
-  # target_include_directories(${PROJECT_NAME}_test_trajectory_planners PRIVATE test/include)
-  # target_link_libraries(${PROJECT_NAME}_test_trajectory_planners ${PROJECT_NAME})
-  # target_compile_options(${PROJECT_NAME}_test_trajectory_planners PUBLIC ${FLAGS})
+  ament_add_gtest(${PROJECT_NAME}_test_trajectory_planners
+        test/trajectory_planners/BaseTrajectoryPlannerTest.cpp  
+        test/trajectory_planners/JointTrajectoryPlannerTest.cpp   
+        test/trajectory_planners/ContactForceWrenchTrajectoryPlannerTest.cpp     
+  )
+  ament_target_dependencies(${PROJECT_NAME}_test_trajectory_planners ${THIS_PACKAGE_DEPENDS})
+  target_include_directories(${PROJECT_NAME}_test_trajectory_planners PRIVATE test/include)
+  target_link_libraries(${PROJECT_NAME}_test_trajectory_planners ${PROJECT_NAME})
+  target_compile_options(${PROJECT_NAME}_test_trajectory_planners PUBLIC ${FLAGS})
 
 #   ament_add_gtest(${PROJECT_NAME}_test_torque_approx
 #         test/torque_approx/PinocchioTorqueApproximationCppAdTest.cpp     

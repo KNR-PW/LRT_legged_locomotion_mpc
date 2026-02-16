@@ -1,17 +1,21 @@
 
 #include <gtest/gtest.h>
 #include <legged_locomotion_mpc/trajectory_planners/BaseTrajectoryPlanner.hpp>
+#include <legged_locomotion_mpc/common/ModelSettings.hpp>
 
 #include <terrain_model/core/TerrainPlane.hpp>
 #include <terrain_model/planar_model/PlanarTerrainModel.hpp>
 
 #include <floating_base_model/AccessHelperFunctions.hpp>
+#include <floating_base_model/FactoryFunctions.hpp>
 
 #include <ocs2_robotic_tools/common/RotationTransforms.h>
 
 #include <floating_base_model/QuaterionEulerTransforms.hpp>
 
 #include <pinocchio/spatial/explog.hpp>
+
+#include "../include/definitions.hpp"
 
 using namespace legged_locomotion_mpc;
 using namespace legged_locomotion_mpc::planners;

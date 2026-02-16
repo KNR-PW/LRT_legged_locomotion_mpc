@@ -1,0 +1,16 @@
+inverse_solver_settings
+{
+  maxIterations         1000
+
+  tolerance             0.1
+
+  minimumStepSize       0.2
+
+  dampingCoefficient    0.3
+
+  stepCoefficient       0.4
+
+  singularityThreshold  0.5
+}
+
+inverse_solver_name NewtonRaphson

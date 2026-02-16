@@ -297,5 +297,30 @@ TEST(JointTrajectoryPlannerTest, updateTrajectory)
     EXPECT_TRUE((trajectory.inputTrajectory[i] - 
       trajectoryTrue.inputTrajectory[i]).norm() < stateTolerance);
   }
-  
+}
+
+TEST(JointTrajectoryPlannerTest, loaders) 
+{
+  const std::string kinematicsModelFilePath = meldogConfigFolder + "model_settings.info";
+
+  const auto modelSettings = loadKinematicsModelSettings(kinematicsModelFilePath);
+
+  EXPECT_TRUE(modelSettings.baseLinkName == "trunk_link");
+  EXPECT_TRUE(modelSettings.threeDofEndEffectorNames == meldog3DofContactNames);
+  EXPECT_TRUE(modelSettings.sixDofEndEffectorNames.size() == 0);
+
+  const std::string solverFilePath = meldogConfigFolder + "inverse_solver_settings.info";
+
+  const auto solverSettings = loadInverseSolverSettings(solverFilePath);
+
+  const auto solverName = loadInverseSolverName(solverFilePath);
+
+  EXPECT_TRUE(solverSettings.maxIterations        == 1000);
+  EXPECT_TRUE(solverSettings.tolerance            == 0.1);
+  EXPECT_TRUE(solverSettings.minimumStepSize      == 0.2);
+  EXPECT_TRUE(solverSettings.dampingCoefficient   == 0.3);
+  EXPECT_TRUE(solverSettings.stepCoefficient      == 0.4);
+  EXPECT_TRUE(solverSettings.singularityThreshold == 0.5);
+
+  EXPECT_TRUE(solverName == "NewtonRaphson");
 }
