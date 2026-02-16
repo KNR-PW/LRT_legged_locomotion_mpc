@@ -17,6 +17,7 @@
 using namespace ocs2;
 using namespace floating_base_model;
 using namespace legged_locomotion_mpc;
+using namespace legged_locomotion_mpc::collision;
 
 const scalar_t tolerance = 1e-6;
 
@@ -35,19 +36,27 @@ TEST(PinocchioForwardCollisionKinematicsCppAdTest, getCollisonNumber)
   FloatingBaseModelPinocchioMapping mapping(modelInfo);
   mapping.setPinocchioInterface(interface);
 
-  const std::vector<std::string> collisionNames = meldogCollisions;
+  CollisionSettings collisionSettings;
+  collisionSettings.collisionLinkNames = meldogCollisions;
+  collisionSettings.terrainCollisionLinkNames = {"LFLL_link", "RFLL_link"};
+  collisionSettings.selfCollisionPairNames = {{"LFLL_link", "RFLL_link"}, {"LFLL_link", "LRLL_link"}, {"RRLL_link", "RRF_link"}};
+  collisionSettings.maxExcesses = std::vector<scalar_t>(
+    meldog3DofContactNames.size() + collisionSettings.collisionLinkNames.size(), 0.2);
+  collisionSettings.relaxations = std::vector<scalar_t>(
+    meldog3DofContactNames.size() + collisionSettings.collisionLinkNames.size(), 0.5);
+  collisionSettings.shrinkRatio = 0.5;
 
   const std::string modelName = "collision_kinematics";
 
   PinocchioForwardCollisionKinematicsCppAd collisionKinematics(interface, modelInfo, 
-    collisionNames, modelName);
+    collisionSettings, modelName);
 
   const pinocchio::Model trueModel = interface.getModel();
   pinocchio::Data trueData = interface.getData();
 
   std::vector<size_t> collisionIndexes;
 
-  for(const auto& collisionName: collisionNames)
+  for(const auto& collisionName: meldogCollisions)
   {
     collisionIndexes.push_back(trueModel.getFrameId(collisionName));
   }
@@ -67,19 +76,27 @@ TEST(PinocchioForwardCollisionKinematicsCppAdTest, getPosition)
   FloatingBaseModelPinocchioMapping mapping(modelInfo);
   mapping.setPinocchioInterface(interface);
 
-  const std::vector<std::string> collisionNames = meldogCollisions;
+  CollisionSettings collisionSettings;
+  collisionSettings.collisionLinkNames = meldogCollisions;
+  collisionSettings.terrainCollisionLinkNames = {"LFLL_link", "RFLL_link"};
+  collisionSettings.selfCollisionPairNames = {{"LFLL_link", "RFLL_link"}, {"LFLL_link", "LRLL_link"}, {"RRLL_link", "RRF_link"}};
+  collisionSettings.maxExcesses = std::vector<scalar_t>(
+    meldog3DofContactNames.size() + collisionSettings.collisionLinkNames.size(), 0.2);
+  collisionSettings.relaxations = std::vector<scalar_t>(
+    meldog3DofContactNames.size() + collisionSettings.collisionLinkNames.size(), 0.5);
+  collisionSettings.shrinkRatio = 0.5;
 
   const std::string modelName = "collision_kinematics";
 
   PinocchioForwardCollisionKinematicsCppAd collisionKinematics(interface, modelInfo, 
-    collisionNames, modelName);
+    collisionSettings, modelName);
 
   const pinocchio::Model trueModel = interface.getModel();
   pinocchio::Data trueData = interface.getData();
 
   std::vector<size_t> collisionIndexes;
 
-  for(const auto& collisionName: collisionNames)
+  for(const auto& collisionName: meldogCollisions)
   {
     collisionIndexes.push_back(trueModel.getFrameId(collisionName));
   }
@@ -112,19 +129,27 @@ TEST(PinocchioForwardCollisionKinematicsCppAdTest, getOrientation)
   FloatingBaseModelPinocchioMapping mapping(modelInfo);
   mapping.setPinocchioInterface(interface);
 
-  const std::vector<std::string> collisionNames = meldogCollisions;
+  CollisionSettings collisionSettings;
+  collisionSettings.collisionLinkNames = meldogCollisions;
+  collisionSettings.terrainCollisionLinkNames = {"LFLL_link", "RFLL_link"};
+  collisionSettings.selfCollisionPairNames = {{"LFLL_link", "RFLL_link"}, {"LFLL_link", "LRLL_link"}, {"RRLL_link", "RRF_link"}};
+  collisionSettings.maxExcesses = std::vector<scalar_t>(
+    meldog3DofContactNames.size() + collisionSettings.collisionLinkNames.size(), 0.2);
+  collisionSettings.relaxations = std::vector<scalar_t>(
+    meldog3DofContactNames.size() + collisionSettings.collisionLinkNames.size(), 0.5);
+  collisionSettings.shrinkRatio = 0.5;
 
   const std::string modelName = "collision_kinematics";
 
   PinocchioForwardCollisionKinematicsCppAd collisionKinematics(interface, modelInfo, 
-    collisionNames, modelName);
+    collisionSettings, modelName);
 
   const pinocchio::Model trueModel = interface.getModel();
   pinocchio::Data trueData = interface.getData();
 
   std::vector<size_t> collisionIndexes;
 
-  for(const auto& collisionName: collisionNames)
+  for(const auto& collisionName: meldogCollisions)
   {
     collisionIndexes.push_back(trueModel.getFrameId(collisionName));
   }

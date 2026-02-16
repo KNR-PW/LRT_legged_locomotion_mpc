@@ -16,15 +16,15 @@ namespace legged_locomotion_mpc
   /******************************************************************************************************/
   PinocchioForwardCollisionKinematicsCppAd::PinocchioForwardCollisionKinematicsCppAd(
     const PinocchioInterface& pinocchioInterface, const FloatingBaseModelInfo info,
-    const std::vector<std::string>& collisionNames, const std::string& modelName,
+    const CollisionSettings& collisionSettings, const std::string& modelName,
     const std::string& modelFolder, bool recompileLibraries, bool verbose): 
       numEndEffectors_(info.numThreeDofContacts + info.numSixDofContacts), 
-      numCollisions_(collisionNames.size())
+      numCollisions_(collisionSettings.collisionLinkNames.size())
   {
 
     const auto model = pinocchioInterface.getModel();
 
-    for(const auto& frameName : collisionNames)
+    for(const auto& frameName : collisionSettings.collisionLinkNames)
     {
       const size_t frameIndex = model.getFrameId(frameName);
       if(frameIndex <= 0)

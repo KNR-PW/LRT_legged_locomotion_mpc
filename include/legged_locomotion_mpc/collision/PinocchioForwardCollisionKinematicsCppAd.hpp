@@ -27,6 +27,7 @@
 #include <floating_base_model/FloatingBaseModelPinocchioMapping.hpp>
 
 #include <legged_locomotion_mpc/common/Types.hpp>
+#include <legged_locomotion_mpc/collision/CollisionSettings.hpp>
 #include <legged_locomotion_mpc/collision/PinocchoCollisionInterface.hpp>
 
 namespace legged_locomotion_mpc 
@@ -45,7 +46,7 @@ namespace legged_locomotion_mpc
     /** Constructor
      * @param [in] pinocchioInterface: pinocchio interface.
      * @param [in] info: info of kinematics model
-     * @param [in] collisionNames: collision frames
+     * @param [in] collisionSettings: collision settings
      * @param [in] modelName: name of the generate model library
      * @param [in] modelFolder: folder to save the model library files to
      * @param [in] recompileLibraries: If true, the model library will be newly
@@ -55,7 +56,7 @@ namespace legged_locomotion_mpc
     PinocchioForwardCollisionKinematicsCppAd(
         const ocs2::PinocchioInterface& pinocchioInterface,
         const floating_base_model::FloatingBaseModelInfo info,
-        const std::vector<std::string>& collisionNames,
+        const collision::CollisionSettings& collisionSettings,
         const std::string& modelName,
         const std::string& modelFolder = "/tmp/legged_locomotion_mpc",
         bool recompileLibraries = true, bool verbose = false);
