@@ -31,6 +31,8 @@
 #include <floating_base_model/FloatingBaseModelInfo.hpp>
 
 #include <legged_locomotion_mpc/common/Types.hpp>
+#include <legged_locomotion_mpc/common/ModelSettings.hpp>
+#include <legged_locomotion_mpc/collision/CollisionSettings.hpp>
 
 namespace legged_locomotion_mpc
 {
@@ -61,25 +63,19 @@ namespace legged_locomotion_mpc
         /**
          * Constructor
          * @param [in] info: Floating Base model info.
+         * @param [in] modelSettings: model settings
+         * @param [in] collisionSettings: collision settings
          * @param [in] pinocchioInterface: Pinocchio interface of Floating Base model
-         * @param [in] otherCollisionLinks: Other collision links for terrain or
-         * self collision
-         * @param [in] maxExcesses: vector of maximum allowed distances between 
-         * the surfaces of the collision primitives and collision spheres
-         * (size: number of end effectors + number of other collision links)
-         * @param [in] shrinkRatio: shrinking ratio for maxExcess to 
-         * recursively approximate the circular base of the cylinder when more than one
-         * collision sphere is required along the radial direction
          * @param [in] modelFolder: folder to save the model library files to
          * @param [in] recompileLibraries: If true, the model library will be newly
          * compiled. If false, an existing library will be loaded if available.
          * @param [in] verbose: print information.
          */
         PinocchioCollisionInterface(
-          floating_base_model::FloatingBaseModelInfo info,
+          const floating_base_model::FloatingBaseModelInfo& info,
+          const ModelSettings& modelSettings,
+          const CollisionSettings& collisionSettings,
           const ocs2::PinocchioInterface& pinocchioInterface,
-          const std::vector<std::string>& otherCollisionLinks, 
-          const std::vector<ocs2::scalar_t>& maxExcesses, ocs2::scalar_t shrinkRatio,
           const std::string& modelFolder = "/tmp/legged_locomotion_mpc",
           bool recompileLibraries = true,
           bool verbose = false);
@@ -118,6 +114,19 @@ namespace legged_locomotion_mpc
          */
         matrix3_t getRotationTimesVectorGradient(const vector3_t& eulerAnglesZYX, 
           const vector3_t& vector) const;
+        
+        /**
+         * Get all indices (0 : endEffectorNum + collisionNum - 1) 
+         * of all terrain avoidance links
+         */
+        const std::vector<size_t>& getTerrainAvoidanceCollisionIndices() const;
+
+        /**
+         * Get all indices (0 : endEffectorNum + collisionNum - 1) 
+         * of all self collision link pairs
+         */
+        const std::vector<std::pair<size_t, size_t>>& getSelfCollisionIndices() const;
+
 
         const pinocchio::GeometryModel& getGeometryModel() const;
 
@@ -131,6 +140,12 @@ namespace legged_locomotion_mpc
         pinocchio::GeometryModel geometryModel_;
 
         size_t frameNumber_;
+        
+        // Indicies of terrain collision avoidance
+        std::vector<size_t> terrainAvoidanceIndices_;
+        
+        // Indicies of self collision avoidance
+        std::vector<std::pair<size_t, size_t>> selfCollisionIndices_;
         
         // Number of spheres in every object of every frame
         std::vector<std::vector<size_t>> sphereNumbers_;

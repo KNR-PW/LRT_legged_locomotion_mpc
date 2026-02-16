@@ -32,11 +32,37 @@ namespace legged_locomotion_mpc
   {
     struct CollisionSettings
     {
+      /**
+       *  Other collision links for terrain or self collision (without end effectors!)
+       */ 
       std::vector<std::string> collisionLinkNames;
+
+      /**
+       * Terrain collision links (without end effectors!)
+       */
       std::vector<std::string> terrainCollisionLinkNames;
+
+      /**
+       * Self collision link pairs (including end efffectors!)
+       */
       std::vector<std::pair<std::string, std::string>> selfCollisionPairNames;
+
+      /**
+       * vector of maximum allowed distances between the surfaces 
+       * of the collision primitives and collision spheres
+       */
       std::vector<ocs2::scalar_t> maxExcesses;
+
+      /**
+       * Relaxation values for collision distance
+       */
       std::vector<ocs2::scalar_t> relaxations;
+
+      /**
+       * shrinking ratio for maxExcess to recursively approximate the circular base 
+       * of the cylinder when more than one collision 
+       * sphere is required along the radial direction
+       */
       ocs2::scalar_t shrinkRatio = 0.75;
     };
 

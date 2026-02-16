@@ -38,16 +38,16 @@ namespace legged_locomotion_mpc
     using namespace ocs2;
     using namespace floating_base_model;
     PinocchioCollisionInterface::PinocchioCollisionInterface(
-      FloatingBaseModelInfo info,
+      const FloatingBaseModelInfo& info,
+      const ModelSettings& modelSettings,
+      const CollisionSettings& collisionSettings,
       const PinocchioInterface& pinocchioInterface,
-      const std::vector<std::string>& otherCollisionLinks, 
-      const std::vector<scalar_t>& maxExcesses, scalar_t shrinkRatio,
       const std::string& modelFolder, bool recompileLibraries, bool verbose)
     {
-      if(maxExcesses.size() != (info.endEffectorFrameIndices.size() + otherCollisionLinks.size()))
+      if(collisionSettings.maxExcesses.size() != (info.endEffectorFrameIndices.size() + collisionSettings.collisionLinkNames.size()))
       {
         throw std::invalid_argument("[PinocchioCollisionInterface]: "
-          "maxExcesses is not the same size as otherCollisionLinks!");
+          "maxExcesses is not the same size as collisionLinks!");
       }
 
       if(!pinocchioInterface.getUrdfModelPtr()) 
@@ -71,7 +71,7 @@ namespace legged_locomotion_mpc
       // Get collision frame indexes
       std::vector<size_t> collisionFrames = info.endEffectorFrameIndices;
 
-      for(const std::string& frameName: otherCollisionLinks)
+      for(const std::string& frameName: collisionSettings.collisionLinkNames)
       {
         const size_t frameIndex = pinocchioInterface.getModel().getFrameId(frameName);
         if(frameIndex <= 0)
@@ -107,7 +107,7 @@ namespace legged_locomotion_mpc
             const auto& centerToFrameRotation = frameToCenterPlacement.rotation();
             
             const SphereApproximation sphereApproximation = SphereApproximation(*object.geometry, j, 
-              maxExcesses[i], shrinkRatio);
+              collisionSettings.maxExcesses[i], collisionSettings.shrinkRatio);
 
             const size_t sphereNumber = sphereApproximation.getNumSpheres();
             sphereNumbers.push_back(sphereNumber);
@@ -129,6 +129,63 @@ namespace legged_locomotion_mpc
         sphereRadiuses_.push_back(std::move(sphereRadiuses));
         frameToSpherePositons_.push_back(std::move(spherePositions));
       }
+
+      std::vector<std::string> collisionNames = modelSettings.contactNames3DoF;
+      collisionNames.insert(collisionNames.end(), 
+        modelSettings.contactNames6DoF.begin(), modelSettings.contactNames6DoF.end());
+
+      collisionNames.insert(collisionNames.end(), 
+        collisionSettings.collisionLinkNames.begin(), 
+        collisionSettings.collisionLinkNames.end());
+
+      // Add all end effectors by default
+      for(size_t i = 0; i < info.endEffectorFrameIndices.size(); ++i)
+      {
+        terrainAvoidanceIndices_.push_back(i);
+      }
+
+      for(const auto& terrainLinkName: collisionSettings.terrainCollisionLinkNames)
+      {
+        const auto iter = std::find(collisionNames.cbegin(), collisionNames.cend(), terrainLinkName);
+        if(iter == collisionNames.cend())
+        {
+          std::string message = "[PinocchioCollisionInterface]: No " + terrainLinkName + " link in all collison links!";
+          throw std::invalid_argument(message);
+        }
+        const size_t index = std::distance(collisionNames.cbegin(), iter);
+        terrainAvoidanceIndices_.push_back(index);
+      }
+
+      for(const auto& [firstCollisionName, secondCollisionName]: collisionSettings.selfCollisionPairNames)
+      {
+        const auto firstIter = std::find(collisionNames.cbegin(), collisionNames.cend(), firstCollisionName);
+        const auto secondIter = std::find(collisionNames.cbegin(), collisionNames.cend(), secondCollisionName);
+
+        if(firstIter == collisionNames.cend())
+        {
+          std::string message = "[PinocchioCollisionInterface]: No " + firstCollisionName + " link in all collison links!";
+          throw std::invalid_argument(message);
+        }
+
+        if(secondIter == collisionNames.cend())
+        {
+          std::string message = "[PinocchioCollisionInterface]: No " + secondCollisionName + " link in all collison links!";
+          throw std::invalid_argument(message);
+        }
+
+        const size_t firstIndex = std::distance(collisionNames.cbegin(), firstIter);
+        const size_t secondIndex = std::distance(collisionNames.cbegin(), secondIter);
+
+        if(secondIndex < firstIndex)
+        {
+          selfCollisionIndices_.emplace_back(secondIndex, firstIndex);
+        }
+        else
+        {
+          selfCollisionIndices_.emplace_back(firstIndex, secondIndex);
+        }
+      }
+
       auto systemFlowMapFunc = [&](const ocs2::ad_vector_t& x, const ocs2::ad_vector_t& p, 
         ocs2::ad_vector_t& y) 
       {
@@ -191,6 +248,16 @@ namespace legged_locomotion_mpc
     const pinocchio::GeometryModel& PinocchioCollisionInterface::getGeometryModel() const
     {
       return geometryModel_;
+    }
+
+    const std::vector<size_t>& PinocchioCollisionInterface::getTerrainAvoidanceCollisionIndices() const
+    {
+      return terrainAvoidanceIndices_;
+    }
+
+    const std::vector<std::pair<size_t, size_t>>& PinocchioCollisionInterface::getSelfCollisionIndices() const
+    {
+      return selfCollisionIndices_;
     }
   } // namespace collision
 } // namespace legged_locomotion_mpc

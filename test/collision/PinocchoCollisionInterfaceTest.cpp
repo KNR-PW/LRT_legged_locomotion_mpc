@@ -6,6 +6,9 @@
 
 #include <floating_base_model/FactoryFunctions.hpp>
 
+#include <legged_locomotion_mpc/common/ModelSettings.hpp>
+#include <legged_locomotion_mpc/collision/CollisionSettings.hpp>
+
 using namespace ocs2;
 using namespace floating_base_model;
 using namespace legged_locomotion_mpc;
@@ -23,15 +26,38 @@ TEST(PinocchoCollisionInterfaceTest, getters)
   const FloatingBaseModelInfo modelInfo = createFloatingBaseModelInfo(interface, 
     meldog3DofContactNames, meldog6DofContactNames);
 
-  const std::vector<std::string> collisionNames = meldogCollisions;
+  ModelSettings modelSettings;
+  modelSettings.baseLinkName = baseLink;
+  modelSettings.contactNames3DoF = meldog3DofContactNames;
+  modelSettings.contactNames6DoF = {};
 
-  const std::vector<scalar_t> maxExcesses(
-    meldog3DofContactNames.size() + collisionNames.size(), 0.2);
+  CollisionSettings collisionSettings;
+  collisionSettings.collisionLinkNames = meldogCollisions;
+  collisionSettings.terrainCollisionLinkNames = {"LFLL_link", "RFLL_link"};
+  collisionSettings.selfCollisionPairNames = {{"LFLL_link", "RFLL_link"}, {"LFLL_link", "LRLL_link"}, {"RRLL_link", "RRF_link"}};
+  collisionSettings.maxExcesses = std::vector<scalar_t>(
+    meldog3DofContactNames.size() + collisionSettings.collisionLinkNames.size(), 0.2);
+  collisionSettings.relaxations = std::vector<scalar_t>(
+    meldog3DofContactNames.size() + collisionSettings.collisionLinkNames.size(), 0.5);
+  collisionSettings.shrinkRatio = 0.5;
 
-  const scalar_t shrinkRatio = 0.5;
+  PinocchioCollisionInterface collisionInterface(modelInfo, modelSettings, 
+    collisionSettings, interface);
 
-  PinocchioCollisionInterface collisionInterface(modelInfo, interface, collisionNames, 
-    maxExcesses, shrinkRatio);
+  const auto terrainIndicies = collisionInterface.getTerrainAvoidanceCollisionIndices();
+  
+  const std::vector<size_t> trueTerrainIndicies{0, 1, 2, 3, 4, 5};
+  EXPECT_TRUE(terrainIndicies == trueTerrainIndicies);
+
+  const auto selfCollisionIndicies = collisionInterface.getSelfCollisionIndices();
+
+  EXPECT_TRUE(selfCollisionIndicies[0].first == 4);
+  EXPECT_TRUE(selfCollisionIndicies[0].second == 5);
+  EXPECT_TRUE(selfCollisionIndicies[1].first == 4);
+  EXPECT_TRUE(selfCollisionIndicies[1].second == 6);
+  EXPECT_TRUE(selfCollisionIndicies[2].first == 1);
+  EXPECT_TRUE(selfCollisionIndicies[2].second == 7);
+  
 
   std::vector<scalar_t> circleRadius(8);
 

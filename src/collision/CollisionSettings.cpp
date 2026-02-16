@@ -49,7 +49,7 @@ namespace legged_locomotion_mpc
       loadData::loadStdVector(filename, fieldName + ".collisionLinkNames", settings.collisionLinkNames, verbose);
 
       std::vector<std::string> collisionNames = modelSettings.contactNames3DoF;
-      collisionNames.insert(modelSettings.contactNames3DoF.end(), 
+      collisionNames.insert(collisionNames.end(), 
         modelSettings.contactNames6DoF.begin(), modelSettings.contactNames6DoF.end());
 
 
