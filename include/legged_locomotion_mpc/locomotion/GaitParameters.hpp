@@ -21,9 +21,9 @@
 #ifndef __GAIT_PARAMETERS_LEGGED_LOCOMOTION_MPC__
 #define __GAIT_PARAMETERS_LEGGED_LOCOMOTION_MPC__
 
-#include <legged_locomotion_mpc/common/Types.hpp>
-
 #include <cmath>
+
+#include <legged_locomotion_mpc/common/Types.hpp>
 
 namespace legged_locomotion_mpc
 {
@@ -32,14 +32,11 @@ namespace legged_locomotion_mpc
 
     namespace Definitions
     {
-      static const ocs2::scalar_t MAX_STEPPING_FREQUENCY = 5.0;  // [Hz]
-      static const ocs2::scalar_t MIN_STEPPING_FREQUENCY = 0.05;  // [Hz]
-      static const size_t DEFAULT_BUFFER_SIZE = 10; 
-      static const ocs2::scalar_t TOUCH_DOWN_WINDOW = 0.1; // [s]
-      static const ocs2::scalar_t EPS = 1e-3;
+      const size_t DEFAULT_BUFFER_SIZE = 10; 
+      const ocs2::scalar_t GAIT_PARAMETERS_EPS = 1e-3;
       
       // If mode changes between modes are smaller than this, they are in same mode change!
-      static const ocs2::scalar_t MIN_TIME_BETWEEN_CHANGES = 1e-4;
+      const ocs2::scalar_t MIN_TIME_BETWEEN_CHANGES = 1e-4;
     }
 
     enum class GaitFlags
@@ -55,25 +52,31 @@ namespace legged_locomotion_mpc
     {
       size_t endEffectorNumber;
       ocs2::scalar_t timeHorizion;
+      ocs2::scalar_t maximumSteppingFrequency = 5.0; // [Hz]
+      ocs2::scalar_t minimumSteppingFrequency = 0.0; // [Hz]
+      ocs2::scalar_t touchDownWindow = 0.1; // [s]
     };
 
     struct GaitDynamicParameters
     {
-      ocs2::scalar_t steppingFrequency;
+      ocs2::scalar_t steppingFrequency; // [Hz]
       ocs2::scalar_t swingRatio; // val < swingRatio -> SWING, else STANCE
       std::vector<ocs2::scalar_t> phaseOffsets; // len: endEffectorNumber - 1
     };
 
     inline bool operator==(const GaitDynamicParameters& lhs, const GaitDynamicParameters& rhs) 
     { 
+      if(lhs.phaseOffsets.size() != rhs.phaseOffsets.size()) return false;
+
       ocs2::scalar_t phaseOffsetsDifference = 0.0;
+
       for(size_t i = 0; i < lhs.phaseOffsets.size(); i++)
       {
         phaseOffsetsDifference += std::abs(lhs.phaseOffsets[i] - rhs.phaseOffsets[i]);
       }
-      return std::abs(lhs.steppingFrequency - rhs.steppingFrequency) < Definitions::EPS
-        &&  std::abs(lhs.swingRatio - rhs.swingRatio ) < Definitions::EPS
-        &&  phaseOffsetsDifference < Definitions::EPS
+      return std::abs(lhs.steppingFrequency - rhs.steppingFrequency) < Definitions::GAIT_PARAMETERS_EPS
+        &&  std::abs(lhs.swingRatio - rhs.swingRatio ) < Definitions::GAIT_PARAMETERS_EPS
+        &&  phaseOffsetsDifference < Definitions::GAIT_PARAMETERS_EPS
         && lhs.phaseOffsets.size() == rhs.phaseOffsets.size();
     };
       

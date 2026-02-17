@@ -6,6 +6,8 @@
 #include <unordered_map>
 #include <set>
 
+#include <ocs2_core/misc/Numerics.h>
+
 #include <legged_locomotion_mpc/locomotion/GaitCommon.hpp>
 
 namespace legged_locomotion_mpc
@@ -42,16 +44,16 @@ namespace legged_locomotion_mpc
       std::vector<size_t> modeSequence;
       modeSequence.push_back(currentMode.to_ulong());
 
-      /* If frequency is really low, just stand in place with current mode */
-      if(frequency < Definitions::MIN_STEPPING_FREQUENCY)
+      /* If frequency is lower than  or almost equal minimum, just stand in place with current mode */
+      if(frequency < staticParams.minimumSteppingFrequency || numerics::almost_eq(frequency, staticParams.minimumSteppingFrequency, SCALAR_EPSILON))
       {
         switchingTimes.push_back(timeHorizon);
         return ModeSequenceTemplate(switchingTimes, modeSequence);
       }
 
-      if(frequency > Definitions::MAX_STEPPING_FREQUENCY)
+      if(frequency > staticParams.maximumSteppingFrequency)
       {
-        frequency = Definitions::MAX_STEPPING_FREQUENCY;
+        frequency = staticParams.maximumSteppingFrequency;
       }
 
       /* Min queue that gets earliest change */
