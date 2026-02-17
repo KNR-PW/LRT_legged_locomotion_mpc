@@ -30,8 +30,6 @@ static void LeggedReferenceManager_PRESOLVE(benchmark::State & state)
 
   GaitStaticParameters staticParams;
   staticParams.endEffectorNumber = 4;
-  
-  staticParams.timeHorizion = 0.7;
 
   /* FLYING TROT */
   GaitDynamicParameters dynamicParams;

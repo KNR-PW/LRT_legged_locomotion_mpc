@@ -51,7 +51,6 @@ namespace legged_locomotion_mpc
     struct GaitStaticParameters
     {
       size_t endEffectorNumber;
-      ocs2::scalar_t timeHorizion;
       ocs2::scalar_t maximumSteppingFrequency = 5.0; // [Hz]
       ocs2::scalar_t minimumSteppingFrequency = 0.0; // [Hz]
       ocs2::scalar_t touchDownWindow = 0.1; // [s]

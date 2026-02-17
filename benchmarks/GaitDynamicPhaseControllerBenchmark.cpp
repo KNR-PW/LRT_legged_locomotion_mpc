@@ -13,8 +13,6 @@ static void GaitDynamicPhaseController_COPY(benchmark::State & state)
 
   GaitStaticParameters staticParams;
   staticParams.endEffectorNumber = 4;
-  
-  staticParams.timeHorizion = 0.7;
 
   GaitDynamicParameters dynamicParams;
   dynamicParams.steppingFrequency = 1.0 / 0.7;
@@ -30,7 +28,6 @@ static void GaitDynamicPhaseController_COPY(benchmark::State & state)
   scalar_t trueNotNormalizedPhase = currentPhase + nextTime * dynamicParams.steppingFrequency;
   
   /* FLYING TROT */
-  staticParams.timeHorizion = 1.2;
   dynamicParams.swingRatio =  0.33 / 0.6;
   dynamicParams.steppingFrequency = 1.0 / 0.6;
   currentPhase = dynamicParams.swingRatio;
@@ -49,8 +46,6 @@ static void GaitDynamicPhaseController_MOVE(benchmark::State & state)
 
   GaitStaticParameters staticParams;
   staticParams.endEffectorNumber = 4;
-  
-  staticParams.timeHorizion = 0.7;
 
   GaitDynamicParameters dynamicParams;
   dynamicParams.steppingFrequency = 1.0 / 0.7;
@@ -66,7 +61,6 @@ static void GaitDynamicPhaseController_MOVE(benchmark::State & state)
   scalar_t trueNotNormalizedPhase = currentPhase + nextTime * dynamicParams.steppingFrequency;
   
   /* FLYING TROT */
-  staticParams.timeHorizion = 1.2;
   dynamicParams.swingRatio =  0.33 / 0.6;
   dynamicParams.steppingFrequency = 1.0 / 0.6;
   currentPhase = dynamicParams.swingRatio;

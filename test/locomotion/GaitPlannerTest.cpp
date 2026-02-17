@@ -18,7 +18,7 @@ TEST(GaitPlannerTest, Constructor)
   GaitStaticParameters staticParams;
   staticParams.endEffectorNumber = 4;
   
-  staticParams.timeHorizion = 0.7;
+  
 
   GaitDynamicParameters dynamicParams;
   dynamicParams.steppingFrequency = 1.0 / 0.7;
@@ -28,7 +28,7 @@ TEST(GaitPlannerTest, Constructor)
 
   GaitPlanner gaitPlanner(staticParams, dynamicParams, currentPhase, 0.0);
 
-  scalar_t timeHorizon = 3 * staticParams.timeHorizion;
+  scalar_t timeHorizon = 3 * 0.7;
   auto modeSchedule = gaitPlanner.getModeSchedule(0.0, timeHorizon);
 
   std::vector<scalar_t> goodTimings = {0.0, 0.3, 0.35, 0.65, 0.7, 1, 1.05, 1.35, 1.4, 1.7, 1.75, 2.05, 2.1};
@@ -67,7 +67,7 @@ TEST(GaitPlannerTest, getModeSchedule)
   GaitStaticParameters staticParams;
   staticParams.endEffectorNumber = 4;
   
-  staticParams.timeHorizion = 0.7;
+  
 
   GaitDynamicParameters dynamicParams;
   dynamicParams.steppingFrequency = 1.0 / 0.7;
@@ -78,7 +78,7 @@ TEST(GaitPlannerTest, getModeSchedule)
   GaitPlanner gaitPlanner(staticParams, dynamicParams, currentPhase, 0.0);
 
   scalar_t startTime = 0.5;
-  scalar_t finalTime = 3 * staticParams.timeHorizion;
+  scalar_t finalTime = 3 * 0.7;
   auto modeSchedule = gaitPlanner.getModeSchedule(startTime, finalTime);
 
   std::vector<scalar_t> goodTimings = {0.65, 0.7, 1, 1.05, 1.35, 1.4, 1.7, 1.75, 2.05, 2.1};
@@ -110,7 +110,7 @@ TEST(GaitPlannerTest, getModeSchedule)
   }
 
   startTime = 0.8;
-  finalTime = 3 * staticParams.timeHorizion;
+  finalTime = 3 * 0.7;
   modeSchedule = gaitPlanner.getModeSchedule(startTime, finalTime);
 
   goodTimings = {1, 1.05, 1.35, 1.4, 1.7, 1.75, 2.05, 2.1};
@@ -159,7 +159,7 @@ TEST(GaitPlannerTest, updateDynamicParameters)
   GaitStaticParameters staticParams;
   staticParams.endEffectorNumber = 4;
   
-  staticParams.timeHorizion = 0.7;
+  
 
   GaitDynamicParameters dynamicParams1;
   dynamicParams1.steppingFrequency = 1.0 / 0.7;
@@ -268,7 +268,7 @@ TEST(GaitPlannerTest, stayingInPlace)
   GaitStaticParameters staticParams;
   staticParams.endEffectorNumber = 4;
   
-  staticParams.timeHorizion = 0.7;
+  
 
   GaitDynamicParameters dynamicParams;
   dynamicParams.steppingFrequency = 0.0;
@@ -278,7 +278,7 @@ TEST(GaitPlannerTest, stayingInPlace)
 
   GaitPlanner gaitPlanner(staticParams, dynamicParams, currentPhase, 0.0);
 
-  scalar_t timeHorizon = 3 * staticParams.timeHorizion;
+  scalar_t timeHorizon = 3 * 0.7;
   auto modeSchedule = gaitPlanner.getModeSchedule(0.0, timeHorizon);
 
   std::vector<scalar_t> goodTimings = {2.1};

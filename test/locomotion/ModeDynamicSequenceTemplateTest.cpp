@@ -15,8 +15,6 @@ TEST(ModeDynamicSequenceTemplateTest, getter)
 
   GaitStaticParameters staticParams;
   staticParams.endEffectorNumber = 4;
-  
-  staticParams.timeHorizion = 0.7;
 
   GaitDynamicParameters dynamicParams;
   dynamicParams.steppingFrequency = 1.0 / 0.7;
@@ -25,7 +23,7 @@ TEST(ModeDynamicSequenceTemplateTest, getter)
   dynamicParams.phaseOffsets = {-currentPhase , -currentPhase , 0};
 
   auto modeSequenceTemplate = getDynamicModeSequenceTemplate(currentPhase,
-    staticParams.timeHorizion, staticParams, dynamicParams);
+    0.7, staticParams, dynamicParams);
 
   std::vector<size_t> goodSequence = {9, 15, 6, 15};
   std::vector<scalar_t> goodTiming = {0.0, 0.3, 0.35, 0.65, 0.7};
@@ -39,7 +37,6 @@ TEST(ModeDynamicSequenceTemplateTest, getter)
 
 
   /* FLYING TROT */
-  staticParams.timeHorizion = 1.2;
   dynamicParams.swingRatio =  0.33 / 0.6;
   dynamicParams.steppingFrequency = 1.0 / 0.6;
   currentPhase = dynamicParams.swingRatio;
@@ -47,7 +44,7 @@ TEST(ModeDynamicSequenceTemplateTest, getter)
   dynamicParams.phaseOffsets = {-currentPhase + 0.03 / 0.6, -currentPhase + 0.03 / 0.6, 0};
 
   modeSequenceTemplate = getDynamicModeSequenceTemplate(currentPhase,
-    staticParams.timeHorizion, staticParams, dynamicParams);
+    1.2, staticParams, dynamicParams);
 
   goodSequence = {9, 0, 6, 0, 9, 0, 6, 0};
   goodTiming = {0.0, 0.27, 0.3, 0.57, 0.6, 0.87, 0.9, 1.17, 1.2};
@@ -61,7 +58,6 @@ TEST(ModeDynamicSequenceTemplateTest, getter)
 
   /* DYNAMIC WALK */
 
-  staticParams.timeHorizion = 3.0;
   dynamicParams.swingRatio =  0.3;
   dynamicParams.steppingFrequency = 1.0;
   currentPhase = 0.8;
@@ -69,7 +65,7 @@ TEST(ModeDynamicSequenceTemplateTest, getter)
   dynamicParams.phaseOffsets = {0.5, 0.2, 0.7};
 
   modeSequenceTemplate = getDynamicModeSequenceTemplate(currentPhase,
-    staticParams.timeHorizion, staticParams, dynamicParams);
+    3.0, staticParams, dynamicParams);
 
   goodSequence = {11, 10, 14, 7, 5, 13, 11, 10, 14, 7, 5, 13, 11, 10, 14, 7, 5, 13};
   goodTiming = {0.0, 0.2, 0.3, 0.5, 0.7, 0.8, 1.0, 1.2, 1.3, 1.5, 1.7, 1.8, 2.0,

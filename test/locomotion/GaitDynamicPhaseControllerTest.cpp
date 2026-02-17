@@ -16,8 +16,6 @@ TEST(GaitDynamicPhaseController, getPhaseAtTime)
 
   GaitStaticParameters staticParams;
   staticParams.endEffectorNumber = 4;
-  
-  staticParams.timeHorizion = 0.7;
 
   GaitDynamicParameters dynamicParams;
   dynamicParams.steppingFrequency = 1.0 / 0.7;
@@ -52,7 +50,7 @@ TEST(GaitDynamicPhaseController, update)
   GaitStaticParameters staticParams;
   staticParams.endEffectorNumber = 4;
   
-  staticParams.timeHorizion = 0.7;
+  
 
   GaitDynamicParameters dynamicParams;
   dynamicParams.steppingFrequency = 1.0 / 0.7;
@@ -68,7 +66,6 @@ TEST(GaitDynamicPhaseController, update)
   scalar_t trueNotNormalizedPhase = currentPhase + nextTime * dynamicParams.steppingFrequency;
   
   /* FLYING TROT */
-  staticParams.timeHorizion = 1.2;
   dynamicParams.swingRatio =  0.33 / 0.6;
   dynamicParams.steppingFrequency = 1.0 / 0.6;
   currentPhase = dynamicParams.swingRatio;
@@ -99,7 +96,7 @@ TEST(GaitDynamicPhaseController, update)
 
   staticParams.endEffectorNumber = 4;
   
-  staticParams.timeHorizion = 0.7;
+  
 
   dynamicParams.steppingFrequency = 1.0 / 0.7;
   dynamicParams.swingRatio = 3.0 / 7.0;
@@ -133,7 +130,7 @@ TEST(GaitDynamicPhaseController, remove)
   GaitStaticParameters staticParams;
   staticParams.endEffectorNumber = 4;
   
-  staticParams.timeHorizion = 0.7;
+  
 
   GaitDynamicParameters dynamicParams;
   dynamicParams.steppingFrequency = 1.0 / 0.7;
@@ -149,7 +146,6 @@ TEST(GaitDynamicPhaseController, remove)
   scalar_t trueNotNormalizedPhase = currentPhase + nextTime * dynamicParams.steppingFrequency;
   
   /* FLYING TROT */
-  staticParams.timeHorizion = 1.2;
   dynamicParams.swingRatio =  0.33 / 0.6;
   dynamicParams.steppingFrequency = 1.0 / 0.6;
   currentPhase = dynamicParams.swingRatio;
@@ -186,7 +182,7 @@ TEST(GaitDynamicPhaseController, getContactFlagsAtTime)
   GaitStaticParameters staticParams;
   staticParams.endEffectorNumber = 4;
   
-  staticParams.timeHorizion = 0.7;
+  
 
   GaitDynamicParameters dynamicParams;
   dynamicParams.steppingFrequency = 1.0 / 0.7;
@@ -202,7 +198,6 @@ TEST(GaitDynamicPhaseController, getContactFlagsAtTime)
   scalar_t trueNotNormalizedPhase = currentPhase + nextTime * dynamicParams.steppingFrequency;
   
   /* FLYING TROT */
-  staticParams.timeHorizion = 1.2;
   dynamicParams.swingRatio =  0.33 / 0.6;
   dynamicParams.steppingFrequency = 1.0 / 0.6;
   currentPhase = dynamicParams.swingRatio;
@@ -242,7 +237,6 @@ TEST(GaitDynamicPhaseController, getDynamicParametersAtTime)
 
   GaitStaticParameters staticParams1;
   staticParams1.endEffectorNumber = 4;
-  staticParams1.timeHorizion = 0.7;
 
   GaitDynamicParameters dynamicParams1;
   dynamicParams1.steppingFrequency = 1.0 / 0.7;
