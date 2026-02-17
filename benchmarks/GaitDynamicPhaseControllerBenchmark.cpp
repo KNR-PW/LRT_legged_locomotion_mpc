@@ -13,7 +13,7 @@ static void GaitDynamicPhaseController_COPY(benchmark::State & state)
 
   GaitStaticParameters staticParams;
   staticParams.endEffectorNumber = 4;
-  staticParams.plannerFrequency = 2.0;
+  
   staticParams.timeHorizion = 0.7;
 
   GaitDynamicParameters dynamicParams;
@@ -49,7 +49,7 @@ static void GaitDynamicPhaseController_MOVE(benchmark::State & state)
 
   GaitStaticParameters staticParams;
   staticParams.endEffectorNumber = 4;
-  staticParams.plannerFrequency = 2.0;
+  
   staticParams.timeHorizion = 0.7;
 
   GaitDynamicParameters dynamicParams;

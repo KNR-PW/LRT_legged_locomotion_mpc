@@ -36,7 +36,7 @@ TEST(LeggedReferenceManagerTest, getContactFlags)
 
   GaitStaticParameters staticParams;
   staticParams.endEffectorNumber = 4;
-  staticParams.plannerFrequency = 2.0;
+  
   staticParams.timeHorizion = 0.7;
 
   GaitDynamicParameters dynamicParams;
@@ -191,7 +191,7 @@ TEST(LeggedReferenceManagerTest, getTerrainModel)
 
   GaitStaticParameters staticParams;
   staticParams.endEffectorNumber = 4;
-  staticParams.plannerFrequency = 2.0;
+  
   staticParams.timeHorizion = 0.7;
 
   GaitDynamicParameters dynamicParams;
@@ -341,7 +341,7 @@ TEST(LeggedReferenceManagerTest, getEndEffectorTrajectoryPoint)
 
   GaitStaticParameters staticParams;
   staticParams.endEffectorNumber = 4;
-  staticParams.plannerFrequency = 2.0;
+  
   staticParams.timeHorizion = 0.7;
 
   GaitDynamicParameters dynamicParams;
@@ -511,7 +511,7 @@ TEST(LeggedReferenceManagerTest, getEndEffectorConstraintMatrixes)
 
   GaitStaticParameters staticParams;
   staticParams.endEffectorNumber = 4;
-  staticParams.plannerFrequency = 2.0;
+  
   staticParams.timeHorizion = 0.7;
 
   GaitDynamicParameters dynamicParams;

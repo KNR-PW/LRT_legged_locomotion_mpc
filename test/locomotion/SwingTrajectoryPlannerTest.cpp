@@ -37,7 +37,7 @@ TEST(SwingTrajectoryPlannerTest, standingInPlace)
 
   GaitStaticParameters staticParams;
   staticParams.endEffectorNumber = 4;
-  staticParams.plannerFrequency = 2.0;
+  
   staticParams.timeHorizion = 0.7;
 
   GaitDynamicParameters dynamicParams;
@@ -181,7 +181,7 @@ TEST(SwingTrajectoryPlannerTest, TrotInPlace)
 
   GaitStaticParameters staticParams;
   staticParams.endEffectorNumber = 4;
-  staticParams.plannerFrequency = 2.0;
+  
   staticParams.timeHorizion = 0.7;
 
   GaitDynamicParameters dynamicParams;
@@ -323,7 +323,7 @@ TEST(SwingTrajectoryPlannerTest, Troting)
 
   GaitStaticParameters staticParams;
   staticParams.endEffectorNumber = 4;
-  staticParams.plannerFrequency = 2.0;
+  
   staticParams.timeHorizion = 0.7;
 
   GaitDynamicParameters dynamicParams;

@@ -15,7 +15,7 @@ TEST(ModeDynamicSequenceTemplateTest, getter)
 
   GaitStaticParameters staticParams;
   staticParams.endEffectorNumber = 4;
-  staticParams.plannerFrequency = 2.0;
+  
   staticParams.timeHorizion = 0.7;
 
   GaitDynamicParameters dynamicParams;

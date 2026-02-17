@@ -54,7 +54,6 @@ namespace legged_locomotion_mpc
     struct GaitStaticParameters
     {
       size_t endEffectorNumber;
-      ocs2::scalar_t plannerFrequency;
       ocs2::scalar_t timeHorizion;
     };
 

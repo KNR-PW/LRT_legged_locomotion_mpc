@@ -39,7 +39,7 @@ TEST(LeggedPrecomputationTest, getEndEffector)
 
   GaitStaticParameters staticParams;
   staticParams.endEffectorNumber = 4;
-  staticParams.plannerFrequency = 2.0;
+  
   staticParams.timeHorizion = 0.7;
 
   GaitDynamicParameters dynamicParams;
@@ -257,7 +257,7 @@ TEST(LeggedPrecomputationTest, getCollisionLinks)
 
   GaitStaticParameters staticParams;
   staticParams.endEffectorNumber = 4;
-  staticParams.plannerFrequency = 2.0;
+  
   staticParams.timeHorizion = 0.7;
 
   GaitDynamicParameters dynamicParams;
@@ -447,7 +447,7 @@ TEST(LeggedPrecomputationTest, getTorque)
 
   GaitStaticParameters staticParams;
   staticParams.endEffectorNumber = 4;
-  staticParams.plannerFrequency = 2.0;
+  
   staticParams.timeHorizion = 0.7;
 
   GaitDynamicParameters dynamicParams;
@@ -625,7 +625,7 @@ TEST(LeggedPrecomputationTest, getReference)
 
   GaitStaticParameters staticParams;
   staticParams.endEffectorNumber = 4;
-  staticParams.plannerFrequency = 2.0;
+  
   staticParams.timeHorizion = 0.7;
 
   GaitDynamicParameters dynamicParams;

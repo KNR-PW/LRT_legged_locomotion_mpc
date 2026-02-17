@@ -16,7 +16,7 @@ TEST(GaitDynamicPhaseController, getPhaseAtTime)
 
   GaitStaticParameters staticParams;
   staticParams.endEffectorNumber = 4;
-  staticParams.plannerFrequency = 2.0;
+  
   staticParams.timeHorizion = 0.7;
 
   GaitDynamicParameters dynamicParams;
@@ -51,7 +51,7 @@ TEST(GaitDynamicPhaseController, update)
 
   GaitStaticParameters staticParams;
   staticParams.endEffectorNumber = 4;
-  staticParams.plannerFrequency = 2.0;
+  
   staticParams.timeHorizion = 0.7;
 
   GaitDynamicParameters dynamicParams;
@@ -98,7 +98,7 @@ TEST(GaitDynamicPhaseController, update)
   currentPhase = 3.5 / 7.0;
 
   staticParams.endEffectorNumber = 4;
-  staticParams.plannerFrequency = 2.0;
+  
   staticParams.timeHorizion = 0.7;
 
   dynamicParams.steppingFrequency = 1.0 / 0.7;
@@ -132,7 +132,7 @@ TEST(GaitDynamicPhaseController, remove)
 
   GaitStaticParameters staticParams;
   staticParams.endEffectorNumber = 4;
-  staticParams.plannerFrequency = 2.0;
+  
   staticParams.timeHorizion = 0.7;
 
   GaitDynamicParameters dynamicParams;
@@ -185,7 +185,7 @@ TEST(GaitDynamicPhaseController, getContactFlagsAtTime)
 
   GaitStaticParameters staticParams;
   staticParams.endEffectorNumber = 4;
-  staticParams.plannerFrequency = 2.0;
+  
   staticParams.timeHorizion = 0.7;
 
   GaitDynamicParameters dynamicParams;
@@ -242,7 +242,6 @@ TEST(GaitDynamicPhaseController, getDynamicParametersAtTime)
 
   GaitStaticParameters staticParams1;
   staticParams1.endEffectorNumber = 4;
-  staticParams1.plannerFrequency = 2.0;
   staticParams1.timeHorizion = 0.7;
 
   GaitDynamicParameters dynamicParams1;
