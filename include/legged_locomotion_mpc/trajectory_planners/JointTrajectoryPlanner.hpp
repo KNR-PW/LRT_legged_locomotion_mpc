@@ -87,7 +87,7 @@ namespace legged_locomotion_mpc
     
      /**
      * Creates KinematicsModel settings 
-     * @param [in] filename: file path with model settings.
+     * @param [in] filename: file path with joint planner settings.
      * @param [in] fieldName: field where settings are defined
      * @param [in] verbose: verbose flag
      * @return multi_end_effector_kinematics::KinematicsModelSettings struct
@@ -99,7 +99,7 @@ namespace legged_locomotion_mpc
     
      /**
      * Creates InverseSolver settings 
-     * @param [in] filename: file path with model settings.
+     * @param [in] filename: file path with joint planner settings.
      * @param [in] fieldName: field where settings are defined
      * @param [in] verbose: verbose flag
      * @return multi_end_effector_kinematics::InverseSolverSettings struct
@@ -111,7 +111,7 @@ namespace legged_locomotion_mpc
 
      /**
      * Creates InverseSolver model name
-     * @param [in] filename: file path with model settings.
+     * @param [in] filename: file path with joint planner settings.
      * @param [in] fieldName: field where settings are defined
      * @param [in] verbose: verbose flag
      * @return Inverse solver name string

@@ -60,6 +60,7 @@ add_library(${PROJECT_NAME}
   src/collision/PinocchoCollisionInterface.cpp
   src/collision/PinocchioForwardCollisionKinematicsCppAd.cpp
 
+  src/locomotion/GaitParameters.cpp
   src/locomotion/ModeSequenceTemplate.cpp
   src/locomotion/GaitPlanner.cpp
   src/locomotion/ModeDynamicSequenceTemplate.cpp
@@ -174,6 +175,7 @@ if(BUILD_TESTING)
   target_compile_options(${PROJECT_NAME}_test_common PUBLIC ${FLAGS})
 
   ament_add_gtest(${PROJECT_NAME}_test_locomotion
+        test/locomotion/GaitParametersTest.cpp
         test/locomotion/GaitCommonTest.cpp
         test/locomotion/ModeDynamicSequenceTemplateTest.cpp
         test/locomotion/GaitPlannerTest.cpp

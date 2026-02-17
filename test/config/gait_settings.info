@@ -1,0 +1,18 @@
+gait_static_settings
+{
+  maximumSteppingFrequency  2.0
+  minimumSteppingFrequency  0.5
+  touchdownWindow           0.75
+}
+
+gait_dynamic_settings
+{
+  steppingFrequency 1.5
+  swingRatio        0.2
+  phaseOffsets
+  {
+    [0] 0.1
+    [1] 0.2
+    [2] 0.3
+  }
+}

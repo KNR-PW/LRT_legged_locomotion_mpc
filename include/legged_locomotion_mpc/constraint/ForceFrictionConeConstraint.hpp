@@ -120,7 +120,7 @@ namespace legged_locomotion_mpc
 
   /**
    * Creates Force Friction Cone settings 
-   * @param [in] filename: file path with model settings.
+   * @param [in] filename: file path with constraint settings.
    * @param [in] fieldName: field where settings are defined
    * @param [in] verbose: verbose flag
    * @return ForceFrictionConeConstraint::Config struct

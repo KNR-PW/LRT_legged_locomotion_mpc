@@ -23,7 +23,10 @@
 
 #include <cmath>
 
+#include <ocs2_core/misc/LoadData.h>
+
 #include <legged_locomotion_mpc/common/Types.hpp>
+#include <legged_locomotion_mpc/common/ModelSettings.hpp>
 
 namespace legged_locomotion_mpc
 {
@@ -53,7 +56,7 @@ namespace legged_locomotion_mpc
       size_t endEffectorNumber;
       ocs2::scalar_t maximumSteppingFrequency = 5.0; // [Hz]
       ocs2::scalar_t minimumSteppingFrequency = 0.0; // [Hz]
-      ocs2::scalar_t touchDownWindow = 0.1; // [s]
+      ocs2::scalar_t touchdownWindow = 0.1; // [s]
     };
 
     struct GaitDynamicParameters
@@ -83,6 +86,34 @@ namespace legged_locomotion_mpc
     { 
       return !(lhs == rhs); 
     };
+
+    /**
+     * Creates MPC gait static parameters 
+     * @param [in] filename: file path with gait settings.
+     * @param [in] modelSettings: MPC model settings
+     * @param [in] fieldName: field where settings are defined
+     * @param [in] verbose: verbose flag
+     * @return GaitStaticParameters struct
+     */
+    GaitStaticParameters loadGaitStaticParameters(const std::string& filename,
+      const ModelSettings& modelSettings,
+      const std::string& fieldName = "gait_static_settings",
+      bool verbose = "true");
+
+    /**
+     * Creates MPC gait dynamic parameters 
+     * @param [in] filename: file path with gait settings.
+     * @param [in] modelSettings: MPC model settings
+     * @param [in] staticParams: gait static settings
+     * @param [in] fieldName: field where settings are defined
+     * @param [in] verbose: verbose flag
+     * @return GaitDynamicParameters struct
+     */
+    GaitDynamicParameters loadGaitDynamicParameters(const std::string& filename,
+      const ModelSettings& modelSettings,
+      const GaitStaticParameters& staticParams,
+      const std::string& fieldName = "gait_dynamic_settings",
+      bool verbose = "true");
     
   } // namespace locomotion
 } // namespace legged_locomotion_mpc

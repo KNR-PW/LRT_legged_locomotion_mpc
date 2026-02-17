@@ -110,7 +110,7 @@ namespace legged_locomotion_mpc
 
   /**
    * Creates base weights 
-   * @param [in] filename: file path with model settings.
+   * @param [in] filename: file path with weight settings.
    * @param [in] fieldName: field where settings are defined
    * @param [in] verbose: verbose flag
    * @return BaseWeights struct
@@ -121,7 +121,7 @@ namespace legged_locomotion_mpc
 
   /**
    * Creates joint weights 
-   * @param [in] filename: file path with model settings.
+   * @param [in] filename: file path with weight settings.
    * @param [in] info: The floating base model information.
    * @param [in] robotModel: pinocchio robot model from pinocchioInterface
    * @param [in] fieldName: field where settings are defined
@@ -136,7 +136,7 @@ namespace legged_locomotion_mpc
 
   /**
    * Creates end effector weights 
-   * @param [in] filename: file path with model settings.
+   * @param [in] filename: file path with weight settings.
    * @param [in] fieldName: field where settings are defined
    * @param [in] verbose: verbose flag
    * @return EndEffectorWeights struct
