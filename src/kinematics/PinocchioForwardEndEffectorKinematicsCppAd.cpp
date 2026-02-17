@@ -249,8 +249,7 @@ namespace legged_locomotion_mpc
   auto PinocchioForwardEndEffectorKinematicsCppAd::getLinearVelocity(
     const vector_t& state, const vector_t& input) const -> std::vector<vector3_t> 
   {
-    vector_t stateInput(state.rows() + input.rows());
-    stateInput << state, input;
+    const ocs2::vector_t stateInput = (ocs2::vector_t(state.rows() + input.rows()) << state, input).finished();
     const vector_t velocityValues = linearVelocityCppAdInterfacePtr_->getFunctionValue(stateInput);
 
     std::vector<vector3_t> velocities;
@@ -267,8 +266,7 @@ namespace legged_locomotion_mpc
   std::vector<VectorFunctionLinearApproximation> PinocchioForwardEndEffectorKinematicsCppAd::getLinearVelocityLinearApproximation(
       const vector_t& state, const vector_t& input) const 
   {
-    vector_t stateInput(state.rows() + input.rows());
-    stateInput << state, input;
+    const ocs2::vector_t stateInput = (ocs2::vector_t(state.rows() + input.rows()) << state, input).finished();
     const vector_t velocityValues = linearVelocityCppAdInterfacePtr_->getFunctionValue(stateInput);
     const matrix_t velocityJacobian = linearVelocityCppAdInterfacePtr_->getJacobian(stateInput);
 
@@ -316,8 +314,7 @@ namespace legged_locomotion_mpc
   auto PinocchioForwardEndEffectorKinematicsCppAd::getAngularVelocity(
     const vector_t& state, const vector_t& input) const -> std::vector<vector3_t> 
   {
-    vector_t stateInput(state.rows() + input.rows());
-    stateInput << state, input;
+    const ocs2::vector_t stateInput = (ocs2::vector_t(state.rows() + input.rows()) << state, input).finished();
     const vector_t velocityValues = angularVelocityCppAdInterfacePtr_->getFunctionValue(stateInput);
     
     std::vector<vector3_t> velocities;
@@ -334,8 +331,7 @@ namespace legged_locomotion_mpc
   std::vector<VectorFunctionLinearApproximation> PinocchioForwardEndEffectorKinematicsCppAd::getAngularVelocityLinearApproximation(
     const vector_t& state, const vector_t& input) const 
   {
-    vector_t stateInput(state.rows() + input.rows());
-    stateInput << state, input;
+    const ocs2::vector_t stateInput = (ocs2::vector_t(state.rows() + input.rows()) << state, input).finished();
     const vector_t velocityValues = angularVelocityCppAdInterfacePtr_->getFunctionValue(stateInput);
     const matrix_t velocityJacobian = angularVelocityCppAdInterfacePtr_->getJacobian(stateInput);
     
