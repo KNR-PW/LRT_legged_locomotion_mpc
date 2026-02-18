@@ -1,5 +1,7 @@
 #include <legged_locomotion_mpc/common/ModelSettings.hpp>
 
+#include <unordered_set>
+
 #include <boost/property_tree/info_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
 
@@ -30,8 +32,27 @@ namespace legged_locomotion_mpc
     loadData::loadPtreeValue(pt, modelSettings.baseLinkName, fieldName + ".baseLinkName", verbose);
 
     loadData::loadStdVector(filename, fieldName + ".contactNames3DoF", modelSettings.contactNames3DoF, verbose);
-    
+
     loadData::loadStdVector(filename, fieldName + ".contactNames6DoF", modelSettings.contactNames6DoF, verbose);
+
+    std::unordered_set<std::string> namesSet;
+
+    std::vector<std::string> namesVector = modelSettings.contactNames3DoF;
+    namesVector.insert(namesVector.end(), 
+        modelSettings.contactNames6DoF.begin(), modelSettings.contactNames6DoF.end());
+
+    for(const auto& endEffectorName: namesVector)
+    {
+      if(namesSet.find(endEffectorName) == namesSet.cend())
+      {
+        namesSet.emplace(endEffectorName);
+      }
+      else
+      {
+        std::string message = "[ModelSettings]: End effector " +  endEffectorName + " already used!";
+        throw std::invalid_argument(message);
+      }
+    }
 
     if(verbose) 
     {

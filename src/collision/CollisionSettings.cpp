@@ -19,17 +19,25 @@
 
 #include <legged_locomotion_mpc/collision/CollisionSettings.hpp>
 
-#include <stdexcept>
+#include <unordered_set>
 
 #include <boost/property_tree/info_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
-
 
 namespace legged_locomotion_mpc
 {
   namespace collision
   {
     using namespace ocs2;
+
+    // For unordered_set of std::pair<std::string, std::string>
+    struct hashFunction
+    {
+      size_t operator()(const std::pair<std::string, std::string>& pair) const
+      { 
+        return std::hash<std::string>{}(pair.first) ^  std::hash<std::string>{}(pair.second);
+      };
+    };
 
     CollisionSettings loadCollisionSettings(const std::string& filename,
       const ModelSettings& modelSettings, const std::string& fieldName,bool verbose)
@@ -72,6 +80,8 @@ namespace legged_locomotion_mpc
       settings.collisionLinkNames = trueCollisionLinksNames;
 
       loadData::loadStdVector(filename, fieldName + ".terrainCollisionLinkNames", settings.terrainCollisionLinkNames,verbose);
+
+      std::unordered_set<std::string> terrainNamesSet;
       
       for(const auto& terrainCollisionLink: settings.terrainCollisionLinkNames)
       {
@@ -80,9 +90,22 @@ namespace legged_locomotion_mpc
           std::string message = "[CollisionSettings]: No " + terrainCollisionLink + " link in all collison links!";
           throw std::invalid_argument(message);
         }
+
+        if(terrainNamesSet.find(terrainCollisionLink) == terrainNamesSet.cend())
+        {
+          terrainNamesSet.emplace(terrainCollisionLink);
+        }
+        else
+        {
+          std::string message = "[ModelSettings]: Terrain collision link " +  terrainCollisionLink + " already used!";
+          throw std::invalid_argument(message);
+        }
+        
       }
 
       loadData::loadStdVectorOfPair(filename, fieldName + ".selfCollisionPairNames", settings.selfCollisionPairNames, verbose);
+      
+      std::unordered_set<std::pair<std::string, std::string>, hashFunction> selfCollisionNamesSet;
 
       for(size_t i = 0; i < settings.selfCollisionPairNames.size(); ++i)
       {
@@ -101,6 +124,17 @@ namespace legged_locomotion_mpc
         if(std::find(collisionNames.cbegin(), collisionNames.cend(), secondCollisionName) == collisionNames.cend())
         {
           throw std::invalid_argument("[CollisionSettings]: Second collision link not found in collision link names!");
+        }
+
+        std::pair<std::string, std::string> selfCollisionPair{firstCollisionName, secondCollisionName};
+        if(selfCollisionNamesSet.find(selfCollisionPair) == selfCollisionNamesSet.cend())
+        {
+          selfCollisionNamesSet.emplace(selfCollisionPair);
+        }
+        else
+        {
+          std::string message = "[ModelSettings]: Self collision links " +  firstCollisionName + " and " + secondCollisionName + " already used!";
+          throw std::invalid_argument(message);
         }
       }
 
