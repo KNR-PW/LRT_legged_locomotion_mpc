@@ -37,8 +37,6 @@ TEST(LeggedReferenceManagerTest, getContactFlags)
   GaitStaticParameters staticParams;
   staticParams.endEffectorNumber = 4;
   
-  
-
   GaitDynamicParameters dynamicParams;
   dynamicParams.steppingFrequency = 1.0 / 0.7;
   dynamicParams.swingRatio = 3.0 / 7.0;
@@ -109,8 +107,23 @@ TEST(LeggedReferenceManagerTest, getContactFlags)
 
   BaseTrajectoryPlanner basePlanner(modelInfo, staticSettings);
 
+  ModelSettings leggedModelSettings;
+  leggedModelSettings.baseLinkName =  baseLink;
+  leggedModelSettings.contactNames3DoF = meldog3DofContactNames;
+  leggedModelSettings.contactNames6DoF = meldog6DofContactNames;
+  leggedModelSettings.hipFrameNames = meldogHipNames;
+
+  OverExtensionPenalty::Settings penaltySettings;
+  penaltySettings.nominalLegExtension = 0.5;
+  penaltySettings.legOverExtensionWeight = 1.0;
+
+  const std::string penaltyName = "over_extension_penalty";
+
+  OverExtensionPenalty penalty(interface, leggedModelSettings, penaltySettings, modelInfo, 
+    penaltyName);
+
   SwingTrajectoryPlanner swingPlanner(modelInfo, swingStaticSettings, 
-    swingDynamicSettings, forwardKinematics);
+    swingDynamicSettings, forwardKinematics, penalty);
 
   JointTrajectoryPlanner jointPlanner(modelInfo, std::move(kinematicsSolver));
 
@@ -264,8 +277,23 @@ TEST(LeggedReferenceManagerTest, getTerrainModel)
 
   BaseTrajectoryPlanner basePlanner(modelInfo, staticSettings);
 
+  ModelSettings leggedModelSettings;
+  leggedModelSettings.baseLinkName =  baseLink;
+  leggedModelSettings.contactNames3DoF = meldog3DofContactNames;
+  leggedModelSettings.contactNames6DoF = meldog6DofContactNames;
+  leggedModelSettings.hipFrameNames = meldogHipNames;
+
+  OverExtensionPenalty::Settings penaltySettings;
+  penaltySettings.nominalLegExtension = 0.5;
+  penaltySettings.legOverExtensionWeight = 1.0;
+
+  const std::string penaltyName = "over_extension_penalty";
+
+  OverExtensionPenalty penalty(interface, leggedModelSettings, penaltySettings, modelInfo, 
+    penaltyName);
+
   SwingTrajectoryPlanner swingPlanner(modelInfo, swingStaticSettings, 
-    swingDynamicSettings, forwardKinematics);
+    swingDynamicSettings, forwardKinematics, penalty);
 
   JointTrajectoryPlanner jointPlanner(modelInfo, std::move(kinematicsSolver));
 
@@ -414,8 +442,23 @@ TEST(LeggedReferenceManagerTest, getEndEffectorTrajectoryPoint)
 
   BaseTrajectoryPlanner basePlanner(modelInfo, staticSettings);
 
+  ModelSettings leggedModelSettings;
+  leggedModelSettings.baseLinkName =  baseLink;
+  leggedModelSettings.contactNames3DoF = meldog3DofContactNames;
+  leggedModelSettings.contactNames6DoF = meldog6DofContactNames;
+  leggedModelSettings.hipFrameNames = meldogHipNames;
+
+  OverExtensionPenalty::Settings penaltySettings;
+  penaltySettings.nominalLegExtension = 0.5;
+  penaltySettings.legOverExtensionWeight = 1.0;
+
+  const std::string penaltyName = "over_extension_penalty";
+
+  OverExtensionPenalty penalty(interface, leggedModelSettings, penaltySettings, modelInfo, 
+    penaltyName);
+
   SwingTrajectoryPlanner swingPlanner(modelInfo, swingStaticSettings, 
-    swingDynamicSettings, forwardKinematics);
+    swingDynamicSettings, forwardKinematics, penalty);
 
   JointTrajectoryPlanner jointPlanner(modelInfo, std::move(kinematicsSolver));
 
@@ -584,8 +627,23 @@ TEST(LeggedReferenceManagerTest, getEndEffectorConstraintMatrixes)
 
   BaseTrajectoryPlanner basePlanner(modelInfo, staticSettings);
 
+  ModelSettings leggedModelSettings;
+  leggedModelSettings.baseLinkName =  baseLink;
+  leggedModelSettings.contactNames3DoF = meldog3DofContactNames;
+  leggedModelSettings.contactNames6DoF = meldog6DofContactNames;
+  leggedModelSettings.hipFrameNames = meldogHipNames;
+
+  OverExtensionPenalty::Settings penaltySettings;
+  penaltySettings.nominalLegExtension = 0.5;
+  penaltySettings.legOverExtensionWeight = 1.0;
+
+  const std::string penaltyName = "over_extension_penalty";
+
+  OverExtensionPenalty penalty(interface, leggedModelSettings, penaltySettings, modelInfo, 
+    penaltyName);
+
   SwingTrajectoryPlanner swingPlanner(modelInfo, swingStaticSettings, 
-    swingDynamicSettings, forwardKinematics);
+    swingDynamicSettings, forwardKinematics, penalty);
 
   JointTrajectoryPlanner jointPlanner(modelInfo, std::move(kinematicsSolver));
 

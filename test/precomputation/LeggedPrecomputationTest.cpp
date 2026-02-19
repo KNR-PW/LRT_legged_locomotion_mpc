@@ -16,6 +16,7 @@
 using namespace legged_locomotion_mpc;
 using namespace legged_locomotion_mpc::locomotion;
 using namespace legged_locomotion_mpc::planners;
+using namespace legged_locomotion_mpc::collision;
 using namespace floating_base_model;
 using namespace ocs2;
 using namespace terrain_model;
@@ -115,8 +116,23 @@ TEST(LeggedPrecomputationTest, getEndEffector)
 
   BaseTrajectoryPlanner basePlanner(modelInfo, staticSettings);
 
+  ModelSettings leggedModelSettings;
+  leggedModelSettings.baseLinkName =  baseLink;
+  leggedModelSettings.contactNames3DoF = meldog3DofContactNames;
+  leggedModelSettings.contactNames6DoF = meldog6DofContactNames;
+  leggedModelSettings.hipFrameNames = meldogHipNames;
+
+  OverExtensionPenalty::Settings penaltySettings;
+  penaltySettings.nominalLegExtension = 0.5;
+  penaltySettings.legOverExtensionWeight = 1.0;
+
+  const std::string penaltyName = "over_extension_penalty";
+
+  OverExtensionPenalty penalty(interface, leggedModelSettings, penaltySettings, modelInfo, 
+    penaltyName);
+
   SwingTrajectoryPlanner swingPlanner(modelInfo, swingStaticSettings, 
-    swingDynamicSettings, forwardKinematics);
+    swingDynamicSettings, forwardKinematics, penalty);
 
   JointTrajectoryPlanner jointPlanner(modelInfo, std::move(kinematicsSolver));
 
@@ -169,12 +185,20 @@ TEST(LeggedPrecomputationTest, getEndEffector)
   manager.initialize(initTime, finalTime, initialState, contactFlag, 
     dynamicParams, swingDynamicSettings, std::move(terrainModelPtr));
 
-  const std::vector<std::string> collisionNames = meldogCollisions;
+  CollisionSettings collisionSettings;
+  collisionSettings.collisionLinkNames = meldogCollisions;
+  collisionSettings.terrainCollisionLinkNames = {"LFLL_link", "RFLL_link"};
+  collisionSettings.selfCollisionPairNames = {{"LFLL_link", "RFLL_link"}, {"LFLL_link", "LRLL_link"}, {"RRLL_link", "RRF_link"}};
+  collisionSettings.maxExcesses = std::vector<scalar_t>(
+    meldog3DofContactNames.size() + collisionSettings.collisionLinkNames.size(), 0.2);
+  collisionSettings.relaxations = std::vector<scalar_t>(
+    meldog3DofContactNames.size() + collisionSettings.collisionLinkNames.size(), 0.5);
+  collisionSettings.shrinkRatio = 0.5;
 
-  const std::string collisionKinematicsModelName = "collision_kinematics";
+  const std::string collisionModelName = "collision_kinematics";
 
   PinocchioForwardCollisionKinematicsCppAd collisionKinematics(interface, modelInfo, 
-    collisionNames, collisionKinematicsModelName);
+    collisionSettings, collisionModelName);
 
   const std::string torqueModelName = "torque_approx";
   PinocchioTorqueApproximationCppAd torqueApproximator(interface, modelInfo,
@@ -333,8 +357,23 @@ TEST(LeggedPrecomputationTest, getCollisionLinks)
 
   BaseTrajectoryPlanner basePlanner(modelInfo, staticSettings);
 
+  ModelSettings leggedModelSettings;
+  leggedModelSettings.baseLinkName =  baseLink;
+  leggedModelSettings.contactNames3DoF = meldog3DofContactNames;
+  leggedModelSettings.contactNames6DoF = meldog6DofContactNames;
+  leggedModelSettings.hipFrameNames = meldogHipNames;
+
+  OverExtensionPenalty::Settings penaltySettings;
+  penaltySettings.nominalLegExtension = 0.5;
+  penaltySettings.legOverExtensionWeight = 1.0;
+
+  const std::string penaltyName = "over_extension_penalty";
+
+  OverExtensionPenalty penalty(interface, leggedModelSettings, penaltySettings, modelInfo, 
+    penaltyName);
+
   SwingTrajectoryPlanner swingPlanner(modelInfo, swingStaticSettings, 
-    swingDynamicSettings, forwardKinematics);
+    swingDynamicSettings, forwardKinematics, penalty);
 
   JointTrajectoryPlanner jointPlanner(modelInfo, std::move(kinematicsSolver));
 
@@ -387,12 +426,20 @@ TEST(LeggedPrecomputationTest, getCollisionLinks)
   manager.initialize(initTime, finalTime, initialState, contactFlag, 
     dynamicParams, swingDynamicSettings, std::move(terrainModelPtr));
 
-  const std::vector<std::string> collisionNames = meldogCollisions;
+  CollisionSettings collisionSettings;
+  collisionSettings.collisionLinkNames = meldogCollisions;
+  collisionSettings.terrainCollisionLinkNames = {"LFLL_link", "RFLL_link"};
+  collisionSettings.selfCollisionPairNames = {{"LFLL_link", "RFLL_link"}, {"LFLL_link", "LRLL_link"}, {"RRLL_link", "RRF_link"}};
+  collisionSettings.maxExcesses = std::vector<scalar_t>(
+    meldog3DofContactNames.size() + collisionSettings.collisionLinkNames.size(), 0.2);
+  collisionSettings.relaxations = std::vector<scalar_t>(
+    meldog3DofContactNames.size() + collisionSettings.collisionLinkNames.size(), 0.5);
+  collisionSettings.shrinkRatio = 0.5;
 
-  const std::string collisionKinematicsModelName = "collision_kinematics";
+  const std::string collisionModelName = "collision_kinematics";
 
   PinocchioForwardCollisionKinematicsCppAd collisionKinematics(interface, modelInfo, 
-    collisionNames, collisionKinematicsModelName);
+    collisionSettings, collisionModelName);
 
   const std::string torqueModelName = "torque_approx";
   PinocchioTorqueApproximationCppAd torqueApproximator(interface, modelInfo,
@@ -416,7 +463,7 @@ TEST(LeggedPrecomputationTest, getCollisionLinks)
     const auto trueEulerAngles = collisionKinematics.getOrientation(state);
     const auto trueEulerAngleDerivatives = collisionKinematics.getOrientationLinearApproximation(state);
 
-    for(size_t i = 0; i < collisionNames.size(); ++i)
+    for(size_t i = 0; i < collisionSettings.collisionLinkNames.size(); ++i)
     {
       const size_t collisionIndex = i + 4;
       const auto& position = precomputation.getCollisionLinkPosition(collisionIndex);
@@ -523,8 +570,23 @@ TEST(LeggedPrecomputationTest, getTorque)
 
   BaseTrajectoryPlanner basePlanner(modelInfo, staticSettings);
 
+  ModelSettings leggedModelSettings;
+  leggedModelSettings.baseLinkName =  baseLink;
+  leggedModelSettings.contactNames3DoF = meldog3DofContactNames;
+  leggedModelSettings.contactNames6DoF = meldog6DofContactNames;
+  leggedModelSettings.hipFrameNames = meldogHipNames;
+
+  OverExtensionPenalty::Settings penaltySettings;
+  penaltySettings.nominalLegExtension = 0.5;
+  penaltySettings.legOverExtensionWeight = 1.0;
+
+  const std::string penaltyName = "over_extension_penalty";
+
+  OverExtensionPenalty penalty(interface, leggedModelSettings, penaltySettings, modelInfo, 
+    penaltyName);
+
   SwingTrajectoryPlanner swingPlanner(modelInfo, swingStaticSettings, 
-    swingDynamicSettings, forwardKinematics);
+    swingDynamicSettings, forwardKinematics, penalty);
 
   JointTrajectoryPlanner jointPlanner(modelInfo, std::move(kinematicsSolver));
 
@@ -577,12 +639,20 @@ TEST(LeggedPrecomputationTest, getTorque)
   manager.initialize(initTime, finalTime, initialState, contactFlag, 
     dynamicParams, swingDynamicSettings, std::move(terrainModelPtr));
 
-  const std::vector<std::string> collisionNames = meldogCollisions;
+  CollisionSettings collisionSettings;
+  collisionSettings.collisionLinkNames = meldogCollisions;
+  collisionSettings.terrainCollisionLinkNames = {"LFLL_link", "RFLL_link"};
+  collisionSettings.selfCollisionPairNames = {{"LFLL_link", "RFLL_link"}, {"LFLL_link", "LRLL_link"}, {"RRLL_link", "RRF_link"}};
+  collisionSettings.maxExcesses = std::vector<scalar_t>(
+    meldog3DofContactNames.size() + collisionSettings.collisionLinkNames.size(), 0.2);
+  collisionSettings.relaxations = std::vector<scalar_t>(
+    meldog3DofContactNames.size() + collisionSettings.collisionLinkNames.size(), 0.5);
+  collisionSettings.shrinkRatio = 0.5;
 
-  const std::string collisionKinematicsModelName = "collision_kinematics";
+  const std::string collisionModelName = "collision_kinematics";
 
   PinocchioForwardCollisionKinematicsCppAd collisionKinematics(interface, modelInfo, 
-    collisionNames, collisionKinematicsModelName);
+    collisionSettings, collisionModelName);
 
   const std::string torqueModelName = "torque_approx";
   PinocchioTorqueApproximationCppAd torqueApproximator(interface, modelInfo,
@@ -701,8 +771,23 @@ TEST(LeggedPrecomputationTest, getReference)
 
   BaseTrajectoryPlanner basePlanner(modelInfo, staticSettings);
 
+  ModelSettings leggedModelSettings;
+  leggedModelSettings.baseLinkName =  baseLink;
+  leggedModelSettings.contactNames3DoF = meldog3DofContactNames;
+  leggedModelSettings.contactNames6DoF = meldog6DofContactNames;
+  leggedModelSettings.hipFrameNames = meldogHipNames;
+
+  OverExtensionPenalty::Settings penaltySettings;
+  penaltySettings.nominalLegExtension = 0.5;
+  penaltySettings.legOverExtensionWeight = 1.0;
+
+  const std::string penaltyName = "over_extension_penalty";
+
+  OverExtensionPenalty penalty(interface, leggedModelSettings, penaltySettings, modelInfo, 
+    penaltyName);
+
   SwingTrajectoryPlanner swingPlanner(modelInfo, swingStaticSettings, 
-    swingDynamicSettings, forwardKinematics);
+    swingDynamicSettings, forwardKinematics, penalty);
 
   JointTrajectoryPlanner jointPlanner(modelInfo, std::move(kinematicsSolver));
 
@@ -755,12 +840,20 @@ TEST(LeggedPrecomputationTest, getReference)
   manager.initialize(initTime, finalTime, initialState, contactFlag, 
     dynamicParams, swingDynamicSettings, std::move(terrainModelPtr));
 
-  const std::vector<std::string> collisionNames = meldogCollisions;
+  CollisionSettings collisionSettings;
+  collisionSettings.collisionLinkNames = meldogCollisions;
+  collisionSettings.terrainCollisionLinkNames = {"LFLL_link", "RFLL_link"};
+  collisionSettings.selfCollisionPairNames = {{"LFLL_link", "RFLL_link"}, {"LFLL_link", "LRLL_link"}, {"RRLL_link", "RRF_link"}};
+  collisionSettings.maxExcesses = std::vector<scalar_t>(
+    meldog3DofContactNames.size() + collisionSettings.collisionLinkNames.size(), 0.2);
+  collisionSettings.relaxations = std::vector<scalar_t>(
+    meldog3DofContactNames.size() + collisionSettings.collisionLinkNames.size(), 0.5);
+  collisionSettings.shrinkRatio = 0.5;
 
-  const std::string collisionKinematicsModelName = "collision_kinematics";
+  const std::string collisionModelName = "collision_kinematics";
 
   PinocchioForwardCollisionKinematicsCppAd collisionKinematics(interface, modelInfo, 
-    collisionNames, collisionKinematicsModelName);
+    collisionSettings, collisionModelName);
 
   const std::string torqueModelName = "torque_approx";
   PinocchioTorqueApproximationCppAd torqueApproximator(interface, modelInfo,

@@ -201,21 +201,21 @@ if(BUILD_TESTING)
   target_link_libraries(${PROJECT_NAME}_test_trajectory_planners ${PROJECT_NAME})
   target_compile_options(${PROJECT_NAME}_test_trajectory_planners PUBLIC ${FLAGS})
 
-#   ament_add_gtest(${PROJECT_NAME}_test_torque_approx
-#         test/torque_approx/PinocchioTorqueApproximationCppAdTest.cpp     
-#   )
-#   ament_target_dependencies(${PROJECT_NAME}_test_torque_approx ${THIS_PACKAGE_DEPENDS})
-#   target_include_directories(${PROJECT_NAME}_test_torque_approx PRIVATE test/include)
-#   target_link_libraries(${PROJECT_NAME}_test_torque_approx ${PROJECT_NAME})
-#   target_compile_options(${PROJECT_NAME}_test_torque_approx PUBLIC ${FLAGS})
+  ament_add_gtest(${PROJECT_NAME}_test_torque_approx
+        test/torque_approx/PinocchioTorqueApproximationCppAdTest.cpp     
+  )
+  ament_target_dependencies(${PROJECT_NAME}_test_torque_approx ${THIS_PACKAGE_DEPENDS})
+  target_include_directories(${PROJECT_NAME}_test_torque_approx PRIVATE test/include)
+  target_link_libraries(${PROJECT_NAME}_test_torque_approx ${PROJECT_NAME})
+  target_compile_options(${PROJECT_NAME}_test_torque_approx PUBLIC ${FLAGS})
 
-#   ament_add_gtest(${PROJECT_NAME}_test_kinematicsCppAD
-#         test/kinematics/PinocchioForwardEndEffectorKinematicsCppAdTest.cpp     
-#   )
-#   ament_target_dependencies(${PROJECT_NAME}_test_kinematicsCppAD ${THIS_PACKAGE_DEPENDS})
-#   target_include_directories(${PROJECT_NAME}_test_kinematicsCppAD PRIVATE test/include)
-#   target_link_libraries(${PROJECT_NAME}_test_kinematicsCppAD ${PROJECT_NAME})
-#   target_compile_options(${PROJECT_NAME}_test_kinematicsCppAD PUBLIC ${FLAGS})
+  ament_add_gtest(${PROJECT_NAME}_test_kinematicsCppAD
+        test/kinematics/PinocchioForwardEndEffectorKinematicsCppAdTest.cpp     
+  )
+  ament_target_dependencies(${PROJECT_NAME}_test_kinematicsCppAD ${THIS_PACKAGE_DEPENDS})
+  target_include_directories(${PROJECT_NAME}_test_kinematicsCppAD PRIVATE test/include)
+  target_link_libraries(${PROJECT_NAME}_test_kinematicsCppAD ${PROJECT_NAME})
+  target_compile_options(${PROJECT_NAME}_test_kinematicsCppAD PUBLIC ${FLAGS})
 
   ament_add_gtest(${PROJECT_NAME}_test_collision
         test/collision/CollisionSettingsTest.cpp
@@ -227,21 +227,21 @@ if(BUILD_TESTING)
   target_link_libraries(${PROJECT_NAME}_test_collision ${PROJECT_NAME})
   target_compile_options(${PROJECT_NAME}_test_collision PUBLIC ${FLAGS})
 
-  # ament_add_gtest(${PROJECT_NAME}_test_reference_manager
-  #       test/reference_manager/LeggedReferenceManagerTest.cpp     
-  # )
-  # ament_target_dependencies(${PROJECT_NAME}_test_reference_manager ${THIS_PACKAGE_DEPENDS})
-  # target_include_directories(${PROJECT_NAME}_test_reference_manager PRIVATE test/include)
-  # target_link_libraries(${PROJECT_NAME}_test_reference_manager ${PROJECT_NAME})
-  # target_compile_options(${PROJECT_NAME}_test_reference_manager PUBLIC ${FLAGS})
+  ament_add_gtest(${PROJECT_NAME}_test_reference_manager
+        test/reference_manager/LeggedReferenceManagerTest.cpp     
+  )
+  ament_target_dependencies(${PROJECT_NAME}_test_reference_manager ${THIS_PACKAGE_DEPENDS})
+  target_include_directories(${PROJECT_NAME}_test_reference_manager PRIVATE test/include)
+  target_link_libraries(${PROJECT_NAME}_test_reference_manager ${PROJECT_NAME})
+  target_compile_options(${PROJECT_NAME}_test_reference_manager PUBLIC ${FLAGS})
 
-  # ament_add_gtest(${PROJECT_NAME}_test_precomputation
-  #         test/precomputation/LeggedPrecomputationTest.cpp
-  # )
-  # ament_target_dependencies(${PROJECT_NAME}_test_precomputation ${THIS_PACKAGE_DEPENDS})
-  # target_include_directories(${PROJECT_NAME}_test_precomputation PRIVATE test/include)
-  # target_link_libraries(${PROJECT_NAME}_test_precomputation ${PROJECT_NAME})
-  # target_compile_options(${PROJECT_NAME}_test_precomputation PUBLIC ${FLAGS})
+  ament_add_gtest(${PROJECT_NAME}_test_precomputation
+          test/precomputation/LeggedPrecomputationTest.cpp
+  )
+  ament_target_dependencies(${PROJECT_NAME}_test_precomputation ${THIS_PACKAGE_DEPENDS})
+  target_include_directories(${PROJECT_NAME}_test_precomputation PRIVATE test/include)
+  target_link_libraries(${PROJECT_NAME}_test_precomputation ${PROJECT_NAME})
+  target_compile_options(${PROJECT_NAME}_test_precomputation PUBLIC ${FLAGS})
 
   ament_add_gtest(${PROJECT_NAME}_test_constraints
         test/constraint/ForceFrictionConeConstraintTest.cpp
