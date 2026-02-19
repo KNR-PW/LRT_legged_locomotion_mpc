@@ -86,7 +86,7 @@ namespace legged_locomotion_mpc
       const size_t threeDofEndEffectorNum_;
       const size_t sixDofEndEffectorNum_;
       const size_t endEffectorNum_;
-      const std::vector<size_t> collisionLinkIndicies_;
+      const std::vector<size_t> collisionLinkindices_;
 
       const std::vector<ocs2::scalar_t> relaxations_;
 

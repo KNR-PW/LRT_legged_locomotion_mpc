@@ -70,6 +70,7 @@ add_library(${PROJECT_NAME}
   src/locomotion/SwingSpline3d.cpp
   src/locomotion/SingleLegLogic.cpp
   src/locomotion/FootPhase.cpp
+  src/locomotion/OverExtensionPenalty.cpp
   src/locomotion/SwingTrajectoryPlanner.cpp
 
   src/trajectory_planners/BaseTrajectoryPlanner.cpp
@@ -182,6 +183,7 @@ if(BUILD_TESTING)
         test/locomotion/GaitDynamicPhaseControllerTest.cpp
         test/locomotion/FootPhaseTest.cpp
         test/locomotion/SingleLegLogicTest.cpp
+        test/locomotion/OverExtensionPenaltyTest.cpp
         test/locomotion/SwingTrajectoryPlannerTest.cpp
   )
   ament_target_dependencies(${PROJECT_NAME}_test_locomotion ${THIS_PACKAGE_DEPENDS})

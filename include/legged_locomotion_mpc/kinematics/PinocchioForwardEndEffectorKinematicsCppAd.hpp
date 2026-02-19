@@ -50,11 +50,11 @@ namespace legged_locomotion_mpc
      * @param [in] verbose: print information.
      */
     PinocchioForwardEndEffectorKinematicsCppAd(
-        const ocs2::PinocchioInterface& pinocchioInterface,
-        const floating_base_model::FloatingBaseModelInfo info,
-        const std::string& modelName,
-        const std::string& modelFolder = "/tmp/legged_locomotion_mpc",
-        bool recompileLibraries = true, bool verbose = false);
+      const ocs2::PinocchioInterface& pinocchioInterface,
+      const floating_base_model::FloatingBaseModelInfo info,
+      const std::string& modelName,
+      const std::string& modelFolder = "/tmp/legged_locomotion_mpc",
+      bool recompileLibraries = true, bool verbose = false);
 
     ~PinocchioForwardEndEffectorKinematicsCppAd() = default;
     PinocchioForwardEndEffectorKinematicsCppAd* clone() const;

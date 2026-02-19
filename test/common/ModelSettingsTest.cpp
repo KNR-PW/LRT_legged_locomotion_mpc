@@ -19,4 +19,5 @@ TEST(ModelSettingsTest, loader)
   EXPECT_TRUE(modelSettings.baseLinkName == "trunk_link");
   EXPECT_TRUE(modelSettings.contactNames3DoF == meldog3DofContactNames);
   EXPECT_TRUE(modelSettings.contactNames6DoF.size() == 0);
+  EXPECT_TRUE(modelSettings.hipFrameNames == meldogHipNames);
 }

@@ -96,8 +96,23 @@ TEST(SwingTrajectoryPlannerTest, standingInPlace)
 
   BaseTrajectoryPlanner basePlanner(modelInfo, staticSettings);
 
+  ModelSettings modelSettings;
+  modelSettings.baseLinkName =  baseLink;
+  modelSettings.contactNames3DoF = meldog3DofContactNames;
+  modelSettings.contactNames6DoF = meldog6DofContactNames;
+  modelSettings.hipFrameNames = meldogHipNames;
+
+  OverExtensionPenalty::Settings penaltySettings;
+  penaltySettings.nominalLegExtension = 0.5;
+  penaltySettings.legOverExtensionWeight = 1.0;
+
+  const std::string penaltyName = "over_extension_penalty";
+
+  OverExtensionPenalty penalty(interface, modelSettings, penaltySettings, modelInfo, 
+    penaltyName);
+
   SwingTrajectoryPlanner swingPlanner(modelInfo, swingStaticSettings, 
-    swingDynamicSettings, forwardKinematics);
+    swingDynamicSettings, forwardKinematics, penalty);
 
   const auto modeSchedule = gaitPlanner.getModeSchedule(initTime, finalTime);
 
@@ -239,8 +254,23 @@ TEST(SwingTrajectoryPlannerTest, TrotInPlace)
 
   BaseTrajectoryPlanner basePlanner(modelInfo, staticSettings);
 
+  ModelSettings modelSettings;
+  modelSettings.baseLinkName =  baseLink;
+  modelSettings.contactNames3DoF = meldog3DofContactNames;
+  modelSettings.contactNames6DoF = meldog6DofContactNames;
+  modelSettings.hipFrameNames = meldogHipNames;
+
+  OverExtensionPenalty::Settings penaltySettings;
+  penaltySettings.nominalLegExtension = 0.5;
+  penaltySettings.legOverExtensionWeight = 1.0;
+
+  const std::string penaltyName = "over_extension_penalty";
+
+  OverExtensionPenalty penalty(interface, modelSettings, penaltySettings, modelInfo, 
+    penaltyName);
+
   SwingTrajectoryPlanner swingPlanner(modelInfo, swingStaticSettings, 
-    swingDynamicSettings, forwardKinematics);
+    swingDynamicSettings, forwardKinematics, penalty);
 
   const auto modeSchedule = gaitPlanner.getModeSchedule(initTime, finalTime);
 
@@ -381,8 +411,23 @@ TEST(SwingTrajectoryPlannerTest, Troting)
 
   BaseTrajectoryPlanner basePlanner(modelInfo, staticSettings);
 
+  ModelSettings modelSettings;
+  modelSettings.baseLinkName =  baseLink;
+  modelSettings.contactNames3DoF = meldog3DofContactNames;
+  modelSettings.contactNames6DoF = meldog6DofContactNames;
+  modelSettings.hipFrameNames = meldogHipNames;
+
+  OverExtensionPenalty::Settings penaltySettings;
+  penaltySettings.nominalLegExtension = 0.5;
+  penaltySettings.legOverExtensionWeight = 1.0;
+
+  const std::string penaltyName = "over_extension_penalty";
+
+  OverExtensionPenalty penalty(interface, modelSettings, penaltySettings, modelInfo, 
+    penaltyName);
+
   SwingTrajectoryPlanner swingPlanner(modelInfo, swingStaticSettings, 
-    swingDynamicSettings, forwardKinematics);
+    swingDynamicSettings, forwardKinematics, penalty);;
 
   const auto modeSchedule = gaitPlanner.getModeSchedule(initTime, finalTime);
 
@@ -543,7 +588,7 @@ TEST(SwingTrajectoryPlannerTest, loaders)
   EXPECT_TRUE(staticSettings.previousFootholdDeadzone        == 0.8);
   EXPECT_TRUE(staticSettings.previousFootholdTimeDeadzone    == 0.9);       
   EXPECT_TRUE(staticSettings.nominalLegExtension             == 1.0);
-  EXPECT_TRUE(staticSettings.legOverExtensionPenalty         == 1.1);  
+  EXPECT_TRUE(staticSettings.legOverExtensionWeight          == 1.1);  
   EXPECT_TRUE(staticSettings.referenceExtensionAfterHorizon  == 1.2);
   EXPECT_TRUE(staticSettings.maxSwingHeightAdaptation        == 1.3);
 

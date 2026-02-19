@@ -45,9 +45,13 @@ namespace legged_locomotion_mpc
     bool recompileLibrariesCppAd = true;
     std::string modelFolderCppAd = "/tmp/legged_locomotion_mpc";
 
+    // Base link and contact frames
     std::string baseLinkName;
     std::vector<std::string> contactNames3DoF;
     std::vector<std::string> contactNames6DoF;
+
+    // Hip frame of 3D and 6D contact frames (first 3D then 6D)
+    std::vector<std::string> hipFrameNames;
   };
 
   /**

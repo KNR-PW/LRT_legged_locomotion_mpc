@@ -18,4 +18,12 @@ legged_model_settings
   {
 
   }
+
+  hipFrameNames
+  {
+    [0] RFUL_link
+    [1] RRUL_link
+    [2] LFUL_link
+    [3] LRUL_link
+  }
 }

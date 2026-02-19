@@ -24,7 +24,7 @@ namespace legged_locomotion_mpc
     auto pinocchioInterfaceCppAd = pinocchioInterface.toCppAd();
   
     // mapping
-    FloatingBaseModelPinocchioMappingCppAd mappingCppAd(info.toCppAd());
+    FloatingBaseModelPinocchioMappingCppAd mappingCppAd(info_.toCppAd());
     mappingCppAd.setPinocchioInterface(pinocchioInterfaceCppAd);
 
     // position function

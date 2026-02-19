@@ -44,19 +44,19 @@ TEST(PinocchoCollisionInterfaceTest, getters)
   PinocchioCollisionInterface collisionInterface(modelInfo, modelSettings, 
     collisionSettings, interface);
 
-  const auto terrainIndicies = collisionInterface.getTerrainAvoidanceCollisionIndices();
+  const auto terrainindices = collisionInterface.getTerrainAvoidanceCollisionIndices();
   
-  const std::vector<size_t> trueTerrainIndicies{0, 1, 2, 3, 4, 5};
-  EXPECT_TRUE(terrainIndicies == trueTerrainIndicies);
+  const std::vector<size_t> trueTerrainindices{0, 1, 2, 3, 4, 5};
+  EXPECT_TRUE(terrainindices == trueTerrainindices);
 
-  const auto selfCollisionIndicies = collisionInterface.getSelfCollisionIndices();
+  const auto selfCollisionindices = collisionInterface.getSelfCollisionIndices();
 
-  EXPECT_TRUE(selfCollisionIndicies[0].first == 4);
-  EXPECT_TRUE(selfCollisionIndicies[0].second == 5);
-  EXPECT_TRUE(selfCollisionIndicies[1].first == 4);
-  EXPECT_TRUE(selfCollisionIndicies[1].second == 6);
-  EXPECT_TRUE(selfCollisionIndicies[2].first == 1);
-  EXPECT_TRUE(selfCollisionIndicies[2].second == 7);
+  EXPECT_TRUE(selfCollisionindices[0].first == 4);
+  EXPECT_TRUE(selfCollisionindices[0].second == 5);
+  EXPECT_TRUE(selfCollisionindices[1].first == 4);
+  EXPECT_TRUE(selfCollisionindices[1].second == 6);
+  EXPECT_TRUE(selfCollisionindices[2].first == 1);
+  EXPECT_TRUE(selfCollisionindices[2].second == 7);
   
 
   std::vector<scalar_t> circleRadius(8);

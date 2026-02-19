@@ -29,10 +29,12 @@ namespace legged_locomotion_mpc
     SwingTrajectoryPlanner::SwingTrajectoryPlanner(FloatingBaseModelInfo info,
       StaticSettings staticSettings,
       DynamicSettings initDynamicSettings,
-      const forwardKinematics &kinematicsModel): modelInfo_(std::move(info)),
+      const forwardKinematics &forwardKinematics,
+      const OverExtensionPenalty& overExtensionPenalty): modelInfo_(std::move(info)),
         staticSettings_(std::move(staticSettings)), 
         dynamicSettings_(std::move(initDynamicSettings)),
-        kinematicsModel_(&kinematicsModel)
+        forwardKinematics_(forwardKinematics),
+        overExtensionPenalty_(overExtensionPenalty)
     {
       lastContacts_.resize(modelInfo_.numThreeDofContacts + modelInfo_.numSixDofContacts);
       feetNormalTrajectories_.resize(modelInfo_.numThreeDofContacts + modelInfo_.numSixDofContacts);
@@ -82,7 +84,7 @@ namespace legged_locomotion_mpc
 
       const auto [optimState, optimInput] = utils::robotStateToOptimizationStateAndInput(
         modelInfo_, currentState);
-      const auto feetPositions = kinematicsModel_->getPosition(optimState);
+      const auto feetPositions = forwardKinematics_.getPosition(optimState);
 
       for (int i = 0; i < numEndEffectors; ++i) 
       {
@@ -478,7 +480,7 @@ namespace legged_locomotion_mpc
            * ALSO JOINT POSITIONS IN THIS TARGET TRAJECTORIES NEEDS TO BE ZERO!!!
            */
           floating_base_model::access_helper_functions::getJointPositions(state, modelInfo_).setZero();
-          vector3_t referenceFootholdPositionInWorld = kinematicsModel_->getPosition(state)[endEffectorIndex];
+          vector3_t referenceFootholdPositionInWorld = forwardKinematics_.getPosition(state)[endEffectorIndex];
 
           // Add ZMP offset to the first upcoming foothold.
           if(contactCount == 0) 
@@ -558,34 +560,12 @@ namespace legged_locomotion_mpc
                 previousIterationContact->nominalFootholdLocation());
             }
 
-              // // Kinematic penalty
-              // const base_coordinate_t basePoseAtTouchdown = getBasePose(
-              //     targetTrajectories.getDesiredState(contactPhase.start));
-              // const auto hipPositionInWorldTouchdown = kinematicsModel_->legRootInOriginFrame(
-              //     endEffectorIndex, basePoseAtTouchdown);
-              // const auto hipOrientationInWorldTouchdown = kinematicsModel_->orientationLegRootToOriginFrame(
-              //     endEffectorIndex, basePoseAtTouchdown);
-              // const base_coordinate_t basePoseAtLiftoff = getBasePose(
-              //     targetTrajectories.getDesiredState(contactEndTime));
-              // const auto hipPositionInWorldLiftoff = kinematicsModel_->legRootInOriginFrame(
-              //     endEffectorIndex, basePoseAtLiftoff);
-              // const auto hipOrientationInWorldLiftoff = kinematicsModel_->orientationLegRootToOriginFrame(
-              //     endEffectorIndex, basePoseAtLiftoff);
-              // ApproximateKinematicsConfig config;
-              // config.kinematicPenaltyWeight = staticSettings_.legOverExtensionPenalty;
-              // config.maxLegExtension = staticSettings_.nominalLegExtension;
-              // auto scoringFunction = [&](const vector3_t &footPositionInWorld) 
-              // {
-              //     return computeKinematicPenalty(footPositionInWorld, hipPositionInWorldTouchdown,
-              //                                    hipOrientationInWorldTouchdown, config) +
-              //            computeKinematicPenalty(footPositionInWorld, hipPositionInWorldLiftoff,
-              //                                    hipOrientationInWorldLiftoff, config);
-              // };
-
             if(contactPhase.start < finalTime) 
             {
+              const vector_t desiredState = targetTrajectories.getDesiredState(contactPhase.start);
+              auto penaltyFunction = overExtensionPenalty_.getPenalty(endEffectorIndex, desiredState);
               ConvexTerrain convexTerrain = terrainModel.getConvexTerrainAtPositionInWorld(
-                  referenceFootholdPositionInWorld);
+                  referenceFootholdPositionInWorld, penaltyFunction);
               nominalFootholdTerrain.push_back(convexTerrain);
               ++heuristicFootholdIt;
             } 
@@ -614,54 +594,6 @@ namespace legged_locomotion_mpc
 
       return nominalFootholdTerrain;
     }
-
-    // void SwingTrajectoryPlanner::adaptJointReferencesWithInverseKinematics(scalar_t finalTime) {
-    //     const scalar_t damping = 0.01; // Quite some damping on the IK to get well conditions references.
-
-    //     for (int k = 0; k < internalTargetTrajectories_.timeTrajectory.size(); ++k) {
-    //         const scalar_t t = internalTargetTrajectories_.timeTrajectory[k];
-
-    //         const base_coordinate_t basePose = getBasePose(comkino_state_t(internalTargetTrajectories_.stateTrajectory[k]));
-    //         const vector3_t basePositionInWorld = getPositionInOrigin(basePose);
-    //         const vector3_t eulerXYZ = getOrientation(basePose);
-
-    //         for (size_t endEffectorIndex = 0; endEffectorIndex < NUM_CONTACT_POINTS; ++endEffectorIndex) {
-    //             const auto &footPhase = this->getFootPhase(endEffectorIndex, t);
-
-    //             // Joint positions
-    //             const vector3_t positionBaseToFootInWorldFrame = footPhase.getPositionInWorld(t) - basePositionInWorld;
-    //             const vector3_t positionBaseToFootInBaseFrame = rotateVectorOriginToBase(
-    //                 positionBaseToFootInWorldFrame, eulerXYZ);
-
-    //             const size_t stateOffset = 2 * BASE_COORDINATE_SIZE + 3 * endEffectorIndex;
-    //             internalTargetTrajectories_.stateTrajectory[k].segment(stateOffset, 3) =
-    //                     inverseKinematicsModelPtr_->getLimbJointPositionsFromPositionBaseToFootInBaseFrame(
-    //                         endEffectorIndex, positionBaseToFootInBaseFrame);
-
-    //             // Joint velocities
-    //             auto jointPositions = getJointPositions(internalTargetTrajectories_.stateTrajectory[k]);
-    //             auto baseTwistInBaseFrame = getBaseLocalVelocities(internalTargetTrajectories_.stateTrajectory[k]);
-
-    //             const vector3_t b_baseToFoot = kinematicsModel_->positionBaseToFootInBaseFrame(endEffectorIndex, jointPositions);
-    //             const vector3_t footVelocityInBaseFrame = rotateVectorOriginToBase(
-    //                 footPhase.getVelocityInWorld(t), eulerXYZ);
-    //             const vector3_t footRelativeVelocityInBaseFrame =
-    //                     footVelocityInBaseFrame - getLinearVelocity(baseTwistInBaseFrame) - getAngularVelocity(
-    //                         baseTwistInBaseFrame).cross(b_baseToFoot);
-
-    //             const size_t inputOffset = 3 * NUM_CONTACT_POINTS + 3 * endEffectorIndex;
-    //             internalTargetTrajectories_.inputTrajectory[k].segment(inputOffset, 3) =
-    //                     inverseKinematicsModelPtr_->getLimbVelocitiesFromFootVelocityRelativeToBaseInBaseFrame(
-    //                         endEffectorIndex, footRelativeVelocityInBaseFrame,
-    //                         kinematicsModel_->baseToFootJacobianBlockInBaseFrame(endEffectorIndex, jointPositions), damping);
-    //         }
-
-    //         // Can stop adaptation as soon as we have processed a point beyond the horizon.
-    //         if(t > finalTime) {
-    //             break;
-    //         }
-    //     }
-    // }
 
     void SwingTrajectoryPlanner::updateLastContact(size_t endEffectorIndex, scalar_t expectedLiftOff,
       const vector3_t &currentFootPosition,
@@ -870,9 +802,9 @@ namespace legged_locomotion_mpc
         throw std::invalid_argument("[SwingTrajectoryPlanner]: Nominal leg extension smaller than 0.0!");
       }
 
-      loadData::loadPtreeValue(pt, settings.legOverExtensionPenalty, 
-        fieldName + ".legOverExtensionPenalty", verbose);
-       if(settings.legOverExtensionPenalty < 0.0)
+      loadData::loadPtreeValue(pt, settings.legOverExtensionWeight, 
+        fieldName + ".legOverExtensionWeight", verbose);
+       if(settings.legOverExtensionWeight < 0.0)
       {
         throw std::invalid_argument("[SwingTrajectoryPlanner]: Leg over extension penalty weight smaller than 0.0!");
       }

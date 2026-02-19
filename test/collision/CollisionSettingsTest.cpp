@@ -10,10 +10,13 @@ using namespace legged_locomotion_mpc::collision;
 
 TEST(CollisionSettingsTest, loader)
 {
-  const std::string modelFilePath = meldogConfigFolder + "model_settings.info";
   const std::string collisionFilePath = meldogConfigFolder + "collision_settings.info";
 
-  const auto modelSettings = loadModelSettings(modelFilePath);
+  ModelSettings modelSettings;
+  modelSettings.baseLinkName =  baseLink;
+  modelSettings.contactNames3DoF = meldog3DofContactNames;
+  modelSettings.contactNames6DoF = meldog6DofContactNames;
+  modelSettings.hipFrameNames = meldogHipNames;
 
   const auto collisionSettings = loadCollisionSettings(collisionFilePath, modelSettings);
 

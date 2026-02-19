@@ -242,7 +242,7 @@ namespace legged_locomotion_mpc
       {
         std::cerr << "\n #### Legged Locomotion MPC Inverse Kinematics Model Settings:";
         std::cerr << "\n #### =============================================================================\n";
-        std::cerr << "\n #### (IMPORTANT: Six DOF end effectors not supported, added to three DOF!)";
+        std::cerr << "\n #### (IMPORTANT: Six DOF end effectors not supported, added to three DOF!)\n";
       }
 
       loadData::loadPtreeValue(pt, settings.baseLinkName, fieldName + ".baseLinkName", verbose);
@@ -278,7 +278,7 @@ namespace legged_locomotion_mpc
       {
         std::cerr << "\n #### Legged Locomotion MPC Inverse Kinematics Solver Settings:";
         std::cerr << "\n #### =============================================================================\n";
-        std::cerr << "\n #### (IMPORTANT: Six DOF end effectors not supported, added to three DOF!)";
+        std::cerr << "\n #### (IMPORTANT: Six DOF end effectors not supported, added to three DOF!)\n";
       }
 
       loadData::loadPtreeValue(pt, settings.maxIterations, fieldName + ".maxIterations", verbose);
@@ -339,7 +339,7 @@ namespace legged_locomotion_mpc
       {
         std::cerr << "\n #### Legged Locomotion MPC Inverse Kinematics Solver Name:";
         std::cerr << "\n #### =============================================================================\n";
-        std::cerr << "\n #### (IMPORTANT: Six DOF end effectors not supported, added to three DOF!)";
+        std::cerr << "\n #### (IMPORTANT: Six DOF end effectors not supported, added to three \n";
       }
 
       loadData::loadPtreeValue(pt, solverName, fieldName + "", verbose);

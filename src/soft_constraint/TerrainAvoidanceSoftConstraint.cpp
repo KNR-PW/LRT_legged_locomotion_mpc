@@ -41,7 +41,7 @@ namespace legged_locomotion_mpc
       threeDofEndEffectorNum_(info.numThreeDofContacts),
       sixDofEndEffectorNum_(info.numSixDofContacts),
       endEffectorNum_(info.numThreeDofContacts + info.numSixDofContacts),
-      collisionLinkIndicies_(std::move(collisionIndices)),
+      collisionLinkindices_(std::move(collisionIndices)),
       referenceManager_(referenceManager),
       collisionInterface_(collisionInterface),
       relaxations_(std::move(relaxations)),
@@ -103,9 +103,9 @@ namespace legged_locomotion_mpc
     }
 
     // Collison links (one or many spheres)
-    for(size_t i = 0; i < collisionLinkIndicies_.size(); ++i)
+    for(size_t i = 0; i < collisionLinkindices_.size(); ++i)
     {
-      const size_t collisionIndex = collisionLinkIndicies_[i];
+      const size_t collisionIndex = collisionLinkindices_[i];
       const std::vector<scalar_t>& radiuses = collisionInterface_.getFrameSphereRadiuses(
         collisionIndex);
       const std::vector<vector3_t>& sphereRelativePositions = collisionInterface_.getFrameSpherePositions(collisionIndex);
@@ -228,9 +228,9 @@ namespace legged_locomotion_mpc
     }
 
     // Collison links (one or many spheres)
-    for(size_t i = 0; i < collisionLinkIndicies_.size(); ++i)
+    for(size_t i = 0; i < collisionLinkindices_.size(); ++i)
     {
-      const size_t collisionIndex = collisionLinkIndicies_[i];
+      const size_t collisionIndex = collisionLinkindices_[i];
       const std::vector<scalar_t>& radiuses = collisionInterface_.getFrameSphereRadiuses(
         collisionIndex);
       const std::vector<vector3_t>& sphereRelativePositions = collisionInterface_.getFrameSpherePositions(collisionIndex);
@@ -289,7 +289,7 @@ namespace legged_locomotion_mpc
       threeDofEndEffectorNum_(rhs.threeDofEndEffectorNum_),
       sixDofEndEffectorNum_(rhs.sixDofEndEffectorNum_),
       endEffectorNum_(rhs.endEffectorNum_),
-      collisionLinkIndicies_(rhs.collisionLinkIndicies_),
+      collisionLinkindices_(rhs.collisionLinkindices_),
       referenceManager_(rhs.referenceManager_),
       collisionInterface_(rhs.collisionInterface_),
       relaxations_(rhs.relaxations_),

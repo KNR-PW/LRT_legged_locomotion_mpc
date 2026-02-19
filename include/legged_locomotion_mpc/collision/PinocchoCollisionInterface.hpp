@@ -141,10 +141,10 @@ namespace legged_locomotion_mpc
 
         size_t frameNumber_;
         
-        // Indicies of terrain collision avoidance
+        // indices of terrain collision avoidance
         std::vector<size_t> terrainAvoidanceIndices_;
         
-        // Indicies of self collision avoidance
+        // indices of self collision avoidance
         std::vector<std::pair<size_t, size_t>> selfCollisionIndices_;
         
         // Number of spheres in every object of every frame

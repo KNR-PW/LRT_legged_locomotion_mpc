@@ -54,6 +54,25 @@ namespace legged_locomotion_mpc
       }
     }
 
+    loadData::loadStdVector(filename, fieldName + ".hipFrameNames", modelSettings.hipFrameNames, verbose);
+    if(modelSettings.hipFrameNames.size() != namesSet.size())
+    {
+      std::string message = "[ModelSettings]: Hip frame vector has wrong size!";
+      throw std::invalid_argument(message);
+    }
+    for(const auto& hipFrameName: modelSettings.hipFrameNames)
+    {
+      if(namesSet.find(hipFrameName) == namesSet.cend())
+      {
+        namesSet.emplace(hipFrameName);
+      }
+      else
+      {
+        std::string message = "[ModelSettings]: Hip frame " +  hipFrameName + " already used!";
+        throw std::invalid_argument(message);
+      }
+    }
+
     if(verbose) 
     {
       std::cerr << " #### =============================================================================" <<

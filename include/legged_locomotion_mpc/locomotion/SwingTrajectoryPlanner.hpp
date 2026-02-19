@@ -16,6 +16,7 @@
 #include <legged_locomotion_mpc/common/Types.hpp>
 #include <legged_locomotion_mpc/locomotion/SingleLegLogic.hpp>
 #include <legged_locomotion_mpc/locomotion/FootPhase.hpp>
+#include <legged_locomotion_mpc/locomotion/OverExtensionPenalty.hpp>
 
 #include <terrain_model/core/ConvexTerrain.hpp>
 #include <terrain_model/core/TerrainModel.hpp>
@@ -69,7 +70,7 @@ namespace legged_locomotion_mpc
           ocs2::scalar_t nominalLegExtension = 0.35;
 
           /** Weight of the end effector overextension penalty */
-          ocs2::scalar_t legOverExtensionPenalty = 5.0; 
+          ocs2::scalar_t legOverExtensionWeight = 5.0; 
           
           /** 
            * Base and foot references generated for this amount of seconds
@@ -106,7 +107,8 @@ namespace legged_locomotion_mpc
         SwingTrajectoryPlanner(floating_base_model::FloatingBaseModelInfo info,
           StaticSettings staticSettings,
           DynamicSettings initDynamicSettings,
-          const forwardKinematics &kinematicsModel);
+          const forwardKinematics& forwardKinematics,
+          const OverExtensionPenalty& overExtensionPenalty);
 
         /** Update terrain model */
         void updateTerrain(const terrain_model::TerrainModel& terrainModel);
@@ -273,7 +275,7 @@ namespace legged_locomotion_mpc
         const floating_base_model::FloatingBaseModelInfo modelInfo_;
         const StaticSettings staticSettings_;
         DynamicSettings dynamicSettings_;
-        const forwardKinematics* kinematicsModel_;
+        const forwardKinematics& forwardKinematics_;
 
         ocs2::ModeSchedule modeSchedule_;
 
@@ -283,7 +285,10 @@ namespace legged_locomotion_mpc
 
         std::vector<std::vector<terrain_model::ConvexTerrain>> nominalFootholdsPerLeg_;
         std::vector<std::vector<vector3_t>> heuristicFootholdsPerLeg_;
+
         const terrain_model::TerrainModel* terrainModel_;
+
+        const OverExtensionPenalty& overExtensionPenalty_;
     };
 
     /**
