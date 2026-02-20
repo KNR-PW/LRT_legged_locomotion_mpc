@@ -55,6 +55,18 @@ namespace legged_locomotion_mpc
           // Maximum base height
           ocs2::scalar_t maximumBaseHeight;
 
+          // Maximum base heading velocity
+          ocs2::scalar_t maximumBaseHeadingVelocity;
+
+          // Maximum base lateral velocity
+          ocs2::scalar_t maximumBaseLateralVelocity;
+
+          // Maximum base vertical velocity
+          ocs2::scalar_t maximumBaseVerticalVelocity;
+
+          // Maximum base yaw angular velocity
+          ocs2::scalar_t maximumYawRate;
+
           // Nominal lateral base width
           ocs2::scalar_t nominalBaseWidtLateral;
 
@@ -119,6 +131,8 @@ namespace legged_locomotion_mpc
 
         terrain_model::TerrainPlane projectedHeadingPlane(vector2_t baseXYPositionInWorld, 
           ocs2::scalar_t yawOnPlane);
+
+        BaseReferenceCommand clampReferenceCommand(const BaseReferenceCommand& command) const;
         
         ocs2::scalar_t currentBaseHeight_;
         floating_base_model::FloatingBaseModelInfo modelInfo_;

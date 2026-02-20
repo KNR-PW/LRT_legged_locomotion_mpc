@@ -60,7 +60,8 @@ namespace legged_locomotion_mpc
 
     void BaseTrajectoryPlanner::updateBaseHeight(ocs2::scalar_t baseHeight)
     {
-      currentBaseHeight_ = baseHeight;
+      currentBaseHeight_ = std::clamp(baseHeight, settings_.minimumBaseHeight, 
+        settings_.maximumBaseHeight);
     }
       
     void BaseTrajectoryPlanner::updateTerrain(const terrain_model::TerrainModel& terrainModel)
@@ -89,12 +90,14 @@ namespace legged_locomotion_mpc
       targetTrajectories.inputTrajectory.resize(referenceSize, 
         vector_t::Zero(modelInfo_.inputDim));
 
-      const vector3_t linearDelta{
-        command.baseHeadingVelocity * settings_.deltaTime, 
-        command.baseLateralVelocity * settings_.deltaTime, 
-        command.baseVerticalVelocity * settings_.deltaTime};
+      const auto clampedCommand = clampReferenceCommand(command);
 
-      const vector3_t angularDelta{0.0, 0.0, command.yawRate * settings_.deltaTime};
+      const vector3_t linearDelta{
+        clampedCommand.baseHeadingVelocity * settings_.deltaTime, 
+        clampedCommand.baseLateralVelocity * settings_.deltaTime, 
+        clampedCommand.baseVerticalVelocity * settings_.deltaTime};
+
+      const vector3_t angularDelta{0.0, 0.0, clampedCommand.yawRate * settings_.deltaTime};
 
       const pinocchio::Motion twistDelta(linearDelta, angularDelta);
 
@@ -115,7 +118,6 @@ namespace legged_locomotion_mpc
 
       pinocchio::SE3 currentTransform(currentBaseRotation, currentBasePosition);
 
-
       targetTrajectories.timeTrajectory.push_back(initTime);
 
       vector_t& initStateVector = targetTrajectories.stateTrajectory[0];
@@ -130,7 +132,7 @@ namespace legged_locomotion_mpc
       {
         // New base height normal to plane 
         currentBaseHeight_ = std::clamp(currentBaseHeight_ + 
-          command.baseVerticalVelocity * settings_.deltaTime, settings_.minimumBaseHeight, 
+          clampedCommand.baseVerticalVelocity * settings_.deltaTime, settings_.minimumBaseHeight, 
           settings_.maximumBaseHeight);
         
         // Get new position and orientation with current body velocities
@@ -241,6 +243,26 @@ namespace legged_locomotion_mpc
       return TerrainPlane(basePlane.getPosition(), newRotationMatrix.transpose());
     }
 
+    BaseTrajectoryPlanner::BaseReferenceCommand BaseTrajectoryPlanner::clampReferenceCommand(
+      const BaseReferenceCommand& command) const
+    {
+      BaseReferenceCommand clampedCommand;
+
+      clampedCommand.baseHeadingVelocity = std::clamp(command.baseHeadingVelocity, 
+        -settings_.maximumBaseHeadingVelocity, settings_.maximumBaseHeadingVelocity);
+
+      clampedCommand.baseLateralVelocity = std::clamp(command.baseLateralVelocity, 
+        -settings_.maximumBaseLateralVelocity, settings_.maximumBaseLateralVelocity);
+
+      clampedCommand.baseVerticalVelocity = std::clamp(command.baseVerticalVelocity,  
+        -settings_.maximumBaseVerticalVelocity, settings_.maximumBaseVerticalVelocity);
+
+      clampedCommand.yawRate = std::clamp(command.yawRate, 
+        -settings_.maximumYawRate, settings_.maximumYawRate);
+
+      return clampedCommand;
+    }
+
     BaseTrajectoryPlanner::StaticSettings loadBasePlannerStaticSettings(
       const std::string& filename, const std::string& fieldName, bool verbose)
     {
@@ -283,16 +305,44 @@ namespace legged_locomotion_mpc
         throw std::invalid_argument("[BaseTrajectoryPlanner]: Initial base height needs to be between [minimumBaseHeight, maximumBaseHeight]!");
       }
 
+      loadData::loadPtreeValue(pt, settings.maximumBaseHeadingVelocity, 
+        fieldName + ".maximumBaseHeadingVelocity", verbose);
+      if(settings.maximumBaseHeadingVelocity < 0.0)
+      {
+        throw std::invalid_argument("[BaseTrajectoryPlanner]: Maximum base heading velocity smaller than 0.0!");
+      }
+
+      loadData::loadPtreeValue(pt, settings.maximumBaseLateralVelocity, 
+        fieldName + ".maximumBaseLateralVelocity", verbose);
+      if(settings.maximumBaseLateralVelocity < 0.0)
+      {
+        throw std::invalid_argument("[BaseTrajectoryPlanner]: Maximum base lateral velocity smaller than 0.0!");
+      }
+
+      loadData::loadPtreeValue(pt, settings.maximumBaseVerticalVelocity, 
+        fieldName + ".maximumBaseVerticalVelocity", verbose);
+      if(settings.maximumBaseVerticalVelocity < 0.0)
+      {
+        throw std::invalid_argument("[BaseTrajectoryPlanner]: Maximum base vertical velocity smaller than 0.0!");
+      }
+
+      loadData::loadPtreeValue(pt, settings.maximumYawRate, 
+        fieldName + ".maximumYawRate", verbose);
+      if(settings.maximumYawRate < 0.0)
+      {
+        throw std::invalid_argument("[BaseTrajectoryPlanner]: Maximum base yaw rate smaller than 0.0!");
+      }
+
       loadData::loadPtreeValue(pt, settings.nominalBaseWidtLateral, 
         fieldName + ".nominalBaseWidtLateral", verbose);
-       if(settings.nominalBaseWidtLateral < 0.0)
+      if(settings.nominalBaseWidtLateral < 0.0)
       {
         throw std::invalid_argument("[BaseTrajectoryPlanner]: Nominal lateral base width smaller than 0.0!");
       }
 
       loadData::loadPtreeValue(pt, settings.nominalBaseWidthHeading, 
         fieldName + ".nominalBaseWidthHeading", verbose);
-       if(settings.nominalBaseWidthHeading < 0.0)
+      if(settings.nominalBaseWidthHeading < 0.0)
       {
         throw std::invalid_argument("[BaseTrajectoryPlanner]: Nominal heading base width smaller than 0.0!");
       }

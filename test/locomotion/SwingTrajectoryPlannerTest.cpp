@@ -60,6 +60,10 @@ TEST(SwingTrajectoryPlannerTest, standingInPlace)
   staticSettings.maximumBaseHeight = 0.5;
   staticSettings.nominalBaseWidthHeading = 0.2;
   staticSettings.nominalBaseWidtLateral = 0.2;
+  staticSettings.maximumBaseHeadingVelocity = 1.0;
+  staticSettings.maximumBaseLateralVelocity = 1.0;
+  staticSettings.maximumBaseVerticalVelocity = 1.0;
+  staticSettings.maximumYawRate = 1.0;
 
   std::string urdfPathName = meldogWithBaseLinkUrdfFile;
 
@@ -219,6 +223,10 @@ TEST(SwingTrajectoryPlannerTest, TrotInPlace)
   staticSettings.maximumBaseHeight = 0.5;
   staticSettings.nominalBaseWidthHeading = 0.2;
   staticSettings.nominalBaseWidtLateral = 0.2;
+  staticSettings.maximumBaseHeadingVelocity = 1.0;
+  staticSettings.maximumBaseLateralVelocity = 1.0;
+  staticSettings.maximumBaseVerticalVelocity = 1.0;
+  staticSettings.maximumYawRate = 1.0;
 
   std::string urdfPathName = meldogWithBaseLinkUrdfFile;
 
@@ -376,6 +384,10 @@ TEST(SwingTrajectoryPlannerTest, Troting)
   staticSettings.maximumBaseHeight = 0.5;
   staticSettings.nominalBaseWidthHeading = 0.2;
   staticSettings.nominalBaseWidtLateral = 0.2;
+  staticSettings.maximumBaseHeadingVelocity = 1.0;
+  staticSettings.maximumBaseLateralVelocity = 1.0;
+  staticSettings.maximumBaseVerticalVelocity = 1.0;
+  staticSettings.maximumYawRate = 1.0;
 
   std::string urdfPathName = meldogWithBaseLinkUrdfFile;
 

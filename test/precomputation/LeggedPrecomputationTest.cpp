@@ -64,6 +64,10 @@ TEST(LeggedPrecomputationTest, getEndEffector)
   staticSettings.maximumBaseHeight = 5.0;
   staticSettings.nominalBaseWidthHeading = 0.2;
   staticSettings.nominalBaseWidtLateral = 0.2;
+  staticSettings.maximumBaseHeadingVelocity = 1.0;
+  staticSettings.maximumBaseLateralVelocity = 1.0;
+  staticSettings.maximumBaseVerticalVelocity = 1.0;
+  staticSettings.maximumYawRate = 1.0;
 
   std::string urdfPathName = meldogWithBaseLinkUrdfFile;
 
@@ -305,6 +309,10 @@ TEST(LeggedPrecomputationTest, getCollisionLinks)
   staticSettings.maximumBaseHeight = 5.0;
   staticSettings.nominalBaseWidthHeading = 0.2;
   staticSettings.nominalBaseWidtLateral = 0.2;
+  staticSettings.maximumBaseHeadingVelocity = 1.0;
+  staticSettings.maximumBaseLateralVelocity = 1.0;
+  staticSettings.maximumBaseVerticalVelocity = 1.0;
+  staticSettings.maximumYawRate = 1.0;
 
   std::string urdfPathName = meldogWithBaseLinkUrdfFile;
 
@@ -518,6 +526,10 @@ TEST(LeggedPrecomputationTest, getTorque)
   staticSettings.maximumBaseHeight = 5.0;
   staticSettings.nominalBaseWidthHeading = 0.2;
   staticSettings.nominalBaseWidtLateral = 0.2;
+  staticSettings.maximumBaseHeadingVelocity = 1.0;
+  staticSettings.maximumBaseLateralVelocity = 1.0;
+  staticSettings.maximumBaseVerticalVelocity = 1.0;
+  staticSettings.maximumYawRate = 1.0;
 
   std::string urdfPathName = meldogWithBaseLinkUrdfFile;
 
@@ -719,7 +731,11 @@ TEST(LeggedPrecomputationTest, getReference)
   staticSettings.maximumBaseHeight = 5.0;
   staticSettings.nominalBaseWidthHeading = 0.2;
   staticSettings.nominalBaseWidtLateral = 0.2;
-
+  staticSettings.maximumBaseHeadingVelocity = 1.0;
+  staticSettings.maximumBaseLateralVelocity = 1.0;
+  staticSettings.maximumBaseVerticalVelocity = 1.0;
+  staticSettings.maximumYawRate = 1.0;
+  
   std::string urdfPathName = meldogWithBaseLinkUrdfFile;
 
   std::string solverName = "NewtonRaphson";

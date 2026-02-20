@@ -58,6 +58,10 @@ TEST(LeggedReferenceManagerTest, getContactFlags)
   staticSettings.maximumBaseHeight = 5.0;
   staticSettings.nominalBaseWidthHeading = 0.2;
   staticSettings.nominalBaseWidtLateral = 0.2;
+  staticSettings.maximumBaseHeadingVelocity = 1.0;
+  staticSettings.maximumBaseLateralVelocity = 1.0;
+  staticSettings.maximumBaseVerticalVelocity = 1.0;
+  staticSettings.maximumYawRate = 1.0;
 
   std::string urdfPathName = meldogWithBaseLinkUrdfFile;
 
@@ -228,6 +232,10 @@ TEST(LeggedReferenceManagerTest, getTerrainModel)
   staticSettings.maximumBaseHeight = 5.0;
   staticSettings.nominalBaseWidthHeading = 0.2;
   staticSettings.nominalBaseWidtLateral = 0.2;
+  staticSettings.maximumBaseHeadingVelocity = 1.0;
+  staticSettings.maximumBaseLateralVelocity = 1.0;
+  staticSettings.maximumBaseVerticalVelocity = 1.0;
+  staticSettings.maximumYawRate = 1.0;
 
   std::string urdfPathName = meldogWithBaseLinkUrdfFile;
 
@@ -393,6 +401,10 @@ TEST(LeggedReferenceManagerTest, getEndEffectorTrajectoryPoint)
   staticSettings.maximumBaseHeight = 5.0;
   staticSettings.nominalBaseWidthHeading = 0.2;
   staticSettings.nominalBaseWidtLateral = 0.2;
+  staticSettings.maximumBaseHeadingVelocity = 1.0;
+  staticSettings.maximumBaseLateralVelocity = 1.0;
+  staticSettings.maximumBaseVerticalVelocity = 1.0;
+  staticSettings.maximumYawRate = 1.0;
 
   std::string urdfPathName = meldogWithBaseLinkUrdfFile;
 
@@ -578,6 +590,10 @@ TEST(LeggedReferenceManagerTest, getEndEffectorConstraintMatrixes)
   staticSettings.maximumBaseHeight = 5.0;
   staticSettings.nominalBaseWidthHeading = 0.2;
   staticSettings.nominalBaseWidtLateral = 0.2;
+  staticSettings.maximumBaseHeadingVelocity = 1.0;
+  staticSettings.maximumBaseLateralVelocity = 1.0;
+  staticSettings.maximumBaseVerticalVelocity = 1.0;
+  staticSettings.maximumYawRate = 1.0;
 
   std::string urdfPathName = meldogWithBaseLinkUrdfFile;
 

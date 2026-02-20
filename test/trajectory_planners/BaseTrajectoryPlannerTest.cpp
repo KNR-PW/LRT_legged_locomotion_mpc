@@ -51,6 +51,10 @@ TEST(BaseTrajectoryPlannerTest, translationOnFlatTerrain)
   staticSettings.maximumBaseHeight = 5.0;
   staticSettings.nominalBaseWidthHeading = 0.2;
   staticSettings.nominalBaseWidtLateral = 0.2;
+  staticSettings.maximumBaseHeadingVelocity = 1.0;
+  staticSettings.maximumBaseLateralVelocity = 1.0;
+  staticSettings.maximumBaseVerticalVelocity = 1.0;
+  staticSettings.maximumYawRate = 1.0;
 
   BaseTrajectoryPlanner planner(modelInfo, staticSettings);
   planner.updateTerrain(terrainModel);
@@ -175,6 +179,10 @@ TEST(BaseTrajectoryPlannerTest, rotationOnFlatTerrain)
   staticSettings.maximumBaseHeight = 5.0;
   staticSettings.nominalBaseWidthHeading = 0.2;
   staticSettings.nominalBaseWidtLateral = 0.2;
+  staticSettings.maximumBaseHeadingVelocity = 1.0;
+  staticSettings.maximumBaseLateralVelocity = 1.0;
+  staticSettings.maximumBaseVerticalVelocity = 1.0;
+  staticSettings.maximumYawRate = 1.0;
 
   BaseTrajectoryPlanner planner(modelInfo, staticSettings);
   planner.updateTerrain(terrainModel);
@@ -299,6 +307,10 @@ TEST(BaseTrajectoryPlannerTest, translationAndrotationOnSlopyTerrain)
   staticSettings.maximumBaseHeight = 5.0;
   staticSettings.nominalBaseWidthHeading = 0.2;
   staticSettings.nominalBaseWidtLateral = 0.2;
+  staticSettings.maximumBaseHeadingVelocity = 1.0;
+  staticSettings.maximumBaseLateralVelocity = 1.0;
+  staticSettings.maximumBaseVerticalVelocity = 1.0;
+  staticSettings.maximumYawRate = 1.0;
 
   BaseTrajectoryPlanner planner(modelInfo, staticSettings);
   planner.updateTerrain(terrainModel);
@@ -419,4 +431,8 @@ TEST(BaseTrajectoryPlannerTest, loader)
   EXPECT_TRUE(baseSettings.maximumBaseHeight        == 0.2);
   EXPECT_TRUE(baseSettings.nominalBaseWidtLateral   == 0.2);
   EXPECT_TRUE(baseSettings.nominalBaseWidthHeading  == 0.3);
+  EXPECT_TRUE(baseSettings.maximumBaseHeadingVelocity == 0.4);
+  EXPECT_TRUE(baseSettings.maximumBaseLateralVelocity  == 0.6);
+  EXPECT_TRUE(baseSettings.maximumBaseVerticalVelocity == 0.7);
+  EXPECT_TRUE(baseSettings.maximumYawRate == 0.8);
 }
