@@ -277,22 +277,19 @@ namespace legged_locomotion_mpc
       endEffectorTrajectories = swingPlanner_.getEndEffectorTrajectories(
         subsampledTrajectory.timeTrajectory);
 
-      const FootTangentialConstraintTrajectories footConstraintTrajectories = 
-        swingPlanner_.getFootTangentialConstraintTrajectories();
-
       setTargetTrajectories(std::move(subsampledTrajectory));
-      footConstraintTrajectories_.setBuffer(std::move(footConstraintTrajectories));
     }
     else
     {
       forcePlanner_.updateTargetTrajectory(newModeSchedule, newTrajectory);
 
-      const FootTangentialConstraintTrajectories footConstraintTrajectories = 
-        swingPlanner_.getFootTangentialConstraintTrajectories();
-
       setTargetTrajectories(std::move(newTrajectory));
-      footConstraintTrajectories_.setBuffer(std::move(footConstraintTrajectories));
     }
+
+    const FootTangentialConstraintTrajectories footConstraintTrajectories = 
+        swingPlanner_.getFootTangentialConstraintTrajectories();
+    footConstraintTrajectories_.setBuffer(std::move(footConstraintTrajectories));
+
     referenceTrajectories_.setBuffer(std::move(endEffectorTrajectories));
     setModeSchedule(std::move(newModeSchedule));
   }
