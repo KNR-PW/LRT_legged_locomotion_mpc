@@ -1,5 +1,5 @@
 #include <legged_locomotion_mpc/reference_manager/LeggedReferenceManager.hpp>
-#include <legged_locomotion_mpc/common/AccessHelperFunctions.hpp>
+
 
 #include <floating_base_model/FactoryFunctions.hpp>
 

@@ -1,6 +1,6 @@
 
 #include <legged_locomotion_mpc/trajectory_planners/JointTrajectoryPlanner.hpp>
-#include <legged_locomotion_mpc/common/AccessHelperFunctions.hpp>
+
 
 #include <floating_base_model/AccessHelperFunctions.hpp>
 
@@ -54,7 +54,8 @@ namespace legged_locomotion_mpc
         }
       }
     
-    void JointTrajectoryPlanner::updateTrajectory(const state_vector_t& currentState,
+    void JointTrajectoryPlanner::updateTrajectory(
+      const SystemObservation& currentObservation,
       TargetTrajectories& targetTrajectories, 
       const position_trajectories& endEffectorPositionTrajectories,
       const velocity_trajectories& endEffectorVelocityTrajectories)
@@ -62,15 +63,18 @@ namespace legged_locomotion_mpc
       assert(endEffectorPositionTrajectories.size() == endEffectorVelocityTrajectories.size());
       assert(endEffectorPositionTrajectories.size() == targetTrajectories.timeTrajectory.size());
       
+      const auto& currentState = currentObservation.state;
+      const auto& currentInput = currentObservation.input;
+
       const size_t trajectorySize = targetTrajectories.timeTrajectory.size();
       auto& currentOptimalState = targetTrajectories.stateTrajectory[0];
       auto& currentOptimalInput = targetTrajectories.inputTrajectory[0];
 
       floating_base_model::access_helper_functions::getJointPositions(currentOptimalState, modelInfo_) 
-        = legged_locomotion_mpc::access_helper_functions::getJointPositions(currentState, modelInfo_);
+        = floating_base_model::access_helper_functions::getJointPositions(currentState, modelInfo_);
       
       floating_base_model::access_helper_functions::getJointVelocities(currentOptimalInput, modelInfo_) 
-        = legged_locomotion_mpc::access_helper_functions::getJointVelocities(currentState, modelInfo_);
+        = floating_base_model::access_helper_functions::getJointVelocities(currentInput, modelInfo_);
       
       for(size_t i = 1; i < trajectorySize; ++i)
       {

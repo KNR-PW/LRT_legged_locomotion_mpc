@@ -14,7 +14,7 @@
 
 #include <terrain_model/planar_model/PlanarFactoryFunctions.hpp>
 
-#include <legged_locomotion_mpc/common/AccessHelperFunctions.hpp>
+
 
 namespace legged_locomotion_mpc
 {
@@ -71,7 +71,7 @@ namespace legged_locomotion_mpc
 
     void BaseTrajectoryPlanner::updateTargetTrajectory(scalar_t initTime,
       scalar_t finalTime, const BaseTrajectoryPlanner::BaseReferenceCommand& command,
-      const state_vector_t& initialState,
+      const SystemObservation& currentObservation,
       TargetTrajectories& targetTrajectories)
     {
       if(!terrainModel_) 
@@ -104,10 +104,12 @@ namespace legged_locomotion_mpc
       const pinocchio::SE3 SE3Delta = pinocchio::exp6(
         twistDelta);
       
-      const vector3_t currentBasePosition = legged_locomotion_mpc::
+      const auto& initialState = currentObservation.state;
+
+      const vector3_t currentBasePosition = floating_base_model::
         access_helper_functions::getBasePosition(initialState, modelInfo_);
 
-      const vector3_t currentBaseOrientationZyx = legged_locomotion_mpc::
+      const vector3_t currentBaseOrientationZyx = floating_base_model::
         access_helper_functions::getBaseOrientationZyx(initialState, 
         modelInfo_);
 

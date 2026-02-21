@@ -44,21 +44,6 @@ namespace legged_locomotion_mpc
 { 
   namespace utils
   {
-
-    /**
-     * Transform vector of robot state defined in file Types.hpp
-     * to ocs2 state and input vectors.
-     *
-     * @param [in] info: floating base model info
-     * @param [in] robotState: vector of real state of the robot
-     * @return ocs2 state and input vectors used in optimization
-     * 
-     * @remark: forces acting on end effectors are missing (value 0)
-     */
-    std::pair<ocs2::vector_t, ocs2::vector_t> robotStateToOptimizationStateAndInput(
-      const floating_base_model::FloatingBaseModelInfo& info,
-      const ocs2::vector_t& robotState);
-
     /**
      * Subsample reference trajectory, so that maximum interval between 
      * trajectories are less or equal maximumReferenceSampleInterval

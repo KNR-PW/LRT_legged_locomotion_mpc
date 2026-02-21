@@ -25,6 +25,7 @@
 #include <ocs2_core/Types.h>
 #include <ocs2_core/misc/LoadData.h>
 #include <ocs2_core/reference/TargetTrajectories.h>
+#include <ocs2_mpc/SystemObservation.h>
 
 #include <floating_base_model/FloatingBaseModelInfo.hpp>
 
@@ -120,7 +121,8 @@ namespace legged_locomotion_mpc
          */
         void updateTargetTrajectory(ocs2::scalar_t initTime, 
           ocs2::scalar_t finalTime, const BaseReferenceCommand& command, 
-          const state_vector_t& initialState, ocs2::TargetTrajectories& targetTrajectories);
+          const ocs2::SystemObservation& currentObservation, 
+          ocs2::TargetTrajectories& targetTrajectories);
         
         /**
          * Get static settings.

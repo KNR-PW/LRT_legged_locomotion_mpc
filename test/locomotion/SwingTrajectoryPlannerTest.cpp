@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <legged_locomotion_mpc/locomotion/SwingTrajectoryPlanner.hpp>
-#include <legged_locomotion_mpc/common/AccessHelperFunctions.hpp>
+
 #include <legged_locomotion_mpc/locomotion/GaitPlanner.hpp>
 #include <legged_locomotion_mpc/trajectory_planners/BaseTrajectoryPlanner.hpp>
 
@@ -156,11 +156,15 @@ TEST(SwingTrajectoryPlannerTest, standingInPlace)
   
   initialBasePosition.z() += staticSettings.initialBaseHeight / slopyTerrain.getSurfaceNormalInWorld().z();
   
-  state_vector_t initialState = state_vector_t::Zero(12 + modelInfo.actuatedDofNum * 2);
-  initialState.block<3,1>(6, 0) = initialBasePosition;
-  initialState.block<3,1>(9, 0) = initEulerZyx;
+  SystemObservation initialObservation;
+  initialObservation.state = vector_t::Zero(modelInfo.stateDim);
+  initialObservation.input = vector_t::Zero(modelInfo.inputDim);
+  initialObservation.state.block<3,1>(6, 0) = initialBasePosition;
+  initialObservation.state.block<3,1>(9, 0) = initEulerZyx;
 
-  legged_locomotion_mpc::access_helper_functions::getJointPositions(initialState, modelInfo) << 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326;
+  auto& initialState = initialObservation.state;
+
+  floating_base_model::access_helper_functions::getJointPositions(initialState, modelInfo) << 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326;
   contact_flags_t contactFlag = modeSchedule.modeAtTime(initTime);
   
   basePlanner.updateTerrain(terrainModel);
@@ -168,9 +172,9 @@ TEST(SwingTrajectoryPlannerTest, standingInPlace)
 
   TargetTrajectories trajectory;
 
-  basePlanner.updateTargetTrajectory(initTime, finalTime, command, initialState, 
+  basePlanner.updateTargetTrajectory(initTime, finalTime, command, initialObservation, 
     trajectory);
-  swingPlanner.updateSwingMotions(initTime, finalTime, initialState, trajectory, 
+  swingPlanner.updateSwingMotions(initTime, finalTime, initialObservation, trajectory, 
     modeSchedule);
   
   scalar_t testTime = initTime;
@@ -318,11 +322,15 @@ TEST(SwingTrajectoryPlannerTest, TrotInPlace)
   
   initialBasePosition.z() += staticSettings.initialBaseHeight / slopyTerrain.getSurfaceNormalInWorld().z();
   
-  state_vector_t initialState = state_vector_t::Zero(12 + modelInfo.actuatedDofNum * 2);
-  initialState.block<3,1>(6, 0) = initialBasePosition;
-  initialState.block<3,1>(9, 0) = initEulerZyx;
+  SystemObservation initialObservation;
+  initialObservation.state = vector_t::Zero(modelInfo.stateDim);
+  initialObservation.input = vector_t::Zero(modelInfo.inputDim);
+  initialObservation.state.block<3,1>(6, 0) = initialBasePosition;
+  initialObservation.state.block<3,1>(9, 0) = initEulerZyx;
 
-  legged_locomotion_mpc::access_helper_functions::getJointPositions(initialState, modelInfo) << 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326;
+  auto& initialState = initialObservation.state;
+
+  floating_base_model::access_helper_functions::getJointPositions(initialState, modelInfo) << 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326;
   contact_flags_t contactFlag = modeSchedule.modeAtTime(initTime);
   
   basePlanner.updateTerrain(terrainModel);
@@ -330,9 +338,9 @@ TEST(SwingTrajectoryPlannerTest, TrotInPlace)
 
   TargetTrajectories trajectory;
 
-  basePlanner.updateTargetTrajectory(initTime, finalTime, command, initialState, 
+  basePlanner.updateTargetTrajectory(initTime, finalTime, command, initialObservation, 
     trajectory);
-  swingPlanner.updateSwingMotions(initTime, finalTime, initialState, trajectory, 
+  swingPlanner.updateSwingMotions(initTime, finalTime, initialObservation, trajectory, 
     modeSchedule);
   
   scalar_t testTime = initTime;
@@ -479,11 +487,15 @@ TEST(SwingTrajectoryPlannerTest, Troting)
   
   initialBasePosition.z() += staticSettings.initialBaseHeight / slopyTerrain.getSurfaceNormalInWorld().z();
   
-  state_vector_t initialState = state_vector_t::Zero(12 + modelInfo.actuatedDofNum * 2);
-  initialState.block<3,1>(6, 0) = initialBasePosition;
-  initialState.block<3,1>(9, 0) = initEulerZyx;
+  SystemObservation initialObservation;
+  initialObservation.state = vector_t::Zero(modelInfo.stateDim);
+  initialObservation.input = vector_t::Zero(modelInfo.inputDim);
+  initialObservation.state.block<3,1>(6, 0) = initialBasePosition;
+  initialObservation.state.block<3,1>(9, 0) = initEulerZyx;
 
-  legged_locomotion_mpc::access_helper_functions::getJointPositions(initialState, modelInfo) << 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326;
+  auto& initialState = initialObservation.state;
+
+  floating_base_model::access_helper_functions::getJointPositions(initialState, modelInfo) << 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326;
   contact_flags_t contactFlag = modeSchedule.modeAtTime(initTime);
   
   basePlanner.updateTerrain(terrainModel);
@@ -491,9 +503,9 @@ TEST(SwingTrajectoryPlannerTest, Troting)
 
   TargetTrajectories trajectory;
 
-  basePlanner.updateTargetTrajectory(initTime, finalTime, command, initialState, 
+  basePlanner.updateTargetTrajectory(initTime, finalTime, command, initialObservation, 
     trajectory);
-  swingPlanner.updateSwingMotions(initTime, finalTime, initialState, trajectory, 
+  swingPlanner.updateSwingMotions(initTime, finalTime, initialObservation, trajectory, 
     modeSchedule);
   
   scalar_t testTime = initTime;

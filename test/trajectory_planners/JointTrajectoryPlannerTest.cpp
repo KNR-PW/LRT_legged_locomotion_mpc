@@ -2,7 +2,7 @@
 
 #include <legged_locomotion_mpc/trajectory_planners/JointTrajectoryPlanner.hpp>
 #include <legged_locomotion_mpc/kinematics/PinocchioForwardEndEffectorKinematicsCppAd.hpp>
-#include <legged_locomotion_mpc/common/AccessHelperFunctions.hpp>
+
 
 #include <floating_base_model/AccessHelperFunctions.hpp>
 #include <floating_base_model/FloatingBaseModelPinocchioMapping.hpp>
@@ -260,29 +260,34 @@ TEST(JointTrajectoryPlannerTest, updateTrajectory)
 
   }
 
-  state_vector_t currentState = state_vector_t::Zero(12 + 2 * ACTUATED_DOF_NUM);
+  SystemObservation initialObservation;
+  initialObservation.state = vector_t::Zero(modelInfo.stateDim);
+  initialObservation.input = vector_t::Zero(modelInfo.inputDim);
 
-  legged_locomotion_mpc::access_helper_functions::
+  auto& currentState = initialObservation.state;
+  auto& currentInput = initialObservation.input;
+
+  floating_base_model::access_helper_functions::
     getBasePose(currentState, modelInfo) = 
     floating_base_model::access_helper_functions::
     getBasePose(trajectoryTrue.stateTrajectory[0], modelInfo);
 
-  legged_locomotion_mpc::access_helper_functions::
+  floating_base_model::access_helper_functions::
     getBaseVelocity(currentState, modelInfo) = 
     floating_base_model::access_helper_functions::
     getBaseVelocity(trajectoryTrue.stateTrajectory[0], modelInfo);
 
-  legged_locomotion_mpc::access_helper_functions::
+  floating_base_model::access_helper_functions::
     getJointPositions(currentState, modelInfo) = 
     floating_base_model::access_helper_functions::
     getJointPositions(trajectoryTrue.stateTrajectory[0], modelInfo);
 
-  legged_locomotion_mpc::access_helper_functions::
-    getJointVelocities(currentState, modelInfo) = 
+  floating_base_model::access_helper_functions::
+    getJointVelocities(currentInput, modelInfo) = 
     floating_base_model::access_helper_functions::
     getJointVelocities(trajectoryTrue.inputTrajectory[0], modelInfo);
   
-  planner.updateTrajectory(currentState, trajectory, 
+  planner.updateTrajectory(initialObservation, trajectory, 
     endEffectorPositionsTrajectories, 
     endEffectorVelocitiesTrajectories);
 

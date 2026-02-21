@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <legged_locomotion_mpc/common/Types.hpp>
-#include <legged_locomotion_mpc/common/AccessHelperFunctions.hpp>
+
 #include <legged_locomotion_mpc/common/ModelHelperFunctions.hpp>
 
 #include "../include/definitions.hpp"

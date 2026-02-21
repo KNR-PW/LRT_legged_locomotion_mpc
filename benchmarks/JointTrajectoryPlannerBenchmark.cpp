@@ -2,7 +2,7 @@
 
 #include <legged_locomotion_mpc/trajectory_planners/JointTrajectoryPlanner.hpp>
 #include <legged_locomotion_mpc/kinematics/PinocchioForwardEndEffectorKinematicsCppAd.hpp>
-#include <legged_locomotion_mpc/common/AccessHelperFunctions.hpp>
+
 
 #include <floating_base_model/AccessHelperFunctions.hpp>
 #include <floating_base_model/FloatingBaseModelPinocchioMapping.hpp>

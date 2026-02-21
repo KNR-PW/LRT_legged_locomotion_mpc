@@ -9,6 +9,7 @@
 #include <ocs2_core/Types.h>
 #include <ocs2_core/misc/LoadData.h>
 #include <ocs2_core/reference/TargetTrajectories.h>
+#include <ocs2_mpc/SystemObservation.h>
 
 #include <floating_base_model/FloatingBaseModelInfo.hpp>
 
@@ -125,7 +126,7 @@ namespace legged_locomotion_mpc
          * Target trajectories should be subsampled already.
          * */ 
         void updateSwingMotions(ocs2::scalar_t initTime,
-          ocs2::scalar_t finalTime, const state_vector_t& currentState,
+          ocs2::scalar_t finalTime, const ocs2::SystemObservation& currentObservation,
           const ocs2::TargetTrajectories& targetTrajectories,
           const ocs2::ModeSchedule& modeSchedule);
 
@@ -249,13 +250,13 @@ namespace legged_locomotion_mpc
         std::vector<vector3_t> selectHeuristicFootholds(size_t endEffectorIndex,
           const std::vector<ContactTiming> &contactTimings,
           const ocs2::TargetTrajectories &targetTrajectories, ocs2::scalar_t initTime,
-          const state_vector_t& currentState, ocs2::scalar_t finalTime) const;
+          const ocs2::SystemObservation& currentObservation, ocs2::scalar_t finalTime) const;
 
         std::vector<terrain_model::ConvexTerrain> selectNominalFootholdTerrain(
           size_t endEffectorIndex, const std::vector<ContactTiming> &contactTimings,
           const std::vector<vector3_t> &heuristicFootholds,
           const ocs2::TargetTrajectories &targetTrajectories, ocs2::scalar_t initTime,
-          const state_vector_t &currentState, ocs2::scalar_t finalTime,
+          const ocs2::SystemObservation& currentObservation, ocs2::scalar_t finalTime,
           const terrain_model::TerrainModel &terrainModel) const;
 
         void applySwingMotionScaling(SwingPhase::SwingEvent &liftOff, 

@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <legged_locomotion_mpc/locomotion/OverExtensionPenalty.hpp>
-#include <legged_locomotion_mpc/common/AccessHelperFunctions.hpp>
+
 #include <legged_locomotion_mpc/locomotion/GaitPlanner.hpp>
 #include <legged_locomotion_mpc/trajectory_planners/BaseTrajectoryPlanner.hpp>
 

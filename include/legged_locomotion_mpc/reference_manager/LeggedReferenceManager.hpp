@@ -25,6 +25,7 @@
 #include <ocs2_core/thread_support/Synchronized.h>
 #include <ocs2_core/thread_support/BufferedPointer.h>
 #include <ocs2_oc/synchronized_module/ReferenceManager.h>
+#include <ocs2_mpc/SystemObservation.h>
 
 #include <legged_locomotion_mpc/common/Types.hpp>
 
@@ -65,12 +66,13 @@ namespace legged_locomotion_mpc
     ~LeggedReferenceManager() override;
 
     void initialize(ocs2::scalar_t initTime, ocs2::scalar_t finalTime, 
-      const state_vector_t& currenState, const contact_flags_t& currentContactFlags,
+      const ocs2::SystemObservation& currentObservation, 
+      const contact_flags_t& currentContactFlags,
       const locomotion::GaitDynamicParameters& currentGaitParameters,
       const locomotion::SwingTrajectoryPlanner::DynamicSettings& currentSwingParameters,
       std::unique_ptr<terrain_model::TerrainModel> currentTerrainModel);
 
-    void updateState(const state_vector_t& currenState);
+    void updateObservation(const ocs2::SystemObservation& currentObservation);
 
     void updateContactFlags(const contact_flags_t& currentContactFlags);
 
@@ -106,7 +108,7 @@ namespace legged_locomotion_mpc
 
       std::future<void> newTrajectories_;
 
-      ocs2::BufferedValue<state_vector_t> currentState_;
+      ocs2::BufferedValue<ocs2::SystemObservation> currentObservation_;
       ocs2::BufferedValue<contact_flags_t> currentContactFlags_;
       ocs2::BufferedValue<locomotion::GaitDynamicParameters> currentGaitParameters_;
       ocs2::BufferedValue<locomotion::SwingTrajectoryPlanner::DynamicSettings> currentSwingParameters_;

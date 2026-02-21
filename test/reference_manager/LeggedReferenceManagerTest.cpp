@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <legged_locomotion_mpc/reference_manager/LeggedReferenceManager.hpp>
-#include <legged_locomotion_mpc/common/AccessHelperFunctions.hpp>
+
 
 #include <floating_base_model/FactoryFunctions.hpp>
 
@@ -168,16 +168,20 @@ TEST(LeggedReferenceManagerTest, getContactFlags)
   
   initialBasePosition.z() += staticSettings.initialBaseHeight / slopyTerrain.getSurfaceNormalInWorld().z();
   
-  state_vector_t initialState = state_vector_t::Zero(12 + modelInfo.actuatedDofNum * 2);
-  initialState.block<3,1>(6, 0) = initialBasePosition;
-  initialState.block<3,1>(9, 0) = initEulerZyx;
+  SystemObservation initialObservation;
+  initialObservation.state = vector_t::Zero(modelInfo.stateDim);
+  initialObservation.input = vector_t::Zero(modelInfo.inputDim);
+  initialObservation.state.block<3,1>(6, 0) = initialBasePosition;
+  initialObservation.state.block<3,1>(9, 0) = initEulerZyx;
 
-  legged_locomotion_mpc::access_helper_functions::getJointPositions(initialState, modelInfo) << 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326;
+  auto& initialState = initialObservation.state;
+
+  floating_base_model::access_helper_functions::getJointPositions(initialState, modelInfo) << 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326;
 
   std::unique_ptr<TerrainModel> terrainModelPtr = 
     std::make_unique<PlanarTerrainModel>(slopyTerrain);
   
-  manager.initialize(initTime, finalTime, initialState, contactFlag, 
+  manager.initialize(initTime, finalTime, initialObservation, contactFlag, 
     dynamicParams, swingDynamicSettings, std::move(terrainModelPtr));
 
   std::vector<scalar_t> goodTimings = {0.0, 0.3, 0.35, 0.65, 0.7, 1, 1.05, 1.35, 1.4, 1.7, 1.75, 2.05, 2.1};
@@ -342,16 +346,20 @@ TEST(LeggedReferenceManagerTest, getTerrainModel)
   
   initialBasePosition.z() += staticSettings.initialBaseHeight / slopyTerrain.getSurfaceNormalInWorld().z();
   
-  state_vector_t initialState = state_vector_t::Zero(12 + modelInfo.actuatedDofNum * 2);
-  initialState.block<3,1>(6, 0) = initialBasePosition;
-  initialState.block<3,1>(9, 0) = initEulerZyx;
+  SystemObservation initialObservation;
+  initialObservation.state = vector_t::Zero(modelInfo.stateDim);
+  initialObservation.input = vector_t::Zero(modelInfo.inputDim);
+  initialObservation.state.block<3,1>(6, 0) = initialBasePosition;
+  initialObservation.state.block<3,1>(9, 0) = initEulerZyx;
 
-  legged_locomotion_mpc::access_helper_functions::getJointPositions(initialState, modelInfo) << 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326;
+  auto& initialState = initialObservation.state;
+
+  floating_base_model::access_helper_functions::getJointPositions(initialState, modelInfo) << 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326;
 
   std::unique_ptr<TerrainModel> terrainModelPtr = 
     std::make_unique<PlanarTerrainModel>(slopyTerrain);
   
-  manager.initialize(initTime, finalTime, initialState, contactFlag, 
+  manager.initialize(initTime, finalTime, initialObservation, contactFlag, 
     dynamicParams, swingDynamicSettings, std::move(terrainModelPtr));
   
   const TerrainModel& terrain = manager.getTerrainModel();
@@ -511,16 +519,20 @@ TEST(LeggedReferenceManagerTest, getEndEffectorTrajectoryPoint)
   
   initialBasePosition.z() += staticSettings.initialBaseHeight / slopyTerrain.getSurfaceNormalInWorld().z();
   
-  state_vector_t initialState = state_vector_t::Zero(12 + modelInfo.actuatedDofNum * 2);
-  initialState.block<3,1>(6, 0) = initialBasePosition;
-  initialState.block<3,1>(9, 0) = initEulerZyx;
+  SystemObservation initialObservation;
+  initialObservation.state = vector_t::Zero(modelInfo.stateDim);
+  initialObservation.input = vector_t::Zero(modelInfo.inputDim);
+  initialObservation.state.block<3,1>(6, 0) = initialBasePosition;
+  initialObservation.state.block<3,1>(9, 0) = initEulerZyx;
 
-  legged_locomotion_mpc::access_helper_functions::getJointPositions(initialState, modelInfo) << 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326;
+  auto& initialState = initialObservation.state;
+
+  floating_base_model::access_helper_functions::getJointPositions(initialState, modelInfo) << 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326;
 
   std::unique_ptr<TerrainModel> terrainModelPtr = 
     std::make_unique<PlanarTerrainModel>(slopyTerrain);
   
-  manager.initialize(initTime, finalTime, initialState, contactFlag, 
+  manager.initialize(initTime, finalTime, initialObservation, contactFlag, 
     dynamicParams, swingDynamicSettings, std::move(terrainModelPtr));
   
   std::vector<scalar_t> alphaValues{0.0, 0.1, 0.2, 0.5, 0.7, 1.0};
@@ -700,16 +712,20 @@ TEST(LeggedReferenceManagerTest, getEndEffectorConstraintMatrixes)
   
   initialBasePosition.z() += staticSettings.initialBaseHeight / slopyTerrain.getSurfaceNormalInWorld().z();
   
-  state_vector_t initialState = state_vector_t::Zero(12 + modelInfo.actuatedDofNum * 2);
-  initialState.block<3,1>(6, 0) = initialBasePosition;
-  initialState.block<3,1>(9, 0) = initEulerZyx;
+  SystemObservation initialObservation;
+  initialObservation.state = vector_t::Zero(modelInfo.stateDim);
+  initialObservation.input = vector_t::Zero(modelInfo.inputDim);
+  initialObservation.state.block<3,1>(6, 0) = initialBasePosition;
+  initialObservation.state.block<3,1>(9, 0) = initEulerZyx;
 
-  legged_locomotion_mpc::access_helper_functions::getJointPositions(initialState, modelInfo) << 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326;
+  auto& initialState = initialObservation.state;
+
+  floating_base_model::access_helper_functions::getJointPositions(initialState, modelInfo) << 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326;
 
   std::unique_ptr<TerrainModel> terrainModelPtr = 
     std::make_unique<PlanarTerrainModel>(slopyTerrain);
   
-  manager.initialize(initTime, finalTime, initialState, contactFlag, 
+  manager.initialize(initTime, finalTime, initialObservation, contactFlag, 
     dynamicParams, swingDynamicSettings, std::move(terrainModelPtr));
 
   std::vector<scalar_t> goodTimings = {0.0, 0.3, 0.35, 0.65, 0.7, 1, 1.05, 1.35, 1.4, 1.7, 1.75, 2.05, 2.1};

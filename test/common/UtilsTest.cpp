@@ -15,45 +15,6 @@ using namespace floating_base_model::access_helper_functions;
 
 const scalar_t tolerance = 1e-9;
 
-TEST(UtilsTest, robotStateToOptimizationStateAndInput)
-{
-  std::string urdfPathName = meldogWithBaseLinkUrdfFile;
-
-  std::vector<std::string> testThreeDofMeldogContacts(2);
-  testThreeDofMeldogContacts[0] = meldog3DofContactNames[0];
-  testThreeDofMeldogContacts[1] = meldog3DofContactNames[1];
-
-  std::vector<std::string> testSixDofMeldogContacts(2);
-  testSixDofMeldogContacts[0] = meldog3DofContactNames[2];
-  testSixDofMeldogContacts[1] = meldog3DofContactNames[3];
-
-  ocs2::PinocchioInterface interface = createPinocchioInterfaceFromUrdfFile(urdfPathName, 
-    baseLink);
-
-  const FloatingBaseModelInfo modelInfo = createFloatingBaseModelInfo(interface, 
-    testThreeDofMeldogContacts, testSixDofMeldogContacts);
-
-  state_vector_t stateVector = getAccessTestRobotStateForOptimalState();
-
-  const auto optimalStateVectorTrue = getAccessTestRobotOptimalState();
-  const auto optimalInputVectorTrue = getAccessTestRobotOptimalInput();
-
-  const auto [optimalStateVector, optimalInputVector] = 
-    utils::robotStateToOptimizationStateAndInput(modelInfo, stateVector);
-
-  EXPECT_TRUE(optimalStateVector.rows() ==  optimalStateVectorTrue.rows());
-  EXPECT_TRUE((optimalStateVector - optimalStateVectorTrue).norm() < tolerance);
-
-  EXPECT_TRUE(optimalInputVector.rows() ==  optimalInputVectorTrue.rows());
-  EXPECT_TRUE((optimalInputVector.block(
-    3 * NUM_THREE_DOF_CONTACTS + NUM_SIX_DOF_CONTACTS * 6, 0, ACTUATED_DOF_NUM, 1) - 
-    optimalInputVectorTrue.block(3 * NUM_THREE_DOF_CONTACTS + NUM_SIX_DOF_CONTACTS * 6, 
-    0, ACTUATED_DOF_NUM, 1)).norm() < tolerance);
-  EXPECT_TRUE((optimalInputVector.block(0, 0, 
-    3 * NUM_THREE_DOF_CONTACTS + NUM_SIX_DOF_CONTACTS * 6, 1) - vector_t::Zero( 
-    3 * NUM_THREE_DOF_CONTACTS + NUM_SIX_DOF_CONTACTS * 6)).norm() < tolerance);
-}
-
 TEST(UtilsTest, subsampleReferenceTrajectory)
 {
   TargetTrajectories initTrajectory;

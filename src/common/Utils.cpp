@@ -14,20 +14,6 @@ namespace legged_locomotion_mpc
     /******************************************************************************************************/
     /******************************************************************************************************/
     /******************************************************************************************************/
-    std::pair<vector_t, vector_t> robotStateToOptimizationStateAndInput(
-      const floating_base_model::FloatingBaseModelInfo& info,
-      const vector_t& robotState)
-    {
-      const vector_t state = robotState.block(0, 0, info.stateDim, 1);
-      vector_t input = vector_t::Zero(info.inputDim);
-      input.block(3 * info.numThreeDofContacts + 6 * info.numSixDofContacts, 0,
-        info.actuatedDofNum, 1) = robotState.block(info.stateDim, 0, info.actuatedDofNum, 1);
-      return {state, input};
-    }
-
-    /******************************************************************************************************/
-    /******************************************************************************************************/
-    /******************************************************************************************************/
     TargetTrajectories subsampleReferenceTrajectory(
       const TargetTrajectories& targetTrajectories,
       scalar_t initTime,

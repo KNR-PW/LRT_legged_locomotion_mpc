@@ -164,7 +164,6 @@ if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
 
   ament_add_gtest(${PROJECT_NAME}_test_common
-        test/common/AccessHelperFunctionsTest.cpp
         test/common/UtilsTest.cpp
         test/common/ModelHelperFunctionsTest.cpp
         test/common/EulerTransformsTest.cpp

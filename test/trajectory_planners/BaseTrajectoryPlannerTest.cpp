@@ -94,14 +94,16 @@ TEST(BaseTrajectoryPlannerTest, translationOnFlatTerrain)
   
   initialBasePosition.z() += staticSettings.initialBaseHeight / slopyTerrain.getSurfaceNormalInWorld().z();
   
-  state_vector_t initialState = state_vector_t::Zero(12 + modelInfo.actuatedDofNum * 2);
-  initialState.block<3,1>(6, 0) = initialBasePosition;
-  initialState.block<3,1>(9, 0) = initEulerZyx;
+  SystemObservation initialObservation;
+  initialObservation.state = vector_t::Zero(modelInfo.stateDim);
+  initialObservation.input = vector_t::Zero(modelInfo.inputDim);
+  initialObservation.state.block<3,1>(6, 0) = initialBasePosition;
+  initialObservation.state.block<3,1>(9, 0) = initEulerZyx;
 
   TargetTrajectories trajectories;
 
   planner.updateTargetTrajectory(initTime, finalTime, command, 
-    initialState, trajectories);
+    initialObservation, trajectories);
 
   const size_t size = (finalTime - initTime) / staticSettings.deltaTime + 1;
 
@@ -222,14 +224,16 @@ TEST(BaseTrajectoryPlannerTest, rotationOnFlatTerrain)
   
   initialBasePosition.z() += staticSettings.initialBaseHeight / slopyTerrain.getSurfaceNormalInWorld().z();
   
-  state_vector_t initialState = state_vector_t::Zero(12 + modelInfo.actuatedDofNum * 2);
-  initialState.block<3,1>(6, 0) = initialBasePosition;
-  initialState.block<3,1>(9, 0) = initEulerZyx;
+  SystemObservation initialObservation;
+  initialObservation.state = vector_t::Zero(modelInfo.stateDim);
+  initialObservation.input = vector_t::Zero(modelInfo.inputDim);
+  initialObservation.state.block<3,1>(6, 0) = initialBasePosition;
+  initialObservation.state.block<3,1>(9, 0) = initEulerZyx;
 
   TargetTrajectories trajectories;
 
   planner.updateTargetTrajectory(initTime, finalTime, command, 
-    initialState, trajectories);
+    initialObservation, trajectories);
 
   const size_t size = (finalTime - initTime) / staticSettings.deltaTime + 1;
 
@@ -350,14 +354,16 @@ TEST(BaseTrajectoryPlannerTest, translationAndrotationOnSlopyTerrain)
   
   initialBasePosition.z() += staticSettings.initialBaseHeight / slopyTerrain.getSurfaceNormalInWorld().z();
   
-  state_vector_t initialState = state_vector_t::Zero(12 + modelInfo.actuatedDofNum * 2);
-  initialState.block<3,1>(6, 0) = initialBasePosition;
-  initialState.block<3,1>(9, 0) = initEulerZyx;
+  SystemObservation initialObservation;
+  initialObservation.state = vector_t::Zero(modelInfo.stateDim);
+  initialObservation.input = vector_t::Zero(modelInfo.inputDim);
+  initialObservation.state.block<3,1>(6, 0) = initialBasePosition;
+  initialObservation.state.block<3,1>(9, 0) = initEulerZyx;
 
   TargetTrajectories trajectories;
 
   planner.updateTargetTrajectory(initTime, finalTime, command, 
-    initialState, trajectories);
+    initialObservation, trajectories);
 
   const size_t size = (finalTime - initTime) / staticSettings.deltaTime + 1;
 

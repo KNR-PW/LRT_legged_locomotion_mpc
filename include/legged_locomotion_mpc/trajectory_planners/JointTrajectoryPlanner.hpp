@@ -21,14 +21,15 @@
 #ifndef __JOINT_TRAJECTORY_PLANNER_LEGGED_LOCOMOTION_MPC__
 #define __JOINT_TRAJECTORY_PLANNER_LEGGED_LOCOMOTION_MPC__
 
-#include <legged_locomotion_mpc/common/Types.hpp>
-#include <legged_locomotion_mpc/locomotion/SwingTrajectoryPlanner.hpp>
+#include <ocs2_core/reference/TargetTrajectories.h>
+#include <ocs2_mpc/SystemObservation.h>
+
+#include <multi_end_effector_kinematics/MultiEndEffectorKinematics.hpp>
 
 #include <floating_base_model/FloatingBaseModelInfo.hpp>
 
-#include <ocs2_core/reference/TargetTrajectories.h>
-
-#include <multi_end_effector_kinematics/MultiEndEffectorKinematics.hpp>
+#include <legged_locomotion_mpc/common/Types.hpp>
+#include <legged_locomotion_mpc/locomotion/SwingTrajectoryPlanner.hpp>
 
 namespace legged_locomotion_mpc
 {
@@ -61,7 +62,7 @@ namespace legged_locomotion_mpc
          * and SwingTrajectoryPlanner::getEndEffectorVelocityTrajectories()
          * using targetTrajectories.timeTrajectory.
          */
-        void updateTrajectory(const state_vector_t& currentState,
+        void updateTrajectory(const ocs2::SystemObservation& currentObservation,
           ocs2::TargetTrajectories& targetTrajectories, 
           const position_trajectories& endEffectorPositionTrajectories,
           const velocity_trajectories& endEffectorVelocityTrajectories);

@@ -34,7 +34,7 @@ namespace legged_locomotion_mpc
       basePlanner_(std::move(basePlanner)), 
       jointPlanner_(std::move(jointPlanner)),
       forcePlanner_(std::move(forcePlanner)),
-      currentState_(state_vector_t()),
+      currentObservation_(SystemObservation()),
       currentContactFlags_(contact_flags_t()),
       currentGaitParameters_(GaitDynamicParameters()),
       currentSwingParameters_(SwingTrajectoryPlanner::DynamicSettings()),
@@ -44,12 +44,13 @@ namespace legged_locomotion_mpc
       footConstraintTrajectories_(FootTangentialConstraintTrajectories()) {}
 
   void LeggedReferenceManager::initialize(scalar_t initTime, scalar_t finalTime, 
-    const state_vector_t& currenState, const contact_flags_t& currentContactFlags,
+    const SystemObservation& currentObservation, 
+    const contact_flags_t& currentContactFlags,
     const GaitDynamicParameters& currentGaitParameters,
     const SwingTrajectoryPlanner::DynamicSettings& currentSwingParameters,
     std::unique_ptr<terrain_model::TerrainModel> currentTerrainModel)
   {
-    updateState(currenState);
+    updateObservation(currentObservation);
     updateContactFlags(currentContactFlags);
     updateGaitParemeters(currentGaitParameters);
     updateSwingParameters(currentSwingParameters);
@@ -200,8 +201,8 @@ namespace legged_locomotion_mpc
   void LeggedReferenceManager::generateNewTargetTrajectories(
     scalar_t initTime, scalar_t finalTime)
   {
-    currentState_.updateFromBuffer();
-    const state_vector_t& currentState = currentState_.get();
+    currentObservation_.updateFromBuffer();
+    const SystemObservation& currentObservation = currentObservation_.get();
 
     // no new gait parameters -> no update
     if(currentGaitParameters_.updateFromBuffer())
@@ -254,15 +255,15 @@ namespace legged_locomotion_mpc
       finalTime);
 
     basePlanner_.updateTargetTrajectory(initTime, finalTime, currentCommand, 
-      currentState, newTrajectory);
+      currentObservation, newTrajectory);
 
-    swingPlanner_.updateSwingMotions(initTime, finalTime, currentState, 
+    swingPlanner_.updateSwingMotions(initTime, finalTime, currentObservation, 
       newTrajectory, newModeSchedule);
 
     EndEffectorTrajectories endEffectorTrajectories = 
       swingPlanner_.getEndEffectorTrajectories(newTrajectory.timeTrajectory);
     
-    jointPlanner_.updateTrajectory(currentState, newTrajectory, 
+    jointPlanner_.updateTrajectory(currentObservation, newTrajectory, 
       endEffectorTrajectories.positions, endEffectorTrajectories.velocities);
 
     // If trajectory was subsampled, get new reference for end effectors
@@ -296,9 +297,10 @@ namespace legged_locomotion_mpc
     setModeSchedule(std::move(newModeSchedule));
   }
 
-  void LeggedReferenceManager::updateState(const state_vector_t& currenState)
+  void LeggedReferenceManager::updateObservation(
+    const SystemObservation& currentObservation)
   {
-    currentState_.setBuffer(currenState);
+    currentObservation_.setBuffer(currentObservation);
   }
 
   void LeggedReferenceManager::updateContactFlags(

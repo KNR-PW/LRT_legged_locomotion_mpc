@@ -14,7 +14,7 @@
 
 #include <floating_base_model/AccessHelperFunctions.hpp>
 
-#include <legged_locomotion_mpc/common/AccessHelperFunctions.hpp>
+
 #include <legged_locomotion_mpc/common/Utils.hpp>
 #include <legged_locomotion_mpc/locomotion/GaitCommon.hpp>
 
@@ -67,7 +67,7 @@ namespace legged_locomotion_mpc
     }
 
     void SwingTrajectoryPlanner::updateSwingMotions(scalar_t initTime, scalar_t finalTime,
-     const state_vector_t& currentState, const TargetTrajectories& targetTrajectories,
+     const ocs2::SystemObservation& currentObservation, const TargetTrajectories& targetTrajectories,
       const ModeSchedule& modeSchedule) 
     {
       if(!terrainModel_) 
@@ -82,9 +82,8 @@ namespace legged_locomotion_mpc
       const std::vector<std::vector<ContactTiming>> contactTimingsPerLeg =
         extractContactTimingsPerLeg(modeSchedule_, numEndEffectors);
 
-      const auto [optimState, optimInput] = utils::robotStateToOptimizationStateAndInput(
-        modelInfo_, currentState);
-      const auto feetPositions = forwardKinematics_.getPosition(optimState);
+      const auto& currentState = currentObservation.state;
+      const auto feetPositions = forwardKinematics_.getPosition(currentState);
 
       for (int i = 0; i < numEndEffectors; ++i) 
       {
@@ -126,12 +125,12 @@ namespace legged_locomotion_mpc
         // Select heuristic footholds.
         heuristicFootholdsPerLeg_[i] = selectHeuristicFootholds(i, contactTimings, 
           targetTrajectories, initTime,
-          currentState, finalTime);
+          currentObservation, finalTime);
 
         // Select terrain constraints based on the heuristic footholds.
         nominalFootholdsPerLeg_[i] = selectNominalFootholdTerrain(
           i, contactTimings, heuristicFootholdsPerLeg_[i], targetTrajectories,
-          initTime, currentState, finalTime, *terrainModel_);
+          initTime, currentObservation, finalTime, *terrainModel_);
 
         // Create swing trajectories
         std::tie(feetNormalTrajectoriesEvents_[i], feetNormalTrajectories_[i]) =
@@ -419,12 +418,13 @@ namespace legged_locomotion_mpc
     std::vector<vector3_t> SwingTrajectoryPlanner::selectHeuristicFootholds(
       size_t endEffectorIndex, const std::vector<ContactTiming> &contactTimings,
       const TargetTrajectories &targetTrajectories, scalar_t initTime,
-      const state_vector_t &currentState, scalar_t finalTime) const
+      const SystemObservation& currentObservation, scalar_t finalTime) const
     {
       // Zmp preparation : measured state
-      const vector3_t initBaseOrientation = legged_locomotion_mpc::
+      const auto& currentState = currentObservation.state;
+      const vector3_t initBaseOrientation = floating_base_model::
         access_helper_functions::getBaseOrientationZyx(currentState, modelInfo_);
-      const vector3_t initBaseLinearVelocityInBase =legged_locomotion_mpc::
+      const vector3_t initBaseLinearVelocityInBase = floating_base_model::
         access_helper_functions::getBaseLinearVelocity(currentState, modelInfo_);
       const matrix3_t initBaseRotationMatrix = getRotationMatrixFromZyxEulerAngles(
         initBaseOrientation);
@@ -510,7 +510,7 @@ namespace legged_locomotion_mpc
       size_t endEffectorIndex, const std::vector<ContactTiming> &contactTimings, 
       const std::vector<vector3_t> &heuristicFootholds, 
       const TargetTrajectories &targetTrajectories, scalar_t initTime, 
-      const state_vector_t &currentState, scalar_t finalTime, 
+      const SystemObservation& currentObservation, scalar_t finalTime, 
       const TerrainModel &terrainModel) const 
     {
       // Will increment the heuristic each time after selecting a nominalFootholdTerrain
