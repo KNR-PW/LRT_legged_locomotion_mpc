@@ -215,17 +215,13 @@ namespace legged_locomotion_mpc
       
       if(!returnStatus.success)
       {
-        for(size_t i = 0; i < modelInfo_.actuatedDofNum; ++i)
-        {
-          if(jointVelocities[i] > jointVelocityLimits_[i])
+
+        jointVelocities = jointVelocities.binaryExpr(jointVelocityLimits_, 
+          [](scalar_t lhs, scalar_t rhs)
           {
-            jointVelocities[i] = jointVelocityLimits_[i];
-          }
-          else if(jointVelocities[i] < -jointVelocityLimits_[i])
-          {
-            jointVelocities[i] = -jointVelocityLimits_[i];
-          }
-        }
+            if(lhs > rhs) return rhs;
+            if(lhs < -rhs) return -rhs;
+          });
       }
       return jointVelocities;
     }
