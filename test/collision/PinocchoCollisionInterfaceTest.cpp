@@ -40,6 +40,7 @@ TEST(PinocchoCollisionInterfaceTest, getters)
   collisionSettings.relaxations = std::vector<scalar_t>(
     meldog3DofContactNames.size() + collisionSettings.collisionLinkNames.size(), 0.5);
   collisionSettings.shrinkRatio = 0.5;
+  collisionSettings.maxSphereNeighbours = 3;
 
   PinocchioCollisionInterface collisionInterface(modelInfo, modelSettings, 
     collisionSettings, interface);
@@ -99,10 +100,33 @@ TEST(PinocchoCollisionInterfaceTest, getters)
   circleNumber[6] = 1;
   circleNumber[7] = 4;
 
+  std::vector<std::vector<std::vector<size_t>>> collisionNeighbours(8);
+
+  // End effectors
+  std::vector<std::vector<size_t>> endEffectorNeighbours(1);
+  endEffectorNeighbours[0] = std::vector<size_t>{0};
+  for(size_t i = 0; i < 7; ++i)
+  {
+    collisionNeighbours[i] = endEffectorNeighbours; 
+  }
+
+  std::vector<std::vector<size_t>> seventhCollisionNeighbours(4);
+  seventhCollisionNeighbours[0] = std::vector<size_t>{0, 1, 2};
+  seventhCollisionNeighbours[1] = std::vector<size_t>{1, 0, 2};
+  seventhCollisionNeighbours[2] = std::vector<size_t>{2, 3, 1};
+  seventhCollisionNeighbours[3] = std::vector<size_t>{3, 2, 1};
+  collisionNeighbours[7] = seventhCollisionNeighbours;
+
   for(size_t i = 0; i < 8; ++i)
   {
-    EXPECT_TRUE(circleNumber[i] == collisionInterface.getFrameSphereNumbers(i)[0]);
+    EXPECT_TRUE(circleNumber[i] == collisionInterface.getFrameSphereNumbers(i));
     EXPECT_TRUE(std::abs(circleRadius[i] - collisionInterface.getFrameSphereRadiuses(i)[0]) < tolerance);
     EXPECT_TRUE((circlePositon[i] - collisionInterface.getFrameSpherePositions(i)[0]).norm() < tolerance);
+    
+    for(size_t j = 0; j < collisionNeighbours[i].size(); ++j)
+    {
+      const auto& neighbours = collisionInterface.getSphereNeighbours(i, j);
+      EXPECT_TRUE(collisionNeighbours[i][j] == neighbours);
+    }
   }
 }

@@ -81,13 +81,13 @@ namespace legged_locomotion_mpc
           bool verbose = false);
         
         /**
-         * Get vector with number of spheres in every geometry in frame
+         * Get vector with number of spheres in frame
          * Rule of indexes:
          * 1. 3 DoF end effectors
          * 2. 6 DoF end effectors
          * 3. other collision objects, as defined in otherCollisionLinks
          */
-        const std::vector<size_t>& getFrameSphereNumbers(size_t collisionIndex) const;
+        size_t getFrameSphereNumbers(size_t collisionIndex) const;
 
         /**
          * Get vector with radius of every sphere in every geometry in frame
@@ -108,6 +108,12 @@ namespace legged_locomotion_mpc
         const std::vector<vector3_t>& getFrameSpherePositions(size_t collisionIndex) const;
         
         /**
+         * Get vector with neighbours indices for queried sphere index
+         */
+        const std::vector<size_t>& getSphereNeighbours(size_t collisionIndex, 
+          size_t sphereIndex);
+
+        /**
          * Get partial derivative w.r.t euler ZYX angles 
          * from rotation matrix and vector multiplication: d(R * v)/de.
          * Used for calculating partial derivatives of sphere positions.
@@ -116,18 +122,20 @@ namespace legged_locomotion_mpc
           const vector3_t& vector) const;
         
         /**
-         * Get all indices (0 : endEffectorNum + collisionNum - 1) 
+         * Get all Pinocchio indices (0 : endEffectorNum + collisionNum - 1) 
          * of all terrain avoidance links
          */
         const std::vector<size_t>& getTerrainAvoidanceCollisionIndices() const;
 
         /**
-         * Get all indices (0 : endEffectorNum + collisionNum - 1) 
+         * Get all Pinocchio indices (0 : endEffectorNum + collisionNum - 1) 
          * of all self collision link pairs
          */
         const std::vector<std::pair<size_t, size_t>>& getSelfCollisionIndices() const;
 
-
+        /**
+         * Get Pinocchio geometry model
+         */
         const pinocchio::GeometryModel& getGeometryModel() const;
 
       private:
@@ -137,24 +145,49 @@ namespace legged_locomotion_mpc
           const Eigen::Matrix<ocs2::ad_scalar_t, 3, 1>& eulerAnglesAD, 
           const Eigen::Matrix<ocs2::ad_scalar_t, 3, 1>& vector);
         
+        // Create geometryModel_
+        void createGeometryModel(const ocs2::PinocchioInterface& pinocchioInterface);
+        
+        // Create terrainAvoidanceIndices_ and selfCollisionIndices_
+        void createPinocchioIndices(const floating_base_model::FloatingBaseModelInfo& info, 
+          const ModelSettings& modelSettings, 
+          const CollisionSettings& collisionSettings);
+        
+        // Create sphereNumbers_, sphereRadiuses_ and frameToSpherePositons_
+        void createSphereDataStructs(const floating_base_model::FloatingBaseModelInfo& info, 
+          const ModelSettings& modelSettings, 
+          const CollisionSettings& collisionSettings, 
+          const ocs2::PinocchioInterface& pinocchioInterface);
+        
+        // Create sphereNeighbours_
+        void createNeighbours(const CollisionSettings& collisionSettings);
+
         pinocchio::GeometryModel geometryModel_;
 
         size_t frameNumber_;
         
-        // indices of terrain collision avoidance
+        // Pinocchio indices of terrain collision avoidance
         std::vector<size_t> terrainAvoidanceIndices_;
         
-        // indices of self collision avoidance
+        // Pinocchio indices of self collision avoidance
         std::vector<std::pair<size_t, size_t>> selfCollisionIndices_;
         
         // Number of spheres in every object of every frame
-        std::vector<std::vector<size_t>> sphereNumbers_;
+        std::vector<size_t> sphereNumbers_;
 
         // Radius values of spheres of every object of every frame
         std::vector<std::vector<ocs2::scalar_t>> sphereRadiuses_;
 
         // Positions of sphere centers relative to their parent frame
         std::vector<std::vector<vector3_t>> frameToSpherePositons_;
+
+        /**
+         * Data structure thats is used for getting closest neighbours of queried
+         * collision sphere od queried collision link/end effector:
+         * sphereNeighbours_[collisionLinkIndex][sphereIndex] -> neighbors (std::vector<sphereIndexes>)
+         * Important: also includes queried sphere
+         */
+        std::vector<std::vector<std::vector<size_t>>> sphereNeighbours_;
 
         /**
          * Helper Cpp AD function for getting partial derivative w.r.t euler ZYX angles

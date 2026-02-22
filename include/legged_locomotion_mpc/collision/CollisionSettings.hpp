@@ -64,6 +64,11 @@ namespace legged_locomotion_mpc
        * sphere is required along the radial direction
        */
       ocs2::scalar_t shrinkRatio = 0.75;
+
+      /**
+       * Maximum number of sphere neighbours for single sphere (including itself)
+       */
+      size_t maxSphereNeighbours = 5;
     };
 
   /**

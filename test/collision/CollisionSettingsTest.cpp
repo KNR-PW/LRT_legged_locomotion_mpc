@@ -32,4 +32,5 @@ TEST(CollisionSettingsTest, loader)
   EXPECT_TRUE(collisionSettings.maxExcesses == trueExcesses);
   EXPECT_TRUE(collisionSettings.relaxations == trueRelaxations);
   EXPECT_TRUE(collisionSettings.shrinkRatio == 0.1);
+  EXPECT_TRUE(collisionSettings.maxSphereNeighbours == 10);
 }

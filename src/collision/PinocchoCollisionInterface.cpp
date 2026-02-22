@@ -58,6 +58,36 @@ namespace legged_locomotion_mpc
           "does not contain a urdf model!");
       } 
 
+      createGeometryModel(pinocchioInterface);
+
+      createSphereDataStructs(info, modelSettings, collisionSettings, pinocchioInterface);
+
+      createPinocchioIndices(info, modelSettings, collisionSettings);
+
+      createNeighbours(collisionSettings);
+
+      // Create CppAD function
+      auto systemFlowMapFunc = [&](const ocs2::ad_vector_t& x, const ocs2::ad_vector_t& p, 
+        ocs2::ad_vector_t& y) 
+      {
+        const Eigen::Matrix<ocs2::ad_scalar_t, 3, 1> eulerAnglesAD = x;
+        const Eigen::Matrix<ocs2::ad_scalar_t, 3, 1> vector = p;
+        y = getRotationTimesVectorCppAd(eulerAnglesAD, vector);
+      };
+    
+      rotationMatrixVectorAdInterfacePtr_.reset(
+          new ocs2::CppAdInterface(systemFlowMapFunc, 3, 3, "rotation_times_vector_euler", modelFolder));
+    
+      if(recompileLibraries) {
+        rotationMatrixVectorAdInterfacePtr_->createModels(ocs2::CppAdInterface::ApproximationOrder::First, verbose);
+      } else {
+        rotationMatrixVectorAdInterfacePtr_->loadModelsIfAvailable(ocs2::CppAdInterface::ApproximationOrder::First, verbose);
+      }
+    }
+
+    void PinocchioCollisionInterface::createGeometryModel(
+      const PinocchioInterface& pinocchioInterface)
+    {
       const std::unique_ptr<const TiXmlDocument> urdfAsXml(urdf::exportURDF(
         *pinocchioInterface.getUrdfModelPtr()));
       TiXmlPrinter printer;
@@ -67,69 +97,13 @@ namespace legged_locomotion_mpc
       geometryModel_ = pinocchio::GeometryModel();
       pinocchio::urdf::buildGeom(pinocchioInterface.getModel(), urdfAsStringStream, 
       pinocchio::COLLISION, geometryModel_);
+    }
 
-      // Get collision frame indexes
-      std::vector<size_t> collisionFrames = info.endEffectorFrameIndices;
-
-      for(const std::string& frameName: collisionSettings.collisionLinkNames)
-      {
-        const size_t frameIndex = pinocchioInterface.getModel().getFrameId(frameName);
-        if(frameIndex <= 0)
-        {
-          std::string message = "[PinocchioCollisionInterface]: There is no frame named " + frameName + "!";
-          throw std::invalid_argument(message);
-        }
-        collisionFrames.push_back(frameIndex);
-      }
-
-      frameNumber_ = collisionFrames.size();
-
-      for(size_t i = 0; i < frameNumber_; ++i)
-      {
-        const size_t frameIndex = collisionFrames[i];
-        const auto& framePlacement = pinocchioInterface.getModel().frames[
-          frameIndex].placement;
-
-        std::vector<size_t> sphereNumbers;
-        std::vector<scalar_t> sphereRadiuses;
-        std::vector<vector3_t> spherePositions;
-
-        for (size_t j = 0; j < geometryModel_.geometryObjects.size(); ++j) 
-        {
-          const pinocchio::GeometryObject& object = geometryModel_.geometryObjects[j];
-          const size_t parentFrameIndex = object.parentFrame;
-
-          if(parentFrameIndex == frameIndex) 
-          {
-            const auto& objectCenterPlacement = object.placement;
-            const auto frameToCenterPlacement = framePlacement.actInv(objectCenterPlacement);
-            const auto& frameToCenterPosition = frameToCenterPlacement.translation();
-            const auto& centerToFrameRotation = frameToCenterPlacement.rotation();
-            
-            const SphereApproximation sphereApproximation = SphereApproximation(*object.geometry, j, 
-              collisionSettings.maxExcesses[i], collisionSettings.shrinkRatio);
-
-            const size_t sphereNumber = sphereApproximation.getNumSpheres();
-            sphereNumbers.push_back(sphereNumber);
-
-            const scalar_t sphereRadius = sphereApproximation.getSphereRadius();
-            sphereRadiuses.insert(sphereRadiuses.end(), sphereNumber, sphereRadius);
-
-            const auto& centerToSpherePositions = sphereApproximation.getSphereCentersToObjectCenter();
-
-            for(size_t k = 0; k < sphereNumber; ++k)
-            {
-              const vector3_t frameToSphere = frameToCenterPosition + centerToFrameRotation * 
-                centerToSpherePositions[k];
-              spherePositions.push_back(std::move(frameToSphere));
-            }
-          }
-        }
-        sphereNumbers_.push_back(std::move(sphereNumbers));
-        sphereRadiuses_.push_back(std::move(sphereRadiuses));
-        frameToSpherePositons_.push_back(std::move(spherePositions));
-      }
-
+    void PinocchioCollisionInterface::createPinocchioIndices(
+      const FloatingBaseModelInfo& info,
+      const ModelSettings& modelSettings, 
+      const CollisionSettings& collisionSettings)
+    {
       std::vector<std::string> collisionNames = modelSettings.contactNames3DoF;
       collisionNames.insert(collisionNames.end(), 
         modelSettings.contactNames6DoF.begin(), modelSettings.contactNames6DoF.end());
@@ -185,26 +159,124 @@ namespace legged_locomotion_mpc
           selfCollisionIndices_.emplace_back(firstIndex, secondIndex);
         }
       }
+    }
+        
+    void PinocchioCollisionInterface::createSphereDataStructs(
+      const FloatingBaseModelInfo& info, 
+      const ModelSettings& modelSettings, 
+      const CollisionSettings& collisionSettings, 
+      const PinocchioInterface& pinocchioInterface)
+    {
+      // Get collision frame indexes
+      std::vector<size_t> collisionFrames = info.endEffectorFrameIndices;
 
-      auto systemFlowMapFunc = [&](const ocs2::ad_vector_t& x, const ocs2::ad_vector_t& p, 
-        ocs2::ad_vector_t& y) 
+      for(const std::string& frameName: collisionSettings.collisionLinkNames)
       {
-        const Eigen::Matrix<ocs2::ad_scalar_t, 3, 1> eulerAnglesAD = x;
-        const Eigen::Matrix<ocs2::ad_scalar_t, 3, 1> vector = p;
-        y = getRotationTimesVectorCppAd(eulerAnglesAD, vector);
-      };
-    
-      rotationMatrixVectorAdInterfacePtr_.reset(
-          new ocs2::CppAdInterface(systemFlowMapFunc, 3, 3, "rotation_times_vector_euler", modelFolder));
-    
-      if(recompileLibraries) {
-        rotationMatrixVectorAdInterfacePtr_->createModels(ocs2::CppAdInterface::ApproximationOrder::First, verbose);
-      } else {
-        rotationMatrixVectorAdInterfacePtr_->loadModelsIfAvailable(ocs2::CppAdInterface::ApproximationOrder::First, verbose);
+        const size_t frameIndex = pinocchioInterface.getModel().getFrameId(frameName);
+        if(frameIndex <= 0)
+        {
+          std::string message = "[PinocchioCollisionInterface]: There is no frame named " + frameName + "!";
+          throw std::invalid_argument(message);
+        }
+        collisionFrames.push_back(frameIndex);
+      }
+
+      frameNumber_ = collisionFrames.size();
+
+      for(size_t i = 0; i < frameNumber_; ++i)
+      {
+        const size_t frameIndex = collisionFrames[i];
+        const auto& framePlacement = pinocchioInterface.getModel().frames[
+          frameIndex].placement;
+
+        size_t sphereNumber = 0;
+        std::vector<scalar_t> sphereRadiuses;
+        std::vector<vector3_t> spherePositions;
+
+        for (size_t j = 0; j < geometryModel_.geometryObjects.size(); ++j) 
+        {
+          const pinocchio::GeometryObject& object = geometryModel_.geometryObjects[j];
+          const size_t parentFrameIndex = object.parentFrame;
+
+          if(parentFrameIndex == frameIndex) 
+          {
+            const auto& objectCenterPlacement = object.placement;
+            const auto frameToCenterPlacement = framePlacement.actInv(objectCenterPlacement);
+            const auto& frameToCenterPosition = frameToCenterPlacement.translation();
+            const auto& centerToFrameRotation = frameToCenterPlacement.rotation();
+            
+            const SphereApproximation sphereApproximation = SphereApproximation(*object.geometry, j, 
+              collisionSettings.maxExcesses[i], collisionSettings.shrinkRatio);
+
+            const size_t objectSphereNumber = sphereApproximation.getNumSpheres();
+            sphereNumber += objectSphereNumber;
+
+            const scalar_t sphereRadius = sphereApproximation.getSphereRadius();
+            sphereRadiuses.insert(sphereRadiuses.end(), objectSphereNumber, sphereRadius);
+
+            const auto& centerToSpherePositions = sphereApproximation.getSphereCentersToObjectCenter();
+
+            for(size_t k = 0; k < objectSphereNumber; ++k)
+            {
+              const vector3_t frameToSphere = frameToCenterPosition + centerToFrameRotation * 
+                centerToSpherePositions[k];
+              spherePositions.push_back(std::move(frameToSphere));
+            }
+          }
+        }
+        sphereNumbers_.push_back(sphereNumber);
+        sphereRadiuses_.push_back(std::move(sphereRadiuses));
+        frameToSpherePositons_.push_back(std::move(spherePositions));
+      }
+    }
+        
+    void PinocchioCollisionInterface::createNeighbours(
+      const CollisionSettings& collisionSettings)
+    {
+      sphereNeighbours_.reserve(frameNumber_);
+
+      for(size_t i = 0; i < frameNumber_; ++i)
+      {
+        const size_t sphereNumber = sphereNumbers_[i];
+        const auto& sphereRadiuses = sphereRadiuses_[i];
+        const auto& frameToSpherePositons = frameToSpherePositons_[i];
+
+        std::vector<std::vector<size_t>> frameSphereNeighbours;
+        frameSphereNeighbours.reserve(sphereNumber);
+
+        for(size_t j = 0; j < sphereNumber; ++j)
+        {
+          std::vector<size_t> sphereNeighbours;
+          std::vector<std::pair<size_t, scalar_t>> distances;
+          distances.reserve(sphereNumber);
+
+          // Get all pairs of (index, distance) for this sphere
+          for(size_t k = 0; k < sphereNumber; ++k)
+          {
+            const auto distancePair = std::make_pair(k, 
+              (frameToSpherePositons[j] - frameToSpherePositons[k]).norm());
+            distances.push_back(distancePair);
+          }
+
+          // Sort pairs of (index, distance)
+          std::sort(distances.begin(), distances.end(), 
+            [](const std::pair<size_t, scalar_t>& first, 
+            const std::pair<size_t, scalar_t>& second)
+            { return first.second < second.second;});
+          
+          // Get final neighbours
+          const size_t numNeighbours = distances.size() > collisionSettings.maxSphereNeighbours ? collisionSettings.maxSphereNeighbours: distances.size();
+          for(size_t k = 0; k < numNeighbours; ++k)
+          {
+            sphereNeighbours.push_back(distances[k].first);
+          }
+          frameSphereNeighbours.push_back(std::move(sphereNeighbours)); 
+        }
+        sphereNeighbours_.push_back(std::move(frameSphereNeighbours));
       }
     }
 
-    const std::vector<size_t>& PinocchioCollisionInterface::getFrameSphereNumbers(
+    size_t PinocchioCollisionInterface::getFrameSphereNumbers(
       size_t collisionIndex) const
     {
       assert(collisionIndex < frameNumber_);
@@ -243,6 +315,15 @@ namespace legged_locomotion_mpc
       const Eigen::Matrix<ocs2::ad_scalar_t, 3, 3> rotationMatrix = getRotationMatrixFromZyxEulerAngles(
         eulerAnglesAD);
       return rotationMatrix * vector;
+    }
+
+    const std::vector<size_t>& PinocchioCollisionInterface::getSphereNeighbours(
+      size_t collisionIndex, size_t sphereIndex)
+    {
+      assert(collisionIndex < frameNumber_);
+      assert(sphereIndex < sphereNumbers_[collisionIndex]);
+
+      return sphereNeighbours_[collisionIndex][sphereIndex];
     }
 
     const pinocchio::GeometryModel& PinocchioCollisionInterface::getGeometryModel() const

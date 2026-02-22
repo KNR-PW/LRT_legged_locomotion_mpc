@@ -161,6 +161,13 @@ namespace legged_locomotion_mpc
         throw std::invalid_argument("[CollisionSettings]: Shrink ratio must be between (0.0, 1.0)!");
       }
 
+      loadData::loadPtreeValue(pt, settings.maxSphereNeighbours, fieldName + ".maxSphereNeighbours", verbose);
+
+      if(settings.maxSphereNeighbours <= 1)
+      {
+        throw std::invalid_argument("[CollisionSettings]: Max sphere neighbours value less or equal to 1!");
+      }
+
       if(verbose) 
       {
         std::cerr << " #### =============================================================================" <<
