@@ -164,7 +164,7 @@ TEST(SwingTrajectoryPlannerTest, standingInPlace)
 
   auto& initialState = initialObservation.state;
 
-  floating_base_model::access_helper_functions::getJointPositions(initialState, modelInfo) << 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326;
+  access_helper_functions::getJointPositions(initialState, modelInfo) << 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326;
   contact_flags_t contactFlag = modeSchedule.modeAtTime(initTime);
   
   basePlanner.updateTerrain(terrainModel);
@@ -330,7 +330,7 @@ TEST(SwingTrajectoryPlannerTest, TrotInPlace)
 
   auto& initialState = initialObservation.state;
 
-  floating_base_model::access_helper_functions::getJointPositions(initialState, modelInfo) << 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326;
+  access_helper_functions::getJointPositions(initialState, modelInfo) << 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326;
   contact_flags_t contactFlag = modeSchedule.modeAtTime(initTime);
   
   basePlanner.updateTerrain(terrainModel);
@@ -495,7 +495,7 @@ TEST(SwingTrajectoryPlannerTest, Troting)
 
   auto& initialState = initialObservation.state;
 
-  floating_base_model::access_helper_functions::getJointPositions(initialState, modelInfo) << 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326;
+  access_helper_functions::getJointPositions(initialState, modelInfo) << 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326;
   contact_flags_t contactFlag = modeSchedule.modeAtTime(initTime);
   
   basePlanner.updateTerrain(terrainModel);

@@ -11,7 +11,7 @@
 using namespace ocs2;
 using namespace floating_base_model;
 using namespace legged_locomotion_mpc;
-using namespace floating_base_model::access_helper_functions;
+using namespace access_helper_functions;
 
 const scalar_t tolerance = 1e-9;
 

@@ -176,7 +176,7 @@ TEST(LeggedReferenceManagerTest, getContactFlags)
 
   auto& initialState = initialObservation.state;
 
-  floating_base_model::access_helper_functions::getJointPositions(initialState, modelInfo) << 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326;
+  access_helper_functions::getJointPositions(initialState, modelInfo) << 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326;
 
   std::unique_ptr<TerrainModel> terrainModelPtr = 
     std::make_unique<PlanarTerrainModel>(slopyTerrain);
@@ -354,7 +354,7 @@ TEST(LeggedReferenceManagerTest, getTerrainModel)
 
   auto& initialState = initialObservation.state;
 
-  floating_base_model::access_helper_functions::getJointPositions(initialState, modelInfo) << 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326;
+  access_helper_functions::getJointPositions(initialState, modelInfo) << 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326;
 
   std::unique_ptr<TerrainModel> terrainModelPtr = 
     std::make_unique<PlanarTerrainModel>(slopyTerrain);
@@ -527,7 +527,7 @@ TEST(LeggedReferenceManagerTest, getEndEffectorTrajectoryPoint)
 
   auto& initialState = initialObservation.state;
 
-  floating_base_model::access_helper_functions::getJointPositions(initialState, modelInfo) << 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326;
+  access_helper_functions::getJointPositions(initialState, modelInfo) << 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326;
 
   std::unique_ptr<TerrainModel> terrainModelPtr = 
     std::make_unique<PlanarTerrainModel>(slopyTerrain);
@@ -720,7 +720,7 @@ TEST(LeggedReferenceManagerTest, getEndEffectorConstraintMatrixes)
 
   auto& initialState = initialObservation.state;
 
-  floating_base_model::access_helper_functions::getJointPositions(initialState, modelInfo) << 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326;
+  access_helper_functions::getJointPositions(initialState, modelInfo) << 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326;
 
   std::unique_ptr<TerrainModel> terrainModelPtr = 
     std::make_unique<PlanarTerrainModel>(slopyTerrain);

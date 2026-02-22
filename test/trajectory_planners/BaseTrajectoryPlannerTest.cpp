@@ -118,7 +118,7 @@ TEST(BaseTrajectoryPlannerTest, translationOnFlatTerrain)
     const scalar_t currentTime = trajectories.timeTrajectory[i];
     const vector_t& currentState = trajectories.stateTrajectory[i];
 
-    using namespace floating_base_model::access_helper_functions;
+    using namespace access_helper_functions;
     const vector3_t& basePosition = getBasePosition(currentState, modelInfo);
     const vector3_t& baseOrientationZyx = getBaseOrientationZyx(currentState, modelInfo);
     const vector3_t& baseLinearVelocity = getBaseLinearVelocity(currentState, modelInfo);
@@ -248,7 +248,7 @@ TEST(BaseTrajectoryPlannerTest, rotationOnFlatTerrain)
     const scalar_t currentTime = trajectories.timeTrajectory[i];
     const vector_t& currentState = trajectories.stateTrajectory[i];
 
-    using namespace floating_base_model::access_helper_functions;
+    using namespace access_helper_functions;
     const vector3_t& basePosition = getBasePosition(currentState, modelInfo);
     const vector3_t& baseOrientationZyx = getBaseOrientationZyx(currentState, modelInfo);
     const vector3_t& baseLinearVelocity = getBaseLinearVelocity(currentState, modelInfo);
@@ -378,7 +378,7 @@ TEST(BaseTrajectoryPlannerTest, translationAndrotationOnSlopyTerrain)
     const scalar_t currentTime = trajectories.timeTrajectory[i];
     const vector_t& currentState = trajectories.stateTrajectory[i];
 
-    using namespace floating_base_model::access_helper_functions;
+    using namespace access_helper_functions;
     const vector3_t& basePosition = getBasePosition(currentState, modelInfo);
     const vector3_t& baseOrientationZyx = getBaseOrientationZyx(currentState, modelInfo);
     const vector3_t& baseLinearVelocity = getBaseLinearVelocity(currentState, modelInfo);

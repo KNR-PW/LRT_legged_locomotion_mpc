@@ -70,11 +70,11 @@ namespace legged_locomotion_mpc
       auto& currentOptimalState = targetTrajectories.stateTrajectory[0];
       auto& currentOptimalInput = targetTrajectories.inputTrajectory[0];
 
-      floating_base_model::access_helper_functions::getJointPositions(currentOptimalState, modelInfo_) 
-        = floating_base_model::access_helper_functions::getJointPositions(currentState, modelInfo_);
+      access_helper_functions::getJointPositions(currentOptimalState, modelInfo_) 
+        = access_helper_functions::getJointPositions(currentState, modelInfo_);
       
-      floating_base_model::access_helper_functions::getJointVelocities(currentOptimalInput, modelInfo_) 
-        = floating_base_model::access_helper_functions::getJointVelocities(currentInput, modelInfo_);
+      access_helper_functions::getJointVelocities(currentOptimalInput, modelInfo_) 
+        = access_helper_functions::getJointVelocities(currentInput, modelInfo_);
       
       for(size_t i = 1; i < trajectorySize; ++i)
       {
@@ -92,11 +92,11 @@ namespace legged_locomotion_mpc
         const auto& previousInput = targetTrajectories.inputTrajectory[i - 1];
 
         const vector_t previousJointPositions = 
-          floating_base_model::access_helper_functions::getJointPositions(previousState, 
+          access_helper_functions::getJointPositions(previousState, 
             modelInfo_);
 
         const vector_t previousJointVelocities = 
-          floating_base_model::access_helper_functions::getJointVelocities(previousInput, 
+          access_helper_functions::getJointVelocities(previousInput, 
             modelInfo_);
 
         // Extrapolate using previous joint velocity
@@ -107,16 +107,16 @@ namespace legged_locomotion_mpc
         vector_t& newInput = targetTrajectories.inputTrajectory[i];
 
         const vector6_t& newBasePose = 
-          floating_base_model::access_helper_functions::getBasePose(newState, modelInfo_);
+          access_helper_functions::getBasePose(newState, modelInfo_);
         
         const vector6_t& newBaseVelocity = 
-          floating_base_model::access_helper_functions::getBaseVelocity(newState, modelInfo_);
+          access_helper_functions::getBaseVelocity(newState, modelInfo_);
 
         auto newJointPositions = 
-          floating_base_model::access_helper_functions::getJointPositions(newState, modelInfo_);
+          access_helper_functions::getJointPositions(newState, modelInfo_);
 
         auto newJointVelocities = 
-          floating_base_model::access_helper_functions::getJointVelocities(newInput, modelInfo_);
+          access_helper_functions::getJointVelocities(newInput, modelInfo_);
         
         newJointPositions = computeJointPositions(extrapolatedJointPositions, newBasePose, 
           newEndEffectorPositions);

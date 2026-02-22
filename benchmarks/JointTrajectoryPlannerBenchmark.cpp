@@ -85,14 +85,14 @@ static void JointTrajectoryPlanner_UPDATE(benchmark::State & state)
   systemState  = vector_t::Zero(modelInfo.stateDim);
   input = vector_t::Zero(modelInfo.inputDim);
 
-  floating_base_model::access_helper_functions::
+  access_helper_functions::
     getBasePose(systemState , modelInfo) = currentBasePose;
-  floating_base_model::access_helper_functions::
+  access_helper_functions::
     getBaseVelocity(systemState , modelInfo) = currentBaseVelocity;
-  floating_base_model::access_helper_functions::
+  access_helper_functions::
     getJointPositions(systemState , modelInfo) = currentJointPositions;
     
-  floating_base_model::access_helper_functions::
+  access_helper_functions::
     getJointVelocities(input, modelInfo) = currentJointVelocities;
   
   trajectory.timeTrajectory[0] = initTime;
@@ -123,19 +123,19 @@ static void JointTrajectoryPlanner_UPDATE(benchmark::State & state)
     systemState = vector_t::Zero(modelInfo.stateDim);
     input = vector_t::Zero(modelInfo.inputDim);
 
-    floating_base_model::access_helper_functions::
+    access_helper_functions::
       getBasePose(systemState , modelInfo) = currentBasePose;
-    floating_base_model::access_helper_functions::
+    access_helper_functions::
       getBaseVelocity(systemState , modelInfo) = currentBaseVelocity;
 
     // Give only data of base trajectory
     trajectory.stateTrajectory[i] = systemState ;
     trajectory.inputTrajectory[i] = input;
     
-    floating_base_model::access_helper_functions::
+    access_helper_functions::
       getJointPositions(systemState , modelInfo) = currentJointPositions;
     
-    floating_base_model::access_helper_functions::
+    access_helper_functions::
       getJointVelocities(input, modelInfo) = currentJointVelocities;
 
     trajectory.timeTrajectory[i] = initTime + i * deltaTime;
@@ -157,22 +157,22 @@ static void JointTrajectoryPlanner_UPDATE(benchmark::State & state)
 
   legged_locomotion_mpc::access_helper_functions::
     getBasePose(currentState, modelInfo) = 
-    floating_base_model::access_helper_functions::
+    access_helper_functions::
     getBasePose(trajectoryTrue.stateTrajectory[0], modelInfo);
 
   legged_locomotion_mpc::access_helper_functions::
     getBaseVelocity(currentState, modelInfo) = 
-    floating_base_model::access_helper_functions::
+    access_helper_functions::
     getBaseVelocity(trajectoryTrue.stateTrajectory[0], modelInfo);
 
   legged_locomotion_mpc::access_helper_functions::
     getJointPositions(currentState, modelInfo) = 
-    floating_base_model::access_helper_functions::
+    access_helper_functions::
     getJointPositions(trajectoryTrue.stateTrajectory[0], modelInfo);
 
   legged_locomotion_mpc::access_helper_functions::
     getJointVelocities(currentState, modelInfo) = 
-    floating_base_model::access_helper_functions::
+    access_helper_functions::
     getJointVelocities(trajectoryTrue.inputTrajectory[0], modelInfo);
 
   for (auto _ : state) {

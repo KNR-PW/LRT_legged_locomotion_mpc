@@ -26,7 +26,7 @@ namespace legged_locomotion_mpc
       // 3. unsure we have samples at start and end of the MPC horizon.
       if(targetTrajectories.empty()) 
       {
-        throw std::runtime_error("[Utils] provided target "
+        throw std::runtime_error("[Utils]: provided target "
           "trajectory cannot be empty.");
       }
 

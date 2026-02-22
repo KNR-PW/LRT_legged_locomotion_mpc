@@ -61,9 +61,9 @@ TEST(JointTrajectoryPlannerTest, computeJointPositions)
 
     vector_t state = vector_t::Zero(modelInfo.stateDim);
 
-    floating_base_model::access_helper_functions::
+    access_helper_functions::
       getBasePose(state, modelInfo) = currentBasePose;
-    floating_base_model::access_helper_functions::
+    access_helper_functions::
       getJointPositions(state, modelInfo) = jointPositionsTrue;
 
     const std::vector<vector3_t> endEffectorPositions = 
@@ -109,15 +109,15 @@ TEST(JointTrajectoryPlannerTest, computeJointVelocities)
     vector_t state = vector_t::Zero(modelInfo.stateDim);
     vector_t input = vector_t::Zero(modelInfo.inputDim);
 
-    floating_base_model::access_helper_functions::
+    access_helper_functions::
       getBasePose(state, modelInfo) = currentBasePose;
-    floating_base_model::access_helper_functions::
+    access_helper_functions::
       getBaseVelocity(state, modelInfo) = currentBaseVelocity;
-    floating_base_model::access_helper_functions::
+    access_helper_functions::
       getJointPositions(state, modelInfo) = currentJointPositions;
     
 
-    floating_base_model::access_helper_functions::
+    access_helper_functions::
       getJointVelocities(input, modelInfo) = jointVelocitiesTrue;
 
     const std::vector<vector3_t> endEffectorVelocities = 
@@ -192,14 +192,14 @@ TEST(JointTrajectoryPlannerTest, updateTrajectory)
   state = vector_t::Zero(modelInfo.stateDim);
   input = vector_t::Zero(modelInfo.inputDim);
 
-  floating_base_model::access_helper_functions::
+  access_helper_functions::
     getBasePose(state, modelInfo) = currentBasePose;
-  floating_base_model::access_helper_functions::
+  access_helper_functions::
     getBaseVelocity(state, modelInfo) = currentBaseVelocity;
-  floating_base_model::access_helper_functions::
+  access_helper_functions::
     getJointPositions(state, modelInfo) = currentJointPositions;
     
-  floating_base_model::access_helper_functions::
+  access_helper_functions::
     getJointVelocities(input, modelInfo) = currentJointVelocities;
   
   trajectory.timeTrajectory[0] = initTime;
@@ -230,19 +230,19 @@ TEST(JointTrajectoryPlannerTest, updateTrajectory)
     state = vector_t::Zero(modelInfo.stateDim);
     input = vector_t::Zero(modelInfo.inputDim);
 
-    floating_base_model::access_helper_functions::
+    access_helper_functions::
       getBasePose(state, modelInfo) = currentBasePose;
-    floating_base_model::access_helper_functions::
+    access_helper_functions::
       getBaseVelocity(state, modelInfo) = currentBaseVelocity;
 
     // Give only data of base trajectory
     trajectory.stateTrajectory[i] = state;
     trajectory.inputTrajectory[i] = input;
     
-    floating_base_model::access_helper_functions::
+    access_helper_functions::
       getJointPositions(state, modelInfo) = currentJointPositions;
     
-    floating_base_model::access_helper_functions::
+    access_helper_functions::
       getJointVelocities(input, modelInfo) = currentJointVelocities;
 
     trajectory.timeTrajectory[i] = initTime + i * deltaTime;
@@ -267,24 +267,24 @@ TEST(JointTrajectoryPlannerTest, updateTrajectory)
   auto& currentState = initialObservation.state;
   auto& currentInput = initialObservation.input;
 
-  floating_base_model::access_helper_functions::
+  access_helper_functions::
     getBasePose(currentState, modelInfo) = 
-    floating_base_model::access_helper_functions::
+    access_helper_functions::
     getBasePose(trajectoryTrue.stateTrajectory[0], modelInfo);
 
-  floating_base_model::access_helper_functions::
+  access_helper_functions::
     getBaseVelocity(currentState, modelInfo) = 
-    floating_base_model::access_helper_functions::
+    access_helper_functions::
     getBaseVelocity(trajectoryTrue.stateTrajectory[0], modelInfo);
 
-  floating_base_model::access_helper_functions::
+  access_helper_functions::
     getJointPositions(currentState, modelInfo) = 
-    floating_base_model::access_helper_functions::
+    access_helper_functions::
     getJointPositions(trajectoryTrue.stateTrajectory[0], modelInfo);
 
-  floating_base_model::access_helper_functions::
+  access_helper_functions::
     getJointVelocities(currentInput, modelInfo) = 
-    floating_base_model::access_helper_functions::
+    access_helper_functions::
     getJointVelocities(trajectoryTrue.inputTrajectory[0], modelInfo);
   
   planner.updateTrajectory(initialObservation, trajectory, 

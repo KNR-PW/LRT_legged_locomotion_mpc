@@ -124,10 +124,10 @@ namespace legged_locomotion_mpc
 
       vector_t& initStateVector = targetTrajectories.stateTrajectory[0];
 
-      floating_base_model::access_helper_functions::
+      access_helper_functions::
         getBasePosition(initStateVector, modelInfo_) = currentBasePosition;
 
-      floating_base_model::access_helper_functions::
+      access_helper_functions::
         getBaseOrientationZyx(initStateVector, modelInfo_) = currentBaseOrientationZyx;
 
       for (size_t i = 1; i < referenceSize; ++i) 
@@ -171,16 +171,16 @@ namespace legged_locomotion_mpc
 
         vector_t& currentStateVector = targetTrajectories.stateTrajectory[i];
 
-        floating_base_model::access_helper_functions::
+        access_helper_functions::
           getBasePosition(currentStateVector, modelInfo_) = newBasePosition;
 
-        floating_base_model::access_helper_functions::
+        access_helper_functions::
           getBaseOrientationZyx(currentStateVector, modelInfo_) = 
           newBaseOrientationZyx;
 
         vector_t& previousStateVector = targetTrajectories.stateTrajectory[i - 1];
 
-        floating_base_model::access_helper_functions::
+        access_helper_functions::
           getBaseVelocity(previousStateVector, modelInfo_) = newTwist.toVector();
 
         targetTrajectories.timeTrajectory.push_back(
@@ -192,9 +192,9 @@ namespace legged_locomotion_mpc
       const vector_t& almostLastStateVector = targetTrajectories.stateTrajectory[referenceSize - 2];
       vector_t& lastStateVector = targetTrajectories.stateTrajectory[referenceSize - 1];
 
-      floating_base_model::access_helper_functions::
+      access_helper_functions::
         getBaseVelocity(lastStateVector, modelInfo_) = 
-        floating_base_model::access_helper_functions::
+        access_helper_functions::
         getBaseVelocity(almostLastStateVector, modelInfo_);
     }
 

@@ -479,7 +479,7 @@ namespace legged_locomotion_mpc
            * IN ORDER TO GET POSITIONS BELOW HIP HERE!!!!
            * ALSO JOINT POSITIONS IN THIS TARGET TRAJECTORIES NEEDS TO BE ZERO!!!
            */
-          floating_base_model::access_helper_functions::getJointPositions(state, modelInfo_).setZero();
+          access_helper_functions::getJointPositions(state, modelInfo_).setZero();
           vector3_t referenceFootholdPositionInWorld = forwardKinematics_.getPosition(state)[endEffectorIndex];
 
           // Add ZMP offset to the first upcoming foothold.

@@ -99,9 +99,9 @@ namespace legged_locomotion_mpc
   /******************************************************************************************************/
   /******************************************************************************************************/
   vector_t ForceFrictionConeConstraint::getValue(scalar_t time,
-    const vector_t &state,
-    const vector_t &input,
-    const PreComputation &preComp) const 
+    const vector_t& state,
+    const vector_t& input,
+    const PreComputation& preComp) const 
   {
     const auto forcesInWorldFrame = access_helper_functions::getContactForces(input, 
       endEffectorIndex_, info_);

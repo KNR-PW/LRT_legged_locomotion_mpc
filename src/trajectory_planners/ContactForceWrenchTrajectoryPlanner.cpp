@@ -8,7 +8,7 @@ namespace legged_locomotion_mpc
   {
     using namespace ocs2;
     using namespace floating_base_model;
-    using namespace floating_base_model::access_helper_functions;
+    using namespace access_helper_functions;
 
     ContactForceWrenchTrajectoryPlanner::ContactForceWrenchTrajectoryPlanner(
       FloatingBaseModelInfo modelInfo): modelInfo_(std::move(modelInfo)) {}
