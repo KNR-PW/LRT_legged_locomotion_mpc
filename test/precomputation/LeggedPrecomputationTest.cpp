@@ -122,8 +122,8 @@ TEST(LeggedPrecomputationTest, getEndEffector)
 
   ModelSettings leggedModelSettings;
   leggedModelSettings.baseLinkName =  baseLink;
-  leggedModelSettings.contactNames3DoF = meldog3DofContactNames;
-  leggedModelSettings.contactNames6DoF = meldog6DofContactNames;
+  leggedModelSettings.endEffectorThreeDofNames = meldog3DofContactNames;
+  leggedModelSettings.endEffectorSixDofNames = meldog6DofContactNames;
   leggedModelSettings.hipFrameNames = meldogHipNames;
 
   OverExtensionPenalty::Settings penaltySettings;
@@ -373,8 +373,8 @@ TEST(LeggedPrecomputationTest, getCollisionLinks)
 
   ModelSettings leggedModelSettings;
   leggedModelSettings.baseLinkName =  baseLink;
-  leggedModelSettings.contactNames3DoF = meldog3DofContactNames;
-  leggedModelSettings.contactNames6DoF = meldog6DofContactNames;
+  leggedModelSettings.endEffectorThreeDofNames = meldog3DofContactNames;
+  leggedModelSettings.endEffectorSixDofNames = meldog6DofContactNames;
   leggedModelSettings.hipFrameNames = meldogHipNames;
 
   OverExtensionPenalty::Settings penaltySettings;
@@ -596,8 +596,8 @@ TEST(LeggedPrecomputationTest, getTorque)
 
   ModelSettings leggedModelSettings;
   leggedModelSettings.baseLinkName =  baseLink;
-  leggedModelSettings.contactNames3DoF = meldog3DofContactNames;
-  leggedModelSettings.contactNames6DoF = meldog6DofContactNames;
+  leggedModelSettings.endEffectorThreeDofNames = meldog3DofContactNames;
+  leggedModelSettings.endEffectorSixDofNames = meldog6DofContactNames;
   leggedModelSettings.hipFrameNames = meldogHipNames;
 
   OverExtensionPenalty::Settings penaltySettings;
@@ -807,8 +807,8 @@ TEST(LeggedPrecomputationTest, getReference)
 
   ModelSettings leggedModelSettings;
   leggedModelSettings.baseLinkName =  baseLink;
-  leggedModelSettings.contactNames3DoF = meldog3DofContactNames;
-  leggedModelSettings.contactNames6DoF = meldog6DofContactNames;
+  leggedModelSettings.endEffectorThreeDofNames = meldog3DofContactNames;
+  leggedModelSettings.endEffectorSixDofNames = meldog6DofContactNames;
   leggedModelSettings.hipFrameNames = meldogHipNames;
 
   OverExtensionPenalty::Settings penaltySettings;

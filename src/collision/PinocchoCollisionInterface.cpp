@@ -104,9 +104,9 @@ namespace legged_locomotion_mpc
       const ModelSettings& modelSettings, 
       const CollisionSettings& collisionSettings)
     {
-      std::vector<std::string> collisionNames = modelSettings.contactNames3DoF;
+      std::vector<std::string> collisionNames = modelSettings.endEffectorThreeDofNames;
       collisionNames.insert(collisionNames.end(), 
-        modelSettings.contactNames6DoF.begin(), modelSettings.contactNames6DoF.end());
+        modelSettings.endEffectorSixDofNames.begin(), modelSettings.endEffectorSixDofNames.end());
 
       collisionNames.insert(collisionNames.end(), 
         collisionSettings.collisionLinkNames.begin(), 

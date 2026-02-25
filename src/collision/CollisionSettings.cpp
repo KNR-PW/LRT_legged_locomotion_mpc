@@ -56,9 +56,9 @@ namespace legged_locomotion_mpc
 
       loadData::loadStdVector(filename, fieldName + ".collisionLinkNames", settings.collisionLinkNames, verbose);
 
-      std::vector<std::string> endEffectorNames = modelSettings.contactNames3DoF;
+      std::vector<std::string> endEffectorNames = modelSettings.endEffectorThreeDofNames;
       endEffectorNames.insert(endEffectorNames.end(), 
-        modelSettings.contactNames6DoF.begin(), modelSettings.contactNames6DoF.end());
+        modelSettings.endEffectorSixDofNames.begin(), modelSettings.endEffectorSixDofNames.end());
         
       for(const auto& collisionLinkName: settings.collisionLinkNames)
       {
@@ -69,9 +69,9 @@ namespace legged_locomotion_mpc
         }
       }
 
-      std::vector<std::string> collisionNames = modelSettings.contactNames3DoF;
+      std::vector<std::string> collisionNames = modelSettings.endEffectorThreeDofNames;
       collisionNames.insert(collisionNames.end(), 
-        modelSettings.contactNames6DoF.begin(), modelSettings.contactNames6DoF.end());
+        modelSettings.endEffectorSixDofNames.begin(), modelSettings.endEffectorSixDofNames.end());
 
       // Get all collision link names without end effector names
       std::vector<std::string> trueCollisionLinksNames;

@@ -31,15 +31,15 @@ namespace legged_locomotion_mpc
     
     loadData::loadPtreeValue(pt, modelSettings.baseLinkName, fieldName + ".baseLinkName", verbose);
 
-    loadData::loadStdVector(filename, fieldName + ".contactNames3DoF", modelSettings.contactNames3DoF, verbose);
+    loadData::loadStdVector(filename, fieldName + ".endEffectorThreeDofNames", modelSettings.endEffectorThreeDofNames, verbose);
 
-    loadData::loadStdVector(filename, fieldName + ".contactNames6DoF", modelSettings.contactNames6DoF, verbose);
+    loadData::loadStdVector(filename, fieldName + ".endEffectorSixDofNames", modelSettings.endEffectorSixDofNames, verbose);
 
     std::unordered_set<std::string> namesSet;
 
-    std::vector<std::string> namesVector = modelSettings.contactNames3DoF;
+    std::vector<std::string> namesVector = modelSettings.endEffectorThreeDofNames;
     namesVector.insert(namesVector.end(), 
-        modelSettings.contactNames6DoF.begin(), modelSettings.contactNames6DoF.end());
+        modelSettings.endEffectorSixDofNames.begin(), modelSettings.endEffectorSixDofNames.end());
 
     for(const auto& endEffectorName: namesVector)
     {
@@ -70,6 +70,20 @@ namespace legged_locomotion_mpc
       {
         std::string message = "[ModelSettings]: Hip frame " +  hipFrameName + " already used!";
         throw std::invalid_argument(message);
+      }
+    }
+
+    loadData::loadStdVector(filename, fieldName + ".endEffectorSafetyRadiuses", modelSettings.endEffectorSafetyRadiuses, verbose);
+    if(modelSettings.endEffectorSafetyRadiuses.size() != namesVector.size())
+    {
+      std::string message = "[ModelSettings]: End effector safety radiuses vector has wrong size!";
+      throw std::invalid_argument(message);
+    }
+    for(const auto& radius: modelSettings.endEffectorSafetyRadiuses)
+    {
+      if(radius < 0.0)
+      {
+        throw std::invalid_argument("[ModelSettings]: One of end effector safety radiuses smaller than 0.0!");
       }
     }
 

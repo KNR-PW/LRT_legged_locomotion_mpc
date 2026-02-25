@@ -113,8 +113,8 @@ TEST(LeggedReferenceManagerTest, getContactFlags)
 
   ModelSettings leggedModelSettings;
   leggedModelSettings.baseLinkName =  baseLink;
-  leggedModelSettings.contactNames3DoF = meldog3DofContactNames;
-  leggedModelSettings.contactNames6DoF = meldog6DofContactNames;
+  leggedModelSettings.endEffectorThreeDofNames = meldog3DofContactNames;
+  leggedModelSettings.endEffectorSixDofNames = meldog6DofContactNames;
   leggedModelSettings.hipFrameNames = meldogHipNames;
 
   OverExtensionPenalty::Settings penaltySettings;
@@ -291,8 +291,8 @@ TEST(LeggedReferenceManagerTest, getTerrainModel)
 
   ModelSettings leggedModelSettings;
   leggedModelSettings.baseLinkName =  baseLink;
-  leggedModelSettings.contactNames3DoF = meldog3DofContactNames;
-  leggedModelSettings.contactNames6DoF = meldog6DofContactNames;
+  leggedModelSettings.endEffectorThreeDofNames = meldog3DofContactNames;
+  leggedModelSettings.endEffectorSixDofNames = meldog6DofContactNames;
   leggedModelSettings.hipFrameNames = meldogHipNames;
 
   OverExtensionPenalty::Settings penaltySettings;
@@ -464,8 +464,8 @@ TEST(LeggedReferenceManagerTest, getEndEffectorTrajectoryPoint)
 
   ModelSettings leggedModelSettings;
   leggedModelSettings.baseLinkName =  baseLink;
-  leggedModelSettings.contactNames3DoF = meldog3DofContactNames;
-  leggedModelSettings.contactNames6DoF = meldog6DofContactNames;
+  leggedModelSettings.endEffectorThreeDofNames = meldog3DofContactNames;
+  leggedModelSettings.endEffectorSixDofNames = meldog6DofContactNames;
   leggedModelSettings.hipFrameNames = meldogHipNames;
 
   OverExtensionPenalty::Settings penaltySettings;
@@ -657,8 +657,8 @@ TEST(LeggedReferenceManagerTest, getEndEffectorConstraintMatrixes)
 
   ModelSettings leggedModelSettings;
   leggedModelSettings.baseLinkName =  baseLink;
-  leggedModelSettings.contactNames3DoF = meldog3DofContactNames;
-  leggedModelSettings.contactNames6DoF = meldog6DofContactNames;
+  leggedModelSettings.endEffectorThreeDofNames = meldog3DofContactNames;
+  leggedModelSettings.endEffectorSixDofNames = meldog6DofContactNames;
   leggedModelSettings.hipFrameNames = meldogHipNames;
 
   OverExtensionPenalty::Settings penaltySettings;

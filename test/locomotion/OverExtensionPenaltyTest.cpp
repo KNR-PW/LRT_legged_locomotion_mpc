@@ -39,8 +39,8 @@ TEST(OverExtensionPenaltyTest, getPenaltiesAndGetPenalty)
   
   ModelSettings modelSettings;
   modelSettings.baseLinkName =  baseLink;
-  modelSettings.contactNames3DoF = meldog3DofContactNames;
-  modelSettings.contactNames6DoF = meldog6DofContactNames;
+  modelSettings.endEffectorThreeDofNames = meldog3DofContactNames;
+  modelSettings.endEffectorSixDofNames = meldog6DofContactNames;
   modelSettings.hipFrameNames = meldogHipNames;
 
   OverExtensionPenalty::Settings penaltySettings;

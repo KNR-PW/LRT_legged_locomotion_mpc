@@ -247,9 +247,9 @@ namespace legged_locomotion_mpc
 
       loadData::loadPtreeValue(pt, settings.baseLinkName, fieldName + ".baseLinkName", verbose);
       
-      loadData::loadStdVector(filename, fieldName + ".contactNames3DoF", settings.threeDofEndEffectorNames, verbose);
+      loadData::loadStdVector(filename, fieldName + ".endEffectorThreeDofNames", settings.threeDofEndEffectorNames, verbose);
     
-      loadData::loadStdVector(filename, fieldName + ".contactNames6DoF", settings.sixDofEndEffectorNames, verbose);
+      loadData::loadStdVector(filename, fieldName + ".endEffectorSixDofNames", settings.sixDofEndEffectorNames, verbose);
 
 
       settings.threeDofEndEffectorNames.insert(settings.threeDofEndEffectorNames.end(), 

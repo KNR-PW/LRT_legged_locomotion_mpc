@@ -18,8 +18,8 @@ TEST(TrajectoryTrackingCost, loaders)
 
   ModelSettings modelSettings;
   modelSettings.baseLinkName =  baseLink;
-  modelSettings.contactNames3DoF = meldog3DofContactNames;
-  modelSettings.contactNames6DoF = meldog6DofContactNames;
+  modelSettings.endEffectorThreeDofNames = meldog3DofContactNames;
+  modelSettings.endEffectorSixDofNames = meldog6DofContactNames;
   modelSettings.hipFrameNames = meldogHipNames;
 
   std::string urdfPathName = meldogWithBaseLinkUrdfFile;
@@ -65,7 +65,7 @@ TEST(TrajectoryTrackingCost, loaders)
   const std::vector<vector3_t> trueEndEffectorForce{{0.7, 0.8, 0.9}, {1.6, 1.7, 1.8}, 
     {2.5, 2.6, 2.7}, {3.4, 3.5, 3.6}};
 
-  const size_t endEffectorNum = modelSettings.contactNames3DoF.size() + modelSettings.contactNames6DoF.size();
+  const size_t endEffectorNum = modelSettings.endEffectorThreeDofNames.size() + modelSettings.endEffectorSixDofNames.size();
 
   for(size_t i = 0; i < endEffectorNum; ++i)
   {

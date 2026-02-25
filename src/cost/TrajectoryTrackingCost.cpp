@@ -616,7 +616,7 @@ namespace legged_locomotion_mpc
 
       TrajectoryTrackingCost::EndEffectorWeights endEffectorWeights;
 
-      const size_t endEffectorNum = modelSettings.contactNames3DoF.size() + modelSettings.contactNames6DoF.size();
+      const size_t endEffectorNum = modelSettings.endEffectorThreeDofNames.size() + modelSettings.endEffectorSixDofNames.size();
 
       endEffectorWeights.positions.resize(endEffectorNum);
       endEffectorWeights.velocities.resize(endEffectorNum);
@@ -630,12 +630,12 @@ namespace legged_locomotion_mpc
 
       std::vector<std::reference_wrapper<const std::string>> endEffectorNames;
 
-      for(const auto& threeDofContact: modelSettings.contactNames3DoF)
+      for(const auto& threeDofContact: modelSettings.endEffectorThreeDofNames)
       {
         endEffectorNames.push_back(threeDofContact);
       }
 
-      for(const auto& sixDofContact: modelSettings.contactNames6DoF)
+      for(const auto& sixDofContact: modelSettings.endEffectorSixDofNames)
       {
         endEffectorNames.push_back(sixDofContact);
       }

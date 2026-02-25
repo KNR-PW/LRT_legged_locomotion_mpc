@@ -25,7 +25,7 @@ namespace legged_locomotion_mpc
         std::cerr << "\n #### =============================================================================\n";
       }
 
-      settings.endEffectorNumber = modelSettings.contactNames3DoF.size() + modelSettings.contactNames6DoF.size();
+      settings.endEffectorNumber = modelSettings.endEffectorThreeDofNames.size() + modelSettings.endEffectorSixDofNames.size();
 
       loadData::loadPtreeValue(pt, settings.maximumSteppingFrequency, fieldName + ".maximumSteppingFrequency", verbose);
       if(settings.maximumSteppingFrequency < 0 || numerics::almost_eq(settings.maximumSteppingFrequency, 0.0, SCALAR_EPSILON))
@@ -73,7 +73,7 @@ namespace legged_locomotion_mpc
         std::cerr << "\n #### =============================================================================\n";
       }
 
-      const size_t phasesSize = modelSettings.contactNames3DoF.size() + modelSettings.contactNames6DoF.size() - 1;
+      const size_t phasesSize = modelSettings.endEffectorThreeDofNames.size() + modelSettings.endEffectorSixDofNames.size() - 1;
 
       loadData::loadPtreeValue(pt, settings.steppingFrequency, fieldName + ".steppingFrequency", verbose);
       if(settings.steppingFrequency < 0 || numerics::almost_eq(settings.steppingFrequency, 0.0, SCALAR_EPSILON))

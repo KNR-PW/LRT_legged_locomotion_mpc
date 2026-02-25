@@ -6,7 +6,7 @@ legged_model_settings
   modelFolderCppAd          /tmp/legged_locomotion_mpc
   baseLinkName              trunk_link
   
-  contactNames3DoF
+  endEffectorThreeDofNames
   {
     [0] RFF_link
     [1] RRF_link
@@ -14,7 +14,7 @@ legged_model_settings
     [3] LRF_link
   }
 
-  contactNames6DoF
+  endEffectorSixDofNames
   {
 
   }
@@ -25,5 +25,13 @@ legged_model_settings
     [1] RRUL_link
     [2] LFUL_link
     [3] LRUL_link
+  }
+
+  endEffectorSafetyRadiuses
+  {
+    [0] 0.1
+    [1] 0.2
+    [2] 0.3
+    [3] 0.4
   }
 }
