@@ -25,12 +25,17 @@ TEST(CollisionSettingsTest, loader)
   trueSelfCollisionPairNames.push_back(std::make_pair("RRLL_link", "LRLL_link"));
 
   std::vector<scalar_t> trueExcesses = {0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8};
-  std::vector<scalar_t> trueRelaxations = {0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1};
+
+  std::vector<scalar_t> trueTerrainRelaxations = {0.1, 0.2, 0.3, 0.4, 0.5, 0.6};
+
+  std::vector<std::pair<scalar_t, scalar_t>> trueSelfCollisionRelaxations = 
+    {{0.1, 0.2}, {0.3, 0.4}};
 
   EXPECT_TRUE(collisionSettings.collisionLinkNames == meldogCollisions);
   EXPECT_TRUE(collisionSettings.selfCollisionPairNames == trueSelfCollisionPairNames);
   EXPECT_TRUE(collisionSettings.maxExcesses == trueExcesses);
-  EXPECT_TRUE(collisionSettings.relaxations == trueRelaxations);
+  EXPECT_TRUE(collisionSettings.terrainRelaxations == trueTerrainRelaxations);
+  EXPECT_TRUE(collisionSettings.selfCollisionRelaxations == trueSelfCollisionRelaxations);
   EXPECT_TRUE(collisionSettings.shrinkRatio == 0.1);
   EXPECT_TRUE(collisionSettings.maxSphereNeighbours == 10);
 }

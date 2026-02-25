@@ -56,10 +56,22 @@ namespace legged_locomotion_mpc
 
       loadData::loadStdVector(filename, fieldName + ".collisionLinkNames", settings.collisionLinkNames, verbose);
 
+      std::vector<std::string> endEffectorNames = modelSettings.contactNames3DoF;
+      endEffectorNames.insert(endEffectorNames.end(), 
+        modelSettings.contactNames6DoF.begin(), modelSettings.contactNames6DoF.end());
+        
+      for(const auto& collisionLinkName: settings.collisionLinkNames)
+      {
+        if(std::find(endEffectorNames.cbegin(), endEffectorNames.cend(), collisionLinkName) != endEffectorNames.cend())
+        {
+          std::string message = "[CollisionSettings]: " + collisionLinkName + " already in end effectors link in all collison links!";
+          throw std::invalid_argument(message);
+        }
+      }
+
       std::vector<std::string> collisionNames = modelSettings.contactNames3DoF;
       collisionNames.insert(collisionNames.end(), 
         modelSettings.contactNames6DoF.begin(), modelSettings.contactNames6DoF.end());
-
 
       // Get all collision link names without end effector names
       std::vector<std::string> trueCollisionLinksNames;
@@ -85,9 +97,15 @@ namespace legged_locomotion_mpc
       
       for(const auto& terrainCollisionLink: settings.terrainCollisionLinkNames)
       {
-        if(std::find(collisionNames.cbegin(), collisionNames.cend(), terrainCollisionLink) != collisionNames.cend())
+        if(std::find(collisionNames.cbegin(), collisionNames.cend(), terrainCollisionLink) == collisionNames.cend())
         {
           std::string message = "[CollisionSettings]: No " + terrainCollisionLink + " link in all collison links!";
+          throw std::invalid_argument(message);
+        }
+
+        if(std::find(endEffectorNames.cbegin(), endEffectorNames.cend(), terrainCollisionLink) != endEffectorNames.cend())
+        {
+          std::string message = "[CollisionSettings]: " + terrainCollisionLink + " already in end effectors link in all collison links!";
           throw std::invalid_argument(message);
         }
 
@@ -147,11 +165,18 @@ namespace legged_locomotion_mpc
         throw std::invalid_argument("[CollisionSettings]: Max excesses not equal all collision size!");
       }
 
-      loadData::loadStdVector(filename, fieldName + ".relaxations", settings.relaxations, verbose);
+      loadData::loadStdVector(filename, fieldName + ".terrainRelaxations", settings.terrainRelaxations, verbose);
 
-      if(settings.relaxations.size() != collisionSize)
+      if(settings.terrainRelaxations.size() != (settings.terrainCollisionLinkNames.size() + endEffectorNames.size()))
       {
-        throw std::invalid_argument("[CollisionSettings]: Relaxations not equal all collision size!");
+        throw std::invalid_argument("[CollisionSettings]: Terrain collision relaxations wrong size!");
+      }
+
+      loadData::loadStdVectorOfPair(filename, fieldName + ".selfCollisionRelaxations", settings.selfCollisionRelaxations, verbose);
+
+      if(settings.selfCollisionRelaxations.size() != settings.selfCollisionPairNames.size())
+      {
+        throw std::invalid_argument("[CollisionSettings]: Self collision relaxations wrong size!");
       }
 
       loadData::loadPtreeValue(pt, settings.shrinkRatio, fieldName + ".shrinkRatio", verbose);

@@ -37,10 +37,11 @@ TEST(PinocchoCollisionInterfaceTest, getters)
   collisionSettings.selfCollisionPairNames = {{"LFLL_link", "RFLL_link"}, {"LFLL_link", "LRLL_link"}, {"RRLL_link", "RRF_link"}};
   collisionSettings.maxExcesses = std::vector<scalar_t>(
     meldog3DofContactNames.size() + collisionSettings.collisionLinkNames.size(), 0.2);
-  collisionSettings.relaxations = std::vector<scalar_t>(
-    meldog3DofContactNames.size() + collisionSettings.collisionLinkNames.size(), 0.5);
+  collisionSettings.terrainRelaxations = std::vector<scalar_t>(
+    meldog3DofContactNames.size() + collisionSettings.terrainCollisionLinkNames.size(), 0.5);
+  collisionSettings.selfCollisionRelaxations = std::vector<std::pair<scalar_t, scalar_t>>(
+    collisionSettings.selfCollisionPairNames.size(), {0.5, 0.5});
   collisionSettings.shrinkRatio = 0.5;
-  collisionSettings.maxSphereNeighbours = 3;
 
   PinocchioCollisionInterface collisionInterface(modelInfo, modelSettings, 
     collisionSettings, interface);

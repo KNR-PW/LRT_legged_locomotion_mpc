@@ -54,9 +54,15 @@ namespace legged_locomotion_mpc
       std::vector<ocs2::scalar_t> maxExcesses;
 
       /**
-       * Relaxation values for collision distance
+       * Relaxation values for terrain avoidance 
+       * Size: Number of end effectors + all other terrain collision names
        */
-      std::vector<ocs2::scalar_t> relaxations;
+      std::vector<ocs2::scalar_t> terrainRelaxations;
+
+      /**
+       * Relaxation for self collision avoidance
+       */
+      std::vector<std::pair<ocs2::scalar_t, ocs2::scalar_t>> selfCollisionRelaxations;
 
       /**
        * shrinking ratio for maxExcess to recursively approximate the circular base 
