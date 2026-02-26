@@ -111,8 +111,8 @@ namespace legged_locomotion_mpc
         return placementRelaxedBarrierPenaltyPtr_->getSecondDerivative(0.0, hi);
       });
 
-      cost.dfdxx.noalias() += constraintDerivative.transpose() 
-        * penaltySecondDerivative.asDiagonal() * constraintDerivative;
+      cost.dfdxx.noalias() += constraintDerivative 
+        * penaltySecondDerivative.asDiagonal() * constraintDerivative.transpose();
     }
     return cost;
   }

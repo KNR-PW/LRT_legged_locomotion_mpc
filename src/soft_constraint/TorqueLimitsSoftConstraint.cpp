@@ -105,6 +105,9 @@ namespace legged_locomotion_mpc
 
     cost.dfdx = vector_t::Zero(info_.stateDim);
     cost.dfdu = vector_t::Zero(info_.inputDim);
+    cost.dfdxx = matrix_t::Zero(info_.stateDim, info_.stateDim);
+    cost.dfdux = matrix_t::Zero(info_.inputDim, info_.stateDim);
+    cost.dfduu = matrix_t::Zero(info_.inputDim, info_.inputDim);
 
     cost.f = upperBoundTorqueOffset.unaryExpr([&](scalar_t hi) 
       {
