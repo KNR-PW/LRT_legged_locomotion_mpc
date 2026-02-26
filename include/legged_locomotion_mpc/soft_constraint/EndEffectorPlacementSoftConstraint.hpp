@@ -47,7 +47,7 @@ namespace legged_locomotion_mpc
        */
       EndEffectorPlacementSoftConstraint(floating_base_model::FloatingBaseModelInfo info,
         const LeggedReferenceManager& referenceManager,
-        ocs2::vector_t endEffectorRadiuses,
+        std::vector<ocs2::scalar_t> endEffectorRadiuses,
         ocs2::RelaxedBarrierPenalty::Config settings);
 
       ~EndEffectorPlacementSoftConstraint() override = default;
@@ -72,7 +72,7 @@ namespace legged_locomotion_mpc
       const size_t endEffectorNum_;
         
       const floating_base_model::FloatingBaseModelInfo info_;
-      const ocs2::vector_t endEffectorRadiuses_;
+      const std::vector<ocs2::scalar_t> endEffectorRadiuses_;
 
       std::unique_ptr<ocs2::RelaxedBarrierPenalty> placementRelaxedBarrierPenaltyPtr_;
     };

@@ -13,7 +13,7 @@ namespace legged_locomotion_mpc
   EndEffectorPlacementSoftConstraint::EndEffectorPlacementSoftConstraint(
     floating_base_model::FloatingBaseModelInfo info,
     const LeggedReferenceManager& referenceManager,
-    vector_t endEffectorRadiuses,
+    std::vector<scalar_t> endEffectorRadiuses,
     RelaxedBarrierPenalty::Config settings):
       StateCost(),
       referenceManager_(referenceManager),
@@ -54,7 +54,7 @@ namespace legged_locomotion_mpc
     for(size_t i = 0; i < endEffectorNum_; ++i)
     {
       const auto& constraint = constraints[i];
-      if(!contactFlags[i] && constraint.isActive()) continue;
+      if(!contactFlags[i] || !constraint.isActive()) continue;
       const auto& position = leggedPrecomputation.getEndEffectorPosition(i);
       vector_t constraintVector = constraint.A * position + constraint.b;
       constraintVector.array() -= endEffectorRadiuses_[i];
@@ -85,7 +85,7 @@ namespace legged_locomotion_mpc
     for(size_t i = 0; i < endEffectorNum_; ++i)
     {
       const auto& constraint = constraints[i];
-      if(!contactFlags[i] && constraint.isActive()) continue;
+      if(!contactFlags[i] || !constraint.isActive()) continue;
       const auto& position = leggedPrecomputation.getEndEffectorPosition(i);
       vector_t constraintVector = constraint.A * position + constraint.b;
       constraintVector.array() -= endEffectorRadiuses_[i];
@@ -104,14 +104,15 @@ namespace legged_locomotion_mpc
 
       const matrix_t constraintDerivative = constraint.A * positionDerivative.dfdx;
 
-      cost.dfdx += (constraintDerivative).transpose() * penaltyDerivative;
+      cost.dfdx.noalias() += constraintDerivative.transpose() * penaltyDerivative;
 
       const vector_t penaltySecondDerivative = constraintVector.unaryExpr([&](scalar_t hi) 
       {
         return placementRelaxedBarrierPenaltyPtr_->getSecondDerivative(0.0, hi);
       });
 
-      cost.dfdxx += (constraintDerivative).transpose() * penaltySecondDerivative * constraintDerivative;
+      cost.dfdxx.noalias() += constraintDerivative.transpose() 
+        * penaltySecondDerivative.asDiagonal() * constraintDerivative;
     }
     return cost;
   }
