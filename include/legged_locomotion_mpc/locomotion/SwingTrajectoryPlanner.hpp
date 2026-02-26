@@ -111,6 +111,9 @@ namespace legged_locomotion_mpc
           const forwardKinematics& forwardKinematics,
           const OverExtensionPenalty& overExtensionPenalty);
 
+        /** update inverted pendulum foothold adjustment height (base height) */
+        void updateInvertedPendulumHeight(ocs2::scalar_t invertedPendulumHeight);
+
         /** Update terrain model */
         void updateTerrain(const terrain_model::TerrainModel& terrainModel);
         

@@ -44,6 +44,12 @@ namespace legged_locomotion_mpc
       heuristicFootholdsPerLeg_.resize(modelInfo_.numThreeDofContacts + modelInfo_.numSixDofContacts);
     }
 
+    void SwingTrajectoryPlanner::updateInvertedPendulumHeight(
+      scalar_t invertedPendulumHeight)
+    {
+      dynamicSettings_.invertedPendulumHeight = invertedPendulumHeight;
+    }
+
     void SwingTrajectoryPlanner::updateTerrain(const terrain_model::TerrainModel& terrainModel) 
     {
       terrainModel_ = &terrainModel;

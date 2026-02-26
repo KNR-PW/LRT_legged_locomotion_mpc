@@ -63,6 +63,11 @@ namespace legged_locomotion_mpc
       currentBaseHeight_ = std::clamp(baseHeight, settings_.minimumBaseHeight, 
         settings_.maximumBaseHeight);
     }
+
+    scalar_t BaseTrajectoryPlanner::getBaseHeight() const
+    {
+      return currentBaseHeight_;
+    }
       
     void BaseTrajectoryPlanner::updateTerrain(const terrain_model::TerrainModel& terrainModel)
     {

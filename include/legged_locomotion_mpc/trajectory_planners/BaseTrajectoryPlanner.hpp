@@ -96,6 +96,11 @@ namespace legged_locomotion_mpc
          * @param [in] baseHeight: New base height
          */
         void updateBaseHeight(ocs2::scalar_t baseHeight);
+        
+        /**
+         * Get current base height
+         */
+        ocs2::scalar_t getBaseHeight() const;
 
         /** 
          * Update terrain model 
