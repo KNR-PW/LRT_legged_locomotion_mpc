@@ -172,7 +172,7 @@ namespace legged_locomotion_mpc
         throw std::invalid_argument("[CollisionSettings]: Terrain collision relaxations wrong size!");
       }
 
-      loadData::loadStdVectorOfPair(filename, fieldName + ".selfCollisionRelaxations", settings.selfCollisionRelaxations, verbose);
+      loadData::loadStdVector(filename, fieldName + ".selfCollisionRelaxations", settings.selfCollisionRelaxations, verbose);
 
       if(settings.selfCollisionRelaxations.size() != settings.selfCollisionPairNames.size())
       {

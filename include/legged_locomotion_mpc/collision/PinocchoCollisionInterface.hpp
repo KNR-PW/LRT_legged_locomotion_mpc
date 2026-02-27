@@ -153,7 +153,7 @@ namespace legged_locomotion_mpc
         void createGeometryModel(const ocs2::PinocchioInterface& pinocchioInterface);
         
         // Create terrainAvoidanceIndices_ and selfCollisionIndices_
-        void createPinocchioIndices(const floating_base_model::FloatingBaseModelInfo& info, 
+        void createCollisionIndices(const floating_base_model::FloatingBaseModelInfo& info, 
           const ModelSettings& modelSettings, 
           const CollisionSettings& collisionSettings);
         

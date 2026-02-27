@@ -51,7 +51,7 @@ namespace legged_locomotion_mpc
         * Constructor for the quadratic cost function defined as the following:
         * \f$ L = 0.5(x-x_{n})' Q (x-x_{n}) \f$
         * @param [in] Q: \f$ Q \f$
-        * @param [in] info: info of kinematics model
+        * @param [in] info: info of floating base model
         */
         TerminalTrackingCost(ocs2::matrix_t Q,
           floating_base_model::FloatingBaseModelInfo info);

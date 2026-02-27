@@ -28,8 +28,7 @@ TEST(CollisionSettingsTest, loader)
 
   std::vector<scalar_t> trueTerrainRelaxations = {0.1, 0.2, 0.3, 0.4, 0.5, 0.6};
 
-  std::vector<std::pair<scalar_t, scalar_t>> trueSelfCollisionRelaxations = 
-    {{0.1, 0.2}, {0.3, 0.4}};
+  std::vector<scalar_t> trueSelfCollisionRelaxations = {0.1, 0.2};
 
   EXPECT_TRUE(collisionSettings.collisionLinkNames == meldogCollisions);
   EXPECT_TRUE(collisionSettings.selfCollisionPairNames == trueSelfCollisionPairNames);

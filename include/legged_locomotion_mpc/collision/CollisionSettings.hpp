@@ -62,7 +62,7 @@ namespace legged_locomotion_mpc
       /**
        * Relaxation for self collision avoidance
        */
-      std::vector<std::pair<ocs2::scalar_t, ocs2::scalar_t>> selfCollisionRelaxations;
+      std::vector<ocs2::scalar_t> selfCollisionRelaxations;
 
       /**
        * shrinking ratio for maxExcess to recursively approximate the circular base 

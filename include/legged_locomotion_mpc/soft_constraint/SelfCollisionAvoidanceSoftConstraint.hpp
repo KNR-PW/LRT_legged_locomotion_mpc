@@ -56,10 +56,9 @@ namespace legged_locomotion_mpc
        */
       SelfCollisionAvoidanceSoftConstraint(
         floating_base_model::FloatingBaseModelInfo info,
+        const collision::CollisionSettings& collisionSettings,
         const collision::PinocchioCollisionInterface& collisionInterface,
         const LeggedReferenceManager& referenceManager,
-        const std::vector<std::pair<size_t, size_t>>& collisionIndices,
-        const std::vector<ocs2::scalar_t>& relaxations,
         ocs2::RelaxedBarrierPenalty::Config settings);
 
       ~SelfCollisionAvoidanceSoftConstraint() override = default;

@@ -62,7 +62,7 @@ namespace legged_locomotion_mpc
 
       createSphereDataStructs(info, modelSettings, collisionSettings, pinocchioInterface);
 
-      createPinocchioIndices(info, modelSettings, collisionSettings);
+      createCollisionIndices(info, modelSettings, collisionSettings);
 
       createNeighbours(collisionSettings);
 
@@ -99,7 +99,7 @@ namespace legged_locomotion_mpc
       pinocchio::COLLISION, geometryModel_);
     }
 
-    void PinocchioCollisionInterface::createPinocchioIndices(
+    void PinocchioCollisionInterface::createCollisionIndices(
       const FloatingBaseModelInfo& info,
       const ModelSettings& modelSettings, 
       const CollisionSettings& collisionSettings)

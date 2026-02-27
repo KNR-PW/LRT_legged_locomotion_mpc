@@ -44,8 +44,7 @@ TEST(PinocchioForwardCollisionKinematicsCppAdTest, getCollisonNumber)
     meldog3DofContactNames.size() + collisionSettings.collisionLinkNames.size(), 0.2);
   collisionSettings.terrainRelaxations = std::vector<scalar_t>(
     meldog3DofContactNames.size() + collisionSettings.terrainCollisionLinkNames.size(), 0.5);
-  collisionSettings.selfCollisionRelaxations = std::vector<std::pair<scalar_t, scalar_t>>(
-    collisionSettings.selfCollisionPairNames.size(), {0.5, 0.5});
+  collisionSettings.selfCollisionRelaxations = {0.5, 0.5};
   collisionSettings.shrinkRatio = 0.5;
 
   const std::string modelName = "collision_kinematics";
@@ -86,8 +85,7 @@ TEST(PinocchioForwardCollisionKinematicsCppAdTest, getPosition)
     meldog3DofContactNames.size() + collisionSettings.collisionLinkNames.size(), 0.2);
   collisionSettings.terrainRelaxations = std::vector<scalar_t>(
     meldog3DofContactNames.size() + collisionSettings.terrainCollisionLinkNames.size(), 0.5);
-  collisionSettings.selfCollisionRelaxations = std::vector<std::pair<scalar_t, scalar_t>>(
-    collisionSettings.selfCollisionPairNames.size(), {0.5, 0.5});
+  collisionSettings.selfCollisionRelaxations = {0.5, 0.5};
   collisionSettings.shrinkRatio = 0.5;
 
   const std::string modelName = "collision_kinematics";
@@ -141,8 +139,7 @@ TEST(PinocchioForwardCollisionKinematicsCppAdTest, getOrientation)
     meldog3DofContactNames.size() + collisionSettings.collisionLinkNames.size(), 0.2);
   collisionSettings.terrainRelaxations = std::vector<scalar_t>(
     meldog3DofContactNames.size() + collisionSettings.terrainCollisionLinkNames.size(), 0.5);
-  collisionSettings.selfCollisionRelaxations = std::vector<std::pair<scalar_t, scalar_t>>(
-    collisionSettings.selfCollisionPairNames.size(), {0.5, 0.5});
+  collisionSettings.selfCollisionRelaxations = {0.5, 0.5};
   collisionSettings.shrinkRatio = 0.5;
 
   const std::string modelName = "collision_kinematics";

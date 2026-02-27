@@ -33,10 +33,9 @@ namespace legged_locomotion_mpc
 
   SelfCollisionAvoidanceSoftConstraint::SelfCollisionAvoidanceSoftConstraint(
     FloatingBaseModelInfo info,
+    const CollisionSettings& collisionSettings,
     const PinocchioCollisionInterface& collisionInterface,
     const LeggedReferenceManager& referenceManager,
-    const std::vector<std::pair<size_t, size_t>>& collisionIndices,
-    const std::vector<scalar_t>& relaxations,
     RelaxedBarrierPenalty::Config settings):
       StateCost(),
       threeDofEndEffectorNum_(info.numThreeDofContacts),
@@ -46,6 +45,9 @@ namespace legged_locomotion_mpc
       collisionInterface_(collisionInterface),
       selfAvoidancePenaltyPtr_(new RelaxedBarrierPenalty(settings)) 
   {
+    const auto& relaxations = collisionSettings.selfCollisionRelaxations;
+    const auto& collisionIndices = collisionInterface_.getSelfCollisionIndices();
+    
     if(relaxations.size() != collisionIndices.size())
     {
       throw std::invalid_argument("[SelfCollisionAvoidanceSoftConstraint]: "
