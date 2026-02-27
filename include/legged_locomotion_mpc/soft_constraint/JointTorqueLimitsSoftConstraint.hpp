@@ -34,18 +34,18 @@
 
 namespace legged_locomotion_mpc
 {
-  class TorqueLimitsSoftConstraint final: public ocs2::StateInputCost
+  class JointTorqueLimitsSoftConstraint final: public ocs2::StateInputCost
   {
     public:
       EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     
-      TorqueLimitsSoftConstraint(floating_base_model::FloatingBaseModelInfo info,
+      JointTorqueLimitsSoftConstraint(floating_base_model::FloatingBaseModelInfo info,
         ocs2::vector_t torqueLimits, ocs2::RelaxedBarrierPenalty::Config settings, 
         const PinocchioTorqueApproximationCppAd& torqueApproximator);
 
-      ~TorqueLimitsSoftConstraint() override = default;
+      ~JointTorqueLimitsSoftConstraint() override = default;
 
-      TorqueLimitsSoftConstraint* clone() const override;
+      JointTorqueLimitsSoftConstraint* clone() const override;
 
       /** Get cost term value */
       ocs2::scalar_t getValue(ocs2::scalar_t time, const ocs2::vector_t& state,
@@ -60,11 +60,9 @@ namespace legged_locomotion_mpc
 
     private:
 
-      TorqueLimitsSoftConstraint(const TorqueLimitsSoftConstraint &rhs);
+      JointTorqueLimitsSoftConstraint(const JointTorqueLimitsSoftConstraint &rhs);
 
-      floating_base_model::FloatingBaseModelInfo info_;
-
-      const PinocchioTorqueApproximationCppAd& torqueApproximator_;
+      const floating_base_model::FloatingBaseModelInfo info_;
         
       std::unique_ptr<ocs2::RelaxedBarrierPenalty> torqueRelaxedBarrierPenaltyPtr_;
 

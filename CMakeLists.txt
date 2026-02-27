@@ -94,16 +94,17 @@ add_library(${PROJECT_NAME}
   src/constraint/ZeroWrenchConstraint.cpp
   src/constraint/NormalVelocityConstraint.cpp
 
-  src/soft_constraint/TorqueLimitsSoftConstraint.cpp
+  src/soft_constraint/JointTorqueLimitsSoftConstraint.cpp
   src/soft_constraint/JointLimitsSoftConstraint.cpp
   src/soft_constraint/TerrainAvoidanceSoftConstraint.cpp
   src/soft_constraint/SelfCollisionAvoidanceSoftConstraint.cpp
   src/soft_constraint/EndEffectorPlacementSoftConstraint.cpp
 
-  # # src/initialization/LeggedInitializer.cpp
+  src/initialization/LeggedInitializer.cpp
 
   src/cost/TrajectoryTrackingCost.cpp
-  # src/cost/TerminalTrackingCost.cpp
+  src/cost/TerminalTrackingCost.cpp
+  src/cost/JointTorqueCost.cpp
 )
 
 target_include_directories(${PROJECT_NAME}
@@ -253,6 +254,7 @@ if(BUILD_TESTING)
 
   ament_add_gtest(${PROJECT_NAME}_test_cost
         test/cost/TrajectoryTrackingCostTest.cpp
+        test/cost/JointTorqueCostTest.cpp
   )
   ament_target_dependencies(${PROJECT_NAME}_test_cost ${THIS_PACKAGE_DEPENDS})
   target_include_directories(${PROJECT_NAME}_test_cost PRIVATE test/include)

@@ -551,7 +551,7 @@ namespace legged_locomotion_mpc
     }
  
     TrajectoryTrackingCost::JointWeights loadJointWeights(const std::string& filename,
-      const FloatingBaseModelInfo& info, const pinocchio::Model robotModel,
+      const FloatingBaseModelInfo& info, const pinocchio::Model& robotModel,
       const std::string& fieldName, bool verbose)
     {
       boost::property_tree::ptree pt;
@@ -573,7 +573,7 @@ namespace legged_locomotion_mpc
 
       if(jointNames.size() != info.actuatedDofNum)
       {
-        throw std::invalid_argument("[TrajectoryTrackingCost]: Wrong sieze of joint names vector!");
+        throw std::invalid_argument("[TrajectoryTrackingCost]: Wrong size of joint names vector!");
       }
 
       jointWeights.positions = Eigen::VectorXd::Zero(info.actuatedDofNum);

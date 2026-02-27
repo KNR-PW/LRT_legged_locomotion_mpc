@@ -18,7 +18,7 @@
  * Based on: rgrandia (https://github.com/leggedrobotics/ocs2)
  */
 
-#include <legged_locomotion_mpc/soft_constraint/TorqueLimitsSoftConstraint.hpp>
+#include <legged_locomotion_mpc/soft_constraint/JointTorqueLimitsSoftConstraint.hpp>
 
 #include <legged_locomotion_mpc/precomputation/LeggedPrecomputation.hpp>
 
@@ -29,40 +29,28 @@ namespace legged_locomotion_mpc
   /******************************************************************************************************/
   /******************************************************************************************************/
   /******************************************************************************************************/
-  TorqueLimitsSoftConstraint::TorqueLimitsSoftConstraint(
+  JointTorqueLimitsSoftConstraint::JointTorqueLimitsSoftConstraint(
     FloatingBaseModelInfo info,
     const vector_t torqueLimits,
     RelaxedBarrierPenalty::Config settings,
     const PinocchioTorqueApproximationCppAd& torqueApproximator):
       StateInputCost(),
       info_(std::move(info)),
-      torqueApproximator_(torqueApproximator),
       torqueRelaxedBarrierPenaltyPtr_(new RelaxedBarrierPenalty(settings)),
-      torqueLimits_(std::move(torqueLimits))
-  {
-    // checking size of torqueLimits vector (complicated way :/)
-    const vector_t sampleState = vector_t::Random(info_.stateDim);
-    const vector_t sampleInput = vector_t::Random(info_.inputDim);
-
-    const vector_t sampleTorques = torqueApproximator_.getValue(sampleState, sampleInput);
-    if(torqueLimits_.rows() != sampleTorques.rows())
-    {
-      throw std::invalid_argument("[TorqueLimitsSoftConstraint]: Wrong size of torque limits!");
-    }
-  }
+      torqueLimits_(std::move(torqueLimits)) {}
 
   /******************************************************************************************************/
   /******************************************************************************************************/
   /******************************************************************************************************/
-  TorqueLimitsSoftConstraint *TorqueLimitsSoftConstraint::clone() const
+  JointTorqueLimitsSoftConstraint *JointTorqueLimitsSoftConstraint::clone() const
   {
-    return new TorqueLimitsSoftConstraint(*this);
+    return new JointTorqueLimitsSoftConstraint(*this);
   }
     
   /******************************************************************************************************/
   /******************************************************************************************************/
   /******************************************************************************************************/
-  scalar_t TorqueLimitsSoftConstraint::getValue(scalar_t time, const vector_t& state,
+  scalar_t JointTorqueLimitsSoftConstraint::getValue(scalar_t time, const vector_t& state,
     const vector_t& input, const TargetTrajectories& targetTrajectories,
     const PreComputation& preComp) const
   {
@@ -84,7 +72,7 @@ namespace legged_locomotion_mpc
   /******************************************************************************************************/
   /******************************************************************************************************/
   /******************************************************************************************************/
-  ScalarFunctionQuadraticApproximation TorqueLimitsSoftConstraint::getQuadraticApproximation(
+  ScalarFunctionQuadraticApproximation JointTorqueLimitsSoftConstraint::getQuadraticApproximation(
     scalar_t time, const vector_t& state, const vector_t& input,
     const TargetTrajectories& targetTrajectories,
     const PreComputation& preComp) const
@@ -98,8 +86,8 @@ namespace legged_locomotion_mpc
 
     const size_t forceSize = 3 * info_.numThreeDofContacts + 6 * info_.numSixDofContacts;
     
-    const auto dTorquedQ = torqueApproxDerivative.dfdx.block(0, 6, info_.actuatedDofNum, info_.generalizedCoordinatesNum);
-    const auto dTorquedF = torqueApproxDerivative.dfdu.block(0, 0, info_.actuatedDofNum, forceSize);
+    const matrix_t dTorquedQ = torqueApproxDerivative.dfdx.block(0, 6, info_.actuatedDofNum, info_.generalizedCoordinatesNum);
+    const matrix_t dTorquedF = torqueApproxDerivative.dfdu.block(0, 0, info_.actuatedDofNum, forceSize);
     
     ScalarFunctionQuadraticApproximation cost;
 
@@ -135,16 +123,18 @@ namespace legged_locomotion_mpc
           return torqueRelaxedBarrierPenaltyPtr_->getSecondDerivative(0.0, hi);
       });
 
+    const matrix_t scaledDTorqueQ = penaltySecondDerivatives.asDiagonal() * dTorquedQ;
+
     cost.dfdx.block(6, 0, info_.generalizedCoordinatesNum, 1).noalias() =  dTorquedQ.transpose() * penaltyDerivatives;
     cost.dfdu.block(0, 0, forceSize, 1).noalias() =  dTorquedF.transpose() * penaltyDerivatives;
     cost.dfdxx.block(6, 6, info_.generalizedCoordinatesNum, info_.generalizedCoordinatesNum).noalias() = 
-        dTorquedQ.transpose() * penaltySecondDerivatives.asDiagonal() * dTorquedQ;
+        dTorquedQ.transpose() * scaledDTorqueQ;
 
     cost.dfduu.block(0, 0, forceSize, forceSize).noalias() = 
       dTorquedF.transpose() * penaltySecondDerivatives.asDiagonal() * dTorquedF; // torque is linearly dependent on forces, so its hessian is zero
     
     cost.dfdux.block(0, 6, forceSize, info_.generalizedCoordinatesNum).noalias() = 
-        dTorquedF.transpose() * penaltySecondDerivatives.asDiagonal() * dTorquedQ;
+        dTorquedF.transpose() * scaledDTorqueQ;
 
     return cost;
   }
@@ -152,8 +142,8 @@ namespace legged_locomotion_mpc
   /******************************************************************************************************/
   /******************************************************************************************************/
   /******************************************************************************************************/
-  TorqueLimitsSoftConstraint::TorqueLimitsSoftConstraint(const TorqueLimitsSoftConstraint &rhs):
-    StateInputCost(), info_(rhs.info_), torqueApproximator_(rhs.torqueApproximator_),
+  JointTorqueLimitsSoftConstraint::JointTorqueLimitsSoftConstraint(const JointTorqueLimitsSoftConstraint &rhs):
+    StateInputCost(), info_(rhs.info_), 
     torqueRelaxedBarrierPenaltyPtr_(rhs.torqueRelaxedBarrierPenaltyPtr_->clone()),
     torqueLimits_(rhs.torqueLimits_) {}
 } // namespace legged_locomotion_mpc

@@ -130,7 +130,7 @@ namespace legged_locomotion_mpc
    */
   TrajectoryTrackingCost::JointWeights loadJointWeights(const std::string& filename,
     const floating_base_model::FloatingBaseModelInfo& info,
-    const pinocchio::Model robotModel,
+    const pinocchio::Model& robotModel,
     const std::string& fieldName = "joint_weights",
     bool verbose = "true");
 

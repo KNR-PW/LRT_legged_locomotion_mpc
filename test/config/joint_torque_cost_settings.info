@@ -1,0 +1,62 @@
+joint_torque_weights
+{
+  LFT_joint
+  {
+    torqueWeight 0.1
+  }
+
+  LFH_joint
+  {
+    torqueWeight 0.3
+  }
+
+  LFK_joint
+  {
+    torqueWeight 0.5
+  }
+
+  LRT_joint
+  {
+    torqueWeight 0.7
+  }
+
+  LRH_joint
+  {
+    torqueWeight 0.9
+  }
+
+  LRK_joint
+  {
+    torqueWeight 1.1
+  }
+
+  RFT_joint
+  {
+    torqueWeight 1.3
+  }
+
+  RFH_joint
+  {
+    torqueWeight 1.5
+  }
+
+  RFK_joint
+  {
+    torqueWeight 1.7
+  }
+
+  RRT_joint
+  {
+    torqueWeight 1.9
+  }
+
+  RRH_joint
+  {
+    torqueWeight 2.1
+  }
+
+  RRK_joint
+  {
+    torqueWeight 2.3
+  }
+}
