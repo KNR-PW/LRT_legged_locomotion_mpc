@@ -109,9 +109,13 @@ namespace legged_locomotion_mpc
         
         /**
          * Get vector with neighbours indices for queried sphere index
+         * Rule of indexes:
+         * 1. 3 DoF end effectors
+         * 2. 6 DoF end effectors
+         * 3. other collision objects, as defined in otherCollisionLinks
          */
         const std::vector<size_t>& getSphereNeighbours(size_t collisionIndex, 
-          size_t sphereIndex);
+          size_t sphereIndex) const;
 
         /**
          * Get partial derivative w.r.t euler ZYX angles 
@@ -122,13 +126,13 @@ namespace legged_locomotion_mpc
           const vector3_t& vector) const;
         
         /**
-         * Get all Pinocchio indices (0 : endEffectorNum + collisionNum - 1) 
+         * Get all indices from range(0 : endEffectorNum + collisionNum - 1) 
          * of all terrain avoidance links
          */
         const std::vector<size_t>& getTerrainAvoidanceCollisionIndices() const;
 
         /**
-         * Get all Pinocchio indices (0 : endEffectorNum + collisionNum - 1) 
+         * Get all indices from range(0 : endEffectorNum + collisionNum - 1) 
          * of all self collision link pairs
          */
         const std::vector<std::pair<size_t, size_t>>& getSelfCollisionIndices() const;

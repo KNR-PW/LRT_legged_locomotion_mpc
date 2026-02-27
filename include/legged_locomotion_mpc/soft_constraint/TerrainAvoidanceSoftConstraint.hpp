@@ -59,10 +59,9 @@ namespace legged_locomotion_mpc
        */
       TerrainAvoidanceSoftConstraint(
         floating_base_model::FloatingBaseModelInfo info,
+        const collision::CollisionSettings& collisionSettings,
         const collision::PinocchioCollisionInterface& collisionInterface,
         const LeggedReferenceManager& referenceManager,
-        std::vector<size_t> collisionIndices,
-        std::vector<ocs2::scalar_t> relaxations,
         ocs2::RelaxedBarrierPenalty::Config settings);
 
       ~TerrainAvoidanceSoftConstraint() override = default;

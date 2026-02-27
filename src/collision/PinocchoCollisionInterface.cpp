@@ -318,7 +318,7 @@ namespace legged_locomotion_mpc
     }
 
     const std::vector<size_t>& PinocchioCollisionInterface::getSphereNeighbours(
-      size_t collisionIndex, size_t sphereIndex)
+      size_t collisionIndex, size_t sphereIndex) const
     {
       assert(collisionIndex < frameNumber_);
       assert(sphereIndex < sphereNumbers_[collisionIndex]);

@@ -33,18 +33,17 @@ namespace legged_locomotion_mpc
 
   TerrainAvoidanceSoftConstraint::TerrainAvoidanceSoftConstraint(
     FloatingBaseModelInfo info,
+    const CollisionSettings& collisionSettings,
     const PinocchioCollisionInterface& collisionInterface,
     const LeggedReferenceManager& referenceManager,
-    std::vector<size_t> collisionIndices,
-    std::vector<scalar_t> relaxations,
     RelaxedBarrierPenalty::Config settings):
       threeDofEndEffectorNum_(info.numThreeDofContacts),
       sixDofEndEffectorNum_(info.numSixDofContacts),
       endEffectorNum_(info.numThreeDofContacts + info.numSixDofContacts),
-      collisionLinkindices_(std::move(collisionIndices)),
+      collisionLinkindices_(collisionInterface.getTerrainAvoidanceCollisionIndices()),
+      relaxations_(collisionSettings.terrainRelaxations),
       referenceManager_(referenceManager),
       collisionInterface_(collisionInterface),
-      relaxations_(std::move(relaxations)),
       terrainAvoidancePenaltyPtr_(new RelaxedBarrierPenalty(settings)) {}
 
   TerrainAvoidanceSoftConstraint* TerrainAvoidanceSoftConstraint::clone() const
@@ -140,7 +139,7 @@ namespace legged_locomotion_mpc
     ScalarFunctionQuadraticApproximation cost;
     cost.f = 0.0;
     cost.dfdx = vector_t::Zero(state.size());
-    cost.dfdxx = vector_t::Zero(state.size(), state.size());
+    cost.dfdxx = matrix_t::Zero(state.size(), state.size());
 
     // Three Dof End Effectors (one sphere)
     for(size_t i = 0; i < threeDofEndEffectorNum_; ++i)
@@ -163,12 +162,12 @@ namespace legged_locomotion_mpc
 
       const auto& positionDerivative = leggedPrecomputation.getEndEffectorPositionDerivatives(i);
       
-      const vector_t scaledGrdaient = positionDerivative.dfdx.transpose() * sdfGradient;
+      const vector_t scaledGradient = positionDerivative.dfdx.transpose() * sdfGradient;
       
-      cost.dfdx.noalias() += penaltyDerivative * scaledGrdaient;
+      cost.dfdx.noalias() += penaltyDerivative * scaledGradient;
 
       // Approximated second derivative (sdf and postion second gradients are omitted)
-      cost.dfdxx.noalias() += penaltySecondDerivative * scaledGrdaient * scaledGrdaient.transpose();
+      cost.dfdxx.noalias() += penaltySecondDerivative * scaledGradient * scaledGradient.transpose();
     }
 
     // Six Dof End Effectors (many spheres)
@@ -218,13 +217,13 @@ namespace legged_locomotion_mpc
         collisionInterface_.getRotationTimesVectorGradient(frameEulerAngles, 
           sphereRelativePositions[minIndex]);
 
-      const auto positionStateDerivative = positionDerivative.dfdx + rotationVectorGradient * eulerDerivative.dfdx;
-      const vector_t scaledGrdaient = positionStateDerivative.transpose() * sdfGradient;
+      const vector_t positionStateDerivative = positionDerivative.dfdx + rotationVectorGradient * eulerDerivative.dfdx;
+      const vector_t scaledGradient = positionStateDerivative.transpose() * sdfGradient;
       
-      cost.dfdx.noalias() += penaltyDerivative * scaledGrdaient;
+      cost.dfdx.noalias() += penaltyDerivative * scaledGradient;
 
       // Approximated second derivative (sdf and postion second gradients are omitted)
-      cost.dfdxx.noalias() += penaltySecondDerivative * scaledGrdaient * scaledGrdaient.transpose();
+      cost.dfdxx.noalias() += penaltySecondDerivative * scaledGradient * scaledGradient.transpose();
     }
 
     // Collison links (one or many spheres)
@@ -272,13 +271,13 @@ namespace legged_locomotion_mpc
         collisionInterface_.getRotationTimesVectorGradient(frameEulerAngles, 
           sphereRelativePositions[minIndex]);
 
-      const auto positionStateDerivative = positionDerivative.dfdx + rotationVectorGradient * eulerDerivative.dfdx;
-      const vector_t scaledGrdaient = positionStateDerivative.transpose() * sdfGradient;
+      const vector_t positionStateDerivative = positionDerivative.dfdx + rotationVectorGradient * eulerDerivative.dfdx;
+      const vector_t scaledGradient = positionStateDerivative.transpose() * sdfGradient;
       
-      cost.dfdx.noalias() += penaltyDerivative * scaledGrdaient;
+      cost.dfdx.noalias() += penaltyDerivative * scaledGradient;
 
       // Approximated second derivative (sdf and postion second gradients are omitted)
-      cost.dfdxx.noalias() += penaltySecondDerivative * scaledGrdaient * scaledGrdaient.transpose();
+      cost.dfdxx.noalias() += penaltySecondDerivative * scaledGradient * scaledGradient.transpose();
     }
 
     return cost;
