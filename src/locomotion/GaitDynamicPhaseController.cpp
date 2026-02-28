@@ -41,6 +41,8 @@ namespace legged_locomotion_mpc
         const scalar_t returnPhase = cachedPhase_.front();
         const auto& offsets = dynamicParamsVec_.front().phaseOffsets;
 
+        returnPhases[0] = normalizePhase(returnPhase);
+
         for(int i = 1; i < staticParams_.endEffectorNumber; ++i)
         {
           returnPhases[i] = normalizePhase(returnPhase + offsets[i - 1]);
@@ -81,6 +83,7 @@ namespace legged_locomotion_mpc
         const auto& offsets = dynamicParamsVec_.front().phaseOffsets;
 
         returnFlags[0] = normalizePhase(returnPhase - SCALAR_EPSILON) >= swingRatio;
+        
         for(int i = 1; i < staticParams_.endEffectorNumber; ++i)
         {
           returnFlags[i] = normalizePhase(returnPhase + offsets[i - 1] - SCALAR_EPSILON) >= swingRatio;

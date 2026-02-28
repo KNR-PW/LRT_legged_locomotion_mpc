@@ -29,6 +29,7 @@
 
 #include <legged_locomotion_mpc/locomotion/GaitCommon.hpp>
 #include <legged_locomotion_mpc/locomotion/GaitParameters.hpp>
+#include <legged_locomotion_mpc/locomotion/GaitDynamicPhaseController.hpp>
 
 namespace legged_locomotion_mpc
 {
@@ -38,8 +39,8 @@ namespace legged_locomotion_mpc
     {
       public:
 
-        GaitPlanner(GaitStaticParameters staticParams,
-          GaitDynamicParameters initDynamicParams,
+        GaitPlanner(const GaitStaticParameters& staticParams,
+          const GaitDynamicParameters& initDynamicParams,
           ocs2::scalar_t initPhase,
           ocs2::scalar_t initTime);
 
@@ -68,11 +69,17 @@ namespace legged_locomotion_mpc
 
       private:
   
-        ocs2::scalar_t currentPhase_;
         const GaitStaticParameters staticParams_;
 
-        ocs2::scalar_t currentChangeTime_;
+        ocs2::scalar_t currentDynamicParamsTime_;
         GaitDynamicParameters dynamicParams_;
+
+        ocs2::ModeSchedule modeSchedule_;
+
+        GaitDynamicPhaseController phaseController_;
+
+        ocs2::scalar_t currentStartTime_;
+
     };
   } // namespace locomotion
 } // namespace legged_locomotion_mpc

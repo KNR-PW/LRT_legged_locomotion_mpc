@@ -18,8 +18,6 @@ TEST(GaitPlannerTest, Constructor)
   GaitStaticParameters staticParams;
   staticParams.endEffectorNumber = 4;
   
-  
-
   GaitDynamicParameters dynamicParams;
   dynamicParams.steppingFrequency = 1.0 / 0.7;
   dynamicParams.swingRatio = 3.0 / 7.0;
@@ -41,12 +39,10 @@ TEST(GaitPlannerTest, Constructor)
     EXPECT_NEAR(modeSchedule.eventTimes[i], goodTimings[i], 1e-6);
   }
 
-  const scalar_t MIN_TIME_BETWEEN_CHANGES = 1e-4;
-
   for(size_t i = 1; i < modeSchedule.eventTimes.size(); ++i)
   {
     scalar_t deltaTime = modeSchedule.eventTimes[i] - modeSchedule.eventTimes[i - 1];
-    EXPECT_GT(deltaTime, MIN_TIME_BETWEEN_CHANGES);
+    EXPECT_GT(deltaTime, Definitions::MIN_TIME_BETWEEN_CHANGES);
   }
 
   for(int i = 0; i < ITERATIONS; ++i)
@@ -67,8 +63,6 @@ TEST(GaitPlannerTest, getModeSchedule)
   GaitStaticParameters staticParams;
   staticParams.endEffectorNumber = 4;
   
-  
-
   GaitDynamicParameters dynamicParams;
   dynamicParams.steppingFrequency = 1.0 / 0.7;
   dynamicParams.swingRatio = 3.0 / 7.0;
@@ -123,12 +117,48 @@ TEST(GaitPlannerTest, getModeSchedule)
     EXPECT_NEAR(modeSchedule.eventTimes[i], goodTimings[i], 1e-6);
   }
 
-  const scalar_t MIN_TIME_BETWEEN_CHANGES = 1e-4;
+  for(size_t i = 1; i < modeSchedule.eventTimes.size(); ++i)
+  {
+    scalar_t deltaTime = modeSchedule.eventTimes[i] - modeSchedule.eventTimes[i - 1];
+    EXPECT_GT(deltaTime, Definitions::MIN_TIME_BETWEEN_CHANGES);
+  }
+
+  times.clear();
+  for(int i = 0; i < ITERATIONS; ++i)
+  {
+    scalar_t time = startTime + i * (finalTime - startTime)  / ITERATIONS;
+    times.push_back(time);
+    auto contactFlags = gaitPlanner.getContactFlagsAtTime(time);
+    auto trueContactFlags = modeNumber2ContactFlags(modeSchedule.modeAtTime(time - 1e-6));
+    EXPECT_TRUE(contactFlags == trueContactFlags);
+  }
+
+  flagsTrajectory = gaitPlanner.getContactFlagsAtTimes(times);
+
+  for(size_t i = 0; i < 10; ++i)
+  {
+     auto trueContactFlags = modeNumber2ContactFlags(modeSchedule.modeAtTime(times[i] - 1e-6));
+    EXPECT_TRUE(flagsTrajectory[i] == trueContactFlags);
+  }
+
+  startTime = 1.0;
+  finalTime = 2 * 0.7 + 0.5;
+  modeSchedule = gaitPlanner.getModeSchedule(startTime, finalTime);
+
+  goodTimings = {1, 1.05, 1.35, 1.4, 1.7, 1.75, 2.05};
+  goodSequence = {9, 15, 6, 15, 9, 15, 6, 15};
+
+  EXPECT_TRUE(modeSchedule.modeSequence == goodSequence);
+
+  for(size_t i = 0; i < goodTimings.size(); ++i)
+  {
+    EXPECT_NEAR(modeSchedule.eventTimes[i], goodTimings[i], 1e-6);
+  }
 
   for(size_t i = 1; i < modeSchedule.eventTimes.size(); ++i)
   {
     scalar_t deltaTime = modeSchedule.eventTimes[i] - modeSchedule.eventTimes[i - 1];
-    EXPECT_GT(deltaTime, MIN_TIME_BETWEEN_CHANGES);
+    EXPECT_GT(deltaTime, Definitions::MIN_TIME_BETWEEN_CHANGES);
   }
 
   times.clear();
@@ -150,7 +180,6 @@ TEST(GaitPlannerTest, getModeSchedule)
   }
 }
 
-
 TEST(GaitPlannerTest, updateDynamicParameters)
 {
   /* STANDING TROT */
@@ -159,8 +188,6 @@ TEST(GaitPlannerTest, updateDynamicParameters)
   GaitStaticParameters staticParams;
   staticParams.endEffectorNumber = 4;
   
-  
-
   GaitDynamicParameters dynamicParams1;
   dynamicParams1.steppingFrequency = 1.0 / 0.7;
   dynamicParams1.swingRatio = 3.0 / 7.0;
@@ -191,12 +218,10 @@ TEST(GaitPlannerTest, updateDynamicParameters)
 
   auto modeSchedule = gaitPlanner.getModeSchedule(startTime, firstTime);
 
-  const scalar_t MIN_TIME_BETWEEN_CHANGES = 1e-4;
-
   for(size_t i = 1; i < modeSchedule.eventTimes.size(); ++i)
   {
     scalar_t deltaTime = modeSchedule.eventTimes[i] - modeSchedule.eventTimes[i - 1];
-    EXPECT_GT(deltaTime, MIN_TIME_BETWEEN_CHANGES);
+    EXPECT_GT(deltaTime, Definitions::MIN_TIME_BETWEEN_CHANGES);
   }
 
   for(int i = 0; i < ITERATIONS; ++i)
@@ -224,7 +249,7 @@ TEST(GaitPlannerTest, updateDynamicParameters)
   for(size_t i = 1; i < modeSchedule.eventTimes.size(); ++i)
   {
     scalar_t deltaTime = modeSchedule.eventTimes[i] - modeSchedule.eventTimes[i - 1];
-    EXPECT_GT(deltaTime, MIN_TIME_BETWEEN_CHANGES);
+    EXPECT_GT(deltaTime, Definitions::MIN_TIME_BETWEEN_CHANGES);
   }
 
   scalar_t forthTime = 5.0; // Change mode template in 5 second, remove 5 seconds of second template 
@@ -237,7 +262,7 @@ TEST(GaitPlannerTest, updateDynamicParameters)
   for(size_t i = 1; i < modeSchedule.eventTimes.size(); ++i)
   {
     scalar_t deltaTime = modeSchedule.eventTimes[i] - modeSchedule.eventTimes[i - 1];
-    EXPECT_GT(deltaTime, MIN_TIME_BETWEEN_CHANGES);
+    EXPECT_GT(deltaTime, Definitions::MIN_TIME_BETWEEN_CHANGES);
   }
 
   for(int i = 0; i < ITERATIONS; ++i)
@@ -258,6 +283,142 @@ TEST(GaitPlannerTest, updateDynamicParameters)
     auto contactFlags = gaitPlanner.getContactFlagsAtTime(time);
     auto trueContactFlags = modeNumber2ContactFlags(modeSchedule.modeAtTime(time - 1e-6));
     EXPECT_TRUE(contactFlags == trueContactFlags);
+  }
+}
+
+TEST(GaitPlannerTest, getModeWithUpdateDynamicParameters)
+{
+  /* STANDING TROT */
+  scalar_t currentPhase = 3.5 / 7.0;
+
+  GaitStaticParameters staticParams;
+  staticParams.endEffectorNumber = 4;
+  
+  GaitDynamicParameters dynamicParams;
+  dynamicParams.steppingFrequency = 1.0 / 0.7;
+  dynamicParams.swingRatio = 3.0 / 7.0;
+  
+  dynamicParams.phaseOffsets = {-currentPhase , -currentPhase , 0};
+
+  GaitPlanner gaitPlanner(staticParams, dynamicParams, currentPhase, 0.0);
+
+  scalar_t startTime = 0.5;
+  scalar_t finalTime = 3 * 0.7;
+  auto modeSchedule = gaitPlanner.getModeSchedule(startTime, finalTime);
+
+  std::vector<scalar_t> goodTimings = {0.65, 0.7, 1, 1.05, 1.35, 1.4, 1.7, 1.75, 2.05, 2.1};
+  std::vector<size_t> goodSequence = {6, 15, 9, 15, 6, 15, 9, 15, 6, 15, 15};
+
+  EXPECT_TRUE(modeSchedule.modeSequence == goodSequence);
+  
+  std::vector<scalar_t> times;
+  for(int i = 0; i < ITERATIONS; ++i)
+  {
+    scalar_t time = startTime + i * (finalTime - startTime)  / ITERATIONS;
+    times.push_back(time);
+    auto contactFlags = gaitPlanner.getContactFlagsAtTime(time);
+    auto trueContactFlags = modeNumber2ContactFlags(modeSchedule.modeAtTime(time - 1e-6));
+    EXPECT_TRUE(contactFlags == trueContactFlags);
+  }
+
+  std::vector<contact_flags_t> flagsTrajectory = gaitPlanner.getContactFlagsAtTimes(times);
+
+  for(size_t i = 0; i < 10; ++i)
+  {
+    auto trueContactFlags = modeNumber2ContactFlags(modeSchedule.modeAtTime(times[i]));
+    EXPECT_TRUE(flagsTrajectory[i] == trueContactFlags);
+  }
+
+  for(size_t i = 0; i < goodTimings.size(); ++i)
+  {
+    EXPECT_NEAR(modeSchedule.eventTimes[i], goodTimings[i], 1e-6);
+  }
+
+  for(size_t i = 1; i < modeSchedule.eventTimes.size(); ++i)
+  {
+    scalar_t deltaTime = modeSchedule.eventTimes[i] - modeSchedule.eventTimes[i - 1];
+    EXPECT_GT(deltaTime, Definitions::MIN_TIME_BETWEEN_CHANGES);
+  }
+
+  /* FLYING TROT */
+  GaitDynamicParameters dynamicParams2;
+  dynamicParams2.swingRatio =  0.33 / 0.6;
+  dynamicParams2.steppingFrequency = 1.0 / 0.6;
+  currentPhase = dynamicParams2.swingRatio;
+
+  dynamicParams2.phaseOffsets = {-currentPhase + 0.03 / 0.6, -currentPhase + 0.03 / 0.6, 0};
+
+  scalar_t secondTime = 0.9; 
+  gaitPlanner.updateDynamicParameters(secondTime, dynamicParams2);
+
+  modeSchedule = gaitPlanner.getModeSchedule(startTime, finalTime);
+
+  std::cerr << modeSchedule << std::endl;
+
+  for(int i = 0; i < ITERATIONS; ++i)
+  {
+    scalar_t time = startTime + i * (finalTime - startTime)  / ITERATIONS;
+    auto contactFlags = gaitPlanner.getContactFlagsAtTime(time);
+    auto trueContactFlags = modeNumber2ContactFlags(modeSchedule.modeAtTime(time - 1e-6));
+    EXPECT_TRUE(contactFlags == trueContactFlags);
+  }
+
+  for(size_t i = 1; i < modeSchedule.eventTimes.size(); ++i)
+  {
+    scalar_t deltaTime = modeSchedule.eventTimes[i] - modeSchedule.eventTimes[i - 1];
+    EXPECT_GT(deltaTime, Definitions::MIN_TIME_BETWEEN_CHANGES);
+  }
+
+  /* DYNAMIC WALK */
+  GaitDynamicParameters dynamicParams3;
+  dynamicParams3.swingRatio =  0.3;
+  dynamicParams3.steppingFrequency = 1.0;
+  dynamicParams3.phaseOffsets = {0.5, 0.2, 0.7};
+
+  scalar_t thirdTime = 1.1; 
+  gaitPlanner.updateDynamicParameters(thirdTime, dynamicParams3);
+  modeSchedule = gaitPlanner.getModeSchedule(startTime, finalTime);
+
+  std::cerr << modeSchedule << std::endl;
+
+  for(int i = 0; i < ITERATIONS; ++i)
+  {
+    scalar_t time = startTime + i * (finalTime - startTime)  / ITERATIONS;
+    auto contactFlags = gaitPlanner.getContactFlagsAtTime(time);
+    auto trueContactFlags = modeNumber2ContactFlags(modeSchedule.modeAtTime(time - 1e-6));
+    EXPECT_TRUE(contactFlags == trueContactFlags);
+  }
+
+  for(size_t i = 1; i < modeSchedule.eventTimes.size(); ++i)
+  {
+    scalar_t deltaTime = modeSchedule.eventTimes[i] - modeSchedule.eventTimes[i - 1];
+    EXPECT_GT(deltaTime, Definitions::MIN_TIME_BETWEEN_CHANGES);
+  }
+
+  /* DYNAMIC WALK */
+  GaitDynamicParameters dynamicParams4;
+  dynamicParams4.swingRatio =  0.4;
+  dynamicParams4.steppingFrequency = 1.2;
+  dynamicParams4.phaseOffsets = {0.5 + 0.1, 0.2 - 0.1, 0.7 + 0.05};
+
+  scalar_t forthTime = 1.125; 
+  gaitPlanner.updateDynamicParameters(forthTime, dynamicParams4);
+  modeSchedule = gaitPlanner.getModeSchedule(startTime, finalTime);
+
+  std::cerr << modeSchedule << std::endl;
+
+  for(int i = 0; i < ITERATIONS; ++i)
+  {
+    scalar_t time = startTime + i * (finalTime - startTime)  / ITERATIONS;
+    auto contactFlags = gaitPlanner.getContactFlagsAtTime(time);
+    auto trueContactFlags = modeNumber2ContactFlags(modeSchedule.modeAtTime(time - 1e-6));
+    EXPECT_TRUE(contactFlags == trueContactFlags);
+  }
+
+  for(size_t i = 1; i < modeSchedule.eventTimes.size(); ++i)
+  {
+    scalar_t deltaTime = modeSchedule.eventTimes[i] - modeSchedule.eventTimes[i - 1];
+    EXPECT_GT(deltaTime, Definitions::MIN_TIME_BETWEEN_CHANGES);
   }
 }
 
@@ -291,12 +452,10 @@ TEST(GaitPlannerTest, stayingInPlace)
     EXPECT_NEAR(modeSchedule.eventTimes[i], goodTimings[i], 1e-6);
   }
 
-  const scalar_t MIN_TIME_BETWEEN_CHANGES = 1e-4;
-
   for(size_t i = 1; i < modeSchedule.eventTimes.size(); ++i)
   {
     scalar_t deltaTime = modeSchedule.eventTimes[i] - modeSchedule.eventTimes[i - 1];
-    EXPECT_GT(deltaTime, MIN_TIME_BETWEEN_CHANGES);
+    EXPECT_GT(deltaTime, Definitions::MIN_TIME_BETWEEN_CHANGES);
   }
 
   for(int i = 0; i < 10; ++i)

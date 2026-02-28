@@ -16,12 +16,13 @@ namespace legged_locomotion_mpc
   {
     using namespace ocs2;
 
-    GaitPlanner::GaitPlanner(GaitStaticParameters staticParams,
-      GaitDynamicParameters initDynamicParams, scalar_t initPhase, scalar_t initTime):
-        currentPhase_(std::move(initPhase)),
-        staticParams_(std::move(staticParams)),
-        currentChangeTime_(initTime),
-        dynamicParams_(std::move(initDynamicParams))
+    GaitPlanner::GaitPlanner(const GaitStaticParameters& staticParams,
+      const GaitDynamicParameters& initDynamicParams, scalar_t initPhase, scalar_t initTime):
+        currentStartTime_(initTime),
+        currentDynamicParamsTime_(initTime),
+        staticParams_(staticParams),
+        dynamicParams_(initDynamicParams),
+        phaseController_(initPhase, initTime, staticParams, initDynamicParams)
     {
       if(initTime < 0.0)
       {
@@ -29,32 +30,68 @@ namespace legged_locomotion_mpc
         throw std::invalid_argument(message);
       }
 
-      if(currentPhase_ < 0.0 || currentPhase_ > 1.0)
+      if(initPhase < 0.0 || initPhase > 1.0)
       {
         std::string message = "[GaitPlanner]: Phase lower than 0.0 or higher than 1.0!";
         throw std::invalid_argument(message);
       }
+
+      // Create first simple modeSchedule
+      modeSchedule_.clear();
+      modeSchedule_.eventTimes = {initTime};
+
+      const contact_flags_t currentFlags = getContactFlagsAtTime(initTime);
+      const size_t currentMode = contactFlags2ModeNumber(currentFlags);
+      modeSchedule_.modeSequence = {currentMode, currentMode};
     }
 
     ModeSchedule GaitPlanner::getModeSchedule(scalar_t startTime,
       scalar_t finalTime) 
     {
-      assert(startTime >= currentChangeTime_);
+      assert(startTime >= currentStartTime_);
+      assert(finalTime > startTime);
       assert(!numerics::almost_eq(startTime, finalTime, SCALAR_EPSILON));
-    
-      ModeSchedule modeSchedule;
-      modeSchedule.clear();
 
-      // Get current phase in startTime
-      const auto frequency = dynamicParams_.steppingFrequency;
-      const scalar_t returnPhase = currentPhase_ + (startTime - currentChangeTime_) * frequency;
-      const scalar_t startPhase = normalizePhase(returnPhase);
+      currentStartTime_ = startTime;
+
+      phaseController_.remove(startTime);
+
+      auto& eventTimes = modeSchedule_.eventTimes;
+      auto& modeSequence = modeSchedule_.modeSequence;
+
+      const size_t startIndex = utils::findIndexInTimeArray(eventTimes, startTime);
+
+      if(startIndex > 0)
+      {
+        // delete the old logic from index behdind startTime
+        eventTimes.erase(eventTimes.begin(), eventTimes.begin() + startIndex);
+        modeSequence.erase(modeSequence.begin(), modeSequence.begin() + startIndex);
+      }
+
+      if(!modeSequence.empty())
+      {
+        const size_t endIndex = utils::findIndexInTimeArray(eventTimes, finalTime);
+
+        if(endIndex < eventTimes.size())
+        {
+          // delete the old logic from index after finalTime
+          eventTimes.erase(eventTimes.begin() + endIndex, eventTimes.end());
+          modeSequence.erase(modeSequence.begin() + endIndex, modeSequence.end());
+        }
+        else
+        {
+          // delete the stance phase
+          modeSequence.erase(modeSequence.end() - 1, modeSequence.end());
+        }
+      }
+
+      const scalar_t tilingTime = eventTimes.empty() ? startTime : eventTimes.back();
+
+      const scalar_t startPhase = phaseController_.getPhasesAtTime(tilingTime)[0];
 
       ModeSequenceTemplate modeSequenceTemplate = getDynamicModeSequenceTemplate(
-        startPhase, finalTime - startTime, staticParams_, dynamicParams_);
+        startPhase, finalTime - tilingTime, staticParams_, dynamicParams_);
 
-      auto& eventTimes = modeSchedule.eventTimes;
-      auto& modeSequence = modeSchedule.modeSequence;
       const auto& templateTimes = modeSequenceTemplate.switchingTimes;
       const auto& templateModeSequence = modeSequenceTemplate.modeSequence;
       const size_t numTemplateSubsystems = modeSequenceTemplate.modeSequence.size();
@@ -62,9 +99,11 @@ namespace legged_locomotion_mpc
       assert(numTemplateSubsystems != 0);
 
       const contact_flags_t currentFlags = getContactFlagsAtTime(startTime);
-
-      eventTimes.push_back(startTime);
-      modeSequence.push_back(contactFlags2ModeNumber(currentFlags));
+      if(eventTimes.empty())
+      {
+        eventTimes.push_back(startTime);
+        modeSequence.push_back(contactFlags2ModeNumber(currentFlags));
+      }
 
       // concatenate from index
       while (eventTimes.back() < finalTime) 
@@ -87,7 +126,7 @@ namespace legged_locomotion_mpc
       const size_t standingMode = ((0x01 << (staticParams_.endEffectorNumber)) - 1);
       modeSequence.push_back(standingMode);
 
-      return modeSchedule;
+      return modeSchedule_;
     }
 
     GaitFlags GaitPlanner::updateCurrentContacts(scalar_t time, 
@@ -111,19 +150,80 @@ namespace legged_locomotion_mpc
     void GaitPlanner::updateDynamicParameters(scalar_t time,
       const GaitDynamicParameters& dynamicParams)
     {
-      assert(time >= currentChangeTime_);
+      assert(time >= currentDynamicParamsTime_);
       if(dynamicParams == dynamicParams_) return;
+      
+      currentDynamicParamsTime_ = time;
 
-      // Update current phase
-      const auto frequency = dynamicParams_.steppingFrequency;
-      const scalar_t returnPhase = currentPhase_ + (time - currentChangeTime_) * frequency;
-      currentPhase_ = normalizePhase(returnPhase);
+      // // Check if time is bigger than minimum time between changes
+      // if((time - currentDynamicParamsTime_) > Definitions::MIN_TIME_BETWEEN_CHANGES)
+      // {
+      //   // Get 
+      //   currentDynamicParamsTime_ = time + Definitions::MIN_TIME_BETWEEN_CHANGES;
+      // }
 
-      // Update change time
-      currentChangeTime_ = time;
       
       // Update dynamic parameters
       dynamicParams_ = dynamicParams;
+
+      phaseController_.update(currentDynamicParamsTime_, dynamicParams);
+
+      const contact_flags_t currentFlags = phaseController_.getContactFlagsAtTime(currentDynamicParamsTime_);
+      const size_t currentMode = contactFlags2ModeNumber(currentFlags);
+
+      // Update cached mode schedule
+      auto& eventTimes = modeSchedule_.eventTimes;
+      auto& modeSequence = modeSchedule_.modeSequence;
+
+      if(!modeSequence.empty())
+      {
+        const size_t endIndex = utils::findIndexInTimeArray(eventTimes, currentDynamicParamsTime_);
+
+        if(endIndex < eventTimes.size())
+        {
+          // delete the old logic from index after finalTime
+          eventTimes.erase(eventTimes.begin() + endIndex, eventTimes.end());
+          modeSequence.erase(modeSequence.begin() + endIndex + 1, modeSequence.end());
+        }
+
+        if(currentMode != modeSequence.back())
+        {
+          eventTimes.push_back(currentDynamicParamsTime_);
+          modeSequence.push_back(currentMode);
+        }
+        else
+        {
+          // const scalar_t gaitPeriod = 1 / dynamicParams.steppingFrequency;
+          // const scalar_t swingRatio = dynamicParams.swingRatio;
+          // const std::vector<scalar_t> currentPhase = phaseController_.getPhasesAtTime(time);
+
+          // std::vector<scalar_t> timesToNextMode;
+          // timesToNextMode.reserve(staticParams_.endEffectorNumber);
+
+          // for(size_t i = 0; i < staticParams_.endEffectorNumber; ++i)
+          // {
+          //   const scalar_t timeToNextMode = getTimeToNextMode(currentPhase[i], swingRatio, gaitPeriod);
+          //   timesToNextMode.push_back(timeToNextMode);
+          // }
+
+          // std::sort(timesToNextMode.begin(), timesToNextMode.end());
+          
+          // const contact_flags_t nextContactFlags = phaseController_.getContactFlagsAtTime(
+          //   time + timesToNextMode[0]);
+          // const size_t nextMode = contactFlags2ModeNumber(nextContactFlags);
+          
+          // // Next mode
+          // eventTimes.push_back(time + timesToNextMode[0]);
+          // modeSequence.push_back(nextMode);
+
+          // // Standing mode after next mode
+          // scalar_t nextTime;
+          // while(timesToNextMode[0] )
+          eventTimes.push_back(currentDynamicParamsTime_); //+ timesToNextMode[1]);
+          const size_t standingMode = ((0x01 << (staticParams_.endEffectorNumber)) - 1);
+          modeSequence.push_back(standingMode);
+        }
+      }
     }
 
     const GaitStaticParameters& GaitPlanner::getStaticParameters()
@@ -138,23 +238,7 @@ namespace legged_locomotion_mpc
 
     std::vector<scalar_t> GaitPlanner::getPhasesAtTime(scalar_t time) const
     {
-
-      assert(time >= currentChangeTime_);
-
-      std::vector<scalar_t> returnPhases(staticParams_.endEffectorNumber);
-
-      // Add phase between index - 1 time and query time
-      const auto frequency = dynamicParams_.steppingFrequency;
-      scalar_t returnPhase = currentPhase_ + (time - currentChangeTime_) * frequency;
-
-      returnPhases[0] = normalizePhase(returnPhase);
-      const auto& offsets = dynamicParams_.phaseOffsets;
-      for(int i = 1; i < staticParams_.endEffectorNumber; ++i)
-      {
-        returnPhases[i] = normalizePhase(returnPhase + offsets[i - 1]);
-      }
-
-      return returnPhases;
+      return phaseController_.getPhasesAtTime(time);
     }
 
     std::vector<std::vector<scalar_t>> GaitPlanner::getPhasesAtTimes(
@@ -173,24 +257,7 @@ namespace legged_locomotion_mpc
 
     contact_flags_t GaitPlanner::getContactFlagsAtTime(scalar_t time) const
     {
-      // - SCALAR_EPSILON -> Compatibility with ModeSchedule
-      assert(time >= currentChangeTime_);
-
-      contact_flags_t returnFlags(staticParams_.endEffectorNumber);
-      
-      // Add phase between index - 1 time and query time
-      const auto frequency = dynamicParams_.steppingFrequency;
-      scalar_t returnPhase = currentPhase_ + (time - currentChangeTime_) * frequency;
-
-      const auto& offsets = dynamicParams_.phaseOffsets;
-      const scalar_t swingRatio = dynamicParams_.swingRatio;
-
-      returnFlags[0] = normalizePhase(returnPhase - SCALAR_EPSILON) >= swingRatio;
-      for(int i = 1; i < staticParams_.endEffectorNumber; ++i)
-      {
-        returnFlags[i] = normalizePhase(returnPhase + offsets[i - 1] - SCALAR_EPSILON) >= swingRatio;
-      }
-      return returnFlags;
+      return phaseController_.getContactFlagsAtTime(time);
     }
 
     std::vector<contact_flags_t> GaitPlanner::getContactFlagsAtTimes(

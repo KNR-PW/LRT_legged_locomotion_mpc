@@ -140,7 +140,7 @@ TEST(LeggedReferenceManagerTest, getContactFlags)
 
   LeggedReferenceManager manager(modelInfo, 
     managerSettings, std::move(gaitPlanner), std::move(swingPlanner), std::move(basePlanner), 
-    std::move(jointPlanner), std::move(forcePlanner));
+    std::move(jointPlanner), std::move(forcePlanner), false);
 
   const vector3_t initPosition = vector3_t{0.0, 0.0, 0.0};
 
@@ -184,8 +184,8 @@ TEST(LeggedReferenceManagerTest, getContactFlags)
   manager.initialize(initTime, finalTime, initialObservation, contactFlag, 
     dynamicParams, swingDynamicSettings, std::move(terrainModelPtr));
 
-  std::vector<scalar_t> goodTimings = {0.0, 0.3, 0.35, 0.65, 0.7, 1, 1.05, 1.35, 1.4, 1.7, 1.75, 2.05, 2.1};
-  std::vector<size_t> goodSequence = {15, 9, 15, 6, 15, 9, 15, 6, 15, 9, 15, 6, 15, 15};
+  std::vector<scalar_t> goodTimings = {0.0, 0.3, 0.35, 0.65, 0.7, 1, 1.05, 1.35, 1.4, 1.7, 1.75, 2.05, 2.1, 2.4};
+  std::vector<size_t> goodSequence = {15, 9, 15, 6, 15, 9, 15, 6, 15, 9, 15, 6, 15, 9, 15};
   const auto mySequence = manager.getModeSchedule().modeSequence;
 
   EXPECT_TRUE(mySequence == goodSequence);
@@ -318,7 +318,7 @@ TEST(LeggedReferenceManagerTest, getTerrainModel)
 
   LeggedReferenceManager manager(modelInfo, 
     managerSettings, std::move(gaitPlanner), std::move(swingPlanner), std::move(basePlanner), 
-    std::move(jointPlanner), std::move(forcePlanner));
+    std::move(jointPlanner), std::move(forcePlanner), false);
 
   const vector3_t initPosition = vector3_t{0.0, 0.0, 0.0};
 
@@ -491,7 +491,7 @@ TEST(LeggedReferenceManagerTest, getEndEffectorTrajectoryPoint)
 
   LeggedReferenceManager manager(modelInfo, 
     managerSettings, std::move(gaitPlanner), std::move(swingPlanner), std::move(basePlanner), 
-    std::move(jointPlanner), std::move(forcePlanner));
+    std::move(jointPlanner), std::move(forcePlanner), false);
 
   const vector3_t initPosition = vector3_t{0.0, 0.0, 0.0};
 
@@ -684,7 +684,7 @@ TEST(LeggedReferenceManagerTest, getEndEffectorConstraintMatrixes)
 
   LeggedReferenceManager manager(modelInfo, 
     managerSettings, std::move(gaitPlanner), std::move(swingPlanner), std::move(basePlanner), 
-    std::move(jointPlanner), std::move(forcePlanner));
+    std::move(jointPlanner), std::move(forcePlanner), false);
 
   const vector3_t initPosition = vector3_t{0.0, 0.0, 0.0};
 
@@ -728,8 +728,8 @@ TEST(LeggedReferenceManagerTest, getEndEffectorConstraintMatrixes)
   manager.initialize(initTime, finalTime, initialObservation, contactFlag, 
     dynamicParams, swingDynamicSettings, std::move(terrainModelPtr));
 
-  std::vector<scalar_t> goodTimings = {0.0, 0.3, 0.35, 0.65, 0.7, 1, 1.05, 1.35, 1.4, 1.7, 1.75, 2.05, 2.1};
-  std::vector<size_t> goodSequence = {15, 9, 15, 6, 15, 9, 15, 6, 15, 9, 15, 6, 15, 15};
+  std::vector<scalar_t> goodTimings = {0.0, 0.3, 0.35, 0.65, 0.7, 1, 1.05, 1.35, 1.4, 1.7, 1.75, 2.05, 2.1, 2.4};
+  std::vector<size_t> goodSequence = {15, 9, 15, 6, 15, 9, 15, 6, 15, 9, 15, 6, 15, 9, 15};
   const auto mySequence = manager.getModeSchedule().modeSequence;
 
   EXPECT_TRUE(mySequence == goodSequence);

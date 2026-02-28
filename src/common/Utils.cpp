@@ -159,7 +159,7 @@ namespace legged_locomotion_mpc
       {
         return one < two && !numerics::almost_eq(one, two, SCALAR_EPSILON);
       };
-      auto firstLargerValueIterator = std::lower_bound(timeArray.cbegin(), timeArray.cend(), time, compare);
+      const auto firstLargerValueIterator = std::lower_bound(timeArray.cbegin(), timeArray.cend(), time, compare);
       return static_cast<size_t>(firstLargerValueIterator - timeArray.cbegin());
     }
     

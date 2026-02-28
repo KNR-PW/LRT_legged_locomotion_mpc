@@ -78,11 +78,9 @@ TEST(ModeDynamicSequenceTemplateTest, getter)
     ASSERT_NEAR(modeSequenceTemplate.switchingTimes[i], goodTiming[i], 1e-6);
   }
 
-  const scalar_t MIN_TIME_BETWEEN_CHANGES = 1e-4;
-
   for(int i = 1; i < modeSequenceTemplate.switchingTimes.size(); ++i)
   {
     scalar_t deltaTime = modeSequenceTemplate.switchingTimes[i] - modeSequenceTemplate.switchingTimes[i - 1];
-    ASSERT_GT(deltaTime, MIN_TIME_BETWEEN_CHANGES);
+    ASSERT_GT(deltaTime, Definitions::MIN_TIME_BETWEEN_CHANGES);
   }
 }
