@@ -39,7 +39,7 @@ namespace legged_locomotion_mpc
       const ocs2::scalar_t GAIT_PARAMETERS_EPS = 1e-3;
       
       // If mode changes between modes are smaller than this, they are in same mode change!
-      const ocs2::scalar_t MIN_TIME_BETWEEN_CHANGES = 1e-2;
+      const ocs2::scalar_t MIN_TIME_BETWEEN_CHANGES = 5e-3;
     }
 
     enum class GaitFlags

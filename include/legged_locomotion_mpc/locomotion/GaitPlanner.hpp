@@ -68,6 +68,9 @@ namespace legged_locomotion_mpc
         const GaitDynamicParameters& getDynamicParameters();
 
       private:
+
+        GaitDynamicParameters clampGaitDynamicParams(
+          const GaitDynamicParameters& dynamicParams);
   
         const GaitStaticParameters staticParams_;
 

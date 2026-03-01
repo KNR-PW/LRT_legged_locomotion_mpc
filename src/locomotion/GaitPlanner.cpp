@@ -152,32 +152,39 @@ namespace legged_locomotion_mpc
     {
       assert(time >= currentDynamicParamsTime_);
       if(dynamicParams == dynamicParams_) return;
-      
-      currentDynamicParamsTime_ = time;
 
-      // // Check if time is bigger than minimum time between changes
-      // if((time - currentDynamicParamsTime_) > Definitions::MIN_TIME_BETWEEN_CHANGES)
-      // {
-      //   // Get 
-      //   currentDynamicParamsTime_ = time + Definitions::MIN_TIME_BETWEEN_CHANGES;
-      // }
+      const auto clampedParams = clampGaitDynamicParams(dynamicParams);
 
-      
-      // Update dynamic parameters
-      dynamicParams_ = dynamicParams;
+      // Check mode with new parameters at time t
+      const scalar_t basePhase = phaseController_.getPhasesAtTime(time)[0];
+      contact_flags_t newFlags;
 
-      phaseController_.update(currentDynamicParamsTime_, dynamicParams);
+      newFlags[0] = normalizePhase(basePhase - SCALAR_EPSILON) >= clampedParams.swingRatio;
+      for(size_t i = 1; i < staticParams_.endEffectorNumber; ++i)
+      {
+        newFlags[i] = normalizePhase(basePhase + clampedParams.phaseOffsets[i - 1] - SCALAR_EPSILON) >= clampedParams.swingRatio;
+      }
+      const size_t newMode = contactFlags2ModeNumber(newFlags);
 
-      const contact_flags_t currentFlags = phaseController_.getContactFlagsAtTime(currentDynamicParamsTime_);
-      const size_t currentMode = contactFlags2ModeNumber(currentFlags);
 
-      // Update cached mode schedule
       auto& eventTimes = modeSchedule_.eventTimes;
       auto& modeSequence = modeSchedule_.modeSequence;
 
+      // Get old mode at this time
+      size_t endIndex = 0;
+      size_t currentMode = 0;
+
       if(!modeSequence.empty())
       {
-        const size_t endIndex = utils::findIndexInTimeArray(eventTimes, currentDynamicParamsTime_);
+        endIndex = utils::findIndexInTimeArray(eventTimes, time);
+        currentMode = modeSequence[endIndex];
+      }
+
+      // Smooth transition, seems good
+      if(newMode == currentMode)
+      {
+        currentDynamicParamsTime_ = time;
+        phaseController_.update(currentDynamicParamsTime_, clampedParams);
 
         if(endIndex < eventTimes.size())
         {
@@ -186,43 +193,52 @@ namespace legged_locomotion_mpc
           modeSequence.erase(modeSequence.begin() + endIndex + 1, modeSequence.end());
         }
 
-        if(currentMode != modeSequence.back())
+        const scalar_t gaitPeriod = 1 / clampedParams.steppingFrequency;
+        const scalar_t swingRatio = clampedParams.swingRatio;
+        const std::vector<scalar_t> currentPhase = phaseController_.getPhasesAtTime(
+          currentDynamicParamsTime_);
+        std::vector<scalar_t> timesToNextMode;
+        timesToNextMode.reserve(staticParams_.endEffectorNumber);
+        for(size_t i = 0; i < staticParams_.endEffectorNumber; ++i)
         {
-          eventTimes.push_back(currentDynamicParamsTime_);
-          modeSequence.push_back(currentMode);
+          const scalar_t timeToNextMode = getTimeToNextMode(currentPhase[i], swingRatio, gaitPeriod);
+          timesToNextMode.push_back(timeToNextMode);
+        }
+        std::sort(timesToNextMode.begin(), timesToNextMode.end());
+
+        eventTimes.push_back(currentDynamicParamsTime_ + timesToNextMode[0]);
+        const size_t standingMode = ((0x01 << (staticParams_.endEffectorNumber)) - 1);
+        modeSequence.push_back(standingMode);
+
+        dynamicParams_ = clampedParams;
+      }
+      // Not the same mode
+      else
+      {
+        if(std::abs(time - eventTimes[endIndex]) < Definitions::MIN_TIME_BETWEEN_CHANGES)
+        {
+          // Move time of dynamic params change by MIN_TIME_BETWEEN_CHANGES
+          currentDynamicParamsTime_ = time + Definitions::MIN_TIME_BETWEEN_CHANGES;
+          time += Definitions::MIN_TIME_BETWEEN_CHANGES;
+
         }
         else
         {
-          // const scalar_t gaitPeriod = 1 / dynamicParams.steppingFrequency;
-          // const scalar_t swingRatio = dynamicParams.swingRatio;
-          // const std::vector<scalar_t> currentPhase = phaseController_.getPhasesAtTime(time);
-
-          // std::vector<scalar_t> timesToNextMode;
-          // timesToNextMode.reserve(staticParams_.endEffectorNumber);
-
-          // for(size_t i = 0; i < staticParams_.endEffectorNumber; ++i)
-          // {
-          //   const scalar_t timeToNextMode = getTimeToNextMode(currentPhase[i], swingRatio, gaitPeriod);
-          //   timesToNextMode.push_back(timeToNextMode);
-          // }
-
-          // std::sort(timesToNextMode.begin(), timesToNextMode.end());
-          
-          // const contact_flags_t nextContactFlags = phaseController_.getContactFlagsAtTime(
-          //   time + timesToNextMode[0]);
-          // const size_t nextMode = contactFlags2ModeNumber(nextContactFlags);
-          
-          // // Next mode
-          // eventTimes.push_back(time + timesToNextMode[0]);
-          // modeSequence.push_back(nextMode);
-
-          // // Standing mode after next mode
-          // scalar_t nextTime;
-          // while(timesToNextMode[0] )
-          eventTimes.push_back(currentDynamicParamsTime_); //+ timesToNextMode[1]);
-          const size_t standingMode = ((0x01 << (staticParams_.endEffectorNumber)) - 1);
-          modeSequence.push_back(standingMode);
+          currentDynamicParamsTime_ = time;
         }
+        phaseController_.update(currentDynamicParamsTime_, clampedParams);
+
+        if(endIndex < eventTimes.size())
+        {
+          // delete the old logic from index after finalTime
+          eventTimes.erase(eventTimes.begin() + endIndex, eventTimes.end());
+          modeSequence.erase(modeSequence.begin() + endIndex + 1, modeSequence.end());
+        }
+
+        eventTimes.push_back(currentDynamicParamsTime_);
+        modeSequence.push_back(currentMode);
+
+        dynamicParams_ = clampedParams;
       }
     }
 
@@ -272,6 +288,43 @@ namespace legged_locomotion_mpc
         contactFlagsTrajectory.push_back(std::move(currentFlags));
       }
       return contactFlagsTrajectory;
+    }
+
+    GaitDynamicParameters GaitPlanner::clampGaitDynamicParams(
+      const GaitDynamicParameters& dynamicParams)
+    {
+      auto newDynamicsParams = dynamicParams;
+
+      auto& phaseOffsets = newDynamicsParams.phaseOffsets;
+      const scalar_t steppingFrequency = newDynamicsParams.steppingFrequency;
+      const scalar_t gaitPeriod = 1.0 / steppingFrequency;
+
+      // How much time does planner needs to get same value as phase offset
+      using timed_index = std::pair<size_t, scalar_t>;
+      std::vector<timed_index> timeOffsets;
+      const size_t offsetSize = staticParams_.endEffectorNumber - 1;
+      timeOffsets.reserve(offsetSize);
+
+      for(size_t i = 0; i < offsetSize; ++i)
+      {
+        timeOffsets.emplace_back(i, gaitPeriod * phaseOffsets[i]);
+      }
+      
+      // Sort them (NlogN)
+      std::sort(timeOffsets.begin(), timeOffsets.end(), [](const timed_index& a, 
+        const timed_index& b) {return a.second < b.second;});
+
+      // Check if neighbours are close to each other (N - 1)
+      for(size_t i = 0; i < offsetSize - 1; ++i)
+      {
+        if(std::abs(timeOffsets[i].second 
+          - timeOffsets[i + 1].second) < Definitions::MIN_TIME_BETWEEN_CHANGES)
+        {
+          // Have same offest then :)
+          phaseOffsets[i + 1] = phaseOffsets[i];
+        }
+      }
+      return newDynamicsParams;
     }
   }
 }

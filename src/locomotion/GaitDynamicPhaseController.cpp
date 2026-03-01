@@ -140,6 +140,7 @@ namespace legged_locomotion_mpc
 
       // Change front time smaller than query time to query time and update front cached phase
       cachedPhase_.front() += (time - eventTimes_.front()) * dynamicParamsVec_.front().steppingFrequency;
+      cachedPhase_.front() = normalizePhase(cachedPhase_.front());
       eventTimes_.front() = time;
     }
 
@@ -161,7 +162,7 @@ namespace legged_locomotion_mpc
       assert(newTime > eventTimes_.back());
 
       // Calculate new cached phase
-      scalar_t newCachedPhase = cachedPhase_.back() + (newTime - eventTimes_.back()) * dynamicParamsVec_.back().steppingFrequency;
+      scalar_t newCachedPhase = normalizePhase(cachedPhase_.back() + (newTime - eventTimes_.back()) * dynamicParamsVec_.back().steppingFrequency);
       eventTimes_.push_back(newTime);
       dynamicParamsVec_.push_back(std::move(newDynamicParams));
       cachedPhase_.push_back(newCachedPhase);
