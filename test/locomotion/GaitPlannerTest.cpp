@@ -353,8 +353,6 @@ TEST(GaitPlannerTest, getModeWithUpdateDynamicParameters)
 
   modeSchedule = gaitPlanner.getModeSchedule(startTime, finalTime);
 
-  std::cerr << modeSchedule << std::endl;
-
   for(int i = 0; i < ITERATIONS; ++i)
   {
     scalar_t time = startTime + i * (finalTime - startTime)  / ITERATIONS;
@@ -379,8 +377,6 @@ TEST(GaitPlannerTest, getModeWithUpdateDynamicParameters)
   gaitPlanner.updateDynamicParameters(thirdTime, dynamicParams3);
   modeSchedule = gaitPlanner.getModeSchedule(startTime, finalTime);
 
-  std::cerr << modeSchedule << std::endl;
-
   for(int i = 0; i < ITERATIONS; ++i)
   {
     scalar_t time = startTime + i * (finalTime - startTime)  / ITERATIONS;
@@ -400,12 +396,34 @@ TEST(GaitPlannerTest, getModeWithUpdateDynamicParameters)
   dynamicParams4.swingRatio =  0.4;
   dynamicParams4.steppingFrequency = 1.2;
   dynamicParams4.phaseOffsets = {0.5 + 0.1, 0.2 - 0.1, 0.7 + 0.05};
-
+  
   scalar_t forthTime = 1.125; 
   gaitPlanner.updateDynamicParameters(forthTime, dynamicParams4);
   modeSchedule = gaitPlanner.getModeSchedule(startTime, finalTime);
 
-  std::cerr << modeSchedule << std::endl;
+  for(int i = 0; i < ITERATIONS; ++i)
+  {
+    scalar_t time = startTime + i * (finalTime - startTime)  / ITERATIONS;
+    auto contactFlags = gaitPlanner.getContactFlagsAtTime(time);
+    auto trueContactFlags = modeNumber2ContactFlags(modeSchedule.modeAtTime(time - 1e-6));
+    EXPECT_TRUE(contactFlags == trueContactFlags);
+  }
+
+  for(size_t i = 1; i < modeSchedule.eventTimes.size(); ++i)
+  {
+    scalar_t deltaTime = modeSchedule.eventTimes[i] - modeSchedule.eventTimes[i - 1];
+    EXPECT_GT(deltaTime, Definitions::MIN_TIME_BETWEEN_CHANGES);
+  }
+
+  /* DYNAMIC WALK */
+  GaitDynamicParameters dynamicParams5;
+  dynamicParams5.swingRatio =  0.45;
+  dynamicParams5.steppingFrequency = 1.25;
+  dynamicParams5.phaseOffsets = {0.5 + 0.15, 0.2 - 0.15, 0.7 + 0.1};
+
+  scalar_t fithTime = 1.135;
+  gaitPlanner.updateDynamicParameters(fithTime, dynamicParams5);
+  modeSchedule = gaitPlanner.getModeSchedule(startTime, finalTime);
 
   for(int i = 0; i < ITERATIONS; ++i)
   {

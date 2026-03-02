@@ -195,18 +195,26 @@ namespace legged_locomotion_mpc
 
         const scalar_t gaitPeriod = 1 / clampedParams.steppingFrequency;
         const scalar_t swingRatio = clampedParams.swingRatio;
-        const std::vector<scalar_t> currentPhase = phaseController_.getPhasesAtTime(
-          currentDynamicParamsTime_);
-        std::vector<scalar_t> timesToNextMode;
-        timesToNextMode.reserve(staticParams_.endEffectorNumber);
+        const auto& offsets = clampedParams.phaseOffsets;
+
+        std::vector<scalar_t> currentPhase(staticParams_.endEffectorNumber);
+        currentPhase[0] = normalizePhase(basePhase);
+        for(size_t i = 1; i < staticParams_.endEffectorNumber; ++i)
+        {
+          currentPhase[i] = normalizePhase(basePhase + offsets[i - 1]);
+        }
+
+        scalar_t minTimeToNextMode = std::numeric_limits<scalar_t>::max();
         for(size_t i = 0; i < staticParams_.endEffectorNumber; ++i)
         {
           const scalar_t timeToNextMode = getTimeToNextMode(currentPhase[i], swingRatio, gaitPeriod);
-          timesToNextMode.push_back(timeToNextMode);
+          if(timeToNextMode < minTimeToNextMode)
+          {
+            minTimeToNextMode = timeToNextMode;
+          }
         }
-        std::sort(timesToNextMode.begin(), timesToNextMode.end());
 
-        eventTimes.push_back(currentDynamicParamsTime_ + timesToNextMode[0]);
+        eventTimes.push_back(currentDynamicParamsTime_ + minTimeToNextMode);
         const size_t standingMode = ((0x01 << (staticParams_.endEffectorNumber)) - 1);
         modeSequence.push_back(standingMode);
 
@@ -219,8 +227,6 @@ namespace legged_locomotion_mpc
         {
           // Move time of dynamic params change by MIN_TIME_BETWEEN_CHANGES
           currentDynamicParamsTime_ = time + Definitions::MIN_TIME_BETWEEN_CHANGES;
-          time += Definitions::MIN_TIME_BETWEEN_CHANGES;
-
         }
         else
         {
@@ -299,31 +305,28 @@ namespace legged_locomotion_mpc
       const scalar_t steppingFrequency = newDynamicsParams.steppingFrequency;
       const scalar_t gaitPeriod = 1.0 / steppingFrequency;
 
-      // How much time does planner needs to get same value as phase offset
-      using timed_index = std::pair<size_t, scalar_t>;
-      std::vector<timed_index> timeOffsets;
       const size_t offsetSize = staticParams_.endEffectorNumber - 1;
+      std::vector<scalar_t> timeOffsets;
       timeOffsets.reserve(offsetSize);
 
+      // Check if other phases are close to each other
       for(size_t i = 0; i < offsetSize; ++i)
       {
-        timeOffsets.emplace_back(i, gaitPeriod * phaseOffsets[i]);
+        timeOffsets.emplace_back(gaitPeriod * phaseOffsets[i]);
       }
-      
-      // Sort them (NlogN)
-      std::sort(timeOffsets.begin(), timeOffsets.end(), [](const timed_index& a, 
-        const timed_index& b) {return a.second < b.second;});
 
-      // Check if neighbours are close to each other (N - 1)
-      for(size_t i = 0; i < offsetSize - 1; ++i)
+      for(size_t i = 0; i < (offsetSize - 1); ++i)
       {
-        if(std::abs(timeOffsets[i].second 
-          - timeOffsets[i + 1].second) < Definitions::MIN_TIME_BETWEEN_CHANGES)
+        for(size_t j = (i + 1); i < offsetSize; ++i)
         {
-          // Have same offest then :)
-          phaseOffsets[i + 1] = phaseOffsets[i];
+          if(std::abs(timeOffsets[i] - timeOffsets[j]) < 
+            Definitions::MIN_TIME_BETWEEN_CHANGES)
+          {
+            phaseOffsets[j] = phaseOffsets[i];
+          }
         }
       }
+
       return newDynamicsParams;
     }
   }

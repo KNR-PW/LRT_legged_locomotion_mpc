@@ -52,7 +52,8 @@ namespace legged_locomotion_mpc
       }
 
       // Find index of time larger that query time
-      const size_t index = utils::findIndexInTimeArray(eventTimes_, time);
+      // - SCALAR_EPSILON -> Compatibility with ModeSchedule
+      const size_t index = utils::findIndexInTimeArray(eventTimes_, time - SCALAR_EPSILON);
       
       // Add phase between index - 1 time and query time
       const auto frequency = dynamicParamsVec_[index - 1].steppingFrequency;
@@ -93,7 +94,7 @@ namespace legged_locomotion_mpc
       }
       
       // Find index of time larger that query time
-      const size_t index = utils::findIndexInTimeArray(eventTimes_, time);
+      const size_t index = utils::findIndexInTimeArray(eventTimes_, time - SCALAR_EPSILON);
       
       // Add phase between index - 1 time and query time
       const auto frequency = dynamicParamsVec_[index - 1].steppingFrequency;
