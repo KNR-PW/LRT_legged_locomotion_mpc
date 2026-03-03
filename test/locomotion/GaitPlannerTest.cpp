@@ -8,7 +8,7 @@ using namespace legged_locomotion_mpc::locomotion;
 using namespace ocs2;
 
 // Not round because std::lower_bound is sensitive for time points of mode change
-const size_t ITERATIONS = 50;
+const size_t ITERATIONS = 200;
 
 TEST(GaitPlannerTest, Constructor)
 {
@@ -423,6 +423,30 @@ TEST(GaitPlannerTest, getModeWithUpdateDynamicParameters)
 
   scalar_t fithTime = 1.135;
   gaitPlanner.updateDynamicParameters(fithTime, dynamicParams5);
+  modeSchedule = gaitPlanner.getModeSchedule(startTime, finalTime);
+
+  for(int i = 0; i < ITERATIONS; ++i)
+  {
+    scalar_t time = startTime + i * (finalTime - startTime)  / ITERATIONS;
+    auto contactFlags = gaitPlanner.getContactFlagsAtTime(time);
+    auto trueContactFlags = modeNumber2ContactFlags(modeSchedule.modeAtTime(time - 1e-6));
+    EXPECT_TRUE(contactFlags == trueContactFlags);
+  }
+
+  for(size_t i = 1; i < modeSchedule.eventTimes.size(); ++i)
+  {
+    scalar_t deltaTime = modeSchedule.eventTimes[i] - modeSchedule.eventTimes[i - 1];
+    EXPECT_GT(deltaTime, Definitions::MIN_TIME_BETWEEN_CHANGES);
+  }
+
+  /* DYNAMIC WALK */
+  GaitDynamicParameters dynamicParams6;
+  dynamicParams6.swingRatio =  0.55;
+  dynamicParams6.steppingFrequency = 1.0;
+  dynamicParams6.phaseOffsets = {0.9, 0.0, 0.0};
+
+  scalar_t sixthTime = 1.145;
+  gaitPlanner.updateDynamicParameters(sixthTime, dynamicParams6);
   modeSchedule = gaitPlanner.getModeSchedule(startTime, finalTime);
 
   for(int i = 0; i < ITERATIONS; ++i)

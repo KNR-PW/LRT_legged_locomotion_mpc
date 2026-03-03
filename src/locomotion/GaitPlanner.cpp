@@ -157,15 +157,20 @@ namespace legged_locomotion_mpc
 
       // Check mode with new parameters at time t
       const scalar_t basePhase = phaseController_.getPhasesAtTime(time)[0];
+      const scalar_t swingRatio = clampedParams.swingRatio;
+      const auto& offsets = clampedParams.phaseOffsets;
+      std::vector<scalar_t> newPhase(staticParams_.endEffectorNumber);
       contact_flags_t newFlags;
 
-      newFlags[0] = normalizePhase(basePhase - SCALAR_EPSILON) >= clampedParams.swingRatio;
+      newPhase[0] = normalizePhase(basePhase - SCALAR_EPSILON);
+      newFlags[0] = newPhase[0] >= swingRatio;
       for(size_t i = 1; i < staticParams_.endEffectorNumber; ++i)
       {
-        newFlags[i] = normalizePhase(basePhase + clampedParams.phaseOffsets[i - 1] - SCALAR_EPSILON) >= clampedParams.swingRatio;
+        newPhase[i] = normalizePhase(basePhase + offsets[i - 1] - SCALAR_EPSILON);
+        newFlags[i] = newPhase[i] >= swingRatio;
       }
-      const size_t newMode = contactFlags2ModeNumber(newFlags);
 
+      const size_t newMode = contactFlags2ModeNumber(newFlags);
 
       auto& eventTimes = modeSchedule_.eventTimes;
       auto& modeSequence = modeSchedule_.modeSequence;
@@ -178,6 +183,13 @@ namespace legged_locomotion_mpc
       {
         endIndex = utils::findIndexInTimeArray(eventTimes, time);
         currentMode = modeSequence[endIndex];
+
+        if(endIndex < eventTimes.size())
+        {
+          // delete the old logic from index after finalTime
+          eventTimes.erase(eventTimes.begin() + endIndex, eventTimes.end());
+          modeSequence.erase(modeSequence.begin() + endIndex + 1, modeSequence.end());
+        }
       }
 
       // Smooth transition, seems good
@@ -186,28 +198,12 @@ namespace legged_locomotion_mpc
         currentDynamicParamsTime_ = time;
         phaseController_.update(currentDynamicParamsTime_, clampedParams);
 
-        if(endIndex < eventTimes.size())
-        {
-          // delete the old logic from index after finalTime
-          eventTimes.erase(eventTimes.begin() + endIndex, eventTimes.end());
-          modeSequence.erase(modeSequence.begin() + endIndex + 1, modeSequence.end());
-        }
-
         const scalar_t gaitPeriod = 1 / clampedParams.steppingFrequency;
-        const scalar_t swingRatio = clampedParams.swingRatio;
-        const auto& offsets = clampedParams.phaseOffsets;
-
-        std::vector<scalar_t> currentPhase(staticParams_.endEffectorNumber);
-        currentPhase[0] = normalizePhase(basePhase);
-        for(size_t i = 1; i < staticParams_.endEffectorNumber; ++i)
-        {
-          currentPhase[i] = normalizePhase(basePhase + offsets[i - 1]);
-        }
 
         scalar_t minTimeToNextMode = std::numeric_limits<scalar_t>::max();
         for(size_t i = 0; i < staticParams_.endEffectorNumber; ++i)
         {
-          const scalar_t timeToNextMode = getTimeToNextMode(currentPhase[i], swingRatio, gaitPeriod);
+          const scalar_t timeToNextMode = getTimeToNextMode(newPhase[i], swingRatio, gaitPeriod);
           if(timeToNextMode < minTimeToNextMode)
           {
             minTimeToNextMode = timeToNextMode;
@@ -232,17 +228,11 @@ namespace legged_locomotion_mpc
         {
           currentDynamicParamsTime_ = time;
         }
+
         phaseController_.update(currentDynamicParamsTime_, clampedParams);
 
-        if(endIndex < eventTimes.size())
-        {
-          // delete the old logic from index after finalTime
-          eventTimes.erase(eventTimes.begin() + endIndex, eventTimes.end());
-          modeSequence.erase(modeSequence.begin() + endIndex + 1, modeSequence.end());
-        }
-
         eventTimes.push_back(currentDynamicParamsTime_);
-        modeSequence.push_back(currentMode);
+        modeSequence.push_back(newMode);
 
         dynamicParams_ = clampedParams;
       }
