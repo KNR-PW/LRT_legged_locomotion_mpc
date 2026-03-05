@@ -55,6 +55,9 @@ namespace legged_locomotion_mpc
 
     // Safety radius for each foot (representing contact pressure circle)
     std::vector<ocs2::scalar_t> endEffectorSafetyRadiuses;
+
+    // Intial phase
+    ocs2::scalar_t initialPhase;
   };
 
   /**

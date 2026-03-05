@@ -87,6 +87,12 @@ namespace legged_locomotion_mpc
       }
     }
 
+    loadData::loadPtreeValue(pt, modelSettings.initialPhase, fieldName + ".initialPhase", verbose);
+    if(modelSettings.initialPhase < 0.0 || modelSettings.initialPhase >= 1.0)
+    {
+      throw std::invalid_argument("[ModelSettings]: Initial phase should be between [0.0, 1.0)");
+    }
+
     if(verbose) 
     {
       std::cerr << " #### =============================================================================" <<
