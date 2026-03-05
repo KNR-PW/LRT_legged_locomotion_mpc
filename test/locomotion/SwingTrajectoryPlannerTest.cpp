@@ -37,8 +37,7 @@ TEST(SwingTrajectoryPlannerTest, standingInPlace)
 
   GaitStaticParameters staticParams;
   staticParams.endEffectorNumber = 4;
-  
-  
+  staticParams.initPhase = currentPhase;
 
   GaitDynamicParameters dynamicParams;
   dynamicParams.steppingFrequency = 0.0;
@@ -96,7 +95,7 @@ TEST(SwingTrajectoryPlannerTest, standingInPlace)
   }
 
 
-  GaitPlanner gaitPlanner(staticParams, dynamicParams, currentPhase, defTime);
+  GaitPlanner gaitPlanner(staticParams, dynamicParams, defTime);
 
   BaseTrajectoryPlanner basePlanner(modelInfo, staticSettings);
 
@@ -204,9 +203,8 @@ TEST(SwingTrajectoryPlannerTest, TrotInPlace)
 
   GaitStaticParameters staticParams;
   staticParams.endEffectorNumber = 4;
+  staticParams.initPhase = currentPhase;
   
-  
-
   GaitDynamicParameters dynamicParams;
   dynamicParams.steppingFrequency = 1.0 / 0.7;
   dynamicParams.swingRatio = 3.0 / 7.0;
@@ -262,7 +260,7 @@ TEST(SwingTrajectoryPlannerTest, TrotInPlace)
     swingDynamicSettings.tangentialVelocityFactors[i] = 2.0;
   }
 
-  GaitPlanner gaitPlanner(staticParams, dynamicParams, currentPhase, defTime);
+  GaitPlanner gaitPlanner(staticParams, dynamicParams, defTime);
 
   BaseTrajectoryPlanner basePlanner(modelInfo, staticSettings);
 
@@ -369,9 +367,8 @@ TEST(SwingTrajectoryPlannerTest, Troting)
 
   GaitStaticParameters staticParams;
   staticParams.endEffectorNumber = 4;
+  staticParams.initPhase = currentPhase;
   
-  
-
   GaitDynamicParameters dynamicParams;
   dynamicParams.steppingFrequency = 1.0 / 0.7;
   dynamicParams.swingRatio = 3.0 / 7.0;
@@ -427,7 +424,7 @@ TEST(SwingTrajectoryPlannerTest, Troting)
     swingDynamicSettings.tangentialVelocityFactors[i] = 2.0;
   }
 
-  GaitPlanner gaitPlanner(staticParams, dynamicParams, currentPhase, defTime);
+  GaitPlanner gaitPlanner(staticParams, dynamicParams, defTime);
 
   BaseTrajectoryPlanner basePlanner(modelInfo, staticSettings);
 

@@ -292,7 +292,7 @@ namespace legged_locomotion_mpc
 
         const terrain_model::TerrainModel* terrainModel_;
 
-        const OverExtensionPenalty& overExtensionPenalty_;
+        const OverExtensionPenalty overExtensionPenalty_;
     };
 
     /**

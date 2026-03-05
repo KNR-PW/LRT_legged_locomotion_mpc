@@ -71,21 +71,22 @@ namespace legged_locomotion_mpc
         const std::string& modelName,
         const std::string& modelFolder = "/tmp/legged_locomotion_mpc",
         bool recompileLibraries = true, bool verbose = false);
+      
+      OverExtensionPenalty(const OverExtensionPenalty& rhs);
 
-      ~OverExtensionPenalty() = default;
-      
-      OverExtensionPenalty* clone() const;
-      
       OverExtensionPenalty& operator =(
           const OverExtensionPenalty&) = delete;
+
+      OverExtensionPenalty(OverExtensionPenalty&& rhs) = delete;
+
+      OverExtensionPenalty& operator =(
+          OverExtensionPenalty&& rhs) = delete;
 
       std::vector<PenaltyFunction> getPenalties(const ocs2::vector_t& state) const;
 
       PenaltyFunction getPenalty(size_t endEffectorIndex, const ocs2::vector_t& state) const;
 
      private:
-      OverExtensionPenalty(
-        const OverExtensionPenalty& rhs);
 
       ocs2::ad_vector_t getHipPositionsCppAd(
         ocs2::PinocchioInterfaceCppAd& pinocchioInterfaceCppAd,
@@ -100,8 +101,19 @@ namespace legged_locomotion_mpc
       std::vector<size_t> hipIndices_;
       
       std::unique_ptr<ocs2::CppAdInterface> positionCppAdInterfacePtr_;
-      
     };
+
+    /**
+     * Creates OverExtensionPenalty settings 
+     * @param [in] filename: file path with swing planner settings.
+     * @param [in] fieldName: field where settings are defined
+     * @param [in] verbose: verbose flag
+     * @return OverExtensionPenalty::Settings struct
+     */
+    OverExtensionPenalty::Settings loadOverExtensionPenaltySettings(
+      const std::string& filename, 
+      const std::string& fieldName = "over_extension_penalty_settings",
+      bool verbose = true);
   } // namespace locomotion
 } // namespace legged_locomotion_mpc
 

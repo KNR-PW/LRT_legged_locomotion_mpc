@@ -36,6 +36,7 @@ TEST(LeggedReferenceManagerTest, getContactFlags)
 
   GaitStaticParameters staticParams;
   staticParams.endEffectorNumber = 4;
+  staticParams.initPhase = currentPhase;
   
   GaitDynamicParameters dynamicParams;
   dynamicParams.steppingFrequency = 1.0 / 0.7;
@@ -105,7 +106,7 @@ TEST(LeggedReferenceManagerTest, getContactFlags)
     swingDynamicSettings.tangentialVelocityFactors[i] = 2.0;
   }
 
-  GaitPlanner gaitPlanner(staticParams, dynamicParams, currentPhase, defTime);
+  GaitPlanner gaitPlanner(staticParams, dynamicParams, defTime);
 
   GaitPlanner trueGaitPlanner = gaitPlanner;
 
@@ -212,9 +213,8 @@ TEST(LeggedReferenceManagerTest, getTerrainModel)
 
   GaitStaticParameters staticParams;
   staticParams.endEffectorNumber = 4;
+  staticParams.initPhase = currentPhase;
   
-  
-
   GaitDynamicParameters dynamicParams;
   dynamicParams.steppingFrequency = 1.0 / 0.7;
   dynamicParams.swingRatio = 3.0 / 7.0;
@@ -283,7 +283,7 @@ TEST(LeggedReferenceManagerTest, getTerrainModel)
     swingDynamicSettings.tangentialVelocityFactors[i] = 2.0;
   }
 
-  GaitPlanner gaitPlanner(staticParams, dynamicParams, currentPhase, defTime);
+  GaitPlanner gaitPlanner(staticParams, dynamicParams, defTime);
 
   GaitPlanner trueGaitPlanner = gaitPlanner;
 
@@ -385,8 +385,7 @@ TEST(LeggedReferenceManagerTest, getEndEffectorTrajectoryPoint)
 
   GaitStaticParameters staticParams;
   staticParams.endEffectorNumber = 4;
-  
-  
+  staticParams.initPhase = currentPhase;
 
   GaitDynamicParameters dynamicParams;
   dynamicParams.steppingFrequency = 1.0 / 0.7;
@@ -456,7 +455,7 @@ TEST(LeggedReferenceManagerTest, getEndEffectorTrajectoryPoint)
     swingDynamicSettings.tangentialVelocityFactors[i] = 2.0;
   }
 
-  GaitPlanner gaitPlanner(staticParams, dynamicParams, currentPhase, defTime);
+  GaitPlanner gaitPlanner(staticParams, dynamicParams, defTime);
 
   GaitPlanner trueGaitPlanner = gaitPlanner;
 
@@ -578,9 +577,8 @@ TEST(LeggedReferenceManagerTest, getEndEffectorConstraintMatrixes)
 
   GaitStaticParameters staticParams;
   staticParams.endEffectorNumber = 4;
+  staticParams.initPhase = currentPhase;
   
-  
-
   GaitDynamicParameters dynamicParams;
   dynamicParams.steppingFrequency = 1.0 / 0.7;
   dynamicParams.swingRatio = 3.0 / 7.0;
@@ -649,7 +647,7 @@ TEST(LeggedReferenceManagerTest, getEndEffectorConstraintMatrixes)
     swingDynamicSettings.tangentialVelocityFactors[i] = 2.0;
   }
 
-  GaitPlanner gaitPlanner(staticParams, dynamicParams, currentPhase, defTime);
+  GaitPlanner gaitPlanner(staticParams, dynamicParams, defTime);
 
   GaitPlanner trueGaitPlanner = gaitPlanner;
 
@@ -773,4 +771,13 @@ TEST(LeggedReferenceManagerTest, getEndEffectorConstraintMatrixes)
     }
     testTime += testDeltaTime;
   }
+}
+
+TEST(LeggedReferenceManagerTest, loader)
+{
+  const std::string filePath = meldogConfigFolder + "reference_manager_settings.info";
+
+  const auto referenceSettings = loadLeggedReferenceManagerSettings(filePath);
+
+  EXPECT_TRUE(referenceSettings.maximumReferenceSampleInterval == 0.5);
 }

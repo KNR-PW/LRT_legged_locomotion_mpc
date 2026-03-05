@@ -16,6 +16,7 @@ TEST(GaitDynamicPhaseController, getPhaseAtTime)
 
   GaitStaticParameters staticParams;
   staticParams.endEffectorNumber = 4;
+  staticParams.initPhase = currentPhase;
 
   GaitDynamicParameters dynamicParams;
   dynamicParams.steppingFrequency = 1.0 / 0.7;
@@ -23,8 +24,7 @@ TEST(GaitDynamicPhaseController, getPhaseAtTime)
   
   dynamicParams.phaseOffsets = {-currentPhase , -currentPhase , 0};
 
-  GaitDynamicPhaseController gaitController(currentPhase,
-    0.0, staticParams, dynamicParams);
+  GaitDynamicPhaseController gaitController(0.0, staticParams, dynamicParams);
   
   scalar_t finalTime = 5.0;
 
@@ -49,8 +49,7 @@ TEST(GaitDynamicPhaseController, update)
 
   GaitStaticParameters staticParams;
   staticParams.endEffectorNumber = 4;
-  
-  
+  staticParams.initPhase = currentPhase;
 
   GaitDynamicParameters dynamicParams;
   dynamicParams.steppingFrequency = 1.0 / 0.7;
@@ -58,8 +57,7 @@ TEST(GaitDynamicPhaseController, update)
   
   dynamicParams.phaseOffsets = {-currentPhase , -currentPhase , 0};
 
-  GaitDynamicPhaseController gaitController(currentPhase,
-    0.0, staticParams, dynamicParams);
+  GaitDynamicPhaseController gaitController(0.0, staticParams, dynamicParams);
 
   scalar_t nextTime = 2.0;
 
@@ -129,8 +127,7 @@ TEST(GaitDynamicPhaseController, remove)
 
   GaitStaticParameters staticParams;
   staticParams.endEffectorNumber = 4;
-  
-  
+  staticParams.initPhase = currentPhase;
 
   GaitDynamicParameters dynamicParams;
   dynamicParams.steppingFrequency = 1.0 / 0.7;
@@ -138,8 +135,7 @@ TEST(GaitDynamicPhaseController, remove)
   
   dynamicParams.phaseOffsets = {-currentPhase , -currentPhase , 0};
 
-  GaitDynamicPhaseController gaitController(currentPhase,
-    0.0, staticParams, dynamicParams);
+  GaitDynamicPhaseController gaitController(0.0, staticParams, dynamicParams);
 
   scalar_t nextTime = 2.0;
 
@@ -181,17 +177,15 @@ TEST(GaitDynamicPhaseController, getContactFlagsAtTime)
 
   GaitStaticParameters staticParams;
   staticParams.endEffectorNumber = 4;
+  staticParams.initPhase = currentPhase;
   
-  
-
   GaitDynamicParameters dynamicParams;
   dynamicParams.steppingFrequency = 1.0 / 0.7;
   dynamicParams.swingRatio = 3.0 / 7.0;
   
   dynamicParams.phaseOffsets = {-currentPhase , -currentPhase , 0};
 
-  GaitDynamicPhaseController gaitController(currentPhase,
-    0.0, staticParams, dynamicParams);
+  GaitDynamicPhaseController gaitController(0.0, staticParams, dynamicParams);
 
   scalar_t nextTime = 2.0;
 
@@ -237,6 +231,7 @@ TEST(GaitDynamicPhaseController, getDynamicParametersAtTime)
 
   GaitStaticParameters staticParams1;
   staticParams1.endEffectorNumber = 4;
+  staticParams1.initPhase = currentPhase;
 
   GaitDynamicParameters dynamicParams1;
   dynamicParams1.steppingFrequency = 1.0 / 0.7;
@@ -244,8 +239,7 @@ TEST(GaitDynamicPhaseController, getDynamicParametersAtTime)
   
   dynamicParams1.phaseOffsets = {-currentPhase , -currentPhase , 0};
 
-  GaitDynamicPhaseController gaitController(currentPhase,
-    0.0, staticParams1, dynamicParams1);
+  GaitDynamicPhaseController gaitController(0.0, staticParams1, dynamicParams1);
 
   scalar_t nextTime = 2.0;
   

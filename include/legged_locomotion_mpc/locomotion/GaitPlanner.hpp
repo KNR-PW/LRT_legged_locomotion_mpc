@@ -40,9 +40,7 @@ namespace legged_locomotion_mpc
       public:
 
         GaitPlanner(const GaitStaticParameters& staticParams,
-          const GaitDynamicParameters& initDynamicParams,
-          ocs2::scalar_t initPhase,
-          ocs2::scalar_t initTime);
+          const GaitDynamicParameters& initDynamicParams, ocs2::scalar_t initTime);
 
         ocs2::ModeSchedule getModeSchedule(ocs2::scalar_t startTime, 
           ocs2::scalar_t finalTime);

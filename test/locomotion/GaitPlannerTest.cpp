@@ -17,6 +17,7 @@ TEST(GaitPlannerTest, Constructor)
 
   GaitStaticParameters staticParams;
   staticParams.endEffectorNumber = 4;
+  staticParams.initPhase = currentPhase;
   
   GaitDynamicParameters dynamicParams;
   dynamicParams.steppingFrequency = 1.0 / 0.7;
@@ -24,7 +25,7 @@ TEST(GaitPlannerTest, Constructor)
   
   dynamicParams.phaseOffsets = {-currentPhase , -currentPhase , 0};
 
-  GaitPlanner gaitPlanner(staticParams, dynamicParams, currentPhase, 0.0);
+  GaitPlanner gaitPlanner(staticParams, dynamicParams, 0.0);
 
   scalar_t timeHorizon = 3 * 0.7;
   auto modeSchedule = gaitPlanner.getModeSchedule(0.0, timeHorizon);
@@ -62,6 +63,7 @@ TEST(GaitPlannerTest, getModeSchedule)
 
   GaitStaticParameters staticParams;
   staticParams.endEffectorNumber = 4;
+  staticParams.initPhase = currentPhase;
   
   GaitDynamicParameters dynamicParams;
   dynamicParams.steppingFrequency = 1.0 / 0.7;
@@ -69,7 +71,7 @@ TEST(GaitPlannerTest, getModeSchedule)
   
   dynamicParams.phaseOffsets = {-currentPhase , -currentPhase , 0};
 
-  GaitPlanner gaitPlanner(staticParams, dynamicParams, currentPhase, 0.0);
+  GaitPlanner gaitPlanner(staticParams, dynamicParams, 0.0);
 
   scalar_t startTime = 0.5;
   scalar_t finalTime = 3 * 0.7;
@@ -187,6 +189,7 @@ TEST(GaitPlannerTest, updateDynamicParameters)
 
   GaitStaticParameters staticParams;
   staticParams.endEffectorNumber = 4;
+  staticParams.initPhase = startingPhase;
   
   GaitDynamicParameters dynamicParams1;
   dynamicParams1.steppingFrequency = 1.0 / 0.7;
@@ -214,7 +217,7 @@ TEST(GaitPlannerTest, updateDynamicParameters)
   scalar_t startTime = 0.0;
   scalar_t firstTime = 10.0;
 
-  GaitPlanner gaitPlanner(staticParams, dynamicParams1, startingPhase, startTime);
+  GaitPlanner gaitPlanner(staticParams, dynamicParams1, startTime);
 
   auto modeSchedule = gaitPlanner.getModeSchedule(startTime, firstTime);
 
@@ -293,6 +296,7 @@ TEST(GaitPlannerTest, getModeWithUpdateDynamicParameters)
 
   GaitStaticParameters staticParams;
   staticParams.endEffectorNumber = 4;
+  staticParams.initPhase = currentPhase;
   
   GaitDynamicParameters dynamicParams;
   dynamicParams.steppingFrequency = 1.0 / 0.7;
@@ -300,7 +304,7 @@ TEST(GaitPlannerTest, getModeWithUpdateDynamicParameters)
   
   dynamicParams.phaseOffsets = {-currentPhase , -currentPhase , 0};
 
-  GaitPlanner gaitPlanner(staticParams, dynamicParams, currentPhase, 0.0);
+  GaitPlanner gaitPlanner(staticParams, dynamicParams, 0.0);
 
   scalar_t startTime = 0.5;
   scalar_t finalTime = 3 * 0.7;
@@ -470,16 +474,15 @@ TEST(GaitPlannerTest, stayingInPlace)
 
   GaitStaticParameters staticParams;
   staticParams.endEffectorNumber = 4;
+  staticParams.initPhase = currentPhase;
   
-  
-
   GaitDynamicParameters dynamicParams;
   dynamicParams.steppingFrequency = 0.0;
   dynamicParams.swingRatio = 3.0 / 7.0;
   
   dynamicParams.phaseOffsets = {0, 0, 0};
 
-  GaitPlanner gaitPlanner(staticParams, dynamicParams, currentPhase, 0.0);
+  GaitPlanner gaitPlanner(staticParams, dynamicParams, 0.0);
 
   scalar_t timeHorizon = 3 * 0.7;
   auto modeSchedule = gaitPlanner.getModeSchedule(0.0, timeHorizon);

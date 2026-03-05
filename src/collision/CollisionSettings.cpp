@@ -40,7 +40,7 @@ namespace legged_locomotion_mpc
     };
 
     CollisionSettings loadCollisionSettings(const std::string& filename,
-      const ModelSettings& modelSettings, const std::string& fieldName,bool verbose)
+      const ModelSettings& modelSettings, const std::string& fieldName, bool verbose)
     {
 
       CollisionSettings settings;

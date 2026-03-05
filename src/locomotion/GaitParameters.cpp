@@ -26,6 +26,12 @@ namespace legged_locomotion_mpc
       }
 
       settings.endEffectorNumber = modelSettings.endEffectorThreeDofNames.size() + modelSettings.endEffectorSixDofNames.size();
+      
+      loadData::loadPtreeValue(pt, settings.initPhase, fieldName + ".initPhase", verbose);
+      if(settings.initPhase < 0.0 || settings.initPhase >= 1.0)
+      {
+        throw std::invalid_argument("[GaitStaticParameters]: Inital phase should be between [0.0, 1.0)!");
+      }
 
       loadData::loadPtreeValue(pt, settings.maximumSteppingFrequency, fieldName + ".maximumSteppingFrequency", verbose);
       if(settings.maximumSteppingFrequency < 0 || numerics::almost_eq(settings.maximumSteppingFrequency, 0.0, SCALAR_EPSILON))

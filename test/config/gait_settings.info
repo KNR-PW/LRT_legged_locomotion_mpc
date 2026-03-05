@@ -1,5 +1,6 @@
 gait_static_settings
 {
+  initPhase 0.75
   maximumSteppingFrequency  2.0
   minimumSteppingFrequency  0.5
   touchdownWindow           0.75

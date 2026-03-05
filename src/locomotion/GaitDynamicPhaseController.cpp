@@ -14,8 +14,7 @@ namespace legged_locomotion_mpc
   {
     using namespace ocs2;
 
-    GaitDynamicPhaseController::GaitDynamicPhaseController(ocs2::scalar_t initPhase,
-      ocs2::scalar_t initTime,
+    GaitDynamicPhaseController::GaitDynamicPhaseController(scalar_t initTime,
       const GaitStaticParameters& staticParams,
       const GaitDynamicParameters& initDynamicParams)
         : staticParams_(staticParams)
@@ -27,10 +26,10 @@ namespace legged_locomotion_mpc
       
       eventTimes_.push_back(initTime);
       dynamicParamsVec_.push_back(initDynamicParams);
-      cachedPhase_.push_back(initPhase);
+      cachedPhase_.push_back(staticParams.initPhase);
     }
 
-    std::vector<ocs2::scalar_t> GaitDynamicPhaseController::getPhasesAtTime(scalar_t time) const
+    std::vector<scalar_t> GaitDynamicPhaseController::getPhasesAtTime(scalar_t time) const
     {
       assert(time >= eventTimes_.front());
 

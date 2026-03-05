@@ -31,7 +31,7 @@ namespace legged_locomotion_mpc
     class GaitDynamicPhaseController
     {
       public:
-        GaitDynamicPhaseController(ocs2::scalar_t initPhase, ocs2::scalar_t initTime,
+        GaitDynamicPhaseController(ocs2::scalar_t initTime,
           const GaitStaticParameters& staticParams,
           const GaitDynamicParameters& initDynamicParams);
 

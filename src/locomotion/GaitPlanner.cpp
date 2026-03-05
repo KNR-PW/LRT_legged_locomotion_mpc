@@ -17,12 +17,12 @@ namespace legged_locomotion_mpc
     using namespace ocs2;
 
     GaitPlanner::GaitPlanner(const GaitStaticParameters& staticParams,
-      const GaitDynamicParameters& initDynamicParams, scalar_t initPhase, scalar_t initTime):
+      const GaitDynamicParameters& initDynamicParams, scalar_t initTime):
         currentStartTime_(initTime),
         currentDynamicParamsTime_(initTime),
         staticParams_(staticParams),
         dynamicParams_(initDynamicParams),
-        phaseController_(initPhase, initTime, staticParams, initDynamicParams)
+        phaseController_(initTime, staticParams, initDynamicParams)
     {
       if(initTime < 0.0)
       {
@@ -30,7 +30,7 @@ namespace legged_locomotion_mpc
         throw std::invalid_argument(message);
       }
 
-      if(initPhase < 0.0 || initPhase > 1.0)
+      if(staticParams_.initPhase < 0.0 || staticParams_.initPhase > 1.0)
       {
         std::string message = "[GaitPlanner]: Phase lower than 0.0 or higher than 1.0!";
         throw std::invalid_argument(message);

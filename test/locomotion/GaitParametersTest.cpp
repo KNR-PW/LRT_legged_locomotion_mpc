@@ -20,6 +20,7 @@ TEST(GaitParameters, loaders)
 
   const auto staticSettings = loadGaitStaticParameters(gaitFilePath, modelSettings);
 
+  EXPECT_TRUE(staticSettings.initPhase == 0.75);
   EXPECT_TRUE(staticSettings.maximumSteppingFrequency == 2.0);
   EXPECT_TRUE(staticSettings.minimumSteppingFrequency == 0.5);
   EXPECT_TRUE(staticSettings.touchdownWindow          == 0.75);

@@ -34,6 +34,4 @@ legged_model_settings
     [2] 0.3
     [3] 0.4
   }
-
-  initialPhase 0.2
 }

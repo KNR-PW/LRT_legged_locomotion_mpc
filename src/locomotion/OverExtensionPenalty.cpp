@@ -69,16 +69,8 @@ namespace legged_locomotion_mpc
     /******************************************************************************************************/
     /******************************************************************************************************/
     OverExtensionPenalty::OverExtensionPenalty(const OverExtensionPenalty& rhs)
-      :settings_(rhs.settings_), hipNum_(hipNum_), hipIndices_(rhs.hipIndices_),
+      :settings_(rhs.settings_), hipNum_(rhs.hipNum_), hipIndices_(rhs.hipIndices_),
        positionCppAdInterfacePtr_(new CppAdInterface(*rhs.positionCppAdInterfacePtr_)) {}
-
-    /******************************************************************************************************/
-    /******************************************************************************************************/
-    /******************************************************************************************************/
-    OverExtensionPenalty* OverExtensionPenalty::clone() const 
-    {
-      return new OverExtensionPenalty(*this);
-    }
     
     /******************************************************************************************************/
     /******************************************************************************************************/
@@ -111,7 +103,8 @@ namespace legged_locomotion_mpc
       const vector_t positionValues = positionCppAdInterfacePtr_->getFunctionValue(state);
 
       std::vector<vector3_t> positions;
-      for (size_t i = 0; i < hipNum_; i++) {
+      for (size_t i = 0; i < hipNum_; i++) 
+      {
         positions.emplace_back(positionValues.segment<3>(3 * i));
       }
       return positions;
@@ -141,6 +134,9 @@ namespace legged_locomotion_mpc
       return penalties;
     }
 
+    /******************************************************************************************************/
+    /******************************************************************************************************/
+    /******************************************************************************************************/
     PenaltyFunction OverExtensionPenalty::getPenalty(size_t endEffectorIndex, const ocs2::vector_t& state) const
     {
       assert(endEffectorIndex < hipNum_);
@@ -152,6 +148,45 @@ namespace legged_locomotion_mpc
         return this->settings_.legOverExtensionWeight * extension * extension;
       };
       return penalty;
+    }
+
+    /******************************************************************************************************/
+    /******************************************************************************************************/
+    /******************************************************************************************************/
+    OverExtensionPenalty::Settings loadOverExtensionPenaltySettings(
+      const std::string& filename, const std::string& fieldName, bool verbose)
+    {
+      boost::property_tree::ptree pt;
+      boost::property_tree::read_info(filename, pt);
+
+      if(verbose) 
+      {
+        std::cerr << "\n #### Legged Locomotion MPC Over Extension Penalty Settings:";
+        std::cerr << "\n #### =============================================================================\n";
+      }
+
+      OverExtensionPenalty::Settings settings;
+
+      loadData::loadPtreeValue(pt, settings.nominalLegExtension, 
+        fieldName + ".nominalLegExtension", verbose);
+      if(settings.nominalLegExtension < 0.0)
+      {
+        throw std::invalid_argument("[OverExtensionPenalty]: Nominal leg extension smaller than 0!");
+      }
+
+      loadData::loadPtreeValue(pt, settings.legOverExtensionWeight, 
+        fieldName + ".legOverExtensionWeight", verbose);
+      if(settings.legOverExtensionWeight < 0.0)
+      {
+        throw std::invalid_argument("[OverExtensionPenalty]: Leg over extension weight smaller than 0!");
+      }
+
+      if(verbose) 
+      {
+        std::cerr << " #### ==================================================" << std::endl;
+      }
+
+      return settings;
     }
   } // namespace locomotion
 } // namespace legged_locomotion_mpc

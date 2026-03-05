@@ -23,5 +23,4 @@ TEST(ModelSettingsTest, loader)
   EXPECT_TRUE(modelSettings.endEffectorSixDofNames.size() == 0);
   EXPECT_TRUE(modelSettings.hipFrameNames == meldogHipNames);
   EXPECT_TRUE(modelSettings.endEffectorSafetyRadiuses == trueEffectorSafetyRadiuses);
-  EXPECT_TRUE(modelSettings.initialPhase  == 0.2);
 }

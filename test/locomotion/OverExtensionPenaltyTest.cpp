@@ -111,3 +111,13 @@ TEST(OverExtensionPenaltyTest, getPenaltiesAndGetPenalty)
     }
   }
 }
+
+TEST(OverExtensionPenaltyTest, loader)
+{
+  const std::string filePath = meldogConfigFolder + "over_extension_penalty_settings.info";
+
+  const auto penaltySettings = loadOverExtensionPenaltySettings(filePath);
+
+  EXPECT_TRUE(penaltySettings.nominalLegExtension == 0.5);
+  EXPECT_TRUE(penaltySettings.legOverExtensionWeight == 2.5);
+}

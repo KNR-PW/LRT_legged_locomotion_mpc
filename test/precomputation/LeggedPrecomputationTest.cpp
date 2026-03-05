@@ -40,9 +40,8 @@ TEST(LeggedPrecomputationTest, getEndEffector)
 
   GaitStaticParameters staticParams;
   staticParams.endEffectorNumber = 4;
+  staticParams.initPhase = currentPhase;
   
-  
-
   GaitDynamicParameters dynamicParams;
   dynamicParams.steppingFrequency = 1.0 / 0.7;
   dynamicParams.swingRatio = 3.0 / 7.0;
@@ -114,7 +113,7 @@ TEST(LeggedPrecomputationTest, getEndEffector)
     swingDynamicSettings.tangentialVelocityFactors[i] = 2.0;
   }
 
-  GaitPlanner gaitPlanner(staticParams, dynamicParams, currentPhase, defTime);
+  GaitPlanner gaitPlanner(staticParams, dynamicParams, defTime);
 
   GaitPlanner trueGaitPlanner = gaitPlanner;
 
@@ -290,9 +289,8 @@ TEST(LeggedPrecomputationTest, getCollisionLinks)
 
   GaitStaticParameters staticParams;
   staticParams.endEffectorNumber = 4;
+  staticParams.initPhase = currentPhase;
   
-  
-
   GaitDynamicParameters dynamicParams;
   dynamicParams.steppingFrequency = 1.0 / 0.7;
   dynamicParams.swingRatio = 3.0 / 7.0;
@@ -364,7 +362,7 @@ TEST(LeggedPrecomputationTest, getCollisionLinks)
     swingDynamicSettings.tangentialVelocityFactors[i] = 2.0;
   }
 
-  GaitPlanner gaitPlanner(staticParams, dynamicParams, currentPhase, defTime);
+  GaitPlanner gaitPlanner(staticParams, dynamicParams, defTime);
 
   GaitPlanner trueGaitPlanner = gaitPlanner;
 
@@ -512,9 +510,8 @@ TEST(LeggedPrecomputationTest, getTorque)
 
   GaitStaticParameters staticParams;
   staticParams.endEffectorNumber = 4;
+  staticParams.initPhase = currentPhase;
   
-  
-
   GaitDynamicParameters dynamicParams;
   dynamicParams.steppingFrequency = 1.0 / 0.7;
   dynamicParams.swingRatio = 3.0 / 7.0;
@@ -586,7 +583,7 @@ TEST(LeggedPrecomputationTest, getTorque)
     swingDynamicSettings.tangentialVelocityFactors[i] = 2.0;
   }
 
-  GaitPlanner gaitPlanner(staticParams, dynamicParams, currentPhase, defTime);
+  GaitPlanner gaitPlanner(staticParams, dynamicParams, defTime);
 
   GaitPlanner trueGaitPlanner = gaitPlanner;
 
@@ -722,9 +719,8 @@ TEST(LeggedPrecomputationTest, getReference)
 
   GaitStaticParameters staticParams;
   staticParams.endEffectorNumber = 4;
+  staticParams.initPhase = currentPhase;
   
-  
-
   GaitDynamicParameters dynamicParams;
   dynamicParams.steppingFrequency = 1.0 / 0.7;
   dynamicParams.swingRatio = 3.0 / 7.0;
@@ -796,7 +792,7 @@ TEST(LeggedPrecomputationTest, getReference)
     swingDynamicSettings.tangentialVelocityFactors[i] = 2.0;
   }
 
-  GaitPlanner gaitPlanner(staticParams, dynamicParams, currentPhase, defTime);
+  GaitPlanner gaitPlanner(staticParams, dynamicParams, defTime);
 
   GaitPlanner trueGaitPlanner = gaitPlanner;
 
