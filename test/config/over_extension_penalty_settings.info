@@ -1,0 +1,6 @@
+over_extension_penalty_settings
+{
+  nominalLegExtension 0.5
+
+  legOverExtensionWeight 2.5
+}

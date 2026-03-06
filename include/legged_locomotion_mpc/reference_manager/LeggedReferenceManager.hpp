@@ -129,6 +129,18 @@ namespace legged_locomotion_mpc
       planners::JointTrajectoryPlanner jointPlanner_;
       planners::ContactForceWrenchTrajectoryPlanner forcePlanner_;
   };
+
+  /**
+   * Creates LeggedReferenceManager settings 
+   * @param [in] filename: file path with swing planner settings.
+   * @param [in] fieldName: field where settings are defined
+   * @param [in] verbose: verbose flag
+   * @return LeggedReferenceManager::Settings struct
+   */
+  LeggedReferenceManager::Settings loadLeggedReferenceManagerSettings(
+    const std::string& filename,
+    const std::string& fieldName = "reference_manager_settings",
+    bool verbose = "true");
 } // namespace legged_locomotion_mpc
 
 #endif

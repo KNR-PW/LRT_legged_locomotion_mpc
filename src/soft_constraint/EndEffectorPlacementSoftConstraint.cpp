@@ -12,14 +12,14 @@ namespace legged_locomotion_mpc
   /******************************************************************************************************/
   EndEffectorPlacementSoftConstraint::EndEffectorPlacementSoftConstraint(
     floating_base_model::FloatingBaseModelInfo info,
+    const ModelSettings& modelSettings,
     const LeggedReferenceManager& referenceManager,
-    std::vector<scalar_t> endEffectorRadiuses,
     RelaxedBarrierPenalty::Config settings):
       StateCost(),
       referenceManager_(referenceManager),
       endEffectorNum_(info.numThreeDofContacts + info.numSixDofContacts),
       info_(std::move(info)),
-      endEffectorRadiuses_(std::move(endEffectorRadiuses)), 
+      endEffectorRadiuses_(modelSettings.endEffectorSafetyRadiuses), 
       placementRelaxedBarrierPenaltyPtr_(new RelaxedBarrierPenalty(settings)) 
   {
     if(endEffectorRadiuses_.size() != endEffectorNum_)

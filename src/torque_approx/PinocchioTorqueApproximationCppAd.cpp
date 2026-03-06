@@ -19,7 +19,7 @@ namespace legged_locomotion_mpc
   PinocchioTorqueApproximationCppAd::PinocchioTorqueApproximationCppAd(
     const PinocchioInterface& pinocchioInterface,
     const FloatingBaseModelInfo info,
-    const vector_t torqueDynamicsError,
+    vector_t torqueDynamicsError,
     const std::string& modelName,
     const std::string& modelFolder,
     bool recompileLibraries, bool verbose): 

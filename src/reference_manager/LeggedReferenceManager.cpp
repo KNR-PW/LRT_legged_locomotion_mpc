@@ -330,6 +330,36 @@ namespace legged_locomotion_mpc
 
   LeggedReferenceManager::~LeggedReferenceManager()
   {
-    newTrajectories_.wait();
+    if(threaded_) newTrajectories_.wait();
+  }
+
+  LeggedReferenceManager::Settings loadLeggedReferenceManagerSettings(
+    const std::string& filename, const std::string& fieldName, bool verbose)
+  {
+    boost::property_tree::ptree pt;
+    boost::property_tree::read_info(filename, pt);
+
+    if(verbose) 
+    {
+      std::cerr << "\n #### Legged Locomotion MPC Reference Manager Settings:";
+      std::cerr << "\n #### =============================================================================\n";
+    }
+
+    LeggedReferenceManager::Settings settings;
+
+    loadData::loadPtreeValue(pt, settings.maximumReferenceSampleInterval, 
+      fieldName + ".maximumReferenceSampleInterval", verbose);
+    if(settings.maximumReferenceSampleInterval < 0.0)
+    {
+      throw std::invalid_argument("[LeggedReferenceManager]: Maximum reference sample interval smaller than 0!");
+    }
+
+
+    if(verbose) 
+    {
+      std::cerr << " #### ==================================================" << std::endl;
+    }
+
+    return settings;
   }
 } // namespace legged_locomotion_mpc

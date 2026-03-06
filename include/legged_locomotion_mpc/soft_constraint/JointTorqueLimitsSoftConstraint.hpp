@@ -40,8 +40,7 @@ namespace legged_locomotion_mpc
       EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     
       JointTorqueLimitsSoftConstraint(floating_base_model::FloatingBaseModelInfo info,
-        ocs2::vector_t torqueLimits, ocs2::RelaxedBarrierPenalty::Config settings, 
-        const PinocchioTorqueApproximationCppAd& torqueApproximator);
+        ocs2::vector_t torqueLimits, ocs2::RelaxedBarrierPenalty::Config settings);
 
       ~JointTorqueLimitsSoftConstraint() override = default;
 

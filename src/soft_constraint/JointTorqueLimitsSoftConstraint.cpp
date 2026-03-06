@@ -32,8 +32,7 @@ namespace legged_locomotion_mpc
   JointTorqueLimitsSoftConstraint::JointTorqueLimitsSoftConstraint(
     FloatingBaseModelInfo info,
     const vector_t torqueLimits,
-    RelaxedBarrierPenalty::Config settings,
-    const PinocchioTorqueApproximationCppAd& torqueApproximator):
+    RelaxedBarrierPenalty::Config settings):
       StateInputCost(),
       info_(std::move(info)),
       torqueRelaxedBarrierPenaltyPtr_(new RelaxedBarrierPenalty(settings)),

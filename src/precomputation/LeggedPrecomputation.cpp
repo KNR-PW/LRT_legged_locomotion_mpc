@@ -60,6 +60,16 @@ namespace legged_locomotion_mpc
       }
     }
 
+    // Soft constraints || cost
+    if(request.containsAny(Request::SoftConstraint + Request::Cost))
+    {
+      updateApproximatedTorquesData(t, x, u);
+      if(request.contains(Request::Approximation))
+      {
+        updateApproximatedTorquesDerivatives(t, x, u);
+      }
+    }
+
     // Constraints
     if(request.contains(Request::Constraint))
     {
@@ -74,11 +84,9 @@ namespace legged_locomotion_mpc
     if(request.contains(Request::SoftConstraint))
     {
       updateCollisionKinematicsData(t, x);
-      updateApproximatedTorquesData(t, x, u);
       if(request.contains(Request::Approximation))
       {
         updateCollisionKinematicsDerivatives(t, x);
-        updateApproximatedTorquesDerivatives(t, x, u);
       }
     }
   }

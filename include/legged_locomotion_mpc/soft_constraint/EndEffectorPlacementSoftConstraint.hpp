@@ -26,6 +26,7 @@
 #include <floating_base_model/FloatingBaseModelInfo.hpp>
 
 #include <legged_locomotion_mpc/common/Types.hpp>
+#include <legged_locomotion_mpc/common/ModelSettings.hpp>
 #include <legged_locomotion_mpc/reference_manager/LeggedReferenceManager.hpp>
 
 namespace legged_locomotion_mpc
@@ -45,9 +46,10 @@ namespace legged_locomotion_mpc
        * @param [in] endEffectorRadiuses: Safety radius for each end effector.
        * @param [in] settings: Relaxed barrier penalty settings 
        */
-      EndEffectorPlacementSoftConstraint(floating_base_model::FloatingBaseModelInfo info,
+      EndEffectorPlacementSoftConstraint(
+        floating_base_model::FloatingBaseModelInfo info,
+        const ModelSettings& modelSettings,
         const LeggedReferenceManager& referenceManager,
-        std::vector<ocs2::scalar_t> endEffectorRadiuses,
         ocs2::RelaxedBarrierPenalty::Config settings);
 
       ~EndEffectorPlacementSoftConstraint() override = default;

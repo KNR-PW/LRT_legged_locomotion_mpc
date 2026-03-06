@@ -47,10 +47,10 @@ namespace legged_locomotion_mpc
   {
 
     public:
-      LeggedDynamicsAD(const ocs2::PinocchioInterface &pinocchioInterface,
-        const floating_base_model::FloatingBaseModelInfo &info,
-        const std::string &modelName,
-        const ModelSettings &modelSettings,
+      LeggedDynamicsAD(const ocs2::PinocchioInterface& pinocchioInterface,
+        const floating_base_model::FloatingBaseModelInfo& info,
+        const std::string& modelName,
+        const ModelSettings& modelSettings,
         const synchronization::DisturbanceSynchronizedModule& disturbanceSynchronizedModule);
 
       ~LeggedDynamicsAD() override = default;
@@ -69,7 +69,7 @@ namespace legged_locomotion_mpc
       LeggedDynamicsAD(const LeggedDynamicsAD &rhs) = default;
 
       floating_base_model::PinocchioFloatingBaseDynamicsAD dynamicsAdPtr_;
-      const synchronization::DisturbanceSynchronizedModule* disturbanceSynchronizedModule_;
+      const synchronization::DisturbanceSynchronizedModule& disturbanceSynchronizedModule_;
   };
 
 } // namespace legged_locomotion_mpc
