@@ -41,7 +41,7 @@ namespace legged_locomotion_mpc
   struct ModelSettings 
   {
     // CppAD
-    bool verboseCppAd = true;
+    bool verbose = true;
     bool recompileLibrariesCppAd = true;
     std::string modelFolderCppAd = "/tmp/legged_locomotion_mpc";
 

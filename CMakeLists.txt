@@ -105,6 +105,8 @@ add_library(${PROJECT_NAME}
   src/cost/TrajectoryTrackingCost.cpp
   src/cost/TerminalTrackingCost.cpp
   src/cost/JointTorqueCost.cpp
+
+  src/robot_interface/LeggedInterface.cpp
 )
 
 target_include_directories(${PROJECT_NAME}

@@ -20,11 +20,7 @@
 #ifndef __TRAJECTORY_TRACKING_COST_LEGGED_LOCOMOTION_MPC__
 #define __TRAJECTORY_TRACKING_COST_LEGGED_LOCOMOTION_MPC__
 
-#include <pinocchio/fwd.hpp>
-#include <pinocchio/codegen/cppadcg.hpp>
-
 #include <ocs2_core/cost/StateInputCost.h>
-#include <ocs2_core/automatic_differentiation/CppAdInterface.h>
 
 #include <floating_base_model/FloatingBaseModelInfo.hpp>
 
@@ -32,7 +28,6 @@
 #include <legged_locomotion_mpc/common/ModelSettings.hpp>
 #include <legged_locomotion_mpc/common/Utils.hpp>
 #include <legged_locomotion_mpc/reference_manager/LeggedReferenceManager.hpp>
-
 
 namespace legged_locomotion_mpc
 {

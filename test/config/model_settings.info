@@ -1,6 +1,6 @@
 legged_model_settings
 {
-  verboseCppAd              false
+  verbose              false
   recompileLibrariesCppAd   false
 
   modelFolderCppAd          /tmp/legged_locomotion_mpc

@@ -15,7 +15,7 @@ TEST(ModelSettingsTest, loader)
 
   const std::vector<scalar_t> trueEffectorSafetyRadiuses{0.1, 0.2, 0.3, 0.4};
 
-  EXPECT_TRUE(modelSettings.verboseCppAd == false);
+  EXPECT_TRUE(modelSettings.verbose == false);
   EXPECT_TRUE(modelSettings.recompileLibrariesCppAd == false);
   EXPECT_TRUE(modelSettings.modelFolderCppAd == "/tmp/legged_locomotion_mpc");
   EXPECT_TRUE(modelSettings.baseLinkName == "trunk_link");

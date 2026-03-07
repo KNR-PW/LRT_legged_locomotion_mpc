@@ -17,13 +17,16 @@
  * Authors: Bartłomiej Krajewski (https://github.com/BartlomiejK2)
  */
 
+/* In order to fix compilation error with 
+ * partial specialization of X after instantiation of Y"
+ */
+#include <pinocchio/fwd.hpp>
+#include <pinocchio/codegen/cppadcg.hpp>
+#include <pinocchio/spatial/log.hpp>
+
 #include <legged_locomotion_mpc/cost/TrajectoryTrackingCost.hpp>
 
 #include <stdexcept>
-
-#include <pinocchio/fwd.hpp>
-#include <pinocchio/spatial/log.hpp>
-#include <pinocchio/codegen/cppadcg.hpp>
 
 #include <ocs2_robotic_tools/common/RotationTransforms.h>
 
@@ -91,7 +94,7 @@ namespace legged_locomotion_mpc
       
       const size_t endEffectorNum = info_.numThreeDofContacts + info_.numSixDofContacts;
       
-      if(endEffectorWeights_.positions.size() != endEffectorNum);
+      if(endEffectorWeights_.positions.size() != endEffectorNum)
       {
         throw std::invalid_argument("[TrajectoryTrackingCost]: Wrong size for end effectors position weights!");
       }

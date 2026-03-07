@@ -17,7 +17,7 @@ namespace legged_locomotion_mpc
     const DisturbanceSynchronizedModule& disturbanceSynchronizedModule): 
       SystemDynamicsBase(), 
       dynamicsAdPtr_(pinocchioInterface, info, modelName, modelSettings.modelFolderCppAd,
-        modelSettings.recompileLibrariesCppAd, modelSettings.verboseCppAd),
+        modelSettings.recompileLibrariesCppAd, modelSettings.verbose),
       disturbanceSynchronizedModule_(disturbanceSynchronizedModule) {}
 
   /******************************************************************************************************/

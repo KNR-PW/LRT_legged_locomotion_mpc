@@ -1,0 +1,550 @@
+#include <legged_locomotion_mpc/robot_interface/LeggedInterface.hpp>
+
+#include <boost/filesystem/operations.hpp>
+#include <boost/filesystem/path.hpp>
+
+#include <ocs2_oc/rollout/TimeTriggeredRollout.h>
+#include <ocs2_ddp/ContinuousTimeLqr.h>
+
+#include <floating_base_model/FactoryFunctions.hpp>
+
+#include <legged_locomotion_mpc/cost/JointTorqueCost.hpp>
+#include <legged_locomotion_mpc/cost/TerminalTrackingCost.hpp>
+#include <legged_locomotion_mpc/cost/TrajectoryTrackingCost.hpp>
+
+#include <legged_locomotion_mpc/constraint/ForceFrictionConeConstraint.hpp>
+#include <legged_locomotion_mpc/constraint/NormalVelocityConstraint.hpp>
+#include <legged_locomotion_mpc/constraint/WrenchFrictionConeConstraint.hpp>
+#include <legged_locomotion_mpc/constraint/Zero3DofVelocityConstraint.hpp>
+#include <legged_locomotion_mpc/constraint/Zero6DofVelocityConstraint.hpp>
+#include <legged_locomotion_mpc/constraint/ZeroForceConstraint.hpp>
+#include <legged_locomotion_mpc/constraint/ZeroWrenchConstraint.hpp>
+
+#include <legged_locomotion_mpc/soft_constraint/EndEffectorPlacementSoftConstraint.hpp>
+#include <legged_locomotion_mpc/soft_constraint/JointLimitsSoftConstraint.hpp>
+#include <legged_locomotion_mpc/soft_constraint/JointTorqueLimitsSoftConstraint.hpp>
+#include <legged_locomotion_mpc/soft_constraint/SelfCollisionAvoidanceSoftConstraint.hpp>
+#include <legged_locomotion_mpc/soft_constraint/TerrainAvoidanceSoftConstraint.hpp>
+
+#include <legged_locomotion_mpc/locomotion/GaitPlanner.hpp>
+#include <legged_locomotion_mpc/locomotion/SwingTrajectoryPlanner.hpp>
+
+#include <legged_locomotion_mpc/trajectory_planners/BaseTrajectoryPlanner.hpp>
+#include <legged_locomotion_mpc/trajectory_planners/ContactForceWrenchTrajectoryPlanner.hpp>
+#include <legged_locomotion_mpc/trajectory_planners/JointTrajectoryPlanner.hpp>
+
+#include <legged_locomotion_mpc/dynamics/LeggedDynamicsAD.hpp>
+
+namespace legged_locomotion_mpc
+{
+  using namespace ocs2;
+  using namespace floating_base_model;
+  using namespace terrain_model;
+  using namespace planners;
+  using namespace collision;
+  using namespace locomotion;
+  using namespace cost;
+  using namespace utils;
+  using namespace synchronization;
+  using namespace multi_end_effector_kinematics;
+
+  LeggedInterface::LeggedInterface(scalar_t initTime, LeggedInterface::Settings settings,
+    const vector_t& currentState, 
+    std::unique_ptr<TerrainModel> currentTerrainModel,
+    const std::string& taskFile, const std::string& modelFile,
+    const std::string& urdfFile, bool multiThreaded): interfaceSettings_(settings)
+  {
+    // Check that task file exists
+    const boost::filesystem::path taskFilePath(taskFile);
+    if (exists(taskFilePath)) 
+    {
+      std::cerr << "[LeggedInterface] Loading task file: " << taskFilePath << std::endl;
+    } 
+    else 
+    {
+      throw std::invalid_argument(
+        "[LeggedInterface] Task file not found: " + taskFilePath.string());
+    }
+
+    // Check that model file exists
+    const boost::filesystem::path modelFilePath(modelFile);
+    if (exists(modelFilePath)) 
+    {
+      std::cerr << "[LeggedInterface] Loading model file: " << modelFilePath << std::endl;
+    } 
+    else 
+    {
+      throw std::invalid_argument(
+        "[LeggedInterface] Model file not found: " + modelFilePath.string());
+    }
+
+    // Check that model file exists
+    const boost::filesystem::path urdfFilePath(urdfFile);
+    if (exists(urdfFilePath)) 
+    {
+      std::cerr << "[LeggedInterface] Loading URDF file: " << urdfFilePath << std::endl;
+    } 
+    else 
+    {
+      throw std::invalid_argument(
+        "[LeggedInterface] URDF file not found: " + urdfFilePath.string());
+    }
+
+    // Load model settings
+    modelSettings_ = loadModelSettings(modelFile);
+    const bool verbose = modelSettings_.verbose;
+
+    // Load collision settings
+    collisionSettings_ = loadCollisionSettings(modelFile, modelSettings_, 
+      "legged_collision_settings", verbose);
+
+    // Setup PinocchioInterface
+    const auto& baseLinkName = modelSettings_.baseLinkName;
+    pinocchioInterfacePtr_ = std::make_unique<PinocchioInterface>(
+      createPinocchioInterfaceFromUrdfFile(urdfFile, baseLinkName));
+
+    // Setup floating base model info
+    const auto& endEffectorThreeDofNames = modelSettings_.endEffectorThreeDofNames;
+    const auto& endEffectorSixDofNames = modelSettings_.endEffectorSixDofNames;
+    floatingBaseModelInfo_ = createFloatingBaseModelInfo(*pinocchioInterfacePtr_, 
+      endEffectorThreeDofNames, endEffectorSixDofNames);
+
+    // Load MPC settings
+    mpcSettings_ = mpc::loadSettings(taskFile, "mpc", verbose);
+    ddpSettings_ = ddp::loadSettings(taskFile, "ddp", verbose);
+    sqpSettings_ = sqp::loadSettings(taskFile, "sqp", verbose);
+    ipmSettings_ = ipm::loadSettings(taskFile, "ipm", verbose);
+    rolloutSettings_ = rollout::loadSettings(taskFile, "rollout", verbose);
+
+    createHelperClasses();
+
+    createReferenceManager(initTime, currentState, std::move(currentTerrainModel), 
+      multiThreaded, modelFile, urdfFile);
+
+    createInitializer();
+    
+    createOptimalProblem(initTime, currentState, modelFile);
+
+    createRollout();
+  }
+      
+  std::shared_ptr<ReferenceManagerInterface> LeggedInterface::getReferenceManagerPtr() const
+  {
+    return referenceManagerPtr_;
+  }
+
+  LeggedReferenceManager& LeggedInterface::getLeggedReferenceManager()
+  {
+    return *referenceManagerPtr_;
+  }
+
+  const OptimalControlProblem& LeggedInterface::getOptimalControlProblem() const
+  {
+    return optimalProblem_;
+  }
+
+  const Initializer& LeggedInterface::getInitializer() const
+  {
+    return *initializerPtr_;
+  }
+
+  const ModelSettings& LeggedInterface::modelSettings() const 
+  { 
+    return modelSettings_; 
+  }
+
+  const ddp::Settings& LeggedInterface::ddpSettings() const 
+  { 
+    return ddpSettings_; 
+  }
+
+  const mpc::Settings& LeggedInterface::mpcSettings() const 
+  { 
+    return mpcSettings_; 
+  }
+
+  const rollout::Settings& LeggedInterface::rolloutSettings() const 
+  { 
+    return rolloutSettings_; 
+  }
+
+  const sqp::Settings& LeggedInterface::sqpSettings() const
+  { 
+    return sqpSettings_; 
+  }
+
+  const ipm::Settings& LeggedInterface::ipmSettings() const
+  { 
+    return ipmSettings_; 
+  }
+
+  void LeggedInterface::createHelperClasses()
+  {
+    // Setup forward kinematics
+    const std::string forwardKinematicsName = "forward_kinematics";
+    endEffectorForwardKinematics_ = 
+      std::make_unique<PinocchioForwardEndEffectorKinematicsCppAd>(*pinocchioInterfacePtr_, 
+        floatingBaseModelInfo_, forwardKinematicsName);
+
+    // Setup collision interface
+    collisionInterface_ = std::make_unique<collision::PinocchioCollisionInterface>(
+      floatingBaseModelInfo_, modelSettings_, collisionSettings_, *pinocchioInterfacePtr_);
+    
+    // Setup collision kinematics
+    const std::string collisionKinematicsName = "collision_kinematics";
+    collisionForwardKinematics_ = 
+      std::make_unique<PinocchioForwardCollisionKinematicsCppAd>(*pinocchioInterfacePtr_, 
+        floatingBaseModelInfo_, collisionSettings_, collisionKinematicsName);
+
+    // Setup torque approximatior
+    const std::string torqueApproximatorName = "torque_approximator";
+    torqueApproximator_ = std::make_unique<PinocchioTorqueApproximationCppAd>(
+      *pinocchioInterfacePtr_, floatingBaseModelInfo_, 
+      vector_t::Zero(floatingBaseModelInfo_.actuatedDofNum), torqueApproximatorName);
+  }
+
+  void LeggedInterface::createReferenceManager(scalar_t initTime, 
+    const vector_t& currentState, std::unique_ptr<TerrainModel> currentTerrainModel,
+    bool multiThreaded, const std::string& modelFile, const std::string& urdfFile)
+  {
+    const bool verbose = modelSettings_.verbose;
+
+    // Load settings for gait planner
+    const auto gaitStaticSettings = loadGaitStaticParameters(modelFile, 
+      modelSettings_, "gait_static_settings", verbose);
+
+    const auto gaitDynamicSettings = loadGaitDynamicParameters(modelFile,
+      modelSettings_, gaitStaticSettings, "gait_dynamic_settings", verbose);
+
+    // Setup gait planner
+    GaitPlanner gaitPlanner(gaitStaticSettings, gaitDynamicSettings, initTime);
+
+    // Load settings for base trajectory planner
+    const auto baseStaticSettings = loadBasePlannerStaticSettings(modelFile,
+      "base_planner_static_settings", verbose);
+
+    // Setup base trajectory planner
+    BaseTrajectoryPlanner basePlanner(floatingBaseModelInfo_, baseStaticSettings);
+
+    // Load inverse kinematics solver for joint trajectory planner
+    const auto kinematicModelSettings = loadKinematicsModelSettings(modelFile, 
+      "legged_model_settings", verbose);
+    const auto inverseSolverSettings = loadInverseSolverSettings(modelFile, 
+      "inverse_solver_settings", verbose);
+    const auto inverseSolverName = loadInverseSolverName(modelFile, 
+      "inverse_solver_name", verbose);
+
+    MultiEndEffectorKinematics inverseKinematicsSolver(urdfFile, kinematicModelSettings, 
+      inverseSolverSettings, inverseSolverName);
+
+    // Setup joint trajectory planner
+    JointTrajectoryPlanner jointPlanner(floatingBaseModelInfo_, 
+      std::move(inverseKinematicsSolver));
+
+    // Setup contact force wrench trajectory planner
+    ContactForceWrenchTrajectoryPlanner contactForceWrenchPlanner(floatingBaseModelInfo_);
+
+    // Load settings for swing trajectory planner
+    const auto swingStaticSettings = loadSwingPlannerStaticSettings(modelFile, 
+      "swing_planner_static_settings", verbose);
+    const auto swingDynamicSettings = loadSwingPlannerDynamicSettings(modelFile, 
+      floatingBaseModelInfo_, "swing_planner_dynamic_settings", verbose);
+    const auto overExtensionPenaltySettings = loadOverExtensionPenaltySettings(
+      modelFile, "over_extension_penalty_settings", verbose);
+
+    // Setup over extension penalty and swing trajectory planner
+    const std::string overExtensionPenaltyName = "over_extension_penalty";
+    const OverExtensionPenalty overExtensionPenalty(*pinocchioInterfacePtr_,
+      modelSettings_, overExtensionPenaltySettings, floatingBaseModelInfo_, 
+      overExtensionPenaltyName);
+
+    SwingTrajectoryPlanner swingPlanner(floatingBaseModelInfo_, 
+      swingStaticSettings, swingDynamicSettings, *endEffectorForwardKinematics_, 
+      overExtensionPenalty);
+
+    // Load reference manager settings
+    const auto referenceManagerSettings = loadLeggedReferenceManagerSettings(
+      modelFile, "reference_manager_settings", verbose);
+
+    const auto gaitParameters = gaitPlanner.getDynamicParameters();
+
+    const auto swingParameters = swingPlanner.getDynamicSettings();
+
+    // Setup reference manager
+    referenceManagerPtr_ = std::make_shared<LeggedReferenceManager>(floatingBaseModelInfo_, 
+      referenceManagerSettings, std::move(gaitPlanner), std::move(swingPlanner), 
+      std::move(basePlanner), std::move(jointPlanner), std::move(contactForceWrenchPlanner), 
+      multiThreaded);
+
+    const scalar_t timeJump = 1.0;
+    
+    const size_t endEffectorNum = floatingBaseModelInfo_.numThreeDofContacts 
+      + floatingBaseModelInfo_.numSixDofContacts;
+    const size_t standingMode = ((0x01 << (endEffectorNum)) - 1);
+    const contact_flags_t standingFlags(standingMode);
+
+    SystemObservation currentObservation;
+    currentObservation.state = currentState;
+    currentObservation.input = weightCompensatingInput(floatingBaseModelInfo_, 
+      standingFlags);
+
+    referenceManagerPtr_->initialize(initTime, initTime + timeJump, 
+      currentObservation, standingFlags, gaitParameters, swingParameters, 
+      std::move(currentTerrainModel));
+
+  }
+
+  void LeggedInterface::createInitializer()
+  {
+    // Setup initializer
+    initializerPtr_ = std::make_unique<LeggedInitializer>(floatingBaseModelInfo_, 
+      *referenceManagerPtr_);
+  }
+
+  void LeggedInterface::createOptimalProblem(scalar_t initTime, 
+    const vector_t& currentState, const std::string& modelFile)
+  {
+    // Setup cpp AD dynamics
+    const std::string dynamicsModelName = "dynamics_model";
+    optimalProblem_.dynamicsPtr = std::make_unique<LeggedDynamicsAD>(
+      *pinocchioInterfacePtr_, floatingBaseModelInfo_, dynamicsModelName, 
+      modelSettings_, disturbanceModule_);
+    
+    // Setup precomputation
+    optimalProblem_.preComputationPtr = std::make_unique<LeggedPrecomputation>(
+      floatingBaseModelInfo_, *referenceManagerPtr_, *endEffectorForwardKinematics_, 
+      *collisionForwardKinematics_, *torqueApproximator_);
+
+    const bool verbose = modelSettings_.verbose;
+    
+    // Setup all intermediate costs
+    if(interfaceSettings_.useTrajectoryTrackingCost)
+    {
+      const auto baseWeights = loadBaseWeights(modelFile, "base_weights", verbose);
+
+      const auto& model = pinocchioInterfacePtr_->getModel();
+      const auto jointWeights = loadJointWeights(modelFile, floatingBaseModelInfo_, model, 
+        "joint_weights", verbose);
+
+      const auto endEffectorWeights = loadEndEffectorWeights(modelFile, modelSettings_, 
+        "end_effector_weights", verbose);
+
+      auto trajectoryTrackingCost = std::make_unique<TrajectoryTrackingCost>(
+        floatingBaseModelInfo_, *referenceManagerPtr_, baseWeights, jointWeights, 
+        endEffectorWeights);
+      
+      optimalProblem_.costPtr->add("TrajectoryTrackingCost", std::move(trajectoryTrackingCost));
+    }
+
+    if(interfaceSettings_.useJointTorqueCost)
+    {
+      const auto& model = pinocchioInterfacePtr_->getModel();
+      const auto jointWeights = loadJointTorqueWeights(modelFile, floatingBaseModelInfo_, 
+        model, "joint_torque_weights", verbose);
+
+      auto jointTorqueCost = std::make_unique<JointTorqueCost>(floatingBaseModelInfo_, 
+        jointWeights);
+      
+      optimalProblem_.costPtr->add("JointTorqueCost", std::move(jointTorqueCost));
+    }
+
+    // Setup all constraints for each end effector
+    const size_t endEffectorNum = floatingBaseModelInfo_.numThreeDofContacts 
+      + floatingBaseModelInfo_.numSixDofContacts;
+    for(size_t i = 0; i < endEffectorNum; ++i)
+    {
+      if(interfaceSettings_.useNormalVelocityConstraint)
+      {
+        auto normaVelocityConstraint = std::make_unique<NormalVelocityConstraint>(
+          *referenceManagerPtr_, i);
+        
+        const std::string name = "NormalVelocityConstraint_" + std::to_string(i);
+        optimalProblem_.equalityConstraintPtr->add(name, 
+          std::move(normaVelocityConstraint));
+      }
+    }
+
+    const auto frictionForceSettings = loadForceFrictionConeConfig(modelFile, 
+      "force_friction_cone_settings", verbose);
+
+    for(size_t i = 0; i < floatingBaseModelInfo_.numThreeDofContacts; ++i)
+    {
+      if(interfaceSettings_.useForceFrictionConeConstraint)
+      {
+        auto forceFrictionConeConstraint = std::make_unique<ForceFrictionConeConstraint>(
+          *referenceManagerPtr_, frictionForceSettings, floatingBaseModelInfo_, i);
+        
+        const std::string name = "ForceFrictionConeConstraint_" + std::to_string(i);
+        optimalProblem_.equalityConstraintPtr->add(name, 
+          std::move(forceFrictionConeConstraint));
+      }
+
+      if(interfaceSettings_.useZero3DofVelocityConstraint)
+      {
+        auto zero3DofVelocityConstraint = std::make_unique<Zero3DofVelocityConstraint>(
+          *referenceManagerPtr_, i);
+
+        const std::string name = "Zero3DofVelocityConstraint_" + std::to_string(i);
+        optimalProblem_.equalityConstraintPtr->add(name, 
+          std::move(zero3DofVelocityConstraint));
+      }
+      
+      if(interfaceSettings_.useZeroForceConstraint)
+      {
+        auto zeroForceConstraint = std::make_unique<ZeroForceConstraint>(
+          *referenceManagerPtr_, floatingBaseModelInfo_, i);
+
+        const std::string name = "ZeroForceConstraint_" + std::to_string(i);
+        optimalProblem_.equalityConstraintPtr->add(name, 
+          std::move(zeroForceConstraint));
+      }
+    }
+
+    const auto frictionWrenchSettings = loadWrenchFrictionConeConfig(modelFile, 
+      "wrench_friction_cone_settings", verbose);
+
+    for(size_t i = floatingBaseModelInfo_.numThreeDofContacts; i < endEffectorNum; ++i)
+    {
+      if(interfaceSettings_.useWrenchFrictionConeConstraint)
+      {
+        auto wrenchFrictionConeConstraint = std::make_unique<WrenchFrictionConeConstraint>(
+          *referenceManagerPtr_, frictionWrenchSettings, floatingBaseModelInfo_, i);
+        
+        const std::string name = "WrenchFrictionConeConstraint_" + std::to_string(i);
+        optimalProblem_.equalityConstraintPtr->add(name, 
+          std::move(wrenchFrictionConeConstraint));
+      }
+
+      if(interfaceSettings_.useZero6DofVelocityConstraint)
+      {
+        auto zero6DofVelocityConstraint = std::make_unique<Zero6DofVelocityConstraint>(
+          *referenceManagerPtr_, i);
+
+        const std::string name = "Zero6DofVelocityConstraint_" + std::to_string(i);
+        optimalProblem_.equalityConstraintPtr->add(name, 
+          std::move(zero6DofVelocityConstraint));
+      }
+
+      if(interfaceSettings_.useZeroWrenchConstraint)
+      {
+        auto zeroWrenchConstraint = std::make_unique<ZeroWrenchConstraint>(
+          *referenceManagerPtr_, floatingBaseModelInfo_, i);
+
+        const std::string name = "ZeroWrenchConstraint_" + std::to_string(i);
+        optimalProblem_.equalityConstraintPtr->add(name, 
+          std::move(zeroWrenchConstraint));
+      }
+    }
+
+    // Setup soft constraints
+    if(interfaceSettings_.useEndEffectorPlacementSoftConstraint)
+    {
+      const RelaxedBarrierPenalty::Config penaltyConfig;
+
+      auto endEffectorPlacementSoftConstraint = 
+        std::make_unique<EndEffectorPlacementSoftConstraint>(floatingBaseModelInfo_, 
+          modelSettings_, *referenceManagerPtr_, penaltyConfig);
+
+      optimalProblem_.stateSoftConstraintPtr->add("EndEffectorPlacementSoftConstraint", 
+        std::move(endEffectorPlacementSoftConstraint));
+    }
+
+    if(interfaceSettings_.useJointLimitsSoftConstraint)
+    {
+      const auto& model = pinocchioInterfacePtr_->getModel();
+      const vector_t jointMaxPositions = model.upperPositionLimit.segment(6, 
+        floatingBaseModelInfo_.actuatedDofNum);
+      const vector_t jointMinPositions = model.lowerPositionLimit.segment(6, 
+        floatingBaseModelInfo_.actuatedDofNum);
+      const vector_t jointMaxVelocity =  model.velocityLimit.segment(6, 
+        floatingBaseModelInfo_.actuatedDofNum);
+
+      const RelaxedBarrierPenalty::Config penaltyConfig;
+
+      auto jointLimitsSoftConstraint = std::make_unique<JointLimitsSoftConstraint>(
+        floatingBaseModelInfo_, jointMaxPositions, jointMinPositions, jointMaxVelocity, 
+        penaltyConfig);
+
+      optimalProblem_.softConstraintPtr->add("JointLimitsSoftConstraint", 
+        std::move(jointLimitsSoftConstraint));
+    }
+
+    if(interfaceSettings_.useJointTorqueLimitsSoftConstraint)
+    {
+      const auto& model = pinocchioInterfacePtr_->getModel();
+      const vector_t jointMaxTorque =  model.effortLimit.segment(6, 
+        floatingBaseModelInfo_.actuatedDofNum);
+
+      const RelaxedBarrierPenalty::Config penaltyConfig;
+
+      auto jointTorqueLimitsSoftConstraint = std::make_unique<JointTorqueLimitsSoftConstraint>(
+        floatingBaseModelInfo_, jointMaxTorque, penaltyConfig);
+
+      optimalProblem_.softConstraintPtr->add("JointTorqueLimitsSoftConstraint", 
+        std::move(jointTorqueLimitsSoftConstraint));
+    }
+
+    if(interfaceSettings_.useTerrainAvoidanceSoftConstraint)
+    {
+      const RelaxedBarrierPenalty::Config penaltyConfig;
+
+      auto terrainAvoidanceSoftConstraint = std::make_unique<TerrainAvoidanceSoftConstraint>(
+        floatingBaseModelInfo_, collisionSettings_, *collisionInterface_, 
+        *referenceManagerPtr_, penaltyConfig);
+
+      optimalProblem_.stateSoftConstraintPtr->add("TerrainAvoidanceSoftConstraint", 
+        std::move(terrainAvoidanceSoftConstraint));
+    }
+
+    if(interfaceSettings_.useSelfCollisionAvoidanceSoftConstraint)
+    {
+      const RelaxedBarrierPenalty::Config penaltyConfig;
+
+      auto selfCollisionAvoidanceSoftConstraint = 
+        std::make_unique<SelfCollisionAvoidanceSoftConstraint>(
+          floatingBaseModelInfo_, collisionSettings_, *collisionInterface_, 
+          *referenceManagerPtr_, penaltyConfig);
+
+      optimalProblem_.stateSoftConstraintPtr->add("SelfCollisionAvoidanceSoftConstraint", 
+        std::move(selfCollisionAvoidanceSoftConstraint));
+    }
+
+    // Setup all terminal costs
+    if(interfaceSettings_.useTerminalTrackingCost)
+    {
+      const size_t endEffectorNum = floatingBaseModelInfo_.numThreeDofContacts 
+        + floatingBaseModelInfo_.numSixDofContacts;
+      const size_t standingMode = ((0x01 << (endEffectorNum)) - 1);
+      const contact_flags_t standingFlags(standingMode);
+
+      const vector_t currentInput = weightCompensatingInput(floatingBaseModelInfo_, 
+        standingFlags);
+
+      optimalProblem_.targetTrajectoriesPtr = &referenceManagerPtr_->getTargetTrajectories();
+
+      auto lqrSolution = continuous_time_lqr::solve(optimalProblem_, initTime, 
+        currentState, currentInput);
+
+      lqrSolution.valueFunction *= 10.0;
+      
+      const auto weightMatrix = lqrSolution.valueFunction;
+
+      auto terminalTrackingCost = std::make_unique<TerminalTrackingCost>(weightMatrix, 
+        floatingBaseModelInfo_);
+
+      optimalProblem_.finalCostPtr->add("TerminalTrackingCost", 
+        std::move(terminalTrackingCost));
+    }
+  }
+
+  void LeggedInterface::creatSynchronizedModule()
+  {
+    disturbanceModule_ = DisturbanceSynchronizedModule();
+  }
+
+  void LeggedInterface::createRollout()
+  {
+    rolloutPtr_ = std::make_unique<TimeTriggeredRollout>(*optimalProblem_.dynamicsPtr, 
+      rolloutSettings_);
+  }
+} // namespace legged_locomotion_mpc
