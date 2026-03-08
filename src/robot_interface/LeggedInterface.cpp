@@ -2,6 +2,8 @@
 
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
+#include <boost/property_tree/info_parser.hpp>
+#include <boost/property_tree/ptree.hpp>
 
 #include <ocs2_oc/rollout/TimeTriggeredRollout.h>
 #include <ocs2_ddp/ContinuousTimeLqr.h>
@@ -48,11 +50,10 @@ namespace legged_locomotion_mpc
   using namespace synchronization;
   using namespace multi_end_effector_kinematics;
 
-  LeggedInterface::LeggedInterface(scalar_t initTime, LeggedInterface::Settings settings,
-    const vector_t& currentState, 
+  LeggedInterface::LeggedInterface(scalar_t initTime, const vector_t& currentState, 
     std::unique_ptr<TerrainModel> currentTerrainModel,
     const std::string& taskFile, const std::string& modelFile,
-    const std::string& urdfFile, bool multiThreaded): interfaceSettings_(settings)
+    const std::string& urdfFile, bool multiThreaded)
   {
     // Check that task file exists
     const boost::filesystem::path taskFilePath(taskFile);
@@ -93,6 +94,10 @@ namespace legged_locomotion_mpc
     // Load model settings
     modelSettings_ = loadModelSettings(modelFile);
     const bool verbose = modelSettings_.verbose;
+
+    // Load interface settings
+    interfaceSettings_ = loadLeggedInterfaceSettings(modelFile, 
+      "legged_interface_settings", verbose);
 
     // Load collision settings
     collisionSettings_ = loadCollisionSettings(modelFile, modelSettings_, 
@@ -546,5 +551,59 @@ namespace legged_locomotion_mpc
   {
     rolloutPtr_ = std::make_unique<TimeTriggeredRollout>(*optimalProblem_.dynamicsPtr, 
       rolloutSettings_);
+  }
+
+   LeggedInterface::Settings loadLeggedInterfaceSettings(const std::string& filename,
+    const std::string& fieldName, bool verbose)
+  {
+    LeggedInterface::Settings settings;
+
+    boost::property_tree::ptree pt;
+    read_info(filename, pt);
+
+    if(verbose) 
+    {
+      std::cerr << "\n #### Legged Locomotion MPC Common Model Settings:";
+      std::cerr << "\n #### =============================================================================\n";
+    }
+
+    loadData::loadPtreeValue(pt, settings.useTrajectoryTrackingCost, 
+      fieldName + ".useTrajectoryTrackingCost", verbose);
+    loadData::loadPtreeValue(pt, settings.useTerminalTrackingCost, 
+      fieldName + ".useTerminalTrackingCost", verbose);
+    loadData::loadPtreeValue(pt, settings.useJointTorqueCost, 
+      fieldName + ".useJointTorqueCost", verbose);
+    loadData::loadPtreeValue(pt, settings.useNormalVelocityConstraint, 
+      fieldName + ".useNormalVelocityConstraint", verbose);
+    loadData::loadPtreeValue(pt, settings.useForceFrictionConeConstraint, 
+      fieldName + ".useForceFrictionConeConstraint", verbose);
+    loadData::loadPtreeValue(pt, settings.useZero3DofVelocityConstraint, 
+      fieldName + ".useZero3DofVelocityConstraint", verbose);
+    loadData::loadPtreeValue(pt, settings.useZeroForceConstraint, 
+      fieldName + ".useZeroForceConstraint", verbose);
+    loadData::loadPtreeValue(pt, settings.useWrenchFrictionConeConstraint, 
+      fieldName + ".useWrenchFrictionConeConstraint", verbose);
+    loadData::loadPtreeValue(pt, settings.useZero6DofVelocityConstraint, 
+      fieldName + ".useZero6DofVelocityConstraint", verbose);
+    loadData::loadPtreeValue(pt, settings.useZeroWrenchConstraint, 
+      fieldName + ".useZeroWrenchConstraint", verbose);
+    loadData::loadPtreeValue(pt, settings.useEndEffectorPlacementSoftConstraint, 
+      fieldName + ".useEndEffectorPlacementSoftConstraint", verbose);
+    loadData::loadPtreeValue(pt, settings.useJointLimitsSoftConstraint, 
+      fieldName + ".useJointLimitsSoftConstraint", verbose);
+    loadData::loadPtreeValue(pt, settings.useJointTorqueLimitsSoftConstraint, 
+      fieldName + ".useJointTorqueLimitsSoftConstraint", verbose);
+    loadData::loadPtreeValue(pt, settings.useTerrainAvoidanceSoftConstraint, 
+      fieldName + ".useTerrainAvoidanceSoftConstraint", verbose);
+    loadData::loadPtreeValue(pt, settings.useSelfCollisionAvoidanceSoftConstraint, 
+      fieldName + ".useSelfCollisionAvoidanceSoftConstraint", verbose);
+
+    if(verbose) 
+    {
+      std::cerr << " #### =============================================================================" <<
+      std::endl;
+    }
+
+    return settings;
   }
 } // namespace legged_locomotion_mpc

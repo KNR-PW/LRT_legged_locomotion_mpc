@@ -75,8 +75,7 @@ namespace legged_locomotion_mpc
         bool useSelfCollisionAvoidanceSoftConstraint = true;
       };
 
-      LeggedInterface(ocs2::scalar_t initTime, Settings settings,
-        const ocs2::vector_t& currentState, 
+      LeggedInterface(ocs2::scalar_t initTime, const ocs2::vector_t& currentState, 
         std::unique_ptr<terrain_model::TerrainModel> currentTerrainModel, 
         const std::string& taskFile, const std::string& modelFile,
         const std::string& urdfFile, bool multiThreaded = false);
@@ -159,7 +158,7 @@ namespace legged_locomotion_mpc
 
       void createRollout();
       
-      const Settings interfaceSettings_;
+      Settings interfaceSettings_;
       ModelSettings modelSettings_;
       collision::CollisionSettings collisionSettings_;
       floating_base_model::FloatingBaseModelInfo floatingBaseModelInfo_;
@@ -185,5 +184,16 @@ namespace legged_locomotion_mpc
       std::unique_ptr<collision::PinocchioCollisionInterface> collisionInterface_;
       std::unique_ptr<PinocchioTorqueApproximationCppAd> torqueApproximator_;
   };
+
+  /**
+   * Creates Legged interface settings 
+   * @param [in] filename: file path with model settings.
+   * @param [in] fieldName: field where settings are defined
+   * @param [in] verbose: verbose flag
+   * @return LeggedInterface::Settings struct
+   */
+  LeggedInterface::Settings loadLeggedInterfaceSettings(const std::string& filename,
+    const std::string& fieldName = "legged_interface_settings",
+    bool verbose = "true");
 } // namespace legged_locomotion_mpc
 #endif

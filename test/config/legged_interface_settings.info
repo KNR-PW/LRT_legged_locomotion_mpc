@@ -1,0 +1,22 @@
+legged_interface_settings
+{
+  useTrajectoryTrackingCost               true
+  useTerminalTrackingCost                 true
+  useJointTorqueCost                      false
+
+  useNormalVelocityConstraint             true
+
+  useForceFrictionConeConstraint          false
+  useZero3DofVelocityConstraint           true
+  useZeroForceConstraint                  false
+
+  useWrenchFrictionConeConstraint         true
+  useZero6DofVelocityConstraint           false
+  useZeroWrenchConstraint                 true
+
+  useEndEffectorPlacementSoftConstraint   false
+  useJointLimitsSoftConstraint            true
+  useJointTorqueLimitsSoftConstraint      false
+  useTerrainAvoidanceSoftConstraint       true
+  useSelfCollisionAvoidanceSoftConstraint false
+}
