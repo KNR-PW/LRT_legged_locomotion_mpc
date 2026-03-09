@@ -913,6 +913,12 @@ namespace legged_locomotion_mpc
         }
       }
 
+      if(verbose) 
+      {
+        std::cerr << " #### =============================================================================" <<
+        std::endl;
+      }
+
       return settings;
     }
   } // namespace locomotion

@@ -1,0 +1,26 @@
+end_effector_soft_constraint_settings
+{
+  RFF_link
+  {
+    safetyRadius 0.1
+  }
+
+  RRF_link
+  {
+    safetyRadius 0.2
+  }
+
+  LRF_link
+  {
+    safetyRadius 0.4
+  }
+  
+  LFF_link
+  {
+    safetyRadius 0.3
+  }
+
+  mu 0.5
+
+  delta 0.6
+}

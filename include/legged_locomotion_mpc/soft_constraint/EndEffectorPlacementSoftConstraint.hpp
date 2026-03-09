@@ -39,6 +39,14 @@ namespace legged_locomotion_mpc
   {
     public:
 
+      struct Settings
+      {
+        // Safety radius for each foot (representing contact pressure circle)
+        std::vector<ocs2::scalar_t> endEffectorSafetyRadiuses;
+
+        ocs2::RelaxedBarrierPenalty::Config barrierSettings;
+      };
+
       /**
        * Constructor
        * @param [in] info: Floating Base model info.
@@ -48,9 +56,8 @@ namespace legged_locomotion_mpc
        */
       EndEffectorPlacementSoftConstraint(
         floating_base_model::FloatingBaseModelInfo info,
-        const ModelSettings& modelSettings,
         const LeggedReferenceManager& referenceManager,
-        ocs2::RelaxedBarrierPenalty::Config settings);
+        Settings settings);
 
       ~EndEffectorPlacementSoftConstraint() override = default;
 
@@ -78,6 +85,20 @@ namespace legged_locomotion_mpc
 
       std::unique_ptr<ocs2::RelaxedBarrierPenalty> placementRelaxedBarrierPenaltyPtr_;
     };
+
+    /**
+     * Creates EndEffectorPlacementSoftConstraint settings 
+     * @param [in] filename: file path with model settings.
+     * @param [in] fieldName: field where settings are defined
+     * @param [in] modelSettings: model settings
+     * @param [in] verbose: verbose flag
+     * @return EndEffectorPlacementSoftConstraint::Settings struct
+     */
+    using Settings = EndEffectorPlacementSoftConstraint::Settings;
+    Settings loadEndEffectorPlacementSoftConstraintSettings(const std::string& filename,
+      const ModelSettings modelSettings,
+      const std::string& fieldName = "end_effector_soft_constraint_settings",
+      bool verbose = "true");
 
 } // namespace legged_locomotion_mpc
 

@@ -1,5 +1,10 @@
 #include <legged_locomotion_mpc/soft_constraint/EndEffectorPlacementSoftConstraint.hpp>
 
+#include <boost/property_tree/info_parser.hpp>
+#include <boost/property_tree/ptree.hpp>
+
+#include <ocs2_core/misc/LoadData.h>
+
 #include <legged_locomotion_mpc/precomputation/LeggedPrecomputation.hpp>
 
 namespace legged_locomotion_mpc
@@ -12,15 +17,14 @@ namespace legged_locomotion_mpc
   /******************************************************************************************************/
   EndEffectorPlacementSoftConstraint::EndEffectorPlacementSoftConstraint(
     floating_base_model::FloatingBaseModelInfo info,
-    const ModelSettings& modelSettings,
     const LeggedReferenceManager& referenceManager,
-    RelaxedBarrierPenalty::Config settings):
+    EndEffectorPlacementSoftConstraint::Settings settings):
       StateCost(),
       referenceManager_(referenceManager),
       endEffectorNum_(info.numThreeDofContacts + info.numSixDofContacts),
       info_(std::move(info)),
-      endEffectorRadiuses_(modelSettings.endEffectorSafetyRadiuses), 
-      placementRelaxedBarrierPenaltyPtr_(new RelaxedBarrierPenalty(settings)) 
+      endEffectorRadiuses_(std::move(settings.endEffectorSafetyRadiuses)), 
+      placementRelaxedBarrierPenaltyPtr_(new RelaxedBarrierPenalty(settings.barrierSettings)) 
   {
     if(endEffectorRadiuses_.size() != endEffectorNum_)
     {
@@ -127,4 +131,65 @@ namespace legged_locomotion_mpc
     info_(rhs.info_),
     endEffectorRadiuses_(rhs.endEffectorRadiuses_), 
     placementRelaxedBarrierPenaltyPtr_(rhs.placementRelaxedBarrierPenaltyPtr_->clone()) {}
+    
+  /******************************************************************************************************/
+  /******************************************************************************************************/
+  /******************************************************************************************************/
+  using Settings = EndEffectorPlacementSoftConstraint::Settings;
+  Settings loadEndEffectorPlacementSoftConstraintSettings(const std::string& filename, 
+    const ModelSettings modelSettings, const std::string& fieldName, bool verbose)
+  {
+    boost::property_tree::ptree pt;
+    boost::property_tree::read_info(filename, pt);
+
+    Settings settings;
+
+    if(verbose) 
+    {
+      std::cerr << "\n #### Legged Locomotion MPC End Effector Placement Soft Constraint Settings:";
+      std::cerr << "\n #### =============================================================================\n";
+    }
+
+    std::vector<std::string> endEffectorNames(modelSettings.endEffectorThreeDofNames);
+    endEffectorNames.insert(endEffectorNames.end(), 
+      modelSettings.endEffectorSixDofNames.begin(), modelSettings.endEffectorSixDofNames.end());
+
+    size_t index = 0;
+    settings.endEffectorSafetyRadiuses.resize(endEffectorNames.size());
+    for(const auto& endEffectorName: endEffectorNames)
+    {
+      loadData::loadPtreeValue(pt, settings.endEffectorSafetyRadiuses[index], 
+        fieldName + "." + endEffectorName + ".safetyRadius", verbose);
+      if(settings.endEffectorSafetyRadiuses[index] < 0.0)
+      {
+        std::string message = "[EndEffectorPlacementSoftConstraint]: " + endEffectorName + " safety radius smaller than 0.0!";
+        throw std::invalid_argument(message);
+      }
+      index++;
+    }
+
+    loadData::loadPtreeValue(pt, settings.barrierSettings.mu, 
+        fieldName + ".mu", verbose);
+
+    if(settings.barrierSettings.mu < 0.0)
+    {
+      throw std::invalid_argument("[EndEffectorPlacementSoftConstraint]: Relaxed barrier penalty mu smaller than 0.0!");
+    }
+
+    loadData::loadPtreeValue(pt, settings.barrierSettings.delta, 
+        fieldName + ".delta", verbose);
+
+    if(settings.barrierSettings.delta < 0.0)
+    {
+      throw std::invalid_argument("[EndEffectorPlacementSoftConstraint]: Relaxed barrier penalty delta smaller than 0.0!");
+    }
+
+    if(verbose) 
+    {
+      std::cerr << " #### =============================================================================" <<
+      std::endl;
+    }
+
+    return settings;
+  }
 } // namespace legged_locomotion_mpc

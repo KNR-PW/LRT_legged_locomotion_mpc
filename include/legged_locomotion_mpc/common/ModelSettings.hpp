@@ -33,8 +33,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define __MODEL_SETTINGS_LEGGED_LOCOMOTION_MPC__
 
 #include <ocs2_core/Types.h>
-#include <ocs2_core/misc/LoadData.h>
-#include <ocs2_core/misc/LoadStdVectorOfPair.h>
 
 namespace legged_locomotion_mpc
 {
@@ -52,9 +50,6 @@ namespace legged_locomotion_mpc
 
     // Hip frame of 3D and 6D contact frames (first 3D then 6D)
     std::vector<std::string> hipFrameNames;
-
-    // Safety radius for each foot (representing contact pressure circle)
-    std::vector<ocs2::scalar_t> endEffectorSafetyRadiuses;
   };
 
   /**

@@ -444,11 +444,13 @@ namespace legged_locomotion_mpc
     // Setup soft constraints
     if(interfaceSettings_.useEndEffectorPlacementSoftConstraint)
     {
-      const RelaxedBarrierPenalty::Config penaltyConfig;
+      const auto endEffectorPlacementSettings = 
+        loadEndEffectorPlacementSoftConstraintSettings(modelFile, modelSettings_,
+          "end_effector_soft_constraint_settings", verbose);
 
       auto endEffectorPlacementSoftConstraint = 
         std::make_unique<EndEffectorPlacementSoftConstraint>(floatingBaseModelInfo_, 
-          modelSettings_, *referenceManagerPtr_, penaltyConfig);
+          *referenceManagerPtr_, endEffectorPlacementSettings);
 
       optimalProblem_.stateSoftConstraintPtr->add("EndEffectorPlacementSoftConstraint", 
         std::move(endEffectorPlacementSoftConstraint));

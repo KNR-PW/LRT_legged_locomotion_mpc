@@ -263,6 +263,14 @@ if(BUILD_TESTING)
   target_link_libraries(${PROJECT_NAME}_test_cost ${PROJECT_NAME})
   target_compile_options(${PROJECT_NAME}_test_cost PUBLIC ${FLAGS})
 
+  ament_add_gtest(${PROJECT_NAME}_test_soft_constraint
+        test/soft_constraint/EndEffectorPlacementSoftConstraintTest.cpp
+  )
+  ament_target_dependencies(${PROJECT_NAME}_test_soft_constraint ${THIS_PACKAGE_DEPENDS})
+  target_include_directories(${PROJECT_NAME}_test_soft_constraint PRIVATE test/include)
+  target_link_libraries(${PROJECT_NAME}_test_soft_constraint ${PROJECT_NAME})
+  target_compile_options(${PROJECT_NAME}_test_soft_constraint PUBLIC ${FLAGS})
+
   ament_add_gtest(${PROJECT_NAME}_test_interface
         test/robot_interface/LeggedInterfaceTest.cpp
   )

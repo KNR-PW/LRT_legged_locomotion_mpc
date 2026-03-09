@@ -21,7 +21,6 @@
 #define __COLLISION_SETTINGS_LEGGED_LOCOMOTION_MPC__
 
 #include <ocs2_core/Types.h>
-#include <ocs2_core/misc/LoadData.h>
 
 #include <legged_locomotion_mpc/common/Types.hpp>
 #include <legged_locomotion_mpc/common/ModelSettings.hpp>

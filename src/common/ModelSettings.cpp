@@ -5,6 +5,8 @@
 #include <boost/property_tree/info_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
 
+#include <ocs2_core/misc/LoadData.h>
+
 namespace legged_locomotion_mpc
 {
   using namespace ocs2;
@@ -70,20 +72,6 @@ namespace legged_locomotion_mpc
       {
         std::string message = "[ModelSettings]: Hip frame " +  hipFrameName + " already used!";
         throw std::invalid_argument(message);
-      }
-    }
-
-    loadData::loadStdVector(filename, fieldName + ".endEffectorSafetyRadiuses", modelSettings.endEffectorSafetyRadiuses, verbose);
-    if(modelSettings.endEffectorSafetyRadiuses.size() != namesVector.size())
-    {
-      std::string message = "[ModelSettings]: End effector safety radiuses vector has wrong size!";
-      throw std::invalid_argument(message);
-    }
-    for(const auto& radius: modelSettings.endEffectorSafetyRadiuses)
-    {
-      if(radius < 0.0)
-      {
-        throw std::invalid_argument("[ModelSettings]: One of end effector safety radiuses smaller than 0.0!");
       }
     }
 

@@ -13,8 +13,6 @@ TEST(ModelSettingsTest, loader)
 
   const auto modelSettings = loadModelSettings(filePath);
 
-  const std::vector<scalar_t> trueEffectorSafetyRadiuses{0.1, 0.2, 0.3, 0.4};
-
   EXPECT_TRUE(modelSettings.verbose == false);
   EXPECT_TRUE(modelSettings.recompileLibrariesCppAd == false);
   EXPECT_TRUE(modelSettings.modelFolderCppAd == "/tmp/legged_locomotion_mpc");
@@ -22,5 +20,4 @@ TEST(ModelSettingsTest, loader)
   EXPECT_TRUE(modelSettings.endEffectorThreeDofNames == meldog3DofContactNames);
   EXPECT_TRUE(modelSettings.endEffectorSixDofNames.size() == 0);
   EXPECT_TRUE(modelSettings.hipFrameNames == meldogHipNames);
-  EXPECT_TRUE(modelSettings.endEffectorSafetyRadiuses == trueEffectorSafetyRadiuses);
 }
