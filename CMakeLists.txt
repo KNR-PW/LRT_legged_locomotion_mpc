@@ -264,6 +264,10 @@ if(BUILD_TESTING)
   target_compile_options(${PROJECT_NAME}_test_cost PUBLIC ${FLAGS})
 
   ament_add_gtest(${PROJECT_NAME}_test_soft_constraint
+        test/soft_constraint/JointLimitsSoftConstraintTest.cpp
+        test/soft_constraint/JointTorqueLimitsSoftConstraintTest.cpp
+        test/soft_constraint/SelfCollisionAvoidanceSoftConstraintTest.cpp
+        test/soft_constraint/TerrainAvoidanceSoftConstraintTest.cpp
         test/soft_constraint/EndEffectorPlacementSoftConstraintTest.cpp
   )
   ament_target_dependencies(${PROJECT_NAME}_test_soft_constraint ${THIS_PACKAGE_DEPENDS})

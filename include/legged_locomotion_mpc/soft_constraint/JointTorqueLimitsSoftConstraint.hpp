@@ -38,9 +38,14 @@ namespace legged_locomotion_mpc
   {
     public:
       EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+      struct Settings
+      {
+        ocs2::RelaxedBarrierPenalty::Config barrierSettings;
+      };
     
       JointTorqueLimitsSoftConstraint(floating_base_model::FloatingBaseModelInfo info,
-        ocs2::vector_t torqueLimits, ocs2::RelaxedBarrierPenalty::Config settings);
+        ocs2::vector_t torqueLimits, Settings settings);
 
       ~JointTorqueLimitsSoftConstraint() override = default;
 
@@ -67,6 +72,18 @@ namespace legged_locomotion_mpc
 
       const ocs2::vector_t torqueLimits_;
     };
+
+    /**
+     * Creates JointTorqueLimitsSoftConstraint settings 
+     * @param [in] filename: file path with model settings.
+     * @param [in] fieldName: field where settings are defined
+     * @param [in] verbose: verbose flag
+     * @return JointTorqueLimitsSoftConstraint::Settings struct
+     */
+    JointTorqueLimitsSoftConstraint::Settings loadJointTorqueLimitsSoftConstraintSettings(
+      const std::string& filename,
+      const std::string& fieldName = "joint_torque_limits_soft_constraint_settings",
+      bool verbose = "true");
 } // namespace legged_locomotion_mpc
 
 #endif

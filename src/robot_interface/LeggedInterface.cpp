@@ -466,11 +466,13 @@ namespace legged_locomotion_mpc
       const vector_t jointMaxVelocity =  model.velocityLimit.segment(6, 
         floatingBaseModelInfo_.actuatedDofNum);
 
-      const RelaxedBarrierPenalty::Config penaltyConfig;
+      const auto jointLimitsSettings = 
+        loadJointLimitsSoftConstraintSettings(modelFile, 
+          "joint_limits_soft_constraint_settings", verbose);
 
       auto jointLimitsSoftConstraint = std::make_unique<JointLimitsSoftConstraint>(
         floatingBaseModelInfo_, jointMaxPositions, jointMinPositions, jointMaxVelocity, 
-        penaltyConfig);
+        jointLimitsSettings);
 
       optimalProblem_.softConstraintPtr->add("JointLimitsSoftConstraint", 
         std::move(jointLimitsSoftConstraint));
@@ -482,10 +484,12 @@ namespace legged_locomotion_mpc
       const vector_t jointMaxTorque =  model.effortLimit.segment(6, 
         floatingBaseModelInfo_.actuatedDofNum);
 
-      const RelaxedBarrierPenalty::Config penaltyConfig;
+      const auto jointTorqueLimitsSettings = 
+        loadJointTorqueLimitsSoftConstraintSettings(modelFile, 
+          "joint_torque_limits_soft_constraint_settings", verbose);
 
       auto jointTorqueLimitsSoftConstraint = std::make_unique<JointTorqueLimitsSoftConstraint>(
-        floatingBaseModelInfo_, jointMaxTorque, penaltyConfig);
+        floatingBaseModelInfo_, jointMaxTorque, jointTorqueLimitsSettings);
 
       optimalProblem_.softConstraintPtr->add("JointTorqueLimitsSoftConstraint", 
         std::move(jointTorqueLimitsSoftConstraint));
@@ -493,11 +497,13 @@ namespace legged_locomotion_mpc
 
     if(interfaceSettings_.useTerrainAvoidanceSoftConstraint)
     {
-      const RelaxedBarrierPenalty::Config penaltyConfig;
+      const auto terrainAvoidanceSettings = 
+        loadTerrainAvoidanceSoftConstraintSettings(modelFile, 
+          "terrain_avoidance_soft_constraint_settings", verbose);
 
       auto terrainAvoidanceSoftConstraint = std::make_unique<TerrainAvoidanceSoftConstraint>(
         floatingBaseModelInfo_, collisionSettings_, *collisionInterface_, 
-        *referenceManagerPtr_, penaltyConfig);
+        *referenceManagerPtr_, terrainAvoidanceSettings);
 
       optimalProblem_.stateSoftConstraintPtr->add("TerrainAvoidanceSoftConstraint", 
         std::move(terrainAvoidanceSoftConstraint));
@@ -505,12 +511,14 @@ namespace legged_locomotion_mpc
 
     if(interfaceSettings_.useSelfCollisionAvoidanceSoftConstraint)
     {
-      const RelaxedBarrierPenalty::Config penaltyConfig;
+      const auto selfCollisionAvoidanceSettings = 
+        loadSelfCollisionAvoidanceSoftConstraintSettings(modelFile, 
+          "self_collision_avoidance_soft_constraint_settings", verbose);
 
       auto selfCollisionAvoidanceSoftConstraint = 
         std::make_unique<SelfCollisionAvoidanceSoftConstraint>(
           floatingBaseModelInfo_, collisionSettings_, *collisionInterface_, 
-          *referenceManagerPtr_, penaltyConfig);
+          *referenceManagerPtr_, selfCollisionAvoidanceSettings);
 
       optimalProblem_.stateSoftConstraintPtr->add("SelfCollisionAvoidanceSoftConstraint", 
         std::move(selfCollisionAvoidanceSoftConstraint));

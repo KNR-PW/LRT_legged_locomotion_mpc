@@ -19,6 +19,11 @@
 
 #include <legged_locomotion_mpc/soft_constraint/SelfCollisionAvoidanceSoftConstraint.hpp>
 
+#include <boost/property_tree/info_parser.hpp>
+#include <boost/property_tree/ptree.hpp>
+
+#include <ocs2_core/misc/LoadData.h>
+
 #include <ocs2_robotic_tools/common/RotationTransforms.h>
 
 #include <legged_locomotion_mpc/precomputation/LeggedPrecomputation.hpp>
@@ -36,14 +41,14 @@ namespace legged_locomotion_mpc
     const CollisionSettings& collisionSettings,
     const PinocchioCollisionInterface& collisionInterface,
     const LeggedReferenceManager& referenceManager,
-    RelaxedBarrierPenalty::Config settings):
+    Settings settings):
       StateCost(),
       threeDofEndEffectorNum_(info.numThreeDofContacts),
       sixDofEndEffectorNum_(info.numSixDofContacts),
       endEffectorNum_(info.numThreeDofContacts + info.numSixDofContacts),
       referenceManager_(referenceManager),
       collisionInterface_(collisionInterface),
-      selfAvoidancePenaltyPtr_(new RelaxedBarrierPenalty(settings)) 
+      selfAvoidancePenaltyPtr_(new RelaxedBarrierPenalty(settings.barrierSettings)) 
   {
     const auto& relaxations = collisionSettings.selfCollisionRelaxations;
     const auto& collisionIndices = collisionInterface_.getSelfCollisionIndices();
@@ -985,4 +990,44 @@ namespace legged_locomotion_mpc
       referenceManager_(rhs.referenceManager_),
       collisionInterface_(rhs.collisionInterface_),
       selfAvoidancePenaltyPtr_(rhs.selfAvoidancePenaltyPtr_->clone()) {}
+  
+  using Settings = SelfCollisionAvoidanceSoftConstraint::Settings;
+  Settings loadSelfCollisionAvoidanceSoftConstraintSettings(
+    const std::string& filename, const std::string& fieldName, bool verbose)
+  {
+    boost::property_tree::ptree pt;
+    boost::property_tree::read_info(filename, pt);
+
+    Settings settings;
+
+    if(verbose) 
+    {
+      std::cerr << "\n #### Legged Locomotion MPC Self Collision Avoidance Soft Constraint Settings:";
+      std::cerr << "\n #### =============================================================================\n";
+    }
+
+    loadData::loadPtreeValue(pt, settings.barrierSettings.mu, 
+        fieldName + ".mu", verbose);
+
+    if(settings.barrierSettings.mu < 0.0)
+    {
+      throw std::invalid_argument("[SelfCollisionAvoidanceSoftConstraint]: Relaxed barrier penalty mu smaller than 0.0!");
+    }
+
+    loadData::loadPtreeValue(pt, settings.barrierSettings.delta, 
+        fieldName + ".delta", verbose);
+
+    if(settings.barrierSettings.delta < 0.0)
+    {
+      throw std::invalid_argument("[SelfCollisionAvoidanceSoftConstraint]: Relaxed barrier penalty delta smaller than 0.0!");
+    }
+
+    if(verbose) 
+    {
+      std::cerr << " #### =============================================================================" <<
+      std::endl;
+    }
+
+    return settings;
+  }
 } // namespace legged_locomotion_mpc

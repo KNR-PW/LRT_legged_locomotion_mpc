@@ -94,8 +94,8 @@ namespace legged_locomotion_mpc
      * @param [in] verbose: verbose flag
      * @return EndEffectorPlacementSoftConstraint::Settings struct
      */
-    using Settings = EndEffectorPlacementSoftConstraint::Settings;
-    Settings loadEndEffectorPlacementSoftConstraintSettings(const std::string& filename,
+    EndEffectorPlacementSoftConstraint::Settings loadEndEffectorPlacementSoftConstraintSettings(
+      const std::string& filename,
       const ModelSettings modelSettings,
       const std::string& fieldName = "end_effector_soft_constraint_settings",
       bool verbose = "true");

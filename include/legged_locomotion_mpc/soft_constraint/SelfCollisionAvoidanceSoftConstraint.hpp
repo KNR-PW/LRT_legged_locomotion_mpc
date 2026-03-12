@@ -43,6 +43,11 @@ namespace legged_locomotion_mpc
   {
     public:
 
+      struct Settings
+      {
+        ocs2::RelaxedBarrierPenalty::Config barrierSettings;
+      };
+
       /**
        * Constructor
        * @param [in] info: Floating Base model info.
@@ -52,14 +57,14 @@ namespace legged_locomotion_mpc
        * or collision links (endEffectorNum : endEffectorNum + collisionNum - 1).
        * @param [in] referenceManager: Legged Reference Manager
        * @param [in] relaxations: Relax constraint values (for all pairs).
-       * @param [in] settings: Relaxed barrier penalty settings
+       * @param [in] settings: self collision avoidance soft constraint internal settings
        */
       SelfCollisionAvoidanceSoftConstraint(
         floating_base_model::FloatingBaseModelInfo info,
         const collision::CollisionSettings& collisionSettings,
         const collision::PinocchioCollisionInterface& collisionInterface,
         const LeggedReferenceManager& referenceManager,
-        ocs2::RelaxedBarrierPenalty::Config settings);
+        Settings settings);
 
       ~SelfCollisionAvoidanceSoftConstraint() override = default;
 
@@ -114,6 +119,18 @@ namespace legged_locomotion_mpc
       matrix3_t getDistanceSecondGradient(const vector3_t& normal, 
         ocs2::scalar_t distance) const;
   };
+
+  /**
+   * Creates SelfCollisionAvoidanceSoftConstraint settings 
+   * @param [in] filename: file path with model settings.
+   * @param [in] fieldName: field where settings are defined
+   * @param [in] verbose: verbose flag
+   * @return SelfCollisionAvoidanceSoftConstraint::Settings struct
+   */
+  SelfCollisionAvoidanceSoftConstraint::Settings loadSelfCollisionAvoidanceSoftConstraintSettings(
+    const std::string& filename,
+    const std::string& fieldName = "self_collison_avoidance_soft_constraint_settings",
+    bool verbose = "true");
 } // namespace legged_locomotion_mpc
 
 #endif

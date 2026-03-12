@@ -36,6 +36,11 @@ namespace legged_locomotion_mpc
   {
     public:
 
+      struct Settings
+      {
+        ocs2::RelaxedBarrierPenalty::Config barrierSettings;
+      };
+
       /**
        * Constructor
        * @param [in] info: Floating Base model info.
@@ -49,7 +54,7 @@ namespace legged_locomotion_mpc
         ocs2::vector_t jointPositionUpperLimits,
         ocs2::vector_t jointPositionLowerLimits,
         ocs2::vector_t jointVelocityLimits,
-        ocs2::RelaxedBarrierPenalty::Config settings);
+        Settings settings);
 
       ~JointLimitsSoftConstraint() override = default;
 
@@ -77,6 +82,18 @@ namespace legged_locomotion_mpc
       std::unique_ptr<ocs2::RelaxedBarrierPenalty> jointRelaxedBarrierPenaltyPtr_;
 
     };
+
+    /**
+     * Creates JointLimitsSoftConstraint settings 
+     * @param [in] filename: file path with model settings.
+     * @param [in] fieldName: field where settings are defined
+     * @param [in] verbose: verbose flag
+     * @return JointLimitsSoftConstraint::Settings struct
+     */
+    JointLimitsSoftConstraint::Settings loadJointLimitsSoftConstraintSettings(
+      const std::string& filename,
+      const std::string& fieldName = "joint_limits_soft_constraint_settings",
+      bool verbose = "true");
 
 } // namespace legged_locomotion_mpc
 

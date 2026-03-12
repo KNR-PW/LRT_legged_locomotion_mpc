@@ -1,5 +1,10 @@
 #include <legged_locomotion_mpc/soft_constraint/JointLimitsSoftConstraint.hpp>
 
+#include <boost/property_tree/info_parser.hpp>
+#include <boost/property_tree/ptree.hpp>
+
+#include <ocs2_core/misc/LoadData.h>
+
 #include <floating_base_model/AccessHelperFunctions.hpp>
 
 namespace legged_locomotion_mpc
@@ -15,13 +20,13 @@ namespace legged_locomotion_mpc
     vector_t jointPositionUpperLimits,
     vector_t jointPositionLowerLimits,
     vector_t jointVelocityLimits,
-    RelaxedBarrierPenalty::Config settings):
+    JointLimitsSoftConstraint::Settings settings):
       StateInputCost(),
       jointPositionLowerLimits_(std::move(jointPositionLowerLimits)), 
       jointPositionUpperLimits_(std::move(jointPositionUpperLimits)),
       jointVelocityLimits_(std::move(jointVelocityLimits)),
       info_(std::move(info)),
-      jointRelaxedBarrierPenaltyPtr_(new RelaxedBarrierPenalty(settings)) 
+      jointRelaxedBarrierPenaltyPtr_(new RelaxedBarrierPenalty(settings.barrierSettings)) 
   {
     if(jointPositionLowerLimits_.size() != info_.actuatedDofNum)
     {
@@ -167,8 +172,49 @@ namespace legged_locomotion_mpc
     jointPositionLowerLimits_(rhs.jointPositionLowerLimits_),
     jointPositionUpperLimits_(rhs.jointPositionUpperLimits_),
     jointVelocityLimits_(rhs.jointVelocityLimits_),
-    jointRelaxedBarrierPenaltyPtr_(rhs.jointRelaxedBarrierPenaltyPtr_->clone())
-    {}
+    jointRelaxedBarrierPenaltyPtr_(rhs.jointRelaxedBarrierPenaltyPtr_->clone()) {}
 
+  /******************************************************************************************************/
+  /******************************************************************************************************/
+  /******************************************************************************************************/
+  using Settings = JointLimitsSoftConstraint::Settings;
+  Settings loadJointLimitsSoftConstraintSettings(const std::string& filename,
+    const std::string& fieldName, bool verbose)
+  {
+    boost::property_tree::ptree pt;
+    boost::property_tree::read_info(filename, pt);
+
+    Settings settings;
+
+    if(verbose) 
+    {
+      std::cerr << "\n #### Legged Locomotion MPC Joint Limits Soft Constraint Settings:";
+      std::cerr << "\n #### =============================================================================\n";
+    }
+
+    loadData::loadPtreeValue(pt, settings.barrierSettings.mu, 
+        fieldName + ".mu", verbose);
+
+    if(settings.barrierSettings.mu < 0.0)
+    {
+      throw std::invalid_argument("[JointLimitsSoftConstraint]: Relaxed barrier penalty mu smaller than 0.0!");
+    }
+
+    loadData::loadPtreeValue(pt, settings.barrierSettings.delta, 
+        fieldName + ".delta", verbose);
+
+    if(settings.barrierSettings.delta < 0.0)
+    {
+      throw std::invalid_argument("[JointLimitsSoftConstraint]: Relaxed barrier penalty delta smaller than 0.0!");
+    }
+
+    if(verbose) 
+    {
+      std::cerr << " #### =============================================================================" <<
+      std::endl;
+    }
+
+    return settings;
+  }
 
 } // namespace legged_locomotion_mpc

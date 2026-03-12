@@ -1,0 +1,6 @@
+self_collison_avoidance_soft_constraint_settings
+{
+  mu 0.5
+
+  delta 0.6
+}

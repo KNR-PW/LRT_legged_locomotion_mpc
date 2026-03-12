@@ -19,6 +19,11 @@
 
 #include <legged_locomotion_mpc/soft_constraint/TerrainAvoidanceSoftConstraint.hpp>
 
+#include <boost/property_tree/info_parser.hpp>
+#include <boost/property_tree/ptree.hpp>
+
+#include <ocs2_core/misc/LoadData.h>
+
 #include <ocs2_robotic_tools/common/RotationTransforms.h>
 
 #include <legged_locomotion_mpc/precomputation/LeggedPrecomputation.hpp>
@@ -36,7 +41,7 @@ namespace legged_locomotion_mpc
     const CollisionSettings& collisionSettings,
     const PinocchioCollisionInterface& collisionInterface,
     const LeggedReferenceManager& referenceManager,
-    RelaxedBarrierPenalty::Config settings):
+    Settings settings):
       threeDofEndEffectorNum_(info.numThreeDofContacts),
       sixDofEndEffectorNum_(info.numSixDofContacts),
       endEffectorNum_(info.numThreeDofContacts + info.numSixDofContacts),
@@ -44,7 +49,7 @@ namespace legged_locomotion_mpc
       relaxations_(collisionSettings.terrainRelaxations),
       referenceManager_(referenceManager),
       collisionInterface_(collisionInterface),
-      terrainAvoidancePenaltyPtr_(new RelaxedBarrierPenalty(settings)) {}
+      terrainAvoidancePenaltyPtr_(new RelaxedBarrierPenalty(settings.barrierSettings)) {}
 
   TerrainAvoidanceSoftConstraint* TerrainAvoidanceSoftConstraint::clone() const
   {
@@ -293,4 +298,44 @@ namespace legged_locomotion_mpc
       collisionInterface_(rhs.collisionInterface_),
       relaxations_(rhs.relaxations_),
       terrainAvoidancePenaltyPtr_(rhs.terrainAvoidancePenaltyPtr_->clone()) {}
+
+  using Settings = TerrainAvoidanceSoftConstraint::Settings;
+  Settings loadTerrainAvoidanceSoftConstraintSettings(
+    const std::string& filename, const std::string& fieldName, bool verbose)
+  {
+    boost::property_tree::ptree pt;
+    boost::property_tree::read_info(filename, pt);
+
+    Settings settings;
+
+    if(verbose) 
+    {
+      std::cerr << "\n #### Legged Locomotion MPC Terrain Avoidance Soft Constraint Settings:";
+      std::cerr << "\n #### =============================================================================\n";
+    }
+
+    loadData::loadPtreeValue(pt, settings.barrierSettings.mu, 
+        fieldName + ".mu", verbose);
+
+    if(settings.barrierSettings.mu < 0.0)
+    {
+      throw std::invalid_argument("[TerrainAvoidanceSoftConstraint]: Relaxed barrier penalty mu smaller than 0.0!");
+    }
+
+    loadData::loadPtreeValue(pt, settings.barrierSettings.delta, 
+        fieldName + ".delta", verbose);
+
+    if(settings.barrierSettings.delta < 0.0)
+    {
+      throw std::invalid_argument("[TerrainAvoidanceSoftConstraint]: Relaxed barrier penalty delta smaller than 0.0!");
+    }
+
+    if(verbose) 
+    {
+      std::cerr << " #### =============================================================================" <<
+      std::endl;
+    }
+
+    return settings;
+  }
 } // namespace legged_locomotion_mpc
