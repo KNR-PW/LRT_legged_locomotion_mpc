@@ -54,7 +54,7 @@ namespace legged_locomotion_mpc
       const floating_base_model::FloatingBaseModelInfo info,
       const std::string& modelName,
       const std::string& modelFolder = "/tmp/legged_locomotion_mpc",
-      bool recompileLibraries = true, bool verbose = false);
+      bool recompileLibraries = true, bool verbose = true);
 
     ~PinocchioForwardEndEffectorKinematicsCppAd() = default;
     PinocchioForwardEndEffectorKinematicsCppAd* clone() const;

@@ -59,7 +59,7 @@ namespace legged_locomotion_mpc
         const collision::CollisionSettings& collisionSettings,
         const std::string& modelName,
         const std::string& modelFolder = "/tmp/legged_locomotion_mpc",
-        bool recompileLibraries = true, bool verbose = false);
+        bool recompileLibraries = true, bool verbose = true);
 
     ~PinocchioForwardCollisionKinematicsCppAd() = default;
     PinocchioForwardCollisionKinematicsCppAd* clone() const;

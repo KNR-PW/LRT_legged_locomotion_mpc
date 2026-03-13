@@ -40,7 +40,7 @@ namespace legged_locomotion_mpc
       }
 
       loadData::loadPtreeValue(pt, settings.minimumSteppingFrequency, fieldName + ".minimumSteppingFrequency", verbose);
-      if(settings.minimumSteppingFrequency < 0 || numerics::almost_eq(settings.minimumSteppingFrequency, 0.0, SCALAR_EPSILON))
+      if(settings.minimumSteppingFrequency < 0)
       {
         throw std::invalid_argument("[GaitStaticParameters]: Minimum stepping frequency  smaller or equal 0!");
       }
@@ -82,7 +82,7 @@ namespace legged_locomotion_mpc
       const size_t phasesSize = modelSettings.endEffectorThreeDofNames.size() + modelSettings.endEffectorSixDofNames.size() - 1;
 
       loadData::loadPtreeValue(pt, settings.steppingFrequency, fieldName + ".steppingFrequency", verbose);
-      if(settings.steppingFrequency < 0 || numerics::almost_eq(settings.steppingFrequency, 0.0, SCALAR_EPSILON))
+      if(settings.steppingFrequency < 0)
       {
         throw std::invalid_argument("[GaitDynamicParameters]: Stepping frequency  smaller or equal 0!");
       }

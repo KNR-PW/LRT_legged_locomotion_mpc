@@ -38,6 +38,9 @@ namespace legged_locomotion_mpc
 {
   struct ModelSettings 
   {
+    // Algorithm type
+    std::string algorithm;
+
     // CppAD
     bool verbose = true;
     bool recompileLibrariesCppAd = true;

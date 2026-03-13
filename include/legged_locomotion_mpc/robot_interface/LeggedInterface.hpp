@@ -91,6 +91,12 @@ namespace legged_locomotion_mpc
        * @return a reference to the LeggedReferenceManager.
        */
       LeggedReferenceManager& getLeggedReferenceManager();
+      
+      /**
+       * Gets the Rollout.
+       * @return a reference to the RolloutBase.
+       */
+      ocs2::RolloutBase& getRollout();
 
       /**
        * @brief Get the optimal control problem definition

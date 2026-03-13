@@ -25,6 +25,13 @@ namespace legged_locomotion_mpc
       std::cerr << "\n #### =============================================================================\n";
     }
 
+    loadData::loadPtreeValue(pt, modelSettings.algorithm, fieldName + ".algorithm", verbose);
+    if(modelSettings.algorithm != "SQP" && modelSettings.algorithm != "DDP")
+    {
+      std::string message = "[ModelSettings]: Algorithm can be from set {SQP, DDP}!";
+      throw std::invalid_argument(message);
+    }
+
     loadData::loadPtreeValue(pt, modelSettings.verbose, fieldName + ".verbose", verbose);
 
     loadData::loadPtreeValue(pt, modelSettings.recompileLibrariesCppAd, fieldName + ".recompileLibrariesCppAd", verbose);

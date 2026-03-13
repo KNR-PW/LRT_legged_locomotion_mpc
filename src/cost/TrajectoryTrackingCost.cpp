@@ -288,9 +288,9 @@ namespace legged_locomotion_mpc
       cost.f = 0.0;
       cost.dfdx = vector_t::Zero(info_.stateDim);
       cost.dfdu = vector_t::Zero(info_.inputDim);
-      cost.dfdxx = vector_t::Zero(info_.stateDim, info_.stateDim);
-      cost.dfduu = vector_t::Zero(info_.inputDim, info_.inputDim);
-      cost.dfdux = vector_t::Zero(info_.inputDim, info_.stateDim);
+      cost.dfdxx = matrix_t::Zero(info_.stateDim, info_.stateDim);
+      cost.dfduu = matrix_t::Zero(info_.inputDim, info_.inputDim);
+      cost.dfdux = matrix_t::Zero(info_.inputDim, info_.stateDim);
       
       const auto targetState = targetTrajectories.getDesiredState(time);
       const auto targetInput = targetTrajectories.getDesiredInput(time);
@@ -347,7 +347,7 @@ namespace legged_locomotion_mpc
       const matrix_t log3Derivative = log3AdInterfacePtr_->getJacobian(
         baseCurrentEulerAngles, baseTargetEulerAngles);
       cost.dfdx.block<3, 1>(9, 0).noalias() += log3Derivative.transpose() * weightedBaseRotationError;
-      cost.dfdx.block<3, 3>(9, 9).noalias() += log3Derivative.transpose() 
+      cost.dfdxx.block<3, 3>(9, 9).noalias() += log3Derivative.transpose() 
         * baseWeights_.rotation.asDiagonal() * log3Derivative;
       
       const vector3_t weightedBaseLinearVelocityError = 

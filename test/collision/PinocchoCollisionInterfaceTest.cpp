@@ -47,7 +47,7 @@ TEST(PinocchoCollisionInterfaceTest, getters)
 
   const auto terrainindices = collisionInterface.getTerrainAvoidanceCollisionIndices();
   
-  const std::vector<size_t> trueTerrainindices{0, 1, 2, 3, 4, 5};
+  const std::vector<size_t> trueTerrainindices{4, 5};
   EXPECT_TRUE(terrainindices == trueTerrainindices);
 
   const auto selfCollisionindices = collisionInterface.getSelfCollisionIndices();

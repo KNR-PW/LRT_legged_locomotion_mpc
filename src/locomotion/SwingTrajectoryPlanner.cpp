@@ -875,7 +875,7 @@ namespace legged_locomotion_mpc
       }
 
       loadData::loadStdVector(filename, fieldName + ".phases", settings.phases, verbose);
-      if(settings.phases.size() != (endEffectorNum - 1))
+      if(settings.phases.size() != endEffectorNum)
       {
         throw std::invalid_argument("[SwingTrajectoryPlanner]: Phases have wrong size!");
       }

@@ -72,6 +72,9 @@ namespace legged_locomotion_mpc
       const locomotion::SwingTrajectoryPlanner::DynamicSettings& currentSwingParameters,
       std::unique_ptr<terrain_model::TerrainModel> currentTerrainModel);
 
+    void updateCommand(
+      const planners::BaseTrajectoryPlanner::BaseReferenceCommand& currentCommand);
+
     void updateObservation(const ocs2::SystemObservation& currentObservation);
 
     void updateContactFlags(const contact_flags_t& currentContactFlags);

@@ -157,11 +157,13 @@ namespace legged_locomotion_mpc
     cost.dfduu = matrix_t::Zero(info_.inputDim, info_.inputDim);
     cost.dfdux = matrix_t::Zero(info_.inputDim, info_.stateDim);
 
-    cost.dfdxx.block(12, 12, info_.actuatedDofNum, info_.actuatedDofNum) = 
-      penaltySecondDerivativesState.asDiagonal();
+    cost.dfdxx.block(12, 12, info_.actuatedDofNum, info_.actuatedDofNum).diagonal() = 
+      penaltySecondDerivativesState;
 
-    cost.dfduu.block(forceSize, forceSize, info_.actuatedDofNum, info_.actuatedDofNum) = 
-      penaltyDerivativesInput.asDiagonal();
+    cost.dfduu.block(forceSize, forceSize, info_.actuatedDofNum, 
+      info_.actuatedDofNum).diagonal() = penaltyDerivativesInput;
+
+    return cost;
   }
 
   /******************************************************************************************************/

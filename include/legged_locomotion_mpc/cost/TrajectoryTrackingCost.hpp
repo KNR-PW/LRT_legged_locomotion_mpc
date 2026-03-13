@@ -63,7 +63,7 @@ namespace legged_locomotion_mpc
           EndEffectorWeights endEffectorWeights, 
           const std::string& modelFolder = "/tmp/legged_locomotion_mpc",
           bool recompileLibraries = true,
-          bool verbose = false);
+          bool verbose = true);
         
         TrajectoryTrackingCost* clone() const override;
         

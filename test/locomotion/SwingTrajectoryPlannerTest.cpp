@@ -622,7 +622,7 @@ TEST(SwingTrajectoryPlannerTest, loaders)
 
   const std::vector<scalar_t> trueSwingHeights{0.2, 0.3, 0.4};
 
-  const std::vector<scalar_t> truePhases{0.5, 0.6};
+  const std::vector<scalar_t> truePhases{0.5, 0.6, 0.7};
 
   const std::vector<scalar_t> trueTangentialProgresses{0.7, 0.8, 0.9};
 

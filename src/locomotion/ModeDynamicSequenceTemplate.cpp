@@ -42,7 +42,7 @@ namespace legged_locomotion_mpc
       switchingTimes.push_back(0.0);
 
       std::vector<size_t> modeSequence;
-      modeSequence.push_back(currentMode.to_ulong());
+      modeSequence.push_back(contactFlags2ModeNumber(currentMode));
 
       /* If frequency is lower than  or almost equal minimum, just stand in place with current mode */
       if(frequency < staticParams.minimumSteppingFrequency || numerics::almost_eq(frequency, staticParams.minimumSteppingFrequency, SCALAR_EPSILON))

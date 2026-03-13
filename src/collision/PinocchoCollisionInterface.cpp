@@ -112,12 +112,6 @@ namespace legged_locomotion_mpc
         collisionSettings.collisionLinkNames.begin(), 
         collisionSettings.collisionLinkNames.end());
 
-      // Add all end effectors by default
-      for(size_t i = 0; i < info.endEffectorFrameIndices.size(); ++i)
-      {
-        terrainAvoidanceIndices_.push_back(i);
-      }
-
       for(const auto& terrainLinkName: collisionSettings.terrainCollisionLinkNames)
       {
         const auto iter = std::find(collisionNames.cbegin(), collisionNames.cend(), terrainLinkName);

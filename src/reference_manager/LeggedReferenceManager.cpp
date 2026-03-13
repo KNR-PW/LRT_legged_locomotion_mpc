@@ -328,6 +328,12 @@ namespace legged_locomotion_mpc
     bufferedTerrainModel_.setBuffer(std::move(currentTerrainModel));
   }
 
+  void LeggedReferenceManager::updateCommand(
+      const BaseTrajectoryPlanner::BaseReferenceCommand& currentCommand)
+  {
+    currentCommand_.setBuffer(currentCommand);
+  }
+
   LeggedReferenceManager::~LeggedReferenceManager()
   {
     if(threaded_) newTrajectories_.wait();

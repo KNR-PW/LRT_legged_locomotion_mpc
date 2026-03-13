@@ -150,7 +150,7 @@ TEST(LeggedPrecomputationTest, getEndEffector)
     managerSettings, std::move(gaitPlanner), std::move(swingPlanner), std::move(basePlanner), 
     std::move(jointPlanner), std::move(forcePlanner));
 
-    const vector3_t initPosition = vector3_t{0.0, 0.0, 0.0};
+  const vector3_t initPosition = vector3_t{0.0, 0.0, 0.0};
 
   const vector3_t planeLocalEulerZyx = vector3_t{0.0, 0.0, 0.0};
 

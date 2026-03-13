@@ -32,9 +32,9 @@ namespace legged_locomotion_mpc
 
     JointTorqueCost::JointTorqueCost(FloatingBaseModelInfo info, 
       JointTorqueCost::JointTorqueWeights jointWeights):
-        info_(std::move(info)), jointWeights_(jointWeights)
+        info_(std::move(info)), jointWeights_(std::move(jointWeights))
     {
-      if(jointWeights_.weights.size() != info_.actuatedDofNum);
+      if(jointWeights_.weights.size() != info_.actuatedDofNum)
       {
         throw std::invalid_argument("[JointTorqueCost]: Wrong size for joint torque weights!");
       }

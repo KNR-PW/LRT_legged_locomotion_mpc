@@ -143,6 +143,11 @@ namespace legged_locomotion_mpc
     return *referenceManagerPtr_;
   }
 
+  RolloutBase& LeggedInterface::getRollout()
+  {
+    return *rolloutPtr_;
+  }
+
   const OptimalControlProblem& LeggedInterface::getOptimalControlProblem() const
   {
     return optimalProblem_;
@@ -541,6 +546,8 @@ namespace legged_locomotion_mpc
         currentState, currentInput);
 
       lqrSolution.valueFunction *= 10.0;
+
+      std::cerr << lqrSolution.valueFunction << std::endl;
       
       const auto weightMatrix = lqrSolution.valueFunction;
 

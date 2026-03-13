@@ -78,7 +78,7 @@ namespace legged_locomotion_mpc
           const ocs2::PinocchioInterface& pinocchioInterface,
           const std::string& modelFolder = "/tmp/legged_locomotion_mpc",
           bool recompileLibraries = true,
-          bool verbose = false);
+          bool verbose = true);
         
         /**
          * Get vector with number of spheres in frame

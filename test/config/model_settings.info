@@ -1,6 +1,7 @@
 legged_model_settings
 {
-  verbose              false
+  algorithm                 SQP
+  verbose                   false
   recompileLibrariesCppAd   false
 
   modelFolderCppAd          /tmp/legged_locomotion_mpc

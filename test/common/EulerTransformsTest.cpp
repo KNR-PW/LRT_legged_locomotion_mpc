@@ -20,7 +20,7 @@ class RotationVectorMultiplicationAD final
     RotationVectorMultiplicationAD(
       const std::string& modelFolder = "/tmp/legged_locomotion_mpc",
       bool recompileLibraries = true,
-      bool verbose = false)
+      bool verbose = true)
     {
       auto systemFlowMapFunc = [&](const ocs2::ad_vector_t& x, const ocs2::ad_vector_t& p, 
         ocs2::ad_vector_t& y) {

@@ -42,6 +42,7 @@ swing_planner_dynamic_settings
    {
     [0] 0.5
     [1] 0.6
+    [2] 0.7
   }
 
   tangentialProgresses

@@ -48,6 +48,6 @@ namespace legged_locomotion_mpc
   {
     nextState = state;
     const contact_flags_t currentFlags = referenceManager_.getContactFlags(time);
-    utils::weightCompensatingAppendInput(input, info_, currentFlags);
+    input = utils::weightCompensatingInput(info_, currentFlags);
   }
 } // namespace legged_locomotion_mpc
