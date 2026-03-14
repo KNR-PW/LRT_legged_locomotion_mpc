@@ -137,11 +137,6 @@ namespace legged_locomotion_mpc
       eventTimes_.erase(eventTimes_.begin(), eventTimes_.begin() + index - 1);
       dynamicParamsVec_.erase(dynamicParamsVec_.begin(), dynamicParamsVec_.begin() + index - 1);
       cachedPhase_.erase(cachedPhase_.begin(), cachedPhase_.begin() + index - 1);
-
-      // Change front time smaller than query time to query time and update front cached phase
-      cachedPhase_.front() += (time - eventTimes_.front()) * dynamicParamsVec_.front().steppingFrequency;
-      cachedPhase_.front() = normalizePhase(cachedPhase_.front());
-      eventTimes_.front() = time;
     }
 
     void GaitDynamicPhaseController::update(scalar_t newTime, 

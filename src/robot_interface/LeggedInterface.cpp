@@ -385,7 +385,7 @@ namespace legged_locomotion_mpc
           *referenceManagerPtr_, frictionForceSettings, floatingBaseModelInfo_, i);
         
         const std::string name = "ForceFrictionConeConstraint_" + std::to_string(i);
-        optimalProblem_.equalityConstraintPtr->add(name, 
+        optimalProblem_.inequalityConstraintPtr->add(name, 
           std::move(forceFrictionConeConstraint));
       }
 
@@ -421,7 +421,7 @@ namespace legged_locomotion_mpc
           *referenceManagerPtr_, frictionWrenchSettings, floatingBaseModelInfo_, i);
         
         const std::string name = "WrenchFrictionConeConstraint_" + std::to_string(i);
-        optimalProblem_.equalityConstraintPtr->add(name, 
+        optimalProblem_.inequalityConstraintPtr->add(name, 
           std::move(wrenchFrictionConeConstraint));
       }
 
@@ -546,8 +546,6 @@ namespace legged_locomotion_mpc
         currentState, currentInput);
 
       lqrSolution.valueFunction *= 10.0;
-
-      std::cerr << lqrSolution.valueFunction << std::endl;
       
       const auto weightMatrix = lqrSolution.valueFunction;
 

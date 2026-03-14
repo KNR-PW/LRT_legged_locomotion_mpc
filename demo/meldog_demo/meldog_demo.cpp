@@ -158,7 +158,7 @@ int main(int argc, char* argv[])
 
       if(observation.time > moveTime)
       {
-        referenceManager.updateCommand(command);
+        // referenceManager.updateCommand(command);
         if(firstChange)
         {
           firstChange = false;

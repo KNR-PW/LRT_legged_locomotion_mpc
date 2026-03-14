@@ -54,7 +54,7 @@ legged_interface_settings
 
 base_planner_static_settings
 {
-  initialBaseHeight 0.5
+  initialBaseHeight 0.35355339059
 
   minimumBaseHeight 0.1
 
