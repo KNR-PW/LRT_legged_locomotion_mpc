@@ -82,8 +82,8 @@ int main(int argc, char* argv[])
   command.baseVerticalVelocity = 0.0;
   command.yawRate = 0.0;
 
-  const scalar_t moveTime = 0.5;
-  const scalar_t endTime = 5.0;
+  const scalar_t moveTime = 0.2;
+  const scalar_t endTime = 1.0;
 
   // referenceManager.updateCommand(command);
   // referenceManager.updateGaitParemeters(dynamicParams);
@@ -120,8 +120,6 @@ int main(int argc, char* argv[])
   // Wait for the first policy
   mpcInterface.setCurrentObservation(observation);
 
-  const auto& referenceTrajectory = referenceManager.getTargetTrajectories();
-
   // for(size_t i = 0; i < referenceTrajectory.timeTrajectory.size(); ++i)
   // {
   //   std::cerr << "Time: " << referenceTrajectory.timeTrajectory[i] << std::endl;
@@ -137,6 +135,7 @@ int main(int argc, char* argv[])
   {
     mpcInterface.advanceMpc();
   }
+  mpcInterface.initRollout(&leggedInterface.getRollout());
 
   std::cerr << "Main loop!" << std::endl;
 
@@ -150,8 +149,8 @@ int main(int argc, char* argv[])
   while(observation.time < endTime) 
   {
     std::cout << "Time: " << observation.time << "\n";
-    try 
-    {
+    // try 
+    // {
       // run MPC at current observation
       mpcInterface.setCurrentObservation(observation);
       
@@ -199,7 +198,7 @@ int main(int argc, char* argv[])
       scalar_array_t timeTrajectory;
       size_array_t postEventIndicesStock;
       vector_array_t stateTrajectory, inputTrajectory;
-      const scalar_t finalTime = observation.time +  1.0 / mpcSettings.mpcDesiredFrequency_;
+      const scalar_t finalTime = observation.time +  0.25 / mpcSettings.mpcDesiredFrequency_;
       auto modeschedule = mpcInterface.getPolicy().modeSchedule_;
       rolloutPtr->run(observation.time, observation.state, finalTime,
                    mpcInterface.getPolicy().controllerPtr_.get(), modeschedule,
@@ -208,21 +207,19 @@ int main(int argc, char* argv[])
 
       observation.time = finalTime;
       observation.state = stateTrajectory.back();
-    } 
-    catch (std::exception& e) 
-    {
-      std::cout << "MPC failed\n";
-      std::cout << e.what() << "\n";
-      break;
-    }
 
-    // for(size_t i = 0; i < referenceTrajectory.timeTrajectory.size(); ++i)
+      std::cerr << "Time: " << observation.time  << std::endl;
+      std::cerr << "Base position: " << observation.state.block(6, 0, 3, 1).transpose() << std::endl;
+      std::cerr << "Joint positions: " << access_helper_functions::getJointPositions(observation.state, modelInfo).transpose() << std::endl;
+      std::cerr << "Joint velocities: " << access_helper_functions::getJointVelocities(observation.input, modelInfo).transpose() << std::endl;
+      std::cerr << "Force: " << access_helper_functions::getContactForces(observation.input, 0 , modelInfo).transpose() << std::endl;
+    // } 
+    // catch (std::exception& e) 
     // {
-    //   std::cerr << "Time: " << referenceTrajectory.timeTrajectory[i] << std::endl;
-    //   std::cerr << "Base position: " << referenceTrajectory.stateTrajectory[i].block(6, 0, 3, 1).transpose() << std::endl;
-    //   std::cerr << "Joint positions: " << access_helper_functions::getJointPositions(referenceTrajectory.stateTrajectory[i], modelInfo).transpose() << std::endl;
-    //   std::cerr << "Joint velocities: " << access_helper_functions::getJointVelocities(referenceTrajectory.inputTrajectory[i], modelInfo).transpose() << std::endl;
-    //   std::cerr << "Force: " << access_helper_functions::getContactForces(referenceTrajectory.inputTrajectory[i], 0 , modelInfo).transpose() << std::endl;
+    //   std::cout << "Kurwa" << std::endl;
+    //   std::cout << "MPC failed\n";
+    //   std::cout << e.what() << "\n";
+    //   throw;
     // }
   }
 
