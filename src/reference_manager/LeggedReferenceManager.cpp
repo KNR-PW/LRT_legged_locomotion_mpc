@@ -208,7 +208,7 @@ namespace legged_locomotion_mpc
     if(currentGaitParameters_.updateFromBuffer())
     {
       const GaitDynamicParameters& currentGaitParameters = currentGaitParameters_.get();
-      gaitPlanner_.updateDynamicParameters(initTime + 0.105, currentGaitParameters);
+      gaitPlanner_.updateDynamicParameters(initTime + 0.015, currentGaitParameters);
     }
 
     // No new swing parameters -> no update
