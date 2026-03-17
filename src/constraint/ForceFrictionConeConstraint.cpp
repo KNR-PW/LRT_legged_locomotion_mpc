@@ -209,7 +209,7 @@ namespace legged_locomotion_mpc
     quadraticApprox.dfdu = matrix_t::Zero(1, inputDim);
 
     quadraticApprox.dfdxx.emplace_back(matrix_t::Zero(stateDim, stateDim));
-    quadraticApprox.dfdxx[0].diagonal().array() -= config_.hessianDiagonalShift;
+    quadraticApprox.dfdxx[0].diagonal().array() += config_.hessianDiagonalShift;
 
     quadraticApprox.dfduu.emplace_back(matrix_t::Zero(inputDim, inputDim));
 
@@ -225,7 +225,7 @@ namespace legged_locomotion_mpc
     quadraticApprox.dfduu[0].block<3, 3>(3 * endEffectorIndex_, 
       3 * endEffectorIndex_) = d2ConeD2u;
 
-    quadraticApprox.dfduu[0].diagonal().array() -= config_.hessianDiagonalShift;
+    quadraticApprox.dfduu[0].diagonal().array() += config_.hessianDiagonalShift;
 
     return quadraticApprox;
   }
