@@ -67,14 +67,13 @@ int main(int argc, char* argv[])
 
   auto& referenceManager = leggedInterface.getLeggedReferenceManager();
   
-   /* STANDING TROT */
-  GaitDynamicParameters dynamicParams;
-  dynamicParams.steppingFrequency = 1.0 / 0.7;
-  dynamicParams.swingRatio = 3.0 / 7.0;
+  /* DYNAMIC WALK */
 
-  const scalar_t offset = 3.5 / 7.0;
-  
-  dynamicParams.phaseOffsets = {-offset , -offset , 0};
+  GaitDynamicParameters dynamicParams;
+  dynamicParams.swingRatio =  0.3;
+  dynamicParams.steppingFrequency = 1.0;
+
+  dynamicParams.phaseOffsets = {0.5, 0.2, 0.7};
 
   BaseTrajectoryPlanner::BaseReferenceCommand command;
   command.baseHeadingVelocity = 0.25;
@@ -82,7 +81,7 @@ int main(int argc, char* argv[])
   command.baseVerticalVelocity = 0.0;
   command.yawRate = 0.0;
 
-  const scalar_t moveTime = 0.2;
+  const scalar_t moveTime = 0.1;
   const scalar_t endTime = 1.0;
 
   // referenceManager.updateCommand(command);
@@ -198,7 +197,7 @@ int main(int argc, char* argv[])
       scalar_array_t timeTrajectory;
       size_array_t postEventIndicesStock;
       vector_array_t stateTrajectory, inputTrajectory;
-      const scalar_t finalTime = observation.time +  0.25 / mpcSettings.mpcDesiredFrequency_;
+      const scalar_t finalTime = observation.time +  1.0 / mpcSettings.mpcDesiredFrequency_;
       auto modeschedule = mpcInterface.getPolicy().modeSchedule_;
       rolloutPtr->run(observation.time, observation.state, finalTime,
                    mpcInterface.getPolicy().controllerPtr_.get(), modeschedule,

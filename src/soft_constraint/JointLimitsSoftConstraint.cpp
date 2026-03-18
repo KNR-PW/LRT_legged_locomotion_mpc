@@ -161,7 +161,7 @@ namespace legged_locomotion_mpc
       penaltySecondDerivativesState;
 
     cost.dfduu.block(forceSize, forceSize, info_.actuatedDofNum, 
-      info_.actuatedDofNum).diagonal() = penaltyDerivativesInput;
+      info_.actuatedDofNum).diagonal() = penaltySecondDerivativesInput;
 
     return cost;
   }

@@ -135,7 +135,7 @@ namespace legged_locomotion_mpc
         dTorquedQ.transpose() * scaledDTorqueQ;
 
     cost.dfduu.block(0, 0, forceSize, forceSize).noalias() = 
-      dTorquedF.transpose() * penaltySecondDerivatives.asDiagonal() * dTorquedF; // torque is linearly dependent on forces, so its hessian is zero
+      dTorquedF.transpose() * penaltySecondDerivatives.asDiagonal() * dTorquedF;
     
     cost.dfdux.block(0, 6, forceSize, info_.generalizedCoordinatesNum).noalias() = 
         dTorquedF.transpose() * scaledDTorqueQ;

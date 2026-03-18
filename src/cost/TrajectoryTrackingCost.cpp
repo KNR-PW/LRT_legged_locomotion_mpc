@@ -485,9 +485,6 @@ namespace legged_locomotion_mpc
       
       cost.dfduu.block(forceIndexOffset, forceIndexOffset, info_.actuatedDofNum, 
         info_.actuatedDofNum).diagonal() = jointWeights_.velocities;
-
-      std::cerr << cost.dfduu.block(forceIndexOffset, forceIndexOffset, info_.actuatedDofNum, 
-        info_.actuatedDofNum).diagonal().transpose() << std::endl;
       
       // 1 / 2 of sum
       cost.f *= 0.5;

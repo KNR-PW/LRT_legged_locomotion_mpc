@@ -61,8 +61,8 @@ namespace legged_locomotion_mpc
   /******************************************************************************************************/
   PinocchioTorqueApproximationCppAd::PinocchioTorqueApproximationCppAd(
     const PinocchioTorqueApproximationCppAd& rhs)
-      :torqueApproxCppAdInterfacePtr_(new CppAdInterface(*rhs.torqueApproxCppAdInterfacePtr_)),
-      info_(rhs.info_) {}
+      :torqueApproxCppAdInterfacePtr_(new CppAdInterface(*rhs.torqueApproxCppAdInterfacePtr_)), 
+      torqueDynamicsError_(rhs.torqueDynamicsError_), info_(rhs.info_) {}
   
   /******************************************************************************************************/
   /******************************************************************************************************/

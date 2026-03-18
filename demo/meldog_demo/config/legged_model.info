@@ -45,7 +45,7 @@ legged_interface_settings
   useZero6DofVelocityConstraint           false
   useZeroWrenchConstraint                 false
 
-  useEndEffectorPlacementSoftConstraint   false
+  useEndEffectorPlacementSoftConstraint   true
   useJointLimitsSoftConstraint            true
   useJointTorqueLimitsSoftConstraint      true
   useTerrainAvoidanceSoftConstraint       false
@@ -125,9 +125,9 @@ joint_limits_soft_constraint_settings
 
 joint_torque_limits_soft_constraint_settings
 {
-  mu 0.25
+  mu 0.025
 
-  delta 0.0005
+  delta 0.5
 }
 
 self_collison_avoidance_soft_constraint_settings
@@ -341,9 +341,9 @@ end_effector_weights
 
     force
     {
-      (0,0)  10.0
-      (1,0)  10.0
-      (2,0)  10.0
+      (0,0)  0.01
+      (1,0)  0.01
+      (2,0)  0.01
     }
   }
 
@@ -365,9 +365,9 @@ end_effector_weights
 
     force
     {
-      (0,0)  10.0
-      (1,0)  10.0
-      (2,0)  10.0
+      (0,0)  0.01
+      (1,0)  0.01
+      (2,0)  0.01
     }
   }
 
@@ -389,9 +389,9 @@ end_effector_weights
 
     force
     {
-      (0,0)  10.0
-      (1,0)  10.0
-      (2,0)  10.0
+      (0,0)  0.01
+      (1,0)  0.01
+      (2,0)  0.01
     }
   }
 
@@ -413,9 +413,9 @@ end_effector_weights
 
     force
     {
-      (0,0)  10.0
-      (1,0)  10.0
-      (2,0)  10.0
+      (0,0)  0.01
+      (1,0)  0.01
+      (2,0)  0.01
     }
   }
 }
