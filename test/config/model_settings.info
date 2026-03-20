@@ -5,6 +5,7 @@ legged_model_settings
   recompileLibrariesCppAd   false
 
   modelFolderCppAd          /tmp/legged_locomotion_mpc
+  wordLinkName              base_link
   baseLinkName              trunk_link
   
   endEffectorThreeDofNames

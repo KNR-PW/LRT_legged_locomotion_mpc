@@ -17,6 +17,7 @@ TEST(ModelSettingsTest, loader)
   EXPECT_TRUE(modelSettings.verbose == false);
   EXPECT_TRUE(modelSettings.recompileLibrariesCppAd == false);
   EXPECT_TRUE(modelSettings.modelFolderCppAd == "/tmp/legged_locomotion_mpc");
+  EXPECT_TRUE(modelSettings.baseLinkName == "base_link");
   EXPECT_TRUE(modelSettings.baseLinkName == "trunk_link");
   EXPECT_TRUE(modelSettings.endEffectorThreeDofNames == meldog3DofContactNames);
   EXPECT_TRUE(modelSettings.endEffectorSixDofNames.size() == 0);
