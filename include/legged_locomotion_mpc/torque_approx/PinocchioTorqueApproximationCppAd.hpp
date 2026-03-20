@@ -66,6 +66,9 @@ namespace legged_locomotion_mpc
 
     PinocchioTorqueApproximationCppAd* clone() const;
 
+    PinocchioTorqueApproximationCppAd(
+        const PinocchioTorqueApproximationCppAd& rhs);
+
     PinocchioTorqueApproximationCppAd& operator =(
       const PinocchioTorqueApproximationCppAd&) = delete;
 
@@ -75,8 +78,6 @@ namespace legged_locomotion_mpc
       const ocs2::vector_t& input) const;
 
    private:
-    PinocchioTorqueApproximationCppAd(
-        const PinocchioTorqueApproximationCppAd& rhs);
 
     ocs2::ad_vector_t getValueCppAd(ocs2::PinocchioInterfaceCppAd& pinocchioInterfaceCppAd,
       const ocs2::PinocchioStateInputMapping<ocs2::ad_scalar_t>& mapping,

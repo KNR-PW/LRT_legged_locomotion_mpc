@@ -17,8 +17,8 @@
  * Authors: Bartłomiej Krajewski (https://github.com/BartlomiejK2)
  */
 
-#ifndef __PINOCCHIO_FORWARD_COLLISION_KINEMATICS_CPP_AD__
-#define __PINOCCHIO_FORWARD_COLLISION_KINEMATICS_CPP_AD__
+#ifndef __PINOCCHIO_FORWARD_COLLISION_KINEMATICS_CPP_AD_LEGGED_LOCOMOTION_MPC__
+#define __PINOCCHIO_FORWARD_COLLISION_KINEMATICS_CPP_AD_LEGGED_LOCOMOTION_MPC__
 
 #include <ocs2_core/automatic_differentiation/CppAdInterface.h>
 #include <ocs2_pinocchio_interface/PinocchioInterface.h>
@@ -62,7 +62,11 @@ namespace legged_locomotion_mpc
         bool recompileLibraries = true, bool verbose = true);
 
     ~PinocchioForwardCollisionKinematicsCppAd() = default;
+    
     PinocchioForwardCollisionKinematicsCppAd* clone() const;
+
+    PinocchioForwardCollisionKinematicsCppAd(
+        const PinocchioForwardCollisionKinematicsCppAd& rhs);
     PinocchioForwardCollisionKinematicsCppAd& operator =(
         const PinocchioForwardCollisionKinematicsCppAd&) = delete;
 
@@ -79,8 +83,6 @@ namespace legged_locomotion_mpc
     size_t getCollisionNumber() const;
 
    private:
-    PinocchioForwardCollisionKinematicsCppAd(
-        const PinocchioForwardCollisionKinematicsCppAd& rhs);
 
     ocs2::ad_vector_t getPositionCppAd(
       ocs2::PinocchioInterfaceCppAd& pinocchioInterfaceCppAd,

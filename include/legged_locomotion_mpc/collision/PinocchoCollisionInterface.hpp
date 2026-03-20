@@ -15,7 +15,7 @@
 
 /*
  * Authors: Bartłomiej Krajewski (https://github.com/BartlomiejK2)
-   Based on: Farbod Farshidian (https://github.com/leggedrobotics/ocs2)
+ * Based on: Farbod Farshidian (https://github.com/leggedrobotics/ocs2)
  */
 
 #ifndef __PINOCCHIO_COLLISION_INTERFACE_LEGGED_LOCOMOTION_MPC__

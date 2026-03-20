@@ -29,6 +29,13 @@ set(THIS_PACKAGE_DEPENDS
     floating_base_model
     terrain_model
     multi_end_effector_kinematics
+
+    rclcpp
+    tf2_ros
+    sensor_msgs
+    visualization_msgs
+    geometry_msgs
+    ocs2_ros_interfaces
 )
 
 set(FLAGS
@@ -103,6 +110,8 @@ add_library(${PROJECT_NAME}
   src/cost/JointTorqueCost.cpp
 
   src/robot_interface/LeggedInterface.cpp
+
+  src/visualization/LeggedVisualizer.cpp
 )
 
 target_include_directories(${PROJECT_NAME}

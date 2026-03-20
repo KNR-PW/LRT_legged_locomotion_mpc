@@ -57,7 +57,12 @@ namespace legged_locomotion_mpc
       bool recompileLibraries = true, bool verbose = true);
 
     ~PinocchioForwardEndEffectorKinematicsCppAd() = default;
+
     PinocchioForwardEndEffectorKinematicsCppAd* clone() const;
+
+    PinocchioForwardEndEffectorKinematicsCppAd(
+      const PinocchioForwardEndEffectorKinematicsCppAd& rhs);
+
     PinocchioForwardEndEffectorKinematicsCppAd& operator =(
         const PinocchioForwardEndEffectorKinematicsCppAd&) = delete;
 
@@ -86,8 +91,6 @@ namespace legged_locomotion_mpc
       const ocs2::vector_t& state, const ocs2::vector_t& input) const;
 
    private:
-    PinocchioForwardEndEffectorKinematicsCppAd(
-      const PinocchioForwardEndEffectorKinematicsCppAd& rhs);
 
     ocs2::ad_vector_t getPositionCppAd(
       ocs2::PinocchioInterfaceCppAd& pinocchioInterfaceCppAd,

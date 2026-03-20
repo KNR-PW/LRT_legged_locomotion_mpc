@@ -198,9 +198,9 @@ namespace legged_locomotion_mpc
       const size_t collisionLinkNumber_;
 
       const LeggedReferenceManager& referenceManager_;
-      const PinocchioForwardEndEffectorKinematicsCppAd& forwardKinematics_;
-      const PinocchioForwardCollisionKinematicsCppAd& collisionKinematics_;
-      const PinocchioTorqueApproximationCppAd& torqueApproximator_;
+      const PinocchioForwardEndEffectorKinematicsCppAd forwardKinematics_;
+      const PinocchioForwardCollisionKinematicsCppAd collisionKinematics_;
+      const PinocchioTorqueApproximationCppAd torqueApproximator_;
 
       std::vector<vector3_t> endEffectorPositions_;
       std::vector<ocs2::VectorFunctionLinearApproximation> endEffectorPositionDerivaties_;
