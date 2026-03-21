@@ -38,7 +38,7 @@ namespace legged_locomotion_mpc
 
     loadData::loadPtreeValue(pt, modelSettings.modelFolderCppAd, fieldName + ".modelFolderCppAd", verbose);
 
-    loadData::loadPtreeValue(pt, modelSettings.worldLinkName, fieldName + "worldLinkName", verbose);
+    loadData::loadPtreeValue(pt, modelSettings.worldLinkName, fieldName + ".worldLinkName", verbose);
     
     loadData::loadPtreeValue(pt, modelSettings.baseLinkName, fieldName + ".baseLinkName", verbose);
 
