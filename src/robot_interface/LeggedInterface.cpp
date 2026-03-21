@@ -158,11 +158,6 @@ namespace legged_locomotion_mpc
     return *initializerPtr_;
   }
 
-  const ModelSettings& LeggedInterface::modelSettings() const 
-  { 
-    return modelSettings_; 
-  }
-
   const ddp::Settings& LeggedInterface::ddpSettings() const 
   { 
     return ddpSettings_; 
@@ -186,6 +181,51 @@ namespace legged_locomotion_mpc
   const ipm::Settings& LeggedInterface::ipmSettings() const
   { 
     return ipmSettings_; 
+  }
+
+  const LeggedInterface::Settings& LeggedInterface::interfaceSettings() const
+  {
+    return interfaceSettings_;
+  }
+
+  const ModelSettings& LeggedInterface::modelSettings() const
+  {
+    return modelSettings_;
+  }
+
+  const collision::CollisionSettings& LeggedInterface::collisionSettings() const
+  {
+    return collisionSettings_;
+  }
+
+  const FloatingBaseModelInfo& LeggedInterface::floatingBaseModelInfo() const
+  {
+    return floatingBaseModelInfo_;
+  }
+
+  const PinocchioInterface& LeggedInterface::pinocchioInterface() const
+  {
+    return *pinocchioInterfacePtr_;
+  }
+
+  const PinocchioForwardEndEffectorKinematicsCppAd& LeggedInterface::forwardKinematics() const
+  {
+    return *endEffectorForwardKinematics_;
+  }
+  
+  const PinocchioForwardCollisionKinematicsCppAd& LeggedInterface::forwardCollisionKInematics() const
+  {
+    return *collisionForwardKinematics_;
+  }
+  
+  const PinocchioCollisionInterface& LeggedInterface::collisionInterface() const
+  {
+    return *collisionInterface_;
+  }
+  
+  const PinocchioTorqueApproximationCppAd& LeggedInterface::torqueApproximator() const
+  {
+    return *torqueApproximator_;
   }
 
   void LeggedInterface::createHelperClasses()
@@ -464,9 +504,9 @@ namespace legged_locomotion_mpc
     if(interfaceSettings_.useJointLimitsSoftConstraint)
     {
       const auto& model = pinocchioInterfacePtr_->getModel();
-      const vector_t jointMaxPositions = model.upperPositionLimit.segment(6, 
+      const vector_t jointMaxPositions = model.upperPositionLimit.segment(7, 
         floatingBaseModelInfo_.actuatedDofNum);
-      const vector_t jointMinPositions = model.lowerPositionLimit.segment(6, 
+      const vector_t jointMinPositions = model.lowerPositionLimit.segment(7, 
         floatingBaseModelInfo_.actuatedDofNum);
       const vector_t jointMaxVelocity =  model.velocityLimit.segment(6, 
         floatingBaseModelInfo_.actuatedDofNum);

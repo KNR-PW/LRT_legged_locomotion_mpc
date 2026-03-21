@@ -82,10 +82,10 @@ namespace legged_locomotion_mpc
 
           /* End effector collor map, used for all end effectors iteratively */
           std::vector<ocs2::Color> endEffectorColorMap = 
-            {
-              ocs2::Color::blue, ocs2::Color::orange, 
-              ocs2::Color::yellow, ocs2::Color::purple
-            };
+          {
+            ocs2::Color::blue, ocs2::Color::orange, 
+            ocs2::Color::yellow, ocs2::Color::purple
+          };
         };
 
         LeggedVisualizer(Settings visualizationSettings,
@@ -96,8 +96,7 @@ namespace legged_locomotion_mpc
           const PinocchioTorqueApproximationCppAd& torqueApproximator);
 
         void publishObservation(const rclcpp::Time& timeStamp, 
-          const ocs2::SystemObservation& currentObservation, 
-          const contact_flags_t& currentFlags);
+          const ocs2::SystemObservation& currentObservation);
 
         void publishTargetTrajectory(const rclcpp::Time& timeStamp, 
           const ocs2::TargetTrajectories targetTrajectory);

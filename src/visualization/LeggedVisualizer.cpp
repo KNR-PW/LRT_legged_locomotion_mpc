@@ -26,6 +26,8 @@
 
 #include <floating_base_model/AccessHelperFunctions.hpp>
 
+#include <legged_locomotion_mpc/locomotion/GaitCommon.hpp>
+
 namespace legged_locomotion_mpc
 {
   namespace ros
@@ -102,10 +104,12 @@ namespace legged_locomotion_mpc
     }
 
     void LeggedVisualizer::publishObservation(const rclcpp::Time& timeStamp, 
-      const SystemObservation& currentObservation, const contact_flags_t& currentFlags)
+      const SystemObservation& currentObservation)
     {
       const auto& state = currentObservation.state;
       const auto& input = currentObservation.input;
+
+      const auto currentFlags = locomotion::contactFlags2ModeNumber(currentObservation.mode);
 
       if(state.size() != modelInfo_.stateDim || input.size() != modelInfo_.inputDim)
       {

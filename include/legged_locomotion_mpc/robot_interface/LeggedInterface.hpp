@@ -111,12 +111,6 @@ namespace legged_locomotion_mpc
       const ocs2::Initializer& getInitializer() const;
       
       /**
-       * @brief Get model settings
-       * @return const reference to the model settings
-       */
-      const ModelSettings& modelSettings() const;
-      
-      /**
        * @brief Get DDP settings
        * @return const reference to the DDP settings
        */
@@ -145,6 +139,60 @@ namespace legged_locomotion_mpc
        * @return const reference to the IPM settings
        */
       const ocs2::ipm::Settings& ipmSettings() const;
+
+      /**
+       * @brief Get Interface settings
+       * @return const reference to the Interface settings
+       */
+      const Settings& interfaceSettings() const;
+
+      /**
+       * @brief Get Legged model settings
+       * @return const reference to the Legged model settings
+       */
+      const ModelSettings& modelSettings() const;
+
+      /**
+       * @brief Get Collision model settings
+       * @return const reference to the Collision model settings
+       */
+      const collision::CollisionSettings& collisionSettings() const;
+
+      /**
+       * @brief Get Floating base model info
+       * @return const reference to the Floating base model info
+       */
+      const floating_base_model::FloatingBaseModelInfo& floatingBaseModelInfo() const;
+
+      /**
+       * @brief Get PinocchioInterface
+       * @return const reference to the PinocchioInterface
+       */
+      const ocs2::PinocchioInterface& pinocchioInterface() const;
+      
+      /**
+       * @brief Get end effector forward kinematics
+       * @return const reference to the end effector forward kinematics
+       */
+      const PinocchioForwardEndEffectorKinematicsCppAd& forwardKinematics() const;
+      
+      /**
+       * @brief Get collision forward kinematics
+       * @return const reference to the collision forward kinematics
+       */
+      const PinocchioForwardCollisionKinematicsCppAd& forwardCollisionKInematics() const;
+      
+      /**
+       * @brief Get collision interface
+       * @return const reference to the collision interface
+       */
+      const collision::PinocchioCollisionInterface& collisionInterface() const;
+      
+      /**
+       * @brief Get torque approximator
+       * @return const reference to the torque approximator
+       */
+      const PinocchioTorqueApproximationCppAd& torqueApproximator() const;
 
     private:
 
