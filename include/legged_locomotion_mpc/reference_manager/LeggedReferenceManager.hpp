@@ -52,6 +52,12 @@ namespace legged_locomotion_mpc
        * and other references
        */
       ocs2::scalar_t maximumReferenceSampleInterval = 0.05;
+
+      /**
+       * Gait update offset for stability, so the MPC can prepare itself for changed 
+       * gait. Should be more than MPC frequency and solver time steps minimum.
+       */
+      ocs2::scalar_t gaitUpdateOffset = 0.1;
     };
   
     LeggedReferenceManager(floating_base_model::FloatingBaseModelInfo modelInfo,

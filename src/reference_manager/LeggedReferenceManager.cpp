@@ -208,7 +208,7 @@ namespace legged_locomotion_mpc
     if(currentGaitParameters_.updateFromBuffer())
     {
       const GaitDynamicParameters& currentGaitParameters = currentGaitParameters_.get();
-      gaitPlanner_.updateDynamicParameters(initTime + 0.015, currentGaitParameters);
+      gaitPlanner_.updateDynamicParameters(initTime + settings_.gaitUpdateOffset, currentGaitParameters);
     }
 
     // No new swing parameters -> no update
@@ -360,6 +360,12 @@ namespace legged_locomotion_mpc
       throw std::invalid_argument("[LeggedReferenceManager]: Maximum reference sample interval smaller than 0!");
     }
 
+    loadData::loadPtreeValue(pt, settings.gaitUpdateOffset, 
+      fieldName + ".gaitUpdateOffset", verbose);
+    if(settings.gaitUpdateOffset < 0.0)
+    {
+      throw std::invalid_argument("[LeggedReferenceManager]: Gait update offset smaller than 0!");
+    }
 
     if(verbose) 
     {

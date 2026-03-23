@@ -780,4 +780,5 @@ TEST(LeggedReferenceManagerTest, loader)
   const auto referenceSettings = loadLeggedReferenceManagerSettings(filePath);
 
   EXPECT_TRUE(referenceSettings.maximumReferenceSampleInterval == 0.5);
+  EXPECT_TRUE(referenceSettings.gaitUpdateOffset == 0.25);
 }
