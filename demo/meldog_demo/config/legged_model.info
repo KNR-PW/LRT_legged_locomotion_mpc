@@ -5,6 +5,7 @@ legged_model_settings
   recompileLibrariesCppAd   true
 
   modelFolderCppAd          /tmp/legged_locomotion_mpc
+  worldLinkName             base_link
   baseLinkName              trunk_link
   
   endEffectorThreeDofNames
@@ -32,7 +33,7 @@ legged_model_settings
 legged_interface_settings
 {
   useTrajectoryTrackingCost               true
-  useTerminalTrackingCost                 false
+  useTerminalTrackingCost                 true
   useJointTorqueCost                      false
 
   useNormalVelocityConstraint             true
@@ -54,19 +55,19 @@ legged_interface_settings
 
 base_planner_static_settings
 {
-  initialBaseHeight 0.35355339059
+  initialBaseHeight 0.43301270189
 
   minimumBaseHeight 0.1
 
   maximumBaseHeight 0.5
 
-  maximumBaseHeadingVelocity 0.4
+  maximumBaseHeadingVelocity 1.0
 
-  maximumBaseLateralVelocity 0.6
+  maximumBaseLateralVelocity 1.0
 
-  maximumBaseVerticalVelocity 0.7
+  maximumBaseVerticalVelocity 0.2
 
-  maximumYawRate 0.8
+  maximumYawRate 1.0
   
   nominalBaseWidtLateral 0.2
 
@@ -118,23 +119,23 @@ legged_collision_settings
 
 joint_limits_soft_constraint_settings
 {
-  mu 0.25
+  mu 0.5
 
   delta 0.005
 }
 
 joint_torque_limits_soft_constraint_settings
 {
-  mu 0.025
+  mu 0.5
 
-  delta 0.5
+  delta 0.005
 }
 
 self_collison_avoidance_soft_constraint_settings
 {
   mu 0.15
 
-  delta 0.0005
+  delta 0.005
 }
 
 terrain_avoidance_soft_constraint_settings
@@ -173,8 +174,8 @@ end_effector_soft_constraint_settings
 
 force_friction_cone_settings
 {
-  frictionCoefficient   0.5
-  regularization        10
+  frictionCoefficient   0.75
+  regularization        25
   hessianDiagonalShift  1e-6
 }
 
@@ -200,15 +201,15 @@ gait_dynamic_settings
 
 inverse_solver_settings
 {
-  maxIterations         50
+  maxIterations         100
 
   tolerance             1e-3
 
-  minimumStepSize       1e-3
+  minimumStepSize       1e-5
 
-  dampingCoefficient    1e-8
+  dampingCoefficient    1e-2
 
-  stepCoefficient       0.5
+  stepCoefficient       0.75
 
   singularityThreshold  1e-6
 }
@@ -219,23 +220,23 @@ base_weights
 {
   position
   {
-    (0,0)  100
-    (1,0)  100
-    (2,0)  100
+    (0,0)  20000
+    (1,0)  20000
+    (2,0)  20000
   }
 
   rotation
   {
-    (0,0)  50
-    (1,0)  50
-    (2,0)  50
+    (0,0)  100
+    (1,0)  100
+    (2,0)  5000
   }
 
   linearVelocity
   {
-    (0,0)  10
-    (1,0)  10
-    (2,0)  10
+    (0,0)  200
+    (1,0)  200
+    (2,0)  200
   }
 
   angularVelocity
@@ -327,9 +328,9 @@ end_effector_weights
   {
     position
     {
-      (0,0)  30.0
-      (1,0)  30.0
-      (2,0)  30.0
+      (0,0)  100.0
+      (1,0)  100.0
+      (2,0)  100.0
     }
 
     velocity
@@ -351,9 +352,9 @@ end_effector_weights
   {
     position
     {
-      (0,0)  30.0
-      (1,0)  30.0
-      (2,0)  30.0
+      (0,0)  100.0
+      (1,0)  100.0
+      (2,0)  100.0
     }
 
     velocity
@@ -375,9 +376,9 @@ end_effector_weights
   {
     position
     {
-      (0,0)  30.0
-      (1,0)  30.0
-      (2,0)  30.0
+      (0,0)  100.0
+      (1,0)  100.0
+      (2,0)  100.0
     }
 
     velocity
@@ -399,9 +400,9 @@ end_effector_weights
   {
     position
     {
-      (0,0)  30.0
-      (1,0)  30.0
-      (2,0)  30.0
+      (0,0)  100.0
+      (1,0)  100.0
+      (2,0)  100.0
     }
 
     velocity
@@ -485,7 +486,7 @@ joint_torque_weights
 
 over_extension_penalty_settings
 {
-  nominalLegExtension 0.35
+  nominalLegExtension 0.4
 
   legOverExtensionWeight 2.5
 }
@@ -493,13 +494,14 @@ over_extension_penalty_settings
 reference_manager_settings
 {
   maximumReferenceSampleInterval 0.05
+  gaitUpdateOffset               0.1
 }
 
 swing_planner_static_settings
 {
-  liftOffVelocity                 0.0
+  liftOffVelocity                 0.1
 
-  touchDownVelocity               0.0
+  touchDownVelocity               -0.2
         
   errorGain                       0.0
           
@@ -526,14 +528,14 @@ swing_planner_static_settings
 
 swing_planner_dynamic_settings
 {
-  invertedPendulumHeight 0.353553391
+  invertedPendulumHeight 0.43301270189
 
   swingHeights
   {
-    [0] 0.2
-    [1] 0.2
-    [2] 0.2
-    [3] 0.2
+    [0] 0.1
+    [1] 0.1
+    [2] 0.1
+    [3] 0.1
   }
 
   phases

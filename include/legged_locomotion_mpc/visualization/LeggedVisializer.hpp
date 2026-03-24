@@ -63,10 +63,10 @@ namespace legged_locomotion_mpc
           ocs2::scalar_t endEffectorAlphaWhenLifted = 0.3; 
 
           /* Vector scale in N/m */
-          ocs2::scalar_t forceScale = 1000.0;
+          ocs2::scalar_t forceScale = 500.0;
 
            /* Vector scale in N/m */
-          ocs2::scalar_t torqueScale = 1000.0;
+          ocs2::scalar_t torqueScale = 500.0;
 
           /* Vector scale in m/s */
           ocs2::scalar_t velocityScale = 5.0;
@@ -111,12 +111,14 @@ namespace legged_locomotion_mpc
           const ocs2::vector_t& jointPositons, const ocs2::vector_t& jointVelocities, 
           const ocs2::vector_t& jointTorques);
         
-        void publishBaseTransform(const rclcpp::Time& timeStamp, 
+        void publishBaseTransform(const rclcpp::Time& timeStamp, std::string frameName, 
+          const vector3_t& basePositon, const vector3_t& baseEulerAngles);
+
+        void publishBaseTransform(const rclcpp::Time& timeStamp,  
           const vector3_t& basePositon, const vector3_t& baseEulerAngles);
 
         void publishBaseTwist(const rclcpp::Time& timeStamp, 
-          const vector3_t& baseEulerAngles, const vector3_t& baseLinearVelocity, 
-          const vector3_t& baseAngularVelocity);
+          const vector3_t& baseLinearVelocity, const vector3_t& baseAngularVelocity);
 
         void publishEndEffectorMarkers(const rclcpp::Time& timeStamp, 
           const contact_flags_t& contactFlags,

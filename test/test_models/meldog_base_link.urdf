@@ -235,7 +235,7 @@
     <parent link="LFH_link"/>
     <child link="LFUL_link"/>
     <origin rpy="0 0 0" xyz="0.174                      0.0925                      0"/>
-    <limit effort="34.895" lower="-120" upper="120" velocity="18.906274745776084"/>
+    <limit effort="34.895" lower="-1.57" upper="0.0" velocity="18.906274745776084"/>
     <axis xyz="0 -1 0"/>
   </joint>
   <joint name="LFK_joint" type="revolute">
@@ -262,7 +262,7 @@
     <parent link="RFH_link"/>
     <child link="RFUL_link"/>
     <origin rpy="0 0 0" xyz="0.174                      -0.0925                      0"/>
-    <limit effort="34.895" lower="-120" upper="120" velocity="18.906274745776084"/>
+    <limit effort="34.895" lower="-1.57" upper="0.0" velocity="18.906274745776084"/>
     <axis xyz="0 -1 0"/>
   </joint>
   <joint name="RFK_joint" type="revolute">
@@ -289,7 +289,7 @@
     <parent link="LRH_link"/>
     <child link="LRUL_link"/>
     <origin rpy="0 0 0" xyz="-0.174                      0.0925                      0"/>
-    <limit effort="34.895" lower="-120" upper="120" velocity="18.906274745776084"/>
+    <limit effort="34.895" lower="-1.57" upper="0.0" velocity="18.906274745776084"/>
     <axis xyz="0 -1 0"/>
   </joint>
   <joint name="LRK_joint" type="revolute">
@@ -316,7 +316,7 @@
     <parent link="RRH_link"/>
     <child link="RRUL_link"/>
     <origin rpy="0 0 0" xyz="-0.174                      -0.0925                      0"/>
-    <limit effort="34.895" lower="-120" upper="120" velocity="18.906274745776084"/>
+    <limit effort="34.895" lower="-1.57" upper="0.0" velocity="18.906274745776084"/>
     <axis xyz="0 -1 0"/>
   </joint>
   <joint name="RRK_joint" type="revolute">

@@ -70,9 +70,10 @@ namespace legged_locomotion_mpc
       desiredBasePositionPublisher_ = this->create_publisher<
         visualization_msgs::msg::Marker>(desiredBasePositionTopic, 1);
 
-      std::vector<std::string> endEffectorNames = modelSettings.endEffectorThreeDofNames;
+      std::vector<std::string> endEffectorNames = modelSettings_.endEffectorThreeDofNames;
       endEffectorNames.insert(endEffectorNames.end(), 
-        modelSettings.endEffectorSixDofNames.begin(), modelSettings.endEffectorSixDofNames.end());
+        modelSettings_.endEffectorSixDofNames.begin(), 
+        modelSettings_.endEffectorSixDofNames.end());
 
       for(const auto& endEffectorName: endEffectorNames)
       {
@@ -156,7 +157,7 @@ namespace legged_locomotion_mpc
       const vector_t jointTorques = torqueApproximator_.getValue(state, input);
 
       publishBaseTransform(timeStamp, basePosition, baseEulerAngles);
-      publishBaseTwist(timeStamp, baseEulerAngles, baseLinearVelocity, baseAngularVelocity);
+      publishBaseTwist(timeStamp, baseLinearVelocity, baseAngularVelocity);
       publishJointStates(timeStamp, jointPositions, jointVelocities, jointTorques);
       publishEndEffectorMarkers(timeStamp, currentFlags, endEffectorPositions, 
         endEffectorForces, endEffectorTorques);
@@ -367,13 +368,13 @@ namespace legged_locomotion_mpc
     }
         
     void LeggedVisualizer::publishBaseTransform(const rclcpp::Time& timeStamp, 
-      const vector3_t& basePositon, const vector3_t& baseEulerAngles)
+      std::string frameName, const vector3_t& basePositon, const vector3_t& baseEulerAngles)
     {
       geometry_msgs::msg::TransformStamped baseTransform;
 
       baseTransform.header.stamp = timeStamp;
       baseTransform.header.frame_id = modelSettings_.worldLinkName;
-      baseTransform.child_frame_id = modelSettings_.baseLinkName;
+      baseTransform.child_frame_id = frameName;
       baseTransform.transform.translation.x = basePositon.x();
       baseTransform.transform.translation.y = basePositon.y();
       baseTransform.transform.translation.z = basePositon.z();
@@ -388,27 +389,28 @@ namespace legged_locomotion_mpc
       baseTransformBroadcaster_->sendTransform(baseTransform);
     }
 
+    void LeggedVisualizer::publishBaseTransform(const rclcpp::Time& timeStamp, 
+      const vector3_t& basePositon, const vector3_t& baseEulerAngles)
+    {
+      publishBaseTransform(timeStamp, modelSettings_.baseLinkName, 
+        basePositon, baseEulerAngles);
+    }
+
     void LeggedVisualizer::publishBaseTwist(const rclcpp::Time& timeStamp, 
-      const vector3_t& baseEulerAngles, const vector3_t& baseLinearVelocity, 
-      const vector3_t& baseAngularVelocity)
+      const vector3_t& baseLinearVelocity, const vector3_t& baseAngularVelocity)
     {
       geometry_msgs::msg::TwistStamped baseTwist;
-
-      const auto rotationMatrix = getRotationMatrixFromZyxEulerAngles(baseEulerAngles);
-
-      const vector3_t baseLinearVelocityInWorld = rotationMatrix * baseLinearVelocity;
-      const vector3_t baseAngularVelocityInWorld = rotationMatrix * baseAngularVelocity;
 
       baseTwist.header.stamp = timeStamp;
       baseTwist.header.frame_id = modelSettings_.baseLinkName;
 
-      baseTwist.twist.linear.x = baseLinearVelocityInWorld.x();
-      baseTwist.twist.linear.y = baseLinearVelocityInWorld.y();
-      baseTwist.twist.linear.z = baseLinearVelocityInWorld.z();
+      baseTwist.twist.linear.x = baseLinearVelocity.x();
+      baseTwist.twist.linear.y = baseLinearVelocity.y();
+      baseTwist.twist.linear.z = baseLinearVelocity.z();
 
-      baseTwist.twist.angular.x = baseAngularVelocityInWorld.x();
-      baseTwist.twist.angular.y = baseAngularVelocityInWorld.y();
-      baseTwist.twist.angular.z = baseAngularVelocityInWorld.z();
+      baseTwist.twist.angular.x = baseAngularVelocity.x();
+      baseTwist.twist.angular.y = baseAngularVelocity.y();
+      baseTwist.twist.angular.z = baseAngularVelocity.z();
 
       baseTwistPublisher_->publish(baseTwist);
     }

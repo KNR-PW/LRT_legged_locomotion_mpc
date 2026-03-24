@@ -17,6 +17,8 @@
 
 #include <legged_locomotion_mpc/path_management/package_path.h>
 
+#include <legged_locomotion_mpc/visualization/LeggedVisializer.hpp>
+
 #include "../../test/include/definitions.hpp"
 
 using namespace ocs2;
@@ -60,29 +62,60 @@ int main(int argc, char* argv[])
   vector_t initialState = vector_t::Zero(Meldog::STATE_DIM);
   initialState.block<3,1>(6, 0) = initialBasePosition;
   initialState.block<3,1>(9, 0) = terrainEulerZyx;
-  access_helper_functions::getJointPositions(initialState, modelInfo) << 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326;
+  access_helper_functions::getJointPositions(initialState, modelInfo) << 0, -0.62359877559, 1.0471975512, 0, -0.62359877559, 1.0471975512, 0, -0.62359877559, 1.0471975512, 0, -0.62359877559, 1.0471975512;
+  // access_helper_functions::getJointPositions(initialState, modelInfo) << 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326;
 
   LeggedInterface leggedInterface(initTime, initialState, 
     std::move(terrainModel), taskFilePath, modelFilePath, urdfFilePath);
 
   auto& referenceManager = leggedInterface.getLeggedReferenceManager();
   
-  /* DYNAMIC WALK */
+  // /* DYNAMIC WALK */
 
-  GaitDynamicParameters dynamicParams;
-  dynamicParams.swingRatio =  0.3;
-  dynamicParams.steppingFrequency = 1.0;
+  // GaitDynamicParameters dynamicParams;
+  // dynamicParams.swingRatio =  0.3;
+  // dynamicParams.steppingFrequency = 1.0;
 
-  dynamicParams.phaseOffsets = {0.5, 0.2, 0.7};
+  // dynamicParams.phaseOffsets = {0.5, 0.2, 0.7};
 
-  BaseTrajectoryPlanner::BaseReferenceCommand command;
-  command.baseHeadingVelocity = 0.25;
-  command.baseLateralVelocity = 0.0;
-  command.baseVerticalVelocity = 0.0;
-  command.yawRate = 0.0;
+  /* STANDING TROT */
+  
+  GaitDynamicParameters firstDynamicParams;
+  firstDynamicParams.steppingFrequency = 1.0 / 0.7;
+  firstDynamicParams.swingRatio = 3.0 / 7.0;
 
-  const scalar_t moveTime = 0.1;
-  const scalar_t endTime = 1.0;
+  const scalar_t firstOffset = 3.5 / 7.0;
+  
+  firstDynamicParams.phaseOffsets = {-firstOffset  , -firstOffset, 0};
+
+  /* FLYING TROT */
+  GaitDynamicParameters secondDynamicParams;
+  secondDynamicParams.swingRatio =  0.33 / 0.6;
+  secondDynamicParams.steppingFrequency = 1.0 / 0.6;
+  scalar_t secondOffset = secondDynamicParams.swingRatio;
+
+  secondDynamicParams.phaseOffsets = {-secondOffset + 0.03 / 0.6, -secondOffset + 0.03 / 0.6, 0};
+
+  BaseTrajectoryPlanner::BaseReferenceCommand firstCommand;
+  firstCommand.baseHeadingVelocity = 0.3;
+  firstCommand.baseLateralVelocity = 0.0;
+  firstCommand.baseVerticalVelocity = 0.0;
+  firstCommand.yawRate = 1 * 0.314;
+
+  BaseTrajectoryPlanner::BaseReferenceCommand secondCommand;
+  secondCommand.baseHeadingVelocity = 0.40;
+  secondCommand.baseLateralVelocity = 0.0;
+  secondCommand.baseVerticalVelocity = 0.0;
+  secondCommand.yawRate = -1 * 0.314;
+
+  const scalar_t firstGaitTime = 1.0;
+  bool firstChange = true;
+  const scalar_t secondGaitTime = 8.0;
+  bool secondChange = true;
+
+  const scalar_t firstMoveTime = 2.0;
+  const scalar_t secondMoveTime = 9.0;
+  const scalar_t endTime = 16.0;
 
   // referenceManager.updateCommand(command);
   // referenceManager.updateGaitParemeters(dynamicParams);
@@ -143,26 +176,66 @@ int main(int argc, char* argv[])
   ModeSchedule modeSchedule;
   modeSchedule.clear();
   std::vector<PerformanceIndex> performances;
-  bool firstChange = true;
+
+  std::vector<ocs2::SystemObservation> observations;
+  std::vector<contact_flags_t> contactFlags;
+
+  std::vector<ocs2::scalar_array_t> optimizedTimeTrajectories;
+  std::vector<ocs2::vector_array_t> optimizedStateTrajectories;
 
   while(observation.time < endTime) 
   {
     std::cout << "Time: " << observation.time << "\n";
-    // try 
-    // {
+    observations.push_back(observation);
+    try 
+    {
       // run MPC at current observation
       mpcInterface.setCurrentObservation(observation);
+      referenceManager.updateObservation(observation);
       
 
-      if(observation.time > moveTime)
+      if(observation.time > firstGaitTime && firstChange)
       {
-        // referenceManager.updateCommand(command);
-        if(firstChange)
-        {
-          firstChange = false;
-          referenceManager.updateGaitParemeters(dynamicParams);
-        }
+        firstChange = false;
+        referenceManager.updateGaitParemeters(firstDynamicParams);
+        // referenceManager.updateCommand(firstCommand);
+        // referenceManager.preSolverRun(gaitTime, endTime, observation.state);
+
+        // const auto targetTrajectory = referenceManager.getTargetTrajectories();
+
+        // for(size_t i = 0; i < targetTrajectory.size(); ++i)
+        // {
+        //   SystemObservation currentObservation;
+        //   currentObservation.time = targetTrajectory.timeTrajectory[i];
+        //   currentObservation.state = targetTrajectory.stateTrajectory[i];
+        //   currentObservation.input = targetTrajectory.inputTrajectory[i];
+        //   observations.push_back(currentObservation);
+
+        //   const auto referenceEndEffectorTrajectoryPoint = 
+        //     referenceManager.getEndEffectorTrajectoryPoint(currentObservation.time);
+
+        //   referenceEndEffectorTrajectories.push_back(std::move(
+        //     referenceEndEffectorTrajectoryPoint));
+        // }
+        // break;
       }
+
+      if(observation.time > secondGaitTime && secondChange)
+      {
+        secondChange = false;
+        referenceManager.updateGaitParemeters(secondDynamicParams);
+      }
+
+      if(observation.time > firstMoveTime)
+      {
+        referenceManager.updateCommand(firstCommand);
+      }
+
+      if(observation.time > secondMoveTime)
+      {
+        referenceManager.updateCommand(secondCommand);
+      }
+
       mpcInterface.advanceMpc();
       mpcInterface.updatePolicy();
 
@@ -177,6 +250,9 @@ int main(int argc, char* argv[])
       observation.input = LinearInterpolation::interpolate(
         observation.time, mpcInterface.getPolicy().timeTrajectory_,
         mpcInterface.getPolicy().inputTrajectory_);
+
+      optimizedTimeTrajectories.push_back(mpcInterface.getPolicy().timeTrajectory_);
+      optimizedStateTrajectories.push_back(mpcInterface.getPolicy().stateTrajectory_);
 
       optimalTrajectory.timeTrajectory.push_back(observation.time);
       optimalTrajectory.stateTrajectory.push_back(observation.state);
@@ -206,31 +282,83 @@ int main(int argc, char* argv[])
 
       observation.time = finalTime;
       observation.state = stateTrajectory.back();
+      observation.input = inputTrajectory.back();
 
-      std::cerr << "Time: " << observation.time  << std::endl;
-      std::cerr << "Base position: " << observation.state.block(6, 0, 3, 1).transpose() << std::endl;
-      std::cerr << "Joint positions: " << access_helper_functions::getJointPositions(observation.state, modelInfo).transpose() << std::endl;
-      std::cerr << "Joint velocities: " << access_helper_functions::getJointVelocities(observation.input, modelInfo).transpose() << std::endl;
-      std::cerr << "Force: " << access_helper_functions::getContactForces(observation.input, 0 , modelInfo).transpose() << std::endl;
-    // } 
-    // catch (std::exception& e) 
-    // {
-    //   std::cout << "Kurwa" << std::endl;
-    //   std::cout << "MPC failed\n";
-    //   std::cout << e.what() << "\n";
-    //   throw;
-    // }
+      const auto targetState = referenceManager.getTargetTrajectories().getDesiredState(finalTime);
+      const auto targetInput = referenceManager.getTargetTrajectories().getDesiredInput(finalTime);
+
+      // std::cerr << "Time: " << observation.time << std::endl;
+      // std::cerr << "Real base position: " << observation.state.block(6, 0, 3, 1).transpose() << std::endl;
+      // std::cerr << "Reference base position: " << targetState.block(6, 0, 3, 1).transpose() << std::endl;
+      // std::cerr << "Real base linear velocity: " << observation.state.block(0, 0, 3, 1).transpose() << std::endl;
+      // std::cerr << "Reference base linear velocity: " << targetState.block(0, 0, 3, 1).transpose() << std::endl;
+      // std::cerr << "Real joint positions: " << access_helper_functions::getJointPositions(observation.state, modelInfo).transpose() << std::endl;
+      // std::cerr << "Reference joint positions: " << access_helper_functions::getJointPositions(targetState, modelInfo).transpose() << std::endl;
+      // std::cerr << "Real joint velocities: " << access_helper_functions::getJointVelocities(observation.input, modelInfo).transpose() << std::endl;
+      // std::cerr << "Reference joint velocities: " << access_helper_functions::getJointVelocities(targetInput, modelInfo).transpose() << std::endl;
+      // std::cerr << "Real force: " << access_helper_functions::getContactForces(observation.input, 0 , modelInfo).transpose() << std::endl;
+      // std::cerr << "Refrence force: " << access_helper_functions::getContactForces(targetInput, 0 , modelInfo).transpose() << std::endl;
+    } 
+    catch (std::exception& e) 
+    {
+      std::cout << "MPC failed\n";
+      std::cout << e.what() << "\n";
+      break;
+    }
   }
 
-  for(size_t i = 0; i < optimalTrajectory.timeTrajectory.size(); ++i)
+  // for(size_t i = 0; i < optimalTrajectory.timeTrajectory.size(); ++i)
+  // {
+  //   std::cerr << "Time: " << optimalTrajectory.timeTrajectory[i] << std::endl;
+  //   std::cerr << "Base position: " << optimalTrajectory.stateTrajectory[i].block(6, 0, 3, 1).transpose() << std::endl;
+  //   std::cerr << "Base linear velocity: " << optimalTrajectory.stateTrajectory[i].block(0, 0, 3, 1).transpose() << std::endl;
+  //   std::cerr << "Joint positions: " << access_helper_functions::getJointPositions(optimalTrajectory.stateTrajectory[i], modelInfo).transpose() << std::endl;
+  //   std::cerr << "Joint velocities: " << access_helper_functions::getJointVelocities(optimalTrajectory.inputTrajectory[i], modelInfo).transpose() << std::endl;
+  //   std::cerr << "Force: " << access_helper_functions::getContactForces(optimalTrajectory.inputTrajectory[i], 0 , modelInfo).transpose() << std::endl;
+  // }
+  // std::cerr << modeSchedule << std::endl;
+
+
+  rclcpp::init(argc, argv);
+
+  const auto visualizerSettings = ros::LeggedVisualizer::Settings();
+  const auto modelSettings = leggedInterface.modelSettings();
+  const auto& forwardKinematics = leggedInterface.forwardKinematics();
+  const auto& torqueApproximator = leggedInterface.torqueApproximator();
+  const auto& robotModel = leggedInterface.pinocchioInterface().getModel();
+
+  const auto leggedVisualizer = std::make_shared<ros::LeggedVisualizer>(visualizerSettings, 
+    modelSettings, modelInfo, robotModel, forwardKinematics, torqueApproximator);
+
+  while(true)
   {
-    std::cerr << "Time: " << optimalTrajectory.timeTrajectory[i] << std::endl;
-    std::cerr << "Base position: " << optimalTrajectory.stateTrajectory[i].block(6, 0, 3, 1).transpose() << std::endl;
-    std::cerr << "Joint positions: " << access_helper_functions::getJointPositions(optimalTrajectory.stateTrajectory[i], modelInfo).transpose() << std::endl;
-    std::cerr << "Joint velocities: " << access_helper_functions::getJointVelocities(optimalTrajectory.inputTrajectory[i], modelInfo).transpose() << std::endl;
-    std::cerr << "Force: " << access_helper_functions::getContactForces(optimalTrajectory.inputTrajectory[i], 0 , modelInfo).transpose() << std::endl;
-  }
-  std::cerr << modeSchedule << std::endl;
+    scalar_t visualizationTime = initTime;
+    size_t visualizationIndex = 0;
+    while(visualizationTime < observations.back().time)
+    {
+      const auto currentTimeStamp = leggedVisualizer->now();
+      leggedVisualizer->publishObservation(currentTimeStamp, observations[visualizationIndex]);
+      if(visualizationIndex < optimizedTimeTrajectories.size())
+      {
+        leggedVisualizer->publishOptimizedTrajectory(currentTimeStamp, 
+          optimizedTimeTrajectories[visualizationIndex], 
+          optimizedStateTrajectories[visualizationIndex]);
+      }
+      visualizationIndex++;
+      if(visualizationIndex < observations.size())
+      {
+        const auto duration = observations[visualizationIndex].time - visualizationTime;
+        const auto durationSeconds = std::chrono::duration<scalar_t>(duration);
+        const auto durationNanoseconds = std::chrono::duration_cast<std::chrono::nanoseconds>(
+          durationSeconds);
+        rclcpp::sleep_for(durationNanoseconds);
+        visualizationTime = observations[visualizationIndex].time;
+      }
 
+
+    }
+  }
+  
+  rclcpp::shutdown();
   return 0;
 }

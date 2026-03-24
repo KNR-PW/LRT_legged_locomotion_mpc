@@ -426,10 +426,10 @@ namespace legged_locomotion_mpc
           * weightedEndEffectorVelocityError;
         cost.dfdxx += endEffectorCurrentVelocityDerivative.dfdx.transpose() * 
           endEffectorWeights_.velocities[i].asDiagonal() * endEffectorCurrentVelocityDerivative.dfdx;
-        // cost.dfduu.block(forceIndexOffset, forceIndexOffset, 
-        //   info_.actuatedDofNum, info_.actuatedDofNum) += 
-        //     velocityDerivativeBlock.transpose() 
-        //     * endEffectorWeights_.velocities[i].asDiagonal() * velocityDerivativeBlock;
+        cost.dfduu.block(forceIndexOffset, forceIndexOffset, 
+          info_.actuatedDofNum, info_.actuatedDofNum) += 
+            velocityDerivativeBlock.transpose() 
+            * endEffectorWeights_.velocities[i].asDiagonal() * velocityDerivativeBlock;
         cost.dfdux.bottomRows(info_.actuatedDofNum) += velocityDerivativeBlock.transpose() 
           * endEffectorWeights_.velocities[i].asDiagonal() * endEffectorCurrentVelocityDerivative.dfdx;
 

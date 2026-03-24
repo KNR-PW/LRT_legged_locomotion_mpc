@@ -26,6 +26,32 @@ namespace legged_locomotion_mpc
     using namespace floating_base_model;
     using namespace quaterion_euler_transforms;
 
+    void unwrapYawAngle(TargetTrajectories& targetTrajectory, 
+      const FloatingBaseModelInfo& modelInfo)
+    {
+      for(size_t i = 1; i < targetTrajectory.stateTrajectory.size(); ++i)
+      {
+        const auto& previousState = targetTrajectory.stateTrajectory[i - 1];
+        const auto previousEulerAngles = access_helper_functions::getBaseOrientationZyx(
+          previousState, modelInfo);
+
+        auto& newState = targetTrajectory.stateTrajectory[i];
+        auto newEulerAngles = access_helper_functions::getBaseOrientationZyx(
+          newState, modelInfo);
+
+        const scalar_t yawDifference = newEulerAngles.x() - previousState.x();
+
+        if(yawDifference > M_PI_2)
+        {
+          newEulerAngles.x() -= M_PI_2;
+        }
+        else if(yawDifference < -M_PI_2)
+        {
+          newEulerAngles.x() += M_PI_2;
+        }
+      }
+    }
+
     matrix3_t projectRotationMatrixOnPlane(const matrix3_t& rotationMatrixToWorld, const TerrainPlane& plane)
     {
       const vector3_t headingVector = rotationMatrixToWorld.col(0);
@@ -201,6 +227,8 @@ namespace legged_locomotion_mpc
         getBaseVelocity(lastStateVector, modelInfo_) = 
         access_helper_functions::
         getBaseVelocity(almostLastStateVector, modelInfo_);
+
+      // unwrapYawAngle(targetTrajectories, modelInfo_);
     }
 
     const BaseTrajectoryPlanner::StaticSettings& BaseTrajectoryPlanner::getStaticSettings() const

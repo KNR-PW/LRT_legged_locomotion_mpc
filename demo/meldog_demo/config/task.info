@@ -71,7 +71,7 @@ ddp
   AbsTolODE                       1e-5
   RelTolODE                       1e-3
   maxNumStepsPerSecond            10000
-  timeStep                        0.01
+  timeStep                        0.005
   backwardPassIntegratorType      ODE45
 
   constraintPenaltyInitialValue   20.0
@@ -96,7 +96,7 @@ rollout
 {
   AbsTolODE                       1e-5
   RelTolODE                       1e-3
-  timeStep                        0.01
+  timeStep                        0.005
   integratorType                  ODE45
   maxNumStepsPerSecond            10000
   checkNumericalStability         true
@@ -110,6 +110,6 @@ mpc
 
   debugPrint                      true
 
-  mpcDesiredFrequency             100  ; [Hz]
+  mpcDesiredFrequency              40 ; [Hz]
   mrtDesiredFrequency             400 ; [Hz]
 }
