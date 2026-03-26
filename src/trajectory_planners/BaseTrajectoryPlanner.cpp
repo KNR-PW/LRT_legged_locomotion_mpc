@@ -39,15 +39,17 @@ namespace legged_locomotion_mpc
         auto newEulerAngles = access_helper_functions::getBaseOrientationZyx(
           newState, modelInfo);
 
-        const scalar_t yawDifference = newEulerAngles.x() - previousState.x();
+        const scalar_t yawDifference = newEulerAngles.x() - previousEulerAngles.x();
 
-        if(yawDifference > M_PI_2)
+        static const scalar_t EulerYawJump = 2.0 * M_PI;
+
+        if(yawDifference > M_PI)
         {
-          newEulerAngles.x() -= M_PI_2;
+          newEulerAngles.x() -= EulerYawJump;
         }
-        else if(yawDifference < -M_PI_2)
+        else if(yawDifference < -M_PI)
         {
-          newEulerAngles.x() += M_PI_2;
+          newEulerAngles.x() += EulerYawJump;
         }
       }
     }
@@ -228,7 +230,7 @@ namespace legged_locomotion_mpc
         access_helper_functions::
         getBaseVelocity(almostLastStateVector, modelInfo_);
 
-      // unwrapYawAngle(targetTrajectories, modelInfo_);
+      unwrapYawAngle(targetTrajectories, modelInfo_);
     }
 
     const BaseTrajectoryPlanner::StaticSettings& BaseTrajectoryPlanner::getStaticSettings() const
