@@ -14,8 +14,6 @@
 
 #include <terrain_model/planar_model/PlanarFactoryFunctions.hpp>
 
-
-
 namespace legged_locomotion_mpc
 {
   namespace planners

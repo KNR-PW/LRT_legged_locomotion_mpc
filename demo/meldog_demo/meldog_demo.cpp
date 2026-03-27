@@ -98,13 +98,13 @@ int main(int argc, char* argv[])
 
   BaseTrajectoryPlanner::BaseReferenceCommand firstCommand;
   firstCommand.baseHeadingVelocity = 0.3;
-  firstCommand.baseLateralVelocity = 0.0;
+  firstCommand.baseLateralVelocity = 0.1;
   firstCommand.baseVerticalVelocity = 0.0;
   firstCommand.yawRate = 1 * 0.314;
 
   BaseTrajectoryPlanner::BaseReferenceCommand secondCommand;
   secondCommand.baseHeadingVelocity = 0.40;
-  secondCommand.baseLateralVelocity = 0.0;
+  secondCommand.baseLateralVelocity = -0.1;
   secondCommand.baseVerticalVelocity = 0.0;
   secondCommand.yawRate = -1 * 0.314;
 
@@ -114,8 +114,8 @@ int main(int argc, char* argv[])
   bool secondChange = true;
 
   const scalar_t firstMoveTime = 2.0;
-  const scalar_t secondMoveTime = 9.0;
-  const scalar_t endTime = 16.0;
+  const scalar_t secondMoveTime = 15.0;
+  const scalar_t endTime = 20.0;
 
   // referenceManager.updateCommand(command);
   // referenceManager.updateGaitParemeters(dynamicParams);
@@ -234,6 +234,19 @@ int main(int argc, char* argv[])
       if(observation.time > secondMoveTime)
       {
         referenceManager.updateCommand(secondCommand);
+      }
+
+      const auto& lastTrajectoryState = referenceManager.getTargetTrajectories().stateTrajectory.back();
+
+      std::cerr << "Ostatni euler angle z targetu: ";
+      std::cerr << lastTrajectoryState.block(9, 0, 3, 1).transpose() << std::endl;
+
+      std::cerr << "Rzeczywisty euler angle: ";
+      std::cerr << observation.state.block(9, 0, 3, 1).transpose() << std::endl;
+
+      if(std::abs(observation.time - 11.25) < 1e-6)
+      {
+        std::cerr << "Zaczyna sie!" << std::endl;
       }
 
       mpcInterface.advanceMpc();
