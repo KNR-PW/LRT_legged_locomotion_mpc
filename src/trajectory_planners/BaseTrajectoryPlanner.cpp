@@ -240,13 +240,13 @@ namespace legged_locomotion_mpc
       vector2_t baseXYPositionInWorld, scalar_t yawOnPlane)
     {
       const vector2_t lfOffsetLocal(settings_.nominalBaseWidthHeading / 2.0, 
-          settings_.nominalBaseWidtLateral / 2.0);
+          settings_.nominalBaseWidthLateral / 2.0);
       const vector2_t rfOffsetLocal(settings_.nominalBaseWidthHeading / 2.0, 
-        -settings_.nominalBaseWidtLateral / 2.0);
+        -settings_.nominalBaseWidthLateral / 2.0);
       const vector2_t lhOffsetLocal(-settings_.nominalBaseWidthHeading / 2.0, 
-        settings_.nominalBaseWidtLateral / 2.0);
+        settings_.nominalBaseWidthLateral / 2.0);
       const vector2_t rhOffsetLocal(-settings_.nominalBaseWidthHeading / 2.0, 
-        -settings_.nominalBaseWidtLateral / 2.0);
+        -settings_.nominalBaseWidthLateral / 2.0);
         
       // Rotate from heading to world frame
       vector2_t lfOffsetGlobal = rotateVector2D(lfOffsetLocal, yawOnPlane);
@@ -368,9 +368,9 @@ namespace legged_locomotion_mpc
         throw std::invalid_argument("[BaseTrajectoryPlanner]: Maximum base yaw rate smaller than 0.0!");
       }
 
-      loadData::loadPtreeValue(pt, settings.nominalBaseWidtLateral, 
-        fieldName + ".nominalBaseWidtLateral", verbose);
-      if(settings.nominalBaseWidtLateral < 0.0)
+      loadData::loadPtreeValue(pt, settings.nominalBaseWidthLateral, 
+        fieldName + ".nominalBaseWidthLateral", verbose);
+      if(settings.nominalBaseWidthLateral < 0.0)
       {
         throw std::invalid_argument("[BaseTrajectoryPlanner]: Nominal lateral base width smaller than 0.0!");
       }

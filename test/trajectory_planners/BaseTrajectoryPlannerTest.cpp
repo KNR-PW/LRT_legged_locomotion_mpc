@@ -50,7 +50,7 @@ TEST(BaseTrajectoryPlannerTest, translationOnFlatTerrain)
   staticSettings.minimumBaseHeight = 0.1;
   staticSettings.maximumBaseHeight = 5.0;
   staticSettings.nominalBaseWidthHeading = 0.2;
-  staticSettings.nominalBaseWidtLateral = 0.2;
+  staticSettings.nominalBaseWidthLateral = 0.2;
   staticSettings.maximumBaseHeadingVelocity = 1.0;
   staticSettings.maximumBaseLateralVelocity = 1.0;
   staticSettings.maximumBaseVerticalVelocity = 1.0;
@@ -180,7 +180,7 @@ TEST(BaseTrajectoryPlannerTest, rotationOnFlatTerrain)
   staticSettings.minimumBaseHeight = 0.1;
   staticSettings.maximumBaseHeight = 5.0;
   staticSettings.nominalBaseWidthHeading = 0.2;
-  staticSettings.nominalBaseWidtLateral = 0.2;
+  staticSettings.nominalBaseWidthLateral = 0.2;
   staticSettings.maximumBaseHeadingVelocity = 1.0;
   staticSettings.maximumBaseLateralVelocity = 1.0;
   staticSettings.maximumBaseVerticalVelocity = 1.0;
@@ -310,7 +310,7 @@ TEST(BaseTrajectoryPlannerTest, translationAndrotationOnSlopyTerrain)
   staticSettings.minimumBaseHeight = 0.1;
   staticSettings.maximumBaseHeight = 5.0;
   staticSettings.nominalBaseWidthHeading = 0.2;
-  staticSettings.nominalBaseWidtLateral = 0.2;
+  staticSettings.nominalBaseWidthLateral = 0.2;
   staticSettings.maximumBaseHeadingVelocity = 1.0;
   staticSettings.maximumBaseLateralVelocity = 1.0;
   staticSettings.maximumBaseVerticalVelocity = 1.0;
@@ -435,7 +435,7 @@ TEST(BaseTrajectoryPlannerTest, loader)
   EXPECT_TRUE(baseSettings.initialBaseHeight        == 0.1);
   EXPECT_TRUE(baseSettings.minimumBaseHeight        == 0.05);
   EXPECT_TRUE(baseSettings.maximumBaseHeight        == 0.2);
-  EXPECT_TRUE(baseSettings.nominalBaseWidtLateral   == 0.2);
+  EXPECT_TRUE(baseSettings.nominalBaseWidthLateral   == 0.2);
   EXPECT_TRUE(baseSettings.nominalBaseWidthHeading  == 0.3);
   EXPECT_TRUE(baseSettings.maximumBaseHeadingVelocity == 0.4);
   EXPECT_TRUE(baseSettings.maximumBaseLateralVelocity  == 0.6);

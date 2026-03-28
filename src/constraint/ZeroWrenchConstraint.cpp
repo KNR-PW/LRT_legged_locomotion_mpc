@@ -68,7 +68,7 @@ namespace legged_locomotion_mpc
     linearApproximation.f = getValue(time, state, input, preComp);
     linearApproximation.dfdx = ocs2::matrix_t::Zero(6, info_.stateDim);
     linearApproximation.dfdu = ocs2::matrix_t::Zero(6, info_.inputDim);
-    linearApproximation.dfdu.middleCols<6>(startRow).diagonal() = ocs2::vector_t::Ones(6);
+    linearApproximation.dfdu.middleCols<6>(startRow).setIdentity();
 
     return linearApproximation;
   }

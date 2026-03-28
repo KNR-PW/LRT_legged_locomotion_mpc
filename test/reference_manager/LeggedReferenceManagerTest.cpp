@@ -58,7 +58,7 @@ TEST(LeggedReferenceManagerTest, getContactFlags)
   staticSettings.minimumBaseHeight = 0.1;
   staticSettings.maximumBaseHeight = 5.0;
   staticSettings.nominalBaseWidthHeading = 0.2;
-  staticSettings.nominalBaseWidtLateral = 0.2;
+  staticSettings.nominalBaseWidthLateral = 0.2;
   staticSettings.maximumBaseHeadingVelocity = 1.0;
   staticSettings.maximumBaseLateralVelocity = 1.0;
   staticSettings.maximumBaseVerticalVelocity = 1.0;
@@ -235,7 +235,7 @@ TEST(LeggedReferenceManagerTest, getTerrainModel)
   staticSettings.minimumBaseHeight = 0.1;
   staticSettings.maximumBaseHeight = 5.0;
   staticSettings.nominalBaseWidthHeading = 0.2;
-  staticSettings.nominalBaseWidtLateral = 0.2;
+  staticSettings.nominalBaseWidthLateral = 0.2;
   staticSettings.maximumBaseHeadingVelocity = 1.0;
   staticSettings.maximumBaseLateralVelocity = 1.0;
   staticSettings.maximumBaseVerticalVelocity = 1.0;
@@ -407,7 +407,7 @@ TEST(LeggedReferenceManagerTest, getEndEffectorTrajectoryPoint)
   staticSettings.minimumBaseHeight = 0.1;
   staticSettings.maximumBaseHeight = 5.0;
   staticSettings.nominalBaseWidthHeading = 0.2;
-  staticSettings.nominalBaseWidtLateral = 0.2;
+  staticSettings.nominalBaseWidthLateral = 0.2;
   staticSettings.maximumBaseHeadingVelocity = 1.0;
   staticSettings.maximumBaseLateralVelocity = 1.0;
   staticSettings.maximumBaseVerticalVelocity = 1.0;
@@ -599,7 +599,7 @@ TEST(LeggedReferenceManagerTest, getEndEffectorConstraintMatrixes)
   staticSettings.minimumBaseHeight = 0.1;
   staticSettings.maximumBaseHeight = 5.0;
   staticSettings.nominalBaseWidthHeading = 0.2;
-  staticSettings.nominalBaseWidtLateral = 0.2;
+  staticSettings.nominalBaseWidthLateral = 0.2;
   staticSettings.maximumBaseHeadingVelocity = 1.0;
   staticSettings.maximumBaseLateralVelocity = 1.0;
   staticSettings.maximumBaseVerticalVelocity = 1.0;

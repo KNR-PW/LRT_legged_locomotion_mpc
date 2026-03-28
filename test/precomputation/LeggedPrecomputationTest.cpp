@@ -62,7 +62,7 @@ TEST(LeggedPrecomputationTest, getEndEffector)
   staticSettings.minimumBaseHeight = 0.1;
   staticSettings.maximumBaseHeight = 5.0;
   staticSettings.nominalBaseWidthHeading = 0.2;
-  staticSettings.nominalBaseWidtLateral = 0.2;
+  staticSettings.nominalBaseWidthLateral = 0.2;
   staticSettings.maximumBaseHeadingVelocity = 1.0;
   staticSettings.maximumBaseLateralVelocity = 1.0;
   staticSettings.maximumBaseVerticalVelocity = 1.0;
@@ -311,7 +311,7 @@ TEST(LeggedPrecomputationTest, getCollisionLinks)
   staticSettings.minimumBaseHeight = 0.1;
   staticSettings.maximumBaseHeight = 5.0;
   staticSettings.nominalBaseWidthHeading = 0.2;
-  staticSettings.nominalBaseWidtLateral = 0.2;
+  staticSettings.nominalBaseWidthLateral = 0.2;
   staticSettings.maximumBaseHeadingVelocity = 1.0;
   staticSettings.maximumBaseLateralVelocity = 1.0;
   staticSettings.maximumBaseVerticalVelocity = 1.0;
@@ -532,7 +532,7 @@ TEST(LeggedPrecomputationTest, getTorque)
   staticSettings.minimumBaseHeight = 0.1;
   staticSettings.maximumBaseHeight = 5.0;
   staticSettings.nominalBaseWidthHeading = 0.2;
-  staticSettings.nominalBaseWidtLateral = 0.2;
+  staticSettings.nominalBaseWidthLateral = 0.2;
   staticSettings.maximumBaseHeadingVelocity = 1.0;
   staticSettings.maximumBaseLateralVelocity = 1.0;
   staticSettings.maximumBaseVerticalVelocity = 1.0;
@@ -741,7 +741,7 @@ TEST(LeggedPrecomputationTest, getReference)
   staticSettings.minimumBaseHeight = 0.1;
   staticSettings.maximumBaseHeight = 5.0;
   staticSettings.nominalBaseWidthHeading = 0.2;
-  staticSettings.nominalBaseWidtLateral = 0.2;
+  staticSettings.nominalBaseWidthLateral = 0.2;
   staticSettings.maximumBaseHeadingVelocity = 1.0;
   staticSettings.maximumBaseLateralVelocity = 1.0;
   staticSettings.maximumBaseVerticalVelocity = 1.0;

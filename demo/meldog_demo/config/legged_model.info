@@ -69,7 +69,7 @@ base_planner_static_settings
 
   maximumYawRate 1.0
   
-  nominalBaseWidtLateral 0.2
+  nominalBaseWidthLateral 0.2
 
   nominalBaseWidthHeading 0.3
 }

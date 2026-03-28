@@ -45,7 +45,7 @@ static void BaseTrajectoryPlanner_UPDATE(benchmark::State & state)
   staticSettings.minimumBaseHeight = 0.1;
   staticSettings.maximumBaseHeight = 5.0;
   staticSettings.nominalBaseWidthHeading = 0.2;
-  staticSettings.nominalBaseWidtLateral = 0.2;
+  staticSettings.nominalBaseWidthLateral = 0.2;
 
   BaseTrajectoryPlanner planner(modelInfo, staticSettings);
   planner.updateTerrain(terrainModel);

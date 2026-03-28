@@ -58,7 +58,7 @@ TEST(SwingTrajectoryPlannerTest, standingInPlace)
   staticSettings.minimumBaseHeight = 0.1;
   staticSettings.maximumBaseHeight = 0.5;
   staticSettings.nominalBaseWidthHeading = 0.2;
-  staticSettings.nominalBaseWidtLateral = 0.2;
+  staticSettings.nominalBaseWidthLateral = 0.2;
   staticSettings.maximumBaseHeadingVelocity = 1.0;
   staticSettings.maximumBaseLateralVelocity = 1.0;
   staticSettings.maximumBaseVerticalVelocity = 1.0;
@@ -224,7 +224,7 @@ TEST(SwingTrajectoryPlannerTest, TrotInPlace)
   staticSettings.minimumBaseHeight = 0.1;
   staticSettings.maximumBaseHeight = 0.5;
   staticSettings.nominalBaseWidthHeading = 0.2;
-  staticSettings.nominalBaseWidtLateral = 0.2;
+  staticSettings.nominalBaseWidthLateral = 0.2;
   staticSettings.maximumBaseHeadingVelocity = 1.0;
   staticSettings.maximumBaseLateralVelocity = 1.0;
   staticSettings.maximumBaseVerticalVelocity = 1.0;
@@ -388,7 +388,7 @@ TEST(SwingTrajectoryPlannerTest, Troting)
   staticSettings.minimumBaseHeight = 0.1;
   staticSettings.maximumBaseHeight = 0.5;
   staticSettings.nominalBaseWidthHeading = 0.2;
-  staticSettings.nominalBaseWidtLateral = 0.2;
+  staticSettings.nominalBaseWidthLateral = 0.2;
   staticSettings.maximumBaseHeadingVelocity = 1.0;
   staticSettings.maximumBaseLateralVelocity = 1.0;
   staticSettings.maximumBaseVerticalVelocity = 1.0;

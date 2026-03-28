@@ -69,7 +69,7 @@ namespace legged_locomotion_mpc
           ocs2::scalar_t maximumYawRate;
 
           // Nominal lateral base width
-          ocs2::scalar_t nominalBaseWidtLateral;
+          ocs2::scalar_t nominalBaseWidthLateral;
 
           // Nominal heading base width
           ocs2::scalar_t nominalBaseWidthHeading;

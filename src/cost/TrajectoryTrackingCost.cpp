@@ -338,29 +338,29 @@ namespace legged_locomotion_mpc
       // Add base weighted squared cost and its derivatives
       const vector3_t weightedBasePositonError = baseWeights_.position.asDiagonal() * basePositionError;
       cost.f += basePositionError.dot(weightedBasePositonError);
-      cost.dfdx.block<3, 1>(6, 0) += -weightedBasePositonError;
-      cost.dfdxx.block<3, 3>(6, 6).diagonal() += baseWeights_.position;
+      cost.dfdx.block<3, 1>(6, 0).noalias() += -weightedBasePositonError;
+      cost.dfdxx.block<3, 3>(6, 6).diagonal().noalias() += baseWeights_.position;
       
       const vector3_t weightedBaseRotationError = baseWeights_.rotation.asDiagonal() 
         * baseRotationError;
       cost.f += baseRotationError.dot(weightedBaseRotationError);
       const matrix_t log3Derivative = log3AdInterfacePtr_->getJacobian(
         baseCurrentEulerAngles, baseTargetEulerAngles);
-      cost.dfdx.block<3, 1>(9, 0) += log3Derivative.transpose() * weightedBaseRotationError;
-      cost.dfdxx.block<3, 3>(9, 9) += log3Derivative.transpose() 
+      cost.dfdx.block<3, 1>(9, 0).noalias() += log3Derivative.transpose() * weightedBaseRotationError;
+      cost.dfdxx.block<3, 3>(9, 9).noalias() += log3Derivative.transpose() 
         * baseWeights_.rotation.asDiagonal() * log3Derivative;
       
       const vector3_t weightedBaseLinearVelocityError = 
         baseWeights_.linearVelocity.asDiagonal() * baseLinearVelocityError;
       cost.f += baseLinearVelocityError.dot(weightedBaseLinearVelocityError);
-      cost.dfdx.block<3, 1>(0, 0) += -weightedBaseLinearVelocityError;
-      cost.dfdxx.block<3, 3>(0, 0).diagonal() += baseWeights_.linearVelocity;
+      cost.dfdx.block<3, 1>(0, 0).noalias() += -weightedBaseLinearVelocityError;
+      cost.dfdxx.block<3, 3>(0, 0).diagonal().noalias() += baseWeights_.linearVelocity;
       
       const vector3_t weightedBaseAngularVelocityError = 
         baseWeights_.angularVelocity.asDiagonal() * baseAngularVelocityError;
       cost.f += baseAngularVelocityError.dot(weightedBaseAngularVelocityError);
-      cost.dfdx.block<3, 1>(3, 0) += -weightedBaseAngularVelocityError;
-      cost.dfdxx.block<3, 3>(3, 3).diagonal() += baseWeights_.angularVelocity;
+      cost.dfdx.block<3, 1>(3, 0).noalias() += -weightedBaseAngularVelocityError;
+      cost.dfdxx.block<3, 3>(3, 3).diagonal().noalias() += baseWeights_.angularVelocity;
 
       const size_t endEffectorNum = info_.numThreeDofContacts + info_.numSixDofContacts;
 
@@ -413,37 +413,39 @@ namespace legged_locomotion_mpc
 
         // Add end effectors weighted squared cost and its derivatives
         cost.f += endEffectorPositionError.dot(weightedEndEffectorPositionError);
-        cost.dfdx.bottomRows(info_.stateDim - 6) += -positionDerivativeBlock.transpose() 
-          * weightedEndEffectorPositionError;
-        cost.dfdxx.block(6, 6, info_.stateDim - 6, info_.stateDim - 6) += 
+        cost.dfdx.bottomRows(info_.stateDim - 6).noalias() += 
+          -positionDerivativeBlock.transpose() * weightedEndEffectorPositionError;
+        cost.dfdxx.block(6, 6, info_.stateDim - 6, info_.stateDim - 6).noalias() += 
           positionDerivativeBlock.transpose() * endEffectorWeights_.positions[i].asDiagonal() 
           * positionDerivativeBlock;
 
         cost.f += endEffectorVelocityError.dot(weightedEndEffectorVelocityError);
-        cost.dfdx += -endEffectorCurrentVelocityDerivative.dfdx.transpose() 
+        cost.dfdx.noalias() += -endEffectorCurrentVelocityDerivative.dfdx.transpose() 
           * weightedEndEffectorVelocityError;
-        cost.dfdu.bottomRows(info_.actuatedDofNum) += -velocityDerivativeBlock.transpose() 
-          * weightedEndEffectorVelocityError;
-        cost.dfdxx += endEffectorCurrentVelocityDerivative.dfdx.transpose() * 
+        cost.dfdu.bottomRows(info_.actuatedDofNum).noalias() += 
+          -velocityDerivativeBlock.transpose() * weightedEndEffectorVelocityError;
+        cost.dfdxx.noalias() += endEffectorCurrentVelocityDerivative.dfdx.transpose() * 
           endEffectorWeights_.velocities[i].asDiagonal() * endEffectorCurrentVelocityDerivative.dfdx;
         cost.dfduu.block(forceIndexOffset, forceIndexOffset, 
-          info_.actuatedDofNum, info_.actuatedDofNum) += 
+          info_.actuatedDofNum, info_.actuatedDofNum).noalias() += 
             velocityDerivativeBlock.transpose() 
             * endEffectorWeights_.velocities[i].asDiagonal() * velocityDerivativeBlock;
-        cost.dfdux.bottomRows(info_.actuatedDofNum) += velocityDerivativeBlock.transpose() 
-          * endEffectorWeights_.velocities[i].asDiagonal() * endEffectorCurrentVelocityDerivative.dfdx;
+        cost.dfdux.bottomRows(info_.actuatedDofNum).noalias() += 
+          velocityDerivativeBlock.transpose() 
+            * endEffectorWeights_.velocities[i].asDiagonal() * endEffectorCurrentVelocityDerivative.dfdx;
 
         cost.f += endEffectorForceError.dot(weightedEndEffectorForceError);
         if(i < info_.numThreeDofContacts)
         {
-          cost.dfdu.block<3, 1>(3 * i, 0) += -weightedEndEffectorForceError;
-          cost.dfduu.block<3, 3>(3 * i, 3 * i).diagonal() += endEffectorWeights_.forces[i];
+          cost.dfdu.block<3, 1>(3 * i, 0).noalias() += -weightedEndEffectorForceError;
+          cost.dfduu.block<3, 3>(3 * i, 3 * i).diagonal().noalias() += 
+            endEffectorWeights_.forces[i];
         }
         else
         {
           const size_t startIndex = 6 * i - 3 * info_.numThreeDofContacts;
-          cost.dfdu.block<3, 1>(startIndex, 0) += -weightedEndEffectorForceError;
-          cost.dfduu.block<3, 3>(startIndex, startIndex).diagonal() += 
+          cost.dfdu.block<3, 1>(startIndex, 0).noalias() += -weightedEndEffectorForceError;
+          cost.dfduu.block<3, 3>(startIndex, startIndex).diagonal().noalias() += 
             endEffectorWeights_.forces[i];
         }
       }
@@ -474,17 +476,17 @@ namespace legged_locomotion_mpc
 
       // Add joint weighted squared cost and its derivatives
       cost.f += jointPositionError.dot(weightedJointPositionError);
-      cost.dfdx.block(12, 0, info_.actuatedDofNum, 1) += -weightedJointPositionError;
-      cost.dfdxx.block(12, 12, info_.actuatedDofNum, info_.actuatedDofNum).diagonal() += 
+      cost.dfdx.block(12, 0, info_.actuatedDofNum, 1).noalias() += -weightedJointPositionError;
+      cost.dfdxx.block(12, 12, info_.actuatedDofNum, info_.actuatedDofNum).diagonal().noalias() += 
         jointWeights_.positions;
 
       cost.f += jointVelocityError.dot(weightedJointVelocityError);
-      cost.dfdu.block(forceIndexOffset, 0, info_.actuatedDofNum, 1) += 
+      cost.dfdu.block(forceIndexOffset, 0, info_.actuatedDofNum, 1).noalias() += 
         -weightedJointVelocityError;
 
       
       cost.dfduu.block(forceIndexOffset, forceIndexOffset, info_.actuatedDofNum, 
-        info_.actuatedDofNum).diagonal() = jointWeights_.velocities;
+        info_.actuatedDofNum).diagonal().noalias() = jointWeights_.velocities;
       
       // 1 / 2 of sum
       cost.f *= 0.5;
