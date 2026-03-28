@@ -222,7 +222,7 @@ namespace legged_locomotion_mpc
         collisionInterface_.getRotationTimesVectorGradient(frameEulerAngles, 
           sphereRelativePositions[minIndex]);
 
-      const vector_t positionStateDerivative = positionDerivative.dfdx + rotationVectorGradient * eulerDerivative.dfdx;
+      const matrix_t positionStateDerivative = positionDerivative.dfdx + rotationVectorGradient * eulerDerivative.dfdx;
       const vector_t scaledGradient = positionStateDerivative.transpose() * sdfGradient;
       
       cost.dfdx.noalias() += penaltyDerivative * scaledGradient;
@@ -276,7 +276,7 @@ namespace legged_locomotion_mpc
         collisionInterface_.getRotationTimesVectorGradient(frameEulerAngles, 
           sphereRelativePositions[minIndex]);
 
-      const vector_t positionStateDerivative = positionDerivative.dfdx + rotationVectorGradient * eulerDerivative.dfdx;
+      const matrix_t positionStateDerivative = positionDerivative.dfdx + rotationVectorGradient * eulerDerivative.dfdx;
       const vector_t scaledGradient = positionStateDerivative.transpose() * sdfGradient;
       
       cost.dfdx.noalias() += penaltyDerivative * scaledGradient;

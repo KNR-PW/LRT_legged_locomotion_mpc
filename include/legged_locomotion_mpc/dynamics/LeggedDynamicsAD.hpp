@@ -68,7 +68,7 @@ namespace legged_locomotion_mpc
     private:
       LeggedDynamicsAD(const LeggedDynamicsAD &rhs) = default;
 
-      floating_base_model::PinocchioFloatingBaseDynamicsAD dynamicsAdPtr_;
+      floating_base_model::PinocchioFloatingBaseDynamicsAD dynamicsAd_;
       const synchronization::DisturbanceSynchronizedModule& disturbanceSynchronizedModule_;
   };
 
