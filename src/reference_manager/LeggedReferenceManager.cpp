@@ -24,11 +24,10 @@ namespace legged_locomotion_mpc
     SwingTrajectoryPlanner&& swingPlanner,
     BaseTrajectoryPlanner&& basePlanner,
     JointTrajectoryPlanner&& jointPlanner,
-    ContactForceWrenchTrajectoryPlanner&& forcePlanner, bool threaded):
+    ContactForceWrenchTrajectoryPlanner&& forcePlanner):
       ReferenceManager(TargetTrajectories(), ModeSchedule()),
       modelInfo_(std::move(modelInfo)),
       settings_(std::move(settings)),
-      threaded_(threaded),
       gaitPlanner_(std::move(gaitPlanner)), 
       swingPlanner_(std::move(swingPlanner)),
       basePlanner_(std::move(basePlanner)), 
@@ -60,7 +59,7 @@ namespace legged_locomotion_mpc
 
     updateTerrainModel(std::move(currentTerrainModel));
     
-    if(threaded_)
+    if(settings_.threaded)
     {
       newTrajectories_ = std::async(std::launch::async, [this, initTime, finalTime]()
       {return generateNewTargetTrajectories(initTime, finalTime);});
@@ -164,7 +163,7 @@ namespace legged_locomotion_mpc
   void LeggedReferenceManager::preSolverRun(scalar_t initTime, scalar_t finalTime, 
     const vector_t& initState)
   {
-    if(threaded_)
+    if(settings_.threaded)
     {
       if(newTrajectories_.wait_for(std::chrono::seconds(0)) == std::future_status::timeout)
       {
@@ -336,7 +335,7 @@ namespace legged_locomotion_mpc
 
   LeggedReferenceManager::~LeggedReferenceManager()
   {
-    if(threaded_) newTrajectories_.wait();
+    if(settings_.threaded) newTrajectories_.wait();
   }
 
   LeggedReferenceManager::Settings loadLeggedReferenceManagerSettings(
@@ -366,6 +365,9 @@ namespace legged_locomotion_mpc
     {
       throw std::invalid_argument("[LeggedReferenceManager]: Gait update offset smaller than 0!");
     }
+
+    loadData::loadPtreeValue(pt, settings.threaded, 
+      fieldName + ".threaded", verbose);
 
     if(verbose) 
     {

@@ -2,4 +2,5 @@ reference_manager_settings
 {
   maximumReferenceSampleInterval 0.5
   gaitUpdateOffset               0.25
+  threaded                       false
 }

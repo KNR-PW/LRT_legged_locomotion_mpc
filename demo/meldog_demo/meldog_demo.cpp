@@ -62,8 +62,8 @@ int main(int argc, char* argv[])
   vector_t initialState = vector_t::Zero(Meldog::STATE_DIM);
   initialState.block<3,1>(6, 0) = initialBasePosition;
   initialState.block<3,1>(9, 0) = terrainEulerZyx;
-  access_helper_functions::getJointPositions(initialState, modelInfo) << 0, -0.62359877559, 1.0471975512, 0, -0.62359877559, 1.0471975512, 0, -0.62359877559, 1.0471975512, 0, -0.62359877559, 1.0471975512;
-  // access_helper_functions::getJointPositions(initialState, modelInfo) << 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326;
+  // access_helper_functions::getJointPositions(initialState, modelInfo) << 0, -0.62359877559, 1.0471975512, 0, -0.62359877559, 1.0471975512, 0, -0.62359877559, 1.0471975512, 0, -0.62359877559, 1.0471975512;
+  access_helper_functions::getJointPositions(initialState, modelInfo) << 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326;
 
   LeggedInterface leggedInterface(initTime, initialState, 
     std::move(terrainModel), taskFilePath, modelFilePath, urdfFilePath);

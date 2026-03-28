@@ -53,7 +53,7 @@ namespace legged_locomotion_mpc
   LeggedInterface::LeggedInterface(scalar_t initTime, const vector_t& currentState, 
     std::unique_ptr<TerrainModel> currentTerrainModel,
     const std::string& taskFile, const std::string& modelFile,
-    const std::string& urdfFile, bool multiThreaded)
+    const std::string& urdfFile)
   {
     // Check that task file exists
     const boost::filesystem::path taskFilePath(taskFile);
@@ -124,7 +124,7 @@ namespace legged_locomotion_mpc
     createHelperClasses();
 
     createReferenceManager(initTime, currentState, std::move(currentTerrainModel), 
-      multiThreaded, modelFile, urdfFile);
+      modelFile, urdfFile);
 
     createInitializer();
     
@@ -254,8 +254,8 @@ namespace legged_locomotion_mpc
   }
 
   void LeggedInterface::createReferenceManager(scalar_t initTime, 
-    const vector_t& currentState, std::unique_ptr<TerrainModel> currentTerrainModel,
-    bool multiThreaded, const std::string& modelFile, const std::string& urdfFile)
+    const vector_t& currentState, std::unique_ptr<TerrainModel> currentTerrainModel, 
+    const std::string& modelFile, const std::string& urdfFile)
   {
     const bool verbose = modelSettings_.verbose;
 
@@ -323,8 +323,7 @@ namespace legged_locomotion_mpc
     // Setup reference manager
     referenceManagerPtr_ = std::make_shared<LeggedReferenceManager>(floatingBaseModelInfo_, 
       referenceManagerSettings, std::move(gaitPlanner), std::move(swingPlanner), 
-      std::move(basePlanner), std::move(jointPlanner), std::move(contactForceWrenchPlanner), 
-      multiThreaded);
+      std::move(basePlanner), std::move(jointPlanner), std::move(contactForceWrenchPlanner));
 
     const scalar_t timeJump = 1.0;
     

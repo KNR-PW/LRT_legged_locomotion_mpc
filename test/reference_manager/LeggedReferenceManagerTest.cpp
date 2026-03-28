@@ -141,7 +141,7 @@ TEST(LeggedReferenceManagerTest, getContactFlags)
 
   LeggedReferenceManager manager(modelInfo, 
     managerSettings, std::move(gaitPlanner), std::move(swingPlanner), std::move(basePlanner), 
-    std::move(jointPlanner), std::move(forcePlanner), false);
+    std::move(jointPlanner), std::move(forcePlanner));
 
   const vector3_t initPosition = vector3_t{0.0, 0.0, 0.0};
 
@@ -318,7 +318,7 @@ TEST(LeggedReferenceManagerTest, getTerrainModel)
 
   LeggedReferenceManager manager(modelInfo, 
     managerSettings, std::move(gaitPlanner), std::move(swingPlanner), std::move(basePlanner), 
-    std::move(jointPlanner), std::move(forcePlanner), false);
+    std::move(jointPlanner), std::move(forcePlanner));
 
   const vector3_t initPosition = vector3_t{0.0, 0.0, 0.0};
 
@@ -490,7 +490,7 @@ TEST(LeggedReferenceManagerTest, getEndEffectorTrajectoryPoint)
 
   LeggedReferenceManager manager(modelInfo, 
     managerSettings, std::move(gaitPlanner), std::move(swingPlanner), std::move(basePlanner), 
-    std::move(jointPlanner), std::move(forcePlanner), false);
+    std::move(jointPlanner), std::move(forcePlanner));
 
   const vector3_t initPosition = vector3_t{0.0, 0.0, 0.0};
 
@@ -682,7 +682,7 @@ TEST(LeggedReferenceManagerTest, getEndEffectorConstraintMatrixes)
 
   LeggedReferenceManager manager(modelInfo, 
     managerSettings, std::move(gaitPlanner), std::move(swingPlanner), std::move(basePlanner), 
-    std::move(jointPlanner), std::move(forcePlanner), false);
+    std::move(jointPlanner), std::move(forcePlanner));
 
   const vector3_t initPosition = vector3_t{0.0, 0.0, 0.0};
 
@@ -781,4 +781,5 @@ TEST(LeggedReferenceManagerTest, loader)
 
   EXPECT_TRUE(referenceSettings.maximumReferenceSampleInterval == 0.5);
   EXPECT_TRUE(referenceSettings.gaitUpdateOffset == 0.25);
+  EXPECT_TRUE(referenceSettings.threaded == false);
 }

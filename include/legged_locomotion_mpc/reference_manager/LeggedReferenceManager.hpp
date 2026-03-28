@@ -58,6 +58,12 @@ namespace legged_locomotion_mpc
        * gait. Should be more than MPC frequency and solver time steps minimum.
        */
       ocs2::scalar_t gaitUpdateOffset = 0.1;
+
+      /**
+       * Option for generating target trajectory in parallel to MPC
+       * on another thread
+       */
+      bool threaded = true;
     };
   
     LeggedReferenceManager(floating_base_model::FloatingBaseModelInfo modelInfo,
@@ -66,8 +72,7 @@ namespace legged_locomotion_mpc
       locomotion::SwingTrajectoryPlanner&& swingPlanner,
       planners::BaseTrajectoryPlanner&& basePlanner,
       planners::JointTrajectoryPlanner&& jointPlanner,
-      planners::ContactForceWrenchTrajectoryPlanner&& forcePlanner,
-      bool threaded = true);
+      planners::ContactForceWrenchTrajectoryPlanner&& forcePlanner);
 
     ~LeggedReferenceManager() override;
 
@@ -113,7 +118,6 @@ namespace legged_locomotion_mpc
     
       const floating_base_model::FloatingBaseModelInfo modelInfo_;
       const Settings settings_;
-      const bool threaded_;
 
       std::future<void> newTrajectories_;
 

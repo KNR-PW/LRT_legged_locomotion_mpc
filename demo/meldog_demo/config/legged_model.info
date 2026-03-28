@@ -495,6 +495,7 @@ reference_manager_settings
 {
   maximumReferenceSampleInterval 0.05
   gaitUpdateOffset               0.1
+  threaded                       false
 }
 
 swing_planner_static_settings
