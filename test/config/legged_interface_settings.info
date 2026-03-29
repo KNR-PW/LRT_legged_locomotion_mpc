@@ -19,4 +19,6 @@ legged_interface_settings
   useJointTorqueLimitsSoftConstraint      false
   useTerrainAvoidanceSoftConstraint       true
   useSelfCollisionAvoidanceSoftConstraint false
+
+  useNormalOrientationSoftConstraint      true
 }

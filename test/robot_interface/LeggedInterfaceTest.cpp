@@ -27,4 +27,5 @@ TEST(LeggedInterfaceTest, loader)
   EXPECT_TRUE(settings.useJointTorqueLimitsSoftConstraint      == false);
   EXPECT_TRUE(settings.useTerrainAvoidanceSoftConstraint       == true);
   EXPECT_TRUE(settings.useSelfCollisionAvoidanceSoftConstraint == false);
+  EXPECT_TRUE(settings.useNormalOrientationSoftConstraint      == true);
 }

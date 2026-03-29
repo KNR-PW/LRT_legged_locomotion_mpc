@@ -73,6 +73,9 @@ namespace legged_locomotion_mpc
         bool useJointTorqueLimitsSoftConstraint = true;
         bool useTerrainAvoidanceSoftConstraint = true;
         bool useSelfCollisionAvoidanceSoftConstraint = true;
+        
+        // 6 DoF
+        bool useNormalOrientationSoftConstraint = true;
       };
 
       LeggedInterface(ocs2::scalar_t initTime, const ocs2::vector_t& currentState, 

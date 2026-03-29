@@ -51,6 +51,8 @@ legged_interface_settings
   useJointTorqueLimitsSoftConstraint      true
   useTerrainAvoidanceSoftConstraint       true
   useSelfCollisionAvoidanceSoftConstraint false
+
+  useuseNormalOrientationSoftConstraint   false
 }
 
 base_planner_static_settings

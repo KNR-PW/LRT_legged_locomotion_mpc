@@ -27,6 +27,7 @@
 #include <legged_locomotion_mpc/soft_constraint/JointTorqueLimitsSoftConstraint.hpp>
 #include <legged_locomotion_mpc/soft_constraint/SelfCollisionAvoidanceSoftConstraint.hpp>
 #include <legged_locomotion_mpc/soft_constraint/TerrainAvoidanceSoftConstraint.hpp>
+#include <legged_locomotion_mpc/soft_constraint/NormalOrientationSoftConstraint.hpp>
 
 #include <legged_locomotion_mpc/locomotion/GaitPlanner.hpp>
 #include <legged_locomotion_mpc/locomotion/SwingTrajectoryPlanner.hpp>
@@ -568,6 +569,19 @@ namespace legged_locomotion_mpc
         std::move(selfCollisionAvoidanceSoftConstraint));
     }
 
+    if(interfaceSettings_.useNormalOrientationSoftConstraint)
+    {
+      const auto normalOrientationSettings = loadNormalOrientationSoftConstraintSettings(
+        modelFile, "normal_orientation_soft_constraint_settings", verbose);
+
+      auto normalOrientationSoftConstraint = 
+        std::make_unique<NormalOrientationSoftConstraint>(*referenceManagerPtr_, 
+          normalOrientationSettings, floatingBaseModelInfo_);
+
+      optimalProblem_.stateSoftConstraintPtr->add("NormalOrientationSoftConstraint", 
+        std::move(normalOrientationSoftConstraint));
+    }
+
     // Setup all terminal costs
     if(interfaceSettings_.useTerminalTrackingCost)
     {
@@ -651,6 +665,8 @@ namespace legged_locomotion_mpc
       fieldName + ".useTerrainAvoidanceSoftConstraint", verbose);
     loadData::loadPtreeValue(pt, settings.useSelfCollisionAvoidanceSoftConstraint, 
       fieldName + ".useSelfCollisionAvoidanceSoftConstraint", verbose);
+    loadData::loadPtreeValue(pt, settings.useNormalOrientationSoftConstraint, 
+      fieldName + ".useNormalOrientationSoftConstraint", verbose);
 
     if(verbose) 
     {

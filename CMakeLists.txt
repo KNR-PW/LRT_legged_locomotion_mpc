@@ -102,6 +102,7 @@ add_library(${PROJECT_NAME}
   src/soft_constraint/TerrainAvoidanceSoftConstraint.cpp
   src/soft_constraint/SelfCollisionAvoidanceSoftConstraint.cpp
   src/soft_constraint/EndEffectorPlacementSoftConstraint.cpp
+  src/soft_constraint/NormalOrientationSoftConstraint.cpp
 
   src/initialization/LeggedInitializer.cpp
 
@@ -279,6 +280,7 @@ if(BUILD_TESTING)
         test/soft_constraint/SelfCollisionAvoidanceSoftConstraintTest.cpp
         test/soft_constraint/TerrainAvoidanceSoftConstraintTest.cpp
         test/soft_constraint/EndEffectorPlacementSoftConstraintTest.cpp
+        test/soft_constraint/NormalOrientationSoftConstraintTest.cpp
   )
   ament_target_dependencies(${PROJECT_NAME}_test_soft_constraint ${THIS_PACKAGE_DEPENDS})
   target_include_directories(${PROJECT_NAME}_test_soft_constraint PRIVATE test/include)

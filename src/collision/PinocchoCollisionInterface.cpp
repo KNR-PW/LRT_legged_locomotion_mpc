@@ -78,9 +78,12 @@ namespace legged_locomotion_mpc
       rotationMatrixVectorAdInterfacePtr_.reset(
           new ocs2::CppAdInterface(systemFlowMapFunc, 3, 3, "rotation_times_vector_euler", modelFolder));
     
-      if(recompileLibraries) {
+      if(recompileLibraries) 
+      {
         rotationMatrixVectorAdInterfacePtr_->createModels(ocs2::CppAdInterface::ApproximationOrder::First, verbose);
-      } else {
+      } 
+      else 
+      {
         rotationMatrixVectorAdInterfacePtr_->loadModelsIfAvailable(ocs2::CppAdInterface::ApproximationOrder::First, verbose);
       }
     }
