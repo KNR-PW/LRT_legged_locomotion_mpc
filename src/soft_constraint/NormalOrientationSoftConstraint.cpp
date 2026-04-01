@@ -71,10 +71,11 @@ namespace legged_locomotion_mpc
 
       const vector3_t endEffectorNormal = rotationMatrix.col(2);
 
-      const scalar_t value = 1.0 - endEffectorNormal.dot(surfaceNormal);
+      const scalar_t value = endEffectorNormal.dot(surfaceNormal) - 1.0;
 
       cost += normalRelaxedBarrierPenaltyPtr_->getValue(0.0, value);
     }
+    
     return cost;
   }
         
@@ -108,7 +109,7 @@ namespace legged_locomotion_mpc
 
       const vector3_t endEffectorNormal = rotationMatrix.col(2);
 
-      const scalar_t value = 1.0 - endEffectorNormal.dot(surfaceNormal);
+      const scalar_t value = endEffectorNormal.dot(surfaceNormal) - 1.0;
 
       cost.f += normalRelaxedBarrierPenaltyPtr_->getValue(0.0, value);
 
