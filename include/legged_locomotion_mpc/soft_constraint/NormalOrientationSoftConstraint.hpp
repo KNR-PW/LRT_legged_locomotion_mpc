@@ -44,7 +44,7 @@ namespace legged_locomotion_mpc
     
       struct Settings
       {
-        ocs2::RelaxedBarrierPenalty::Config barrierSettings;
+        ocs2::scalar_t barrierMu;
       };
 
       /**
@@ -87,7 +87,7 @@ namespace legged_locomotion_mpc
 
       const floating_base_model::FloatingBaseModelInfo info_;
 
-      std::unique_ptr<ocs2::RelaxedBarrierPenalty> normalRelaxedBarrierPenaltyPtr_;
+      std::unique_ptr<ocs2::QuadraticPenalty> normalRelaxedBarrierPenaltyPtr_;
 
       std::unique_ptr<ocs2::CppAdInterface> normalFromEulerAnglesAdInterfacePtr_;
   };

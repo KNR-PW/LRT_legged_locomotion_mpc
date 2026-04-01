@@ -19,7 +19,7 @@ namespace legged_locomotion_mpc
     NormalOrientationSoftConstraint::Settings settings, FloatingBaseModelInfo info, 
     const std::string& modelFolder, bool recompileLibraries, bool verbose):
       referenceManager_(referenceManager),info_(std::move(info)), 
-      normalRelaxedBarrierPenaltyPtr_(new RelaxedBarrierPenalty(settings.barrierSettings)) 
+      normalRelaxedBarrierPenaltyPtr_(new QuadraticPenalty(settings.barrierMu)) 
   {
     // Create CppAD function
     auto systemFlowMapFunc = [&, this](const ad_vector_t& x, ad_vector_t& y) 
@@ -164,20 +164,12 @@ namespace legged_locomotion_mpc
       std::cerr << "\n #### =============================================================================\n";
     }
 
-    loadData::loadPtreeValue(pt, settings.barrierSettings.mu, 
+    loadData::loadPtreeValue(pt, settings.barrierMu, 
         fieldName + ".mu", verbose);
 
-    if(settings.barrierSettings.mu < 0.0)
+    if(settings.barrierMu < 0.0)
     {
       throw std::invalid_argument("[NormalOrientationSoftConstraint]: Relaxed barrier penalty mu smaller than 0.0!");
-    }
-
-    loadData::loadPtreeValue(pt, settings.barrierSettings.delta, 
-        fieldName + ".delta", verbose);
-
-    if(settings.barrierSettings.delta < 0.0)
-    {
-      throw std::invalid_argument("[NormalOrientationSoftConstraint]: Relaxed barrier penalty delta smaller than 0.0!");
     }
 
     if(verbose) 

@@ -14,6 +14,5 @@ TEST(NormalOrientationSoftConstraintTest, loader)
   const auto constraintSettings = loadNormalOrientationSoftConstraintSettings(
     constraintFilePath);
 
-  EXPECT_TRUE(constraintSettings.barrierSettings.mu == 0.5);
-  EXPECT_TRUE(constraintSettings.barrierSettings.delta == 0.6);
+  EXPECT_TRUE(constraintSettings.barrierMu == 0.5);
 }
