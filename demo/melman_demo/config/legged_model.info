@@ -6,27 +6,22 @@ legged_model_settings
 
   modelFolderCppAd          /tmp/legged_locomotion_mpc
   worldLinkName             base_link
-  baseLinkName              trunk_link
+  baseLinkName              Trunk
   
   endEffectorThreeDofNames
   {
-    [0] RFF_link
-    [1] RRF_link
-    [2] LFF_link
-    [3] LRF_link
   }
 
   endEffectorSixDofNames
   {
-
+    [0] Right_Foot
+    [1] Left_Foot
   }
 
   hipFrameNames
   {
-    [0] RFUL_link
-    [1] RRUL_link
-    [2] LFUL_link
-    [3] LRUL_link
+    [0] Right_HipMount
+    [1] Left_HipMount
   }
 }
 
@@ -38,13 +33,13 @@ legged_interface_settings
 
   useNormalVelocityConstraint             true
 
-  useForceFrictionConeConstraint          true
-  useZero3DofVelocityConstraint           true
-  useZeroForceConstraint                  true
+  useForceFrictionConeConstraint          false
+  useZero3DofVelocityConstraint           false
+  useZeroForceConstraint                  false
 
-  useWrenchFrictionConeConstraint         false
-  useZero6DofVelocityConstraint           false
-  useZeroWrenchConstraint                 false
+  useWrenchFrictionConeConstraint         true
+  useZero6DofVelocityConstraint           true
+  useZeroWrenchConstraint                 true
 
   useEndEffectorPlacementSoftConstraint   true
   useJointLimitsSoftConstraint            true
@@ -57,23 +52,23 @@ legged_interface_settings
 
 base_planner_static_settings
 {
-  initialBaseHeight 0.43301270189
+  initialBaseHeight 0.385857
 
-  minimumBaseHeight 0.1
+  minimumBaseHeight 0.3
 
-  maximumBaseHeight 0.5
+  maximumBaseHeight 0.45
 
-  maximumBaseHeadingVelocity 1.0
+  maximumBaseHeadingVelocity 0.2
 
-  maximumBaseLateralVelocity 1.0
+  maximumBaseLateralVelocity 0.2
 
-  maximumBaseVerticalVelocity 0.2
+  maximumBaseVerticalVelocity 0.05
 
-  maximumYawRate 1.0
+  maximumYawRate 0.1
   
-  nominalBaseWidthLateral 0.2
+  nominalBaseWidthLateral 0.25
 
-  nominalBaseWidthHeading 0.3
+  nominalBaseWidthHeading 0.15
 }
 
 legged_collision_settings
@@ -97,16 +92,12 @@ legged_collision_settings
   {
     [0] 0.075
     [1] 0.075
-    [2] 0.075
-    [3] 0.075
   }
 
   terrainRelaxations
   {
     [0] 0.025
     [1] 0.025
-    [2] 0.025
-    [3] 0.025
   }
 
   selfCollisionRelaxations
@@ -149,24 +140,14 @@ terrain_avoidance_soft_constraint_settings
 
 end_effector_soft_constraint_settings
 {
-  RFF_link
+  Right_Foot
   {
-    safetyRadius 0.05
+    safetyRadius 0.15
   }
 
-  RRF_link
+  Left_Foot
   {
-    safetyRadius 0.05
-  }
-
-  LRF_link
-  {
-    safetyRadius 0.05
-  }
-  
-  LFF_link
-  {
-    safetyRadius 0.05
+    safetyRadius 0.15
   }
 
   mu 0.1
@@ -174,11 +155,11 @@ end_effector_soft_constraint_settings
   delta 0.005
 }
 
-force_friction_cone_settings
+wrench_friction_cone_settings
 {
-  frictionCoefficient   0.75
-  regularization        25
-  hessianDiagonalShift  1e-6
+  frictionCoefficient   0.7
+  footLengthX           0.075
+  footLengthY           0.05
 }
 
 gait_static_settings
@@ -196,8 +177,6 @@ gait_dynamic_settings
   phaseOffsets
   {
     [0] 0.0
-    [1] 0.0
-    [2] 0.0
   }
 }
 
@@ -251,82 +230,118 @@ base_weights
 
 joint_weights
 {
-  LFT_joint
+  LTz
   {
     position 5.0
     velocity 5.0
   }
 
-  LFH_joint
+  LTx
   {
     position 5.0
     velocity 5.0
   }
 
-  LFK_joint
+  LTy
   {
     position 5.0
     velocity 5.0
   }
 
-  LRT_joint
+  LSy
   {
     position 5.0
     velocity 5.0
   }
 
-  LRH_joint
+  LFy
   {
     position 5.0
     velocity 5.0
   }
 
-  LRK_joint
+  LFx
   {
     position 5.0
     velocity 5.0
   }
 
-  RFT_joint
+  RTz
   {
     position 5.0
     velocity 5.0
   }
 
-  RFH_joint
+  RTx
   {
     position 5.0
     velocity 5.0
   }
 
-  RFK_joint
+  RTy
   {
     position 5.0
     velocity 5.0
   }
 
-  RRT_joint
+  RSy
   {
     position 5.0
     velocity 5.0
   }
 
-  RRH_joint
+  RFy
   {
     position 5.0
     velocity 5.0
   }
 
-  RRK_joint
+  RFx
   {
     position 5.0
     velocity 5.0
+  }
+
+  LAy
+  {
+    position 0.001
+    velocity 0.001
+  }
+
+  LAx
+  {
+    position 0.001
+    velocity 0.001
+  }
+
+  LFAy
+  {
+    position 0.001
+    velocity 0.001
+  }
+
+  RAy
+  {
+    position 0.001
+    velocity 0.001
+  }
+
+  RAx
+  {
+    position 0.001
+    velocity 0.001
+  }
+
+  RFAy
+  {
+    position 0.001
+    velocity 0.001
   }
 }
 
 end_effector_weights
 {
-  RFF_link
+  Right_Foot
   {
     position
     {
@@ -348,9 +363,16 @@ end_effector_weights
       (1,0)  0.01
       (2,0)  0.01
     }
+
+    torque
+    {
+      (0,0)  0.01
+      (1,0)  0.01
+      (2,0)  0.01
+    }
   }
 
-  RRF_link
+  Left_Foot
   {
     position
     {
@@ -372,49 +394,8 @@ end_effector_weights
       (1,0)  0.01
       (2,0)  0.01
     }
-  }
 
-  LFF_link
-  {
-    position
-    {
-      (0,0)  100.0
-      (1,0)  100.0
-      (2,0)  100.0
-    }
-
-    velocity
-    {
-      (0,0)  15.0
-      (1,0)  15.0
-      (2,0)  15.0
-    }
-
-    force
-    {
-      (0,0)  0.01
-      (1,0)  0.01
-      (2,0)  0.01
-    }
-  }
-
-  LRF_link
-  {
-    position
-    {
-      (0,0)  100.0
-      (1,0)  100.0
-      (2,0)  100.0
-    }
-
-    velocity
-    {
-      (0,0)  15.0
-      (1,0)  15.0
-      (2,0)  15.0
-    }
-
-    force
+    torque
     {
       (0,0)  0.01
       (1,0)  0.01
@@ -425,62 +406,92 @@ end_effector_weights
 
 joint_torque_weights
 {
-  LFT_joint
+  LTz
   {
     torqueWeight 0.05
   }
 
-  LFH_joint
+  LTx
   {
     torqueWeight 0.05
   }
 
-  LFK_joint
+  LTy
   {
     torqueWeight 0.05
   }
 
-  LRT_joint
+  LSy
   {
     torqueWeight 0.05
   }
 
-  LRH_joint
+  LFy
   {
     torqueWeight 0.05
   }
 
-  LRK_joint
+  LFx
   {
     torqueWeight 0.05
   }
 
-  RFT_joint
+  RTz
   {
     torqueWeight 0.05
   }
 
-  RFH_joint
+  RTx
   {
     torqueWeight 0.05
   }
 
-  RFK_joint
+  RTy
   {
     torqueWeight 0.05
   }
 
-  RRT_joint
+  RSy
   {
     torqueWeight 0.05
   }
 
-  RRH_joint
+  RFy
   {
     torqueWeight 0.05
   }
 
-  RRK_joint
+  RFx
+  {
+    torqueWeight 0.05
+  }
+
+  LAy
+  {
+    torqueWeight 0.05
+  }
+
+  LAx
+  {
+    torqueWeight 0.05
+  }
+
+  LFAy
+  {
+    torqueWeight 0.05
+  }
+
+  RAy
+  {
+    torqueWeight 0.05
+  }
+
+  RAx
+  {
+    torqueWeight 0.05
+  }
+
+  RFAy
   {
     torqueWeight 0.05
   }
@@ -488,7 +499,7 @@ joint_torque_weights
 
 over_extension_penalty_settings
 {
-  nominalLegExtension 0.4
+  nominalLegExtension 0.2
 
   legOverExtensionWeight 2.5
 }
@@ -496,15 +507,15 @@ over_extension_penalty_settings
 reference_manager_settings
 {
   maximumReferenceSampleInterval 0.05
-  gaitUpdateOffset               0.1
+  gaitUpdateOffset               0.5
   threaded                       false
 }
 
 swing_planner_static_settings
 {
-  liftOffVelocity                 0.1
+  liftOffVelocity                 0.05
 
-  touchDownVelocity               -0.2
+  touchDownVelocity               -0.1
         
   errorGain                       0.0
           
@@ -520,48 +531,40 @@ swing_planner_static_settings
 
   previousFootholdTimeDeadzone    0.0
           
-  nominalLegExtension             0.35
+  nominalLegExtension             0.2
 
   legOverExtensionWeight          2.5
           
   referenceExtensionAfterHorizon  0.5
 
-  maxSwingHeightAdaptation        0.15
+  maxSwingHeightAdaptation        0.05
 }
 
 swing_planner_dynamic_settings
 {
-  invertedPendulumHeight 0.43301270189
+  invertedPendulumHeight 0.385857
 
   swingHeights
   {
-    [0] 0.1
-    [1] 0.1
-    [2] 0.1
-    [3] 0.1
+    [0] 0.05
+    [1] 0.05
   }
 
   phases
   {
     [0] 0.5
     [1] 0.5
-    [2] 0.5
-    [3] 0.5
   }
 
   tangentialProgresses
    {
     [0] 0.5
     [1] 0.5
-    [2] 0.5
-    [3] 0.5
   }
 
   tangentialVelocityFactors
    {
     [0] 1.0
     [1] 1.0
-    [2] 1.0
-    [3] 1.0
   }
 }

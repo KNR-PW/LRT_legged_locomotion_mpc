@@ -55,6 +55,7 @@ namespace legged_locomotion_mpc
           std::vector<vector3_t> positions;
           std::vector<vector3_t> velocities; // linear
           std::vector<vector3_t> forces;
+          std::vector<vector3_t> torques; // only for 6DoF contacts
         };
       
         TrajectoryTrackingCost(floating_base_model::FloatingBaseModelInfo info,

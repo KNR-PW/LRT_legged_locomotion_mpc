@@ -443,10 +443,14 @@ namespace legged_locomotion_mpc
         }
         else
         {
-          const size_t startIndex = 6 * i - 3 * info_.numThreeDofContacts;
-          cost.dfdu.block<3, 1>(startIndex, 0).noalias() += -weightedEndEffectorForceError;
-          cost.dfduu.block<3, 3>(startIndex, startIndex).diagonal().noalias() += 
+          const size_t forceStartIndex = 6 * i - 3 * info_.numThreeDofContacts;
+          cost.dfdu.block<3, 1>(forceStartIndex, 0).noalias() += -weightedEndEffectorForceError;
+          cost.dfduu.block<3, 3>(forceStartIndex, forceStartIndex).diagonal().noalias() += 
             endEffectorWeights_.forces[i];
+
+          const size_t torqueStartIndex = 6 * i - 3 * info_.numThreeDofContacts + 3; 
+          cost.dfduu.block<3, 3>(torqueStartIndex, torqueStartIndex).diagonal().noalias() += 
+            endEffectorWeights_.torques[i - info_.numThreeDofContacts];
         }
       }
 
@@ -484,7 +488,6 @@ namespace legged_locomotion_mpc
       cost.dfdu.block(forceIndexOffset, 0, info_.actuatedDofNum, 1).noalias() += 
         -weightedJointVelocityError;
 
-      
       cost.dfduu.block(forceIndexOffset, forceIndexOffset, info_.actuatedDofNum, 
         info_.actuatedDofNum).diagonal().noalias() = jointWeights_.velocities;
       
@@ -628,6 +631,7 @@ namespace legged_locomotion_mpc
       endEffectorWeights.positions.resize(endEffectorNum);
       endEffectorWeights.velocities.resize(endEffectorNum);
       endEffectorWeights.forces.resize(endEffectorNum);
+      endEffectorWeights.torques.resize(modelSettings.endEffectorSixDofNames.size());
 
       if(verbose) 
       {
@@ -653,6 +657,7 @@ namespace legged_locomotion_mpc
         auto& position = endEffectorWeights.positions[i];
         auto& velocity = endEffectorWeights.velocities[i];
         auto& force = endEffectorWeights.forces[i];
+
         loadData::loadEigenMatrix(filename, fieldName + "." + name + ".position", position);
         if((position.array() < 0.0).any())
         {
@@ -672,6 +677,18 @@ namespace legged_locomotion_mpc
         {
           std::string message = "[TrajectoryTrackingCost]: " + name + " force weights vector element smaller than 0!";
           throw std::invalid_argument(message);
+        }
+
+        // Only for 6 DoF end effectors
+        if(endEffectorNum > modelSettings.endEffectorThreeDofNames.size())
+        {
+          auto& torque = endEffectorWeights.torques[i - modelSettings.endEffectorThreeDofNames.size()];
+          loadData::loadEigenMatrix(filename, fieldName + "." + name + ".torque", torque);
+          if((force.array() < 0.0).any())
+          {
+            std::string message = "[TrajectoryTrackingCost]: " + name + " torque weights vector element smaller than 0!";
+            throw std::invalid_argument(message);
+          }
         }
       }
 

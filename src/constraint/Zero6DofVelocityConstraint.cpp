@@ -91,8 +91,8 @@ namespace legged_locomotion_mpc
     velocityApprox.dfdx = matrix_t(6, state.size());
     velocityApprox.dfdu = matrix_t(6, input.size());
 
-    const auto linearVelocityApprox = leggedPrecomputation.getEndEffectorLinearVelocityDerivatives(endEffectorIndex_);
-    const auto angularVelocityApprox = leggedPrecomputation.getEndEffectorAngularVelocityDerivatives(endEffectorIndex_);
+    const auto& linearVelocityApprox = leggedPrecomputation.getEndEffectorLinearVelocityDerivatives(endEffectorIndex_);
+    const auto& angularVelocityApprox = leggedPrecomputation.getEndEffectorAngularVelocityDerivatives(endEffectorIndex_);
     
     velocityApprox.f << linearVelocityApprox.f, angularVelocityApprox.f;
     velocityApprox.dfdx << linearVelocityApprox.dfdx, angularVelocityApprox.dfdx;

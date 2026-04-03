@@ -78,7 +78,7 @@ namespace legged_locomotion_mpc
     const PreComputation &preComp) const
   {
     const auto& leggedPrecomputation = cast<LeggedPrecomputation>(preComp);
-    const auto derivative = leggedPrecomputation.getEndEffectorLinearVelocityDerivatives(endEffectorIndex_);
+    const auto& derivative = leggedPrecomputation.getEndEffectorLinearVelocityDerivatives(endEffectorIndex_);
     return derivative;
   }
 } // namespace legged_locomotion_mpc

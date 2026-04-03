@@ -131,6 +131,13 @@ add_executable(${PROJECT_NAME}_meldog_demo
 target_link_libraries(${PROJECT_NAME}_meldog_demo ${PROJECT_NAME})
 ament_target_dependencies(${PROJECT_NAME}_meldog_demo ${THIS_PACKAGE_DEPENDS})
 
+# Melman demo
+add_executable(${PROJECT_NAME}_melman_demo
+      demo/melman_demo/melman_demo.cpp
+)
+target_link_libraries(${PROJECT_NAME}_melman_demo ${PROJECT_NAME})
+ament_target_dependencies(${PROJECT_NAME}_melman_demo ${THIS_PACKAGE_DEPENDS})
+
 #########################
 ###   CLANG TOOLING   ###
 #########################
@@ -152,6 +159,9 @@ endif (cmake_clang_tools_FOUND)
 #############
 
 install(TARGETS ${PROJECT_NAME}_meldog_demo
+    DESTINATION lib/${PROJECT_NAME})
+
+install(TARGETS ${PROJECT_NAME}_melman_demo
     DESTINATION lib/${PROJECT_NAME})
 
 install(TARGETS
