@@ -75,7 +75,7 @@ int main(int argc, char* argv[])
   vector_t initialState = vector_t::Zero(30);
   initialState.block<3,1>(6, 0) = initialBasePosition;
   initialState.block<3,1>(9, 0) = terrainEulerZyx;
-  access_helper_functions::getJointPositions(initialState, modelInfo) << 0.78539816339, 0, 2 * 0.78539816339, 0, 0, 0.4, -0.8, 0.4, 0, 0.78539816339, 0, 2 * 0.78539816339, 0, 0, 0.4, -0.8, 0.4, 0;
+  access_helper_functions::getJointPositions(initialState, modelInfo) << 0.78539816339, 0, 2 * 0.78539816339, 1e-6, 1e-6, 0.4, -0.8, 0.4, 1e-6, 0.78539816339, 0, 2 * 0.78539816339, 1e-6, 1e-6, 0.4, -0.8, 0.4, 1e-6;
   // access_helper_functions::getJointPositions(initialState, modelInfo) << 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326;
 
   LeggedInterface leggedInterface(initTime, initialState, 
@@ -153,7 +153,7 @@ int main(int argc, char* argv[])
 
   MPC_MRT_Interface mpcInterface(*mpcPtr);
 
-  const size_t standingMode = ((0x01 << (4)) - 1);
+  const size_t standingMode = ((0x01 << (2)) - 1);
   const contact_flags_t standingFlags(standingMode);
 
   // ====== Execute the scenario ========
@@ -202,8 +202,8 @@ int main(int argc, char* argv[])
   {
     std::cout << "Time: " << observation.time << "\n";
     observations.push_back(observation);
-    try 
-    {
+    // try 
+    // {
       // run MPC at current observation
       mpcInterface.setCurrentObservation(observation);
       referenceManager.updateObservation(observation);
@@ -326,13 +326,13 @@ int main(int argc, char* argv[])
       // std::cerr << "Reference joint velocities: " << access_helper_functions::getJointVelocities(targetInput, modelInfo).transpose() << std::endl;
       // std::cerr << "Real force: " << access_helper_functions::getContactForces(observation.input, 0 , modelInfo).transpose() << std::endl;
       // std::cerr << "Refrence force: " << access_helper_functions::getContactForces(targetInput, 0 , modelInfo).transpose() << std::endl;
-    } 
-    catch (std::exception& e) 
-    {
-      std::cout << "MPC failed\n";
-      std::cout << e.what() << "\n";
-      break;
-    }
+    // } 
+    // catch (std::exception& e) 
+    // {
+    //   std::cout << "MPC failed\n";
+    //   std::cout << e.what() << "\n";
+    //   break;
+    // }
   }
 
   // for(size_t i = 0; i < optimalTrajectory.timeTrajectory.size(); ++i)

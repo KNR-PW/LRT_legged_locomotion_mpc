@@ -47,7 +47,7 @@ legged_interface_settings
   useTerrainAvoidanceSoftConstraint       true
   useSelfCollisionAvoidanceSoftConstraint false
 
-  useNormalOrientationSoftConstraint   false
+  useNormalOrientationSoftConstraint   true
 }
 
 base_planner_static_settings
@@ -304,38 +304,38 @@ joint_weights
 
   LAy
   {
-    position 0.001
-    velocity 0.001
+    position 1e-6
+    velocity 1e-6
   }
 
   LAx
   {
-    position 0.001
-    velocity 0.001
+    position 1e-6
+    velocity 1e-6
   }
 
   LFAy
   {
-    position 0.001
-    velocity 0.001
+    position 1e-6
+    velocity 1e-6
   }
 
   RAy
   {
-    position 0.001
-    velocity 0.001
+    position 1e-6
+    velocity 1e-6
   }
 
   RAx
   {
-    position 0.001
-    velocity 0.001
+    position 1e-6
+    velocity 1e-6
   }
 
   RFAy
   {
-    position 0.001
-    velocity 0.001
+    position 1e-6
+    velocity 1e-6
   }
 }
 
@@ -567,4 +567,9 @@ swing_planner_dynamic_settings
     [0] 1.0
     [1] 1.0
   }
+}
+
+normal_orientation_soft_constraint_settings
+{
+  mu 0.01
 }

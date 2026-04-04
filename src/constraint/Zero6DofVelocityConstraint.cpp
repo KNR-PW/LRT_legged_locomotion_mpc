@@ -68,8 +68,8 @@ namespace legged_locomotion_mpc
   {
     const auto& leggedPrecomputation = cast<LeggedPrecomputation>(preComp);
 
-    const auto linearVelocity = leggedPrecomputation.getEndEffectorLinearVelocity(endEffectorIndex_);
-    const auto angularVelocity = leggedPrecomputation.getEndEffectorAngularVelocity(endEffectorIndex_);
+    const auto& linearVelocity = leggedPrecomputation.getEndEffectorLinearVelocity(endEffectorIndex_);
+    const auto& angularVelocity = leggedPrecomputation.getEndEffectorAngularVelocity(endEffectorIndex_);
     vector_t velocity(6);
     velocity << linearVelocity, angularVelocity;
     return velocity;
