@@ -45,7 +45,7 @@ namespace legged_locomotion_mpc
 
     /** Constructor
      * @param [in] pinocchioInterface: pinocchio interface.
-     * @param [in] info: info of kinematics model
+     * @param [in] info: info of FloatingBase model
      * @param [in] torqueDynamicsError: constant torque error between real 
      * and aproximated value
      * @param [in] modelName: name of the generate model library

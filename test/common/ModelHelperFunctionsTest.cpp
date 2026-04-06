@@ -95,7 +95,7 @@ TEST(ModelHelperFunctions, GeneralizedTorques)
 }
 
 
-TEST(ModelHelperFunctions, computeContactWrenches)
+TEST(ModelHelperFunctions, computeWeightCompensationWrenches)
 {
   std::vector<std::string> testThreeDofMeldogContacts;
 
@@ -117,7 +117,9 @@ TEST(ModelHelperFunctions, computeContactWrenches)
 
   for(size_t i = 0; i < NUM_TEST; ++i)
   {
-    vector_t state = vector_t::Zero(info.stateDim);
+    vector_t state = vector_t::Random(info.stateDim);
+
+    state.block<6, 1>(0, 0).setZero();
 
     size_t randomMode = std::rand() % 16;
     if(randomMode == 0) randomMode = 1;
@@ -127,7 +129,7 @@ TEST(ModelHelperFunctions, computeContactWrenches)
     const vector_t q = mapping.getPinocchioJointPosition(state);
 
     const auto wrenches = legged_locomotion_mpc::model_helper_functions::
-      computeContactWrenches(interface, info, q, contactFlags);
+      computeWeightCompensationWrenches(interface, info, q, contactFlags);
 
     vector_t input = vector_t::Zero(info.inputDim);
 

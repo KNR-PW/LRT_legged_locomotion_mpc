@@ -62,19 +62,17 @@ namespace legged_locomotion_mpc
       const pinocchio::container::aligned_vector<pinocchio::ForceTpl<SCALAR_T, 0>>& fext);
     
     /**
-     * Compute contact wrenches for all contacts (for 3DoF torque is zero)
-     * 
-     *
+     * Computes contact wrenches (contact force + contacttorque) which 
+     * equally distribute the robot weight between contact feet.
      * @param [in] interface: pinocchio interface
      * @param [in] info: floating base model info
      * @param [in] q: pinocchio joint configuration
      * 
      * @remark: This function also internally calls:
-     * pinocchio::computeStaticTorque() and pinocchio::computeGeneralizedGravity()
-     * 
+     * pinocchio::framesForwardKinematics() and pinocchio::centerOfMass()
      */
     template <typename SCALAR_T>
-    std::vector<Eigen::Matrix<SCALAR_T, 6, 1>> computeContactWrenches(
+    std::vector<Eigen::Matrix<SCALAR_T, 6, 1>> computeWeightCompensationWrenches(
       ocs2::PinocchioInterfaceTpl<SCALAR_T>& interface,
       const floating_base_model::FloatingBaseModelInfoTpl<SCALAR_T>& info,
       const Eigen::Matrix<SCALAR_T, Eigen::Dynamic, 1>& q, 
@@ -94,13 +92,13 @@ namespace legged_locomotion_mpc
       const Eigen::Matrix<ocs2::ad_scalar_t, Eigen::Dynamic, 1>& q,
       const pinocchio::container::aligned_vector<pinocchio::ForceTpl<ocs2::ad_scalar_t, 0>>& fext);
 
-    extern template std::vector<Eigen::Matrix<ocs2::scalar_t, 6, 1>> computeContactWrenches(
+    extern template std::vector<Eigen::Matrix<ocs2::scalar_t, 6, 1>> computeWeightCompensationWrenches(
       ocs2::PinocchioInterfaceTpl<ocs2::scalar_t>& interface,
       const floating_base_model::FloatingBaseModelInfoTpl<ocs2::scalar_t>& info,
       const Eigen::Matrix<ocs2::scalar_t, Eigen::Dynamic, 1>& q, 
       const contact_flags_t &contactFlags);
 
-    extern template std::vector<Eigen::Matrix<ocs2::ad_scalar_t, 6, 1>> computeContactWrenches(
+    extern template std::vector<Eigen::Matrix<ocs2::ad_scalar_t, 6, 1>> computeWeightCompensationWrenches(
       ocs2::PinocchioInterfaceTpl<ocs2::ad_scalar_t>& interface,
       const floating_base_model::FloatingBaseModelInfoTpl<ocs2::ad_scalar_t>& info,
       const Eigen::Matrix<ocs2::ad_scalar_t, Eigen::Dynamic, 1>& q, 

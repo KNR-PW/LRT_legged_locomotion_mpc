@@ -27,7 +27,7 @@ namespace legged_locomotion_mpc
     /******************************************************************************************************/
     /******************************************************************************************************/
     template <typename SCALAR_T>
-    std::vector<Eigen::Matrix<SCALAR_T, 6, 1>> computeContactWrenches(
+    std::vector<Eigen::Matrix<SCALAR_T, 6, 1>> computeWeightCompensationWrenches(
       ocs2::PinocchioInterfaceTpl<SCALAR_T>& interface,
       const floating_base_model::FloatingBaseModelInfoTpl<SCALAR_T>& info,
       const Eigen::Matrix<SCALAR_T, Eigen::Dynamic, 1>& q, 
@@ -107,13 +107,13 @@ namespace legged_locomotion_mpc
       const Eigen::Matrix<ad_scalar_t, Eigen::Dynamic, 1>& q,
       const pinocchio::container::aligned_vector<pinocchio::ForceTpl<ad_scalar_t, 0>>& fext);
 
-    template std::vector<Eigen::Matrix<ocs2::scalar_t, 6, 1>> computeContactWrenches(
+    template std::vector<Eigen::Matrix<ocs2::scalar_t, 6, 1>> computeWeightCompensationWrenches(
       ocs2::PinocchioInterfaceTpl<ocs2::scalar_t>& interface,
       const floating_base_model::FloatingBaseModelInfoTpl<ocs2::scalar_t>& info,
       const Eigen::Matrix<ocs2::scalar_t, Eigen::Dynamic, 1>& q, 
       const contact_flags_t &contactFlags);
 
-    template std::vector<Eigen::Matrix<ocs2::ad_scalar_t, 6, 1>> computeContactWrenches(
+    template std::vector<Eigen::Matrix<ocs2::ad_scalar_t, 6, 1>> computeWeightCompensationWrenches(
       ocs2::PinocchioInterfaceTpl<ocs2::ad_scalar_t>& interface,
       const floating_base_model::FloatingBaseModelInfoTpl<ocs2::ad_scalar_t>& info,
       const Eigen::Matrix<ocs2::ad_scalar_t, Eigen::Dynamic, 1>& q, 
