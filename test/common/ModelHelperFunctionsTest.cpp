@@ -1,13 +1,17 @@
 #include <gtest/gtest.h>
 
-#include <legged_locomotion_mpc/common/Types.hpp>
+#include <pinocchio/algorithm/aba.hpp>
 
+#include <legged_locomotion_mpc/common/Types.hpp>
+#include <legged_locomotion_mpc/locomotion/GaitCommon.hpp>
 #include <legged_locomotion_mpc/common/ModelHelperFunctions.hpp>
 
 #include "../include/definitions.hpp"
 
 #include <floating_base_model/FactoryFunctions.hpp>
+#include <floating_base_model/AccessHelperFunctions.hpp>
 #include <floating_base_model/ModelHelperFunctions.hpp>
+#include <floating_base_model/PinocchioFloatingBaseDynamics.hpp>
 
 using namespace ocs2;
 using namespace floating_base_model;
@@ -87,5 +91,58 @@ TEST(ModelHelperFunctions, GeneralizedTorques)
       tauStaticTrue += -J.transpose() * wrenchWorldFrame;
     }
     EXPECT_TRUE((tauStatic - tauStaticTrue.block(6, 0, info.actuatedDofNum, 1)).norm() < tolerance);
+  }
+}
+
+
+TEST(ModelHelperFunctions, computeContactWrenches)
+{
+  std::vector<std::string> testThreeDofMeldogContacts;
+
+  std::vector<std::string> testSixDofMeldogContacts(4);
+  testSixDofMeldogContacts[0] = meldog3DofContactNames[0];
+  testSixDofMeldogContacts[1] = meldog3DofContactNames[1];
+  testSixDofMeldogContacts[2] = meldog3DofContactNames[2];
+  testSixDofMeldogContacts[3] = meldog3DofContactNames[3];
+
+  ocs2::PinocchioInterface interface = createPinocchioInterfaceFromUrdfFile(meldogWithBaseLinkUrdfFile, baseLink);
+  auto info = createFloatingBaseModelInfo(interface, testThreeDofMeldogContacts, 
+    testSixDofMeldogContacts);
+
+  PinocchioFloatingBaseDynamics dynamics(info);
+  dynamics.setPinocchioInterface(interface);
+
+  FloatingBaseModelPinocchioMapping mapping(info);
+  mapping.setPinocchioInterface(interface);
+
+  for(size_t i = 0; i < NUM_TEST; ++i)
+  {
+    vector_t state = vector_t::Zero(info.stateDim);
+
+    size_t randomMode = std::rand() % 16;
+    if(randomMode == 0) randomMode = 1;
+
+    const auto contactFlags = locomotion::modeNumber2ContactFlags(randomMode);
+
+    const vector_t q = mapping.getPinocchioJointPosition(state);
+
+    const auto wrenches = legged_locomotion_mpc::model_helper_functions::
+      computeContactWrenches(interface, info, q, contactFlags);
+
+    vector_t input = vector_t::Zero(info.inputDim);
+
+    for(size_t i = 0; i < info.numThreeDofContacts; ++i)
+    {
+      getContactForces(input, i, info) = wrenches[i].block<3, 1>(0, 0);
+    }
+
+    for(size_t i = info.numThreeDofContacts; i < info.numThreeDofContacts + info.numSixDofContacts; ++i)
+    {
+      getContactWrenches(input, i, info) = wrenches[i];
+    }
+
+    const vector_t acceleration = dynamics.getValue(0, state, input, vector6_t::Zero());
+
+    EXPECT_TRUE((acceleration).norm() < tolerance);
   }
 }

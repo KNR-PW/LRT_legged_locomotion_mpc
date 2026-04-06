@@ -23,12 +23,13 @@
 #include <Eigen/Dense>
 
 #include <pinocchio/container/aligned-vector.hpp>
-#include <pinocchio/algorithm/rnea.hpp>
 
 #include <ocs2_core/Types.h>
 #include <ocs2_pinocchio_interface/PinocchioInterface.h>
 
 #include <floating_base_model/FloatingBaseModelInfo.hpp>
+
+#include <legged_locomotion_mpc/common/Types.hpp>
 
 
 namespace legged_locomotion_mpc
@@ -59,6 +60,25 @@ namespace legged_locomotion_mpc
       const floating_base_model::FloatingBaseModelInfoTpl<SCALAR_T>& info,
       const Eigen::Matrix<SCALAR_T, Eigen::Dynamic, 1>& q,
       const pinocchio::container::aligned_vector<pinocchio::ForceTpl<SCALAR_T, 0>>& fext);
+    
+    /**
+     * Compute contact wrenches for all contacts (for 3DoF torque is zero)
+     * 
+     *
+     * @param [in] interface: pinocchio interface
+     * @param [in] info: floating base model info
+     * @param [in] q: pinocchio joint configuration
+     * 
+     * @remark: This function also internally calls:
+     * pinocchio::computeStaticTorque() and pinocchio::computeGeneralizedGravity()
+     * 
+     */
+    template <typename SCALAR_T>
+    std::vector<Eigen::Matrix<SCALAR_T, 6, 1>> computeContactWrenches(
+      ocs2::PinocchioInterfaceTpl<SCALAR_T>& interface,
+      const floating_base_model::FloatingBaseModelInfoTpl<SCALAR_T>& info,
+      const Eigen::Matrix<SCALAR_T, Eigen::Dynamic, 1>& q, 
+      const contact_flags_t &contactFlags);
 
 
     /* Explicit template instantiation for scalar_t and ad_scalar_t */
@@ -73,6 +93,18 @@ namespace legged_locomotion_mpc
       const floating_base_model::FloatingBaseModelInfoTpl<ocs2::ad_scalar_t>& info,
       const Eigen::Matrix<ocs2::ad_scalar_t, Eigen::Dynamic, 1>& q,
       const pinocchio::container::aligned_vector<pinocchio::ForceTpl<ocs2::ad_scalar_t, 0>>& fext);
+
+    extern template std::vector<Eigen::Matrix<ocs2::scalar_t, 6, 1>> computeContactWrenches(
+      ocs2::PinocchioInterfaceTpl<ocs2::scalar_t>& interface,
+      const floating_base_model::FloatingBaseModelInfoTpl<ocs2::scalar_t>& info,
+      const Eigen::Matrix<ocs2::scalar_t, Eigen::Dynamic, 1>& q, 
+      const contact_flags_t &contactFlags);
+
+    extern template std::vector<Eigen::Matrix<ocs2::ad_scalar_t, 6, 1>> computeContactWrenches(
+      ocs2::PinocchioInterfaceTpl<ocs2::ad_scalar_t>& interface,
+      const floating_base_model::FloatingBaseModelInfoTpl<ocs2::ad_scalar_t>& info,
+      const Eigen::Matrix<ocs2::ad_scalar_t, Eigen::Dynamic, 1>& q, 
+      const contact_flags_t &contactFlags);
   } // model_helper_functions
 } // legged_locomotion_mpc
 
