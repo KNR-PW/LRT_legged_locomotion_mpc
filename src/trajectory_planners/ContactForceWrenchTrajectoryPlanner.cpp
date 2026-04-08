@@ -50,9 +50,9 @@ namespace legged_locomotion_mpc
         const size_t currentIndex = utils::findIndexInTimeArray(eventTimes, 
           timeTrajectory[i]);
 
-        if(currentIndex == previousIndex)
+        if(currentIndex == previousIndex && info.numSixDofContacts == 0)
         {
-          // Copy previous compensation forces and wrenches
+          // Copy previous compensation forces (only if there are no 6 DoF end effectors)
           const vector_t& previousInput = inputTrajectory[i - 1];
           currentInput.block(0, 0, forceWrenchSize, 1) = previousInput.block(0, 0, 
             forceWrenchSize, 1);
