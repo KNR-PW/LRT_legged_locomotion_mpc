@@ -28,9 +28,10 @@ namespace legged_locomotion_mpc
   /******************************************************************************************************/
   /******************************************************************************************************/
   /******************************************************************************************************/
-  LeggedInitializer::LeggedInitializer(FloatingBaseModelInfo info,
+  LeggedInitializer::LeggedInitializer(const PinocchioWeightCompensator& weightCompensator,
     const LeggedReferenceManager& referenceManager):
-      info_(info), referenceManager_(referenceManager) {}
+      weightCompensator_(weightCompensator), 
+      referenceManager_(referenceManager) {}
   
   /******************************************************************************************************/
   /******************************************************************************************************/
@@ -48,6 +49,6 @@ namespace legged_locomotion_mpc
   {
     nextState = state;
     const contact_flags_t currentFlags = referenceManager_.getContactFlags(time);
-    input = utils::weightCompensatingInput(info_, currentFlags);
+    input = weightCompensator_.getInput(state, currentFlags);
   }
 } // namespace legged_locomotion_mpc

@@ -30,6 +30,7 @@
 
 #include <legged_locomotion_mpc/common/Types.hpp>
 #include <legged_locomotion_mpc/common/Utils.hpp>
+#include <legged_locomotion_mpc/weight_compensation/PinocchioWeightCompensator.hpp>
 
 namespace legged_locomotion_mpc
 {
@@ -44,7 +45,7 @@ namespace legged_locomotion_mpc
          * @param [in] modelInfo: FloatingBase model info
          */
         ContactForceWrenchTrajectoryPlanner(
-          floating_base_model::FloatingBaseModelInfo modelInfo);
+          const PinocchioWeightCompensator& weightCompensator);
         
         /** 
          * Update target trajectories with force and wrench trajectory.
@@ -63,7 +64,7 @@ namespace legged_locomotion_mpc
 
       private:
 
-        floating_base_model::FloatingBaseModelInfo modelInfo_;
+        PinocchioWeightCompensator weightCompensator_;
     };
   } // namespace planners
 } // namespace legged_locomotion_mpc

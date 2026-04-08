@@ -58,14 +58,22 @@ namespace legged_locomotion_mpc
     PinocchioWeightCompensator(
         const PinocchioWeightCompensator& rhs);
 
+    PinocchioWeightCompensator(
+        PinocchioWeightCompensator&& rhs);
+
     PinocchioWeightCompensator& operator =(
       const PinocchioWeightCompensator&) = delete;
+
+    std::vector<vector6_t> getContactWrenches(const ocs2::vector_t& state, 
+      const contact_flags_t& contactFlags);
 
     ocs2::vector_t getInput(const ocs2::vector_t& state, 
       const contact_flags_t& contactFlags);
 
     void appendInput(const ocs2::vector_t& state, ocs2::vector_t& input, 
       const contact_flags_t& contactFlags);
+
+    const floating_base_model::FloatingBaseModelInfo& getInfo() const;
 
    private:
     const floating_base_model::FloatingBaseModelInfo info_;

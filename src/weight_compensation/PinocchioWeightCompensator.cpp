@@ -1,12 +1,13 @@
 #include <legged_locomotion_mpc/weight_compensation/PinocchioWeightCompensator.hpp>
 
-#include <legged_locomotion_mpc/common/ModelHelperFunctions.hpp>
+#include <functional>
 
 #include <floating_base_model/AccessHelperFunctions.hpp>
 #include <floating_base_model/ModelHelperFunctions.hpp>
 #include <floating_base_model/FloatingBaseModelPinocchioMapping.hpp>
 
-#include <functional>
+#include <legged_locomotion_mpc/common/Utils.hpp>
+#include <legged_locomotion_mpc/common/ModelHelperFunctions.hpp>
 
 namespace legged_locomotion_mpc 
 {
@@ -33,6 +34,13 @@ namespace legged_locomotion_mpc
   {
     mapping_.setPinocchioInterface(pinocchioInterface_);
   }
+
+  PinocchioWeightCompensator::PinocchioWeightCompensator(PinocchioWeightCompensator&& rhs):
+    info_(rhs.info_), 
+    pinocchioInterface_(std::move(rhs.pinocchioInterface_)), mapping_(rhs.info_)
+  {
+    mapping_.setPinocchioInterface(pinocchioInterface_);
+  }
   
   /******************************************************************************************************/
   /******************************************************************************************************/
@@ -45,10 +53,41 @@ namespace legged_locomotion_mpc
   /******************************************************************************************************/
   /******************************************************************************************************/
   /******************************************************************************************************/
+  std::vector<vector6_t> PinocchioWeightCompensator::getContactWrenches(
+    const vector_t& state, const contact_flags_t& contactFlags)
+  {
+    assert(state.size() == info_.stateDim);
+
+    // Special case, only 3 DoF contacts
+    if(info_.numSixDofContacts == 0)
+    {
+      const vector_t input = utils::weightCompensatingInput(info_, contactFlags);
+      const auto force = access_helper_functions::getContactForces(input, 0, info_);
+      vector6_t wrench; 
+      wrench << force, vector3_t::Zero();
+      std::vector<vector6_t> wrenches(info_.numThreeDofContacts, wrench);
+      return wrenches;
+    }
+
+    const vector_t q = mapping_.getPinocchioJointPosition(state);
+    
+    return model_helper_functions::computeWeightCompensationWrenches(
+      pinocchioInterface_, info_, q, contactFlags);
+  }
+
+  /******************************************************************************************************/
+  /******************************************************************************************************/
+  /******************************************************************************************************/
   vector_t PinocchioWeightCompensator::getInput(
     const vector_t& state, const contact_flags_t& contactFlags)
   {
     assert(state.size() == info_.stateDim);
+
+    // Special case, only 3 DoF contacts
+    if(info_.numSixDofContacts == 0)
+    {
+      return utils::weightCompensatingInput(info_, contactFlags);
+    }
     
     vector_t input = vector_t::Zero(info_.inputDim);
     const vector_t q = mapping_.getPinocchioJointPosition(state);
@@ -77,6 +116,12 @@ namespace legged_locomotion_mpc
     assert(state.size() == info_.stateDim);
     assert(input.size() == info_.inputDim);
 
+    // Special case, only 3 DoF contacts
+    if(info_.numSixDofContacts == 0)
+    {
+      return utils::weightCompensatingAppendInput(input, info_, contactFlags);
+    }
+
     const vector_t q = mapping_.getPinocchioJointPosition(state);
     const auto wrenches = model_helper_functions::computeWeightCompensationWrenches(
       pinocchioInterface_, info_, q, contactFlags);
@@ -90,5 +135,13 @@ namespace legged_locomotion_mpc
     {
       access_helper_functions::getContactWrenches(input, i, info_) = wrenches[i];
     }
+  }
+
+  /******************************************************************************************************/
+  /******************************************************************************************************/
+  /******************************************************************************************************/
+  const FloatingBaseModelInfo& PinocchioWeightCompensator::getInfo() const
+  {
+    return info_;
   }
 } // namespace legged_locomotion_mpc

@@ -139,7 +139,8 @@ TEST(LeggedPrecomputationTest, getEndEffector)
 
   JointTrajectoryPlanner jointPlanner(modelInfo, std::move(kinematicsSolver));
 
-  ContactForceWrenchTrajectoryPlanner forcePlanner(modelInfo);
+  PinocchioWeightCompensator compensator(interface, modelInfo);
+  ContactForceWrenchTrajectoryPlanner forcePlanner(compensator);
   
   LeggedReferenceManager::Settings managerSettings;
 
@@ -213,7 +214,7 @@ TEST(LeggedPrecomputationTest, getEndEffector)
     vector_t::Zero(modelInfo.actuatedDofNum), torqueModelName);
 
   LeggedPrecomputation precomputation(modelInfo, manager, forwardKinematics, 
-    collisionKinematics, torqueApproximator);
+    collisionKinematics, torqueApproximator, compensator);
 
   scalar_t testTime = 0.0;
   scalar_t testDeltaTime = 0.5 * deltaTime;
@@ -388,7 +389,8 @@ TEST(LeggedPrecomputationTest, getCollisionLinks)
 
   JointTrajectoryPlanner jointPlanner(modelInfo, std::move(kinematicsSolver));
 
-  ContactForceWrenchTrajectoryPlanner forcePlanner(modelInfo);
+  PinocchioWeightCompensator compensator(interface, modelInfo);
+  ContactForceWrenchTrajectoryPlanner forcePlanner(compensator);
   
   LeggedReferenceManager::Settings managerSettings;
 
@@ -462,7 +464,7 @@ TEST(LeggedPrecomputationTest, getCollisionLinks)
     vector_t::Zero(modelInfo.actuatedDofNum), torqueModelName);
 
   LeggedPrecomputation precomputation(modelInfo, manager, forwardKinematics, 
-    collisionKinematics, torqueApproximator);
+    collisionKinematics, torqueApproximator, compensator);
 
   scalar_t testTime = 0.0;
   scalar_t testDeltaTime = 0.5 * deltaTime;
@@ -609,7 +611,8 @@ TEST(LeggedPrecomputationTest, getTorque)
 
   JointTrajectoryPlanner jointPlanner(modelInfo, std::move(kinematicsSolver));
 
-  ContactForceWrenchTrajectoryPlanner forcePlanner(modelInfo);
+  PinocchioWeightCompensator compensator(interface, modelInfo);
+  ContactForceWrenchTrajectoryPlanner forcePlanner(compensator);
   
   LeggedReferenceManager::Settings managerSettings;
 
@@ -683,7 +686,7 @@ TEST(LeggedPrecomputationTest, getTorque)
     vector_t::Zero(modelInfo.actuatedDofNum), torqueModelName);
 
   LeggedPrecomputation precomputation(modelInfo, manager, forwardKinematics, 
-    collisionKinematics, torqueApproximator);
+    collisionKinematics, torqueApproximator, compensator);
 
   scalar_t testTime = 0.0;
   scalar_t testDeltaTime = 0.5 * deltaTime;
@@ -818,7 +821,8 @@ TEST(LeggedPrecomputationTest, getReference)
 
   JointTrajectoryPlanner jointPlanner(modelInfo, std::move(kinematicsSolver));
 
-  ContactForceWrenchTrajectoryPlanner forcePlanner(modelInfo);
+  PinocchioWeightCompensator compensator(interface, modelInfo);
+  ContactForceWrenchTrajectoryPlanner forcePlanner(compensator);
   
   LeggedReferenceManager::Settings managerSettings;
 
@@ -892,7 +896,7 @@ TEST(LeggedPrecomputationTest, getReference)
     vector_t::Zero(modelInfo.actuatedDofNum), torqueModelName);
 
   LeggedPrecomputation precomputation(modelInfo, manager, forwardKinematics, 
-    collisionKinematics, torqueApproximator);
+    collisionKinematics, torqueApproximator, compensator);
 
   scalar_t testTime = 0.0;
   scalar_t testDeltaTime = 0.5 * deltaTime;

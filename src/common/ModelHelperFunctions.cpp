@@ -4,6 +4,8 @@
 #include <pinocchio/algorithm/frames.hpp>
 #include <pinocchio/algorithm/center-of-mass.hpp>
 
+#include <legged_locomotion_mpc/common/Utils.hpp>
+
 namespace legged_locomotion_mpc
 {
   namespace model_helper_functions
@@ -45,13 +47,13 @@ namespace legged_locomotion_mpc
       const Eigen::Matrix<SCALAR_T, 3, 1> gravityForce(SCALAR_T(0), SCALAR_T(0), 
         info.robotMass * PLUS_GRAVITY_VALUE);
 
-      const size_t numStanceLegs = contactFlags.count();
+      const size_t numEndEffectors = info.numThreeDofContacts + info.numSixDofContacts;
+
+      const size_t numStanceLegs = contactFlags.count() > numEndEffectors ? numEndEffectors : contactFlags.count();
 
       const auto sixDofContacts = contactFlags >> info.numThreeDofContacts;
 
-      const size_t numSixDofStanceLegs = sixDofContacts.count();
-
-      size_t numEndEffectors = info.numThreeDofContacts + info.numSixDofContacts;
+      const size_t numSixDofStanceLegs = sixDofContacts.count() > info.numSixDofContacts?  info.numSixDofContacts : sixDofContacts.count();
 
       const Eigen::Matrix<SCALAR_T, 3, 1> forceInInertialFrame = gravityForce / SCALAR_T(numStanceLegs);
 

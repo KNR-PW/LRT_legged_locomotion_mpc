@@ -11,29 +11,62 @@ namespace legged_locomotion_mpc
     using namespace access_helper_functions;
 
     ContactForceWrenchTrajectoryPlanner::ContactForceWrenchTrajectoryPlanner(
-      FloatingBaseModelInfo modelInfo): modelInfo_(std::move(modelInfo)) {}
+      const PinocchioWeightCompensator& weightCompensator): 
+      weightCompensator_(weightCompensator) {}
       
     void ContactForceWrenchTrajectoryPlanner::updateTargetTrajectory(
       const ModeSchedule& modeSchedule, TargetTrajectories& targetTrajectories)
     {
+      const auto& info = weightCompensator_.getInfo();
+
+      const size_t forceWrenchSize = 3 * info.numThreeDofContacts + 6 * info.numSixDofContacts;
+
       const size_t referenceSize = targetTrajectories.timeTrajectory.size();
       const auto& timeTrajectory = targetTrajectories.timeTrajectory;
+      const auto& stateTrajectory = targetTrajectories.stateTrajectory;
       auto& inputTrajectory = targetTrajectories.inputTrajectory;
 
       const auto& eventTimes = modeSchedule.eventTimes;
       const auto& modeSequence = modeSchedule.modeSequence;
 
-      for(size_t i = 0; i < referenceSize; ++i)
+      const vector_t& startState = stateTrajectory[0];
+      vector_t& startInput = inputTrajectory[0];
+
+      const size_t startIndex = utils::findIndexInTimeArray(eventTimes, 
+        timeTrajectory[0]);
+
+      const contact_flags_t startFlags = locomotion::modeNumber2ContactFlags(
+        modeSequence[startIndex]);
+
+      weightCompensator_.appendInput(startState, startInput, startFlags);
+
+      size_t previousIndex = startIndex;
+
+      for(size_t i = 1; i < referenceSize; ++i)
       {
+        const vector_t& currentState = stateTrajectory[i];
         vector_t& currentInput = inputTrajectory[i];
 
         const size_t currentIndex = utils::findIndexInTimeArray(eventTimes, 
           timeTrajectory[i]);
 
-        const contact_flags_t currentFlags = locomotion::modeNumber2ContactFlags(
+        if(currentIndex == previousIndex)
+        {
+          // Copy previous compensation forces and wrenches
+          const vector_t& previousInput = inputTrajectory[i - 1];
+          currentInput.block(0, 0, forceWrenchSize, 1) = previousInput.block(0, 0, 
+            forceWrenchSize, 1);
+        }
+        else
+        {
+          // Get new weight compensation forces and wrenches
+          const contact_flags_t currentFlags = locomotion::modeNumber2ContactFlags(
           modeSequence[currentIndex]);
 
-        utils::weightCompensatingAppendInput(currentInput, modelInfo_, currentFlags);
+          weightCompensator_.appendInput(currentState, currentInput, currentFlags);
+        }
+
+        previousIndex = currentIndex;
       } 
     }
   } // namespace planners

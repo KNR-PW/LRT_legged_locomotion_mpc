@@ -105,7 +105,10 @@ TEST(ContactForceWrenchTrajectoryPlanner, updateTrajectory)
   const vector_t twoAgainInput = utils::weightCompensatingInput(modelInfo, twoAgain);
   const vector_t threeAgainInput = utils::weightCompensatingInput(modelInfo, threeAgain);
 
-  ContactForceWrenchTrajectoryPlanner planner(modelInfo);
+  PinocchioWeightCompensator compensator(interface, modelInfo);
+
+  ContactForceWrenchTrajectoryPlanner planner(compensator);
+  
   planner.updateTargetTrajectory(modeSchedule, targetTrajectories);
 
   EXPECT_TRUE((targetTrajectories.inputTrajectory[0] - zeroInput).norm() < tolerance);

@@ -219,7 +219,7 @@ if(BUILD_TESTING)
   ament_add_gtest(${PROJECT_NAME}_test_trajectory_planners
         test/trajectory_planners/BaseTrajectoryPlannerTest.cpp  
         test/trajectory_planners/JointTrajectoryPlannerTest.cpp   
-        test/trajectory_planners/ContactForceWrenchTrajectoryPlannerTest.cpp     
+        test/trajectory_planners/ContactForceWrenchTrajectoryPlannerTest.cpp   
   )
   ament_target_dependencies(${PROJECT_NAME}_test_trajectory_planners ${THIS_PACKAGE_DEPENDS})
   target_include_directories(${PROJECT_NAME}_test_trajectory_planners PRIVATE test/include)
@@ -318,7 +318,7 @@ if(BUILD_TESTING)
   ################
   ## Benchmarks ##
   ################
-  find_package(ament_cmake_google_benchmark REQUIRED)
+#   find_package(ament_cmake_google_benchmark REQUIRED)
 
   # ament_add_google_benchmark(${PROJECT_NAME}_benchmark_locomotion 
   #       benchmarks/GaitDynamicPhaseControllerBenchmark.cpp
@@ -342,6 +342,13 @@ if(BUILD_TESTING)
   # target_include_directories(${PROJECT_NAME}_benchmark_reference PRIVATE benchmarks/include)
   # target_link_libraries(${PROJECT_NAME}_benchmark_reference ${PROJECT_NAME})
   # target_compile_options(${PROJECT_NAME}_benchmark_reference PUBLIC ${FLAGS})
+
+#   ament_add_google_benchmark(${PROJECT_NAME}_benchmark_weight_compensation
+#         benchmarks/UtilsVsWrenchCompensator.cpp
+#   )
+#   target_include_directories(${PROJECT_NAME}_benchmark_weight_compensation PRIVATE benchmarks/include)
+#   target_link_libraries(${PROJECT_NAME}_benchmark_weight_compensation ${PROJECT_NAME})
+#   target_compile_options(${PROJECT_NAME}_benchmark_weight_compensation PUBLIC ${FLAGS})
 
 endif()
 

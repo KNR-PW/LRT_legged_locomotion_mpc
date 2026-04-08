@@ -131,6 +131,8 @@ int main(int argc, char* argv[])
 
   auto& rollout = leggedInterface.getRollout();
 
+  auto& weightCompenator = leggedInterface.weightCompensator();
+
   std::unique_ptr<MPC_BASE> mpcPtr = std::make_unique<GaussNewtonDDP_MPC>(mpcSettings, 
     ddpSettings, rollout, optimalProblem, initializer);
 
@@ -147,7 +149,7 @@ int main(int argc, char* argv[])
   ocs2::SystemObservation observation;
   observation.time = initTime;
   observation.state = initialState;
-  observation.input = weightCompensatingInput(modelInfo, standingFlags);
+  observation.input = weightCompenator.getInput(initialState, standingFlags);
 
   // Wait for the first policy
   mpcInterface.setCurrentObservation(observation);

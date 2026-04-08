@@ -132,7 +132,8 @@ TEST(LeggedReferenceManagerTest, getContactFlags)
 
   JointTrajectoryPlanner jointPlanner(modelInfo, std::move(kinematicsSolver));
 
-  ContactForceWrenchTrajectoryPlanner forcePlanner(modelInfo);
+  PinocchioWeightCompensator compensator(interface, modelInfo);
+  ContactForceWrenchTrajectoryPlanner forcePlanner(compensator);
   
   LeggedReferenceManager::Settings managerSettings;
 
@@ -309,7 +310,8 @@ TEST(LeggedReferenceManagerTest, getTerrainModel)
 
   JointTrajectoryPlanner jointPlanner(modelInfo, std::move(kinematicsSolver));
 
-  ContactForceWrenchTrajectoryPlanner forcePlanner(modelInfo);
+  PinocchioWeightCompensator compensator(interface, modelInfo);
+  ContactForceWrenchTrajectoryPlanner forcePlanner(compensator);
   
   LeggedReferenceManager::Settings managerSettings;
 
@@ -481,7 +483,8 @@ TEST(LeggedReferenceManagerTest, getEndEffectorTrajectoryPoint)
 
   JointTrajectoryPlanner jointPlanner(modelInfo, std::move(kinematicsSolver));
 
-  ContactForceWrenchTrajectoryPlanner forcePlanner(modelInfo);
+  PinocchioWeightCompensator compensator(interface, modelInfo);
+  ContactForceWrenchTrajectoryPlanner forcePlanner(compensator);
   
   LeggedReferenceManager::Settings managerSettings;
 
@@ -673,7 +676,8 @@ TEST(LeggedReferenceManagerTest, getEndEffectorConstraintMatrixes)
 
   JointTrajectoryPlanner jointPlanner(modelInfo, std::move(kinematicsSolver));
 
-  ContactForceWrenchTrajectoryPlanner forcePlanner(modelInfo);
+  PinocchioWeightCompensator compensator(interface, modelInfo);
+  ContactForceWrenchTrajectoryPlanner forcePlanner(compensator);
   
   LeggedReferenceManager::Settings managerSettings;
 

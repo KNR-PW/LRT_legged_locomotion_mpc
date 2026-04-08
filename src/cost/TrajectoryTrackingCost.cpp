@@ -217,10 +217,6 @@ namespace legged_locomotion_mpc
       const size_t endEffectorNum = info_.numThreeDofContacts + info_.numSixDofContacts;
 
       const auto& endEffectorTargets = referenceManager_.getEndEffectorTrajectoryPoint(time);
-      
-      // In order to get true contact forces, not interpolated ones (when contact is changed for example)
-      const contact_flags_t targetContactFlags = referenceManager_.getContactFlags(time);
-      const vector_t forcesInInput = utils::weightCompensatingInput(info_, targetContactFlags);
 
       for(size_t i = 0; i < endEffectorNum; ++i)
       {
@@ -233,8 +229,12 @@ namespace legged_locomotion_mpc
         // End effectors target data
         const vector3_t& endEffectorTargetPositon = endEffectorTargets.positions[i];
         const vector3_t& endEffectorTargetVelocity = endEffectorTargets.velocities[i];
-        const auto endEffectorTargetForce = floating_base_model::
-          access_helper_functions::getContactForces(forcesInInput, i, info_);
+
+        // In order to get true contact forces, not interpolated ones (when contact is changed for example)
+        const auto& endEffectorTargetWrench = 
+          leggedPrecomputation.getEndEffectorCompensationContactWrench(i);
+
+        const vector3_t endEffectorTargetForce = endEffectorTargetWrench.block<3, 1>(0, 0);
         
         // End effectors error
         const vector3_t endEffectorPositionError = endEffectorTargetPositon - endEffectorCurrentPositon;
@@ -248,6 +248,22 @@ namespace legged_locomotion_mpc
           * endEffectorVelocityError);
         cost += endEffectorForceError.dot(endEffectorWeights_.forces[i].asDiagonal() 
           * endEffectorForceError);
+
+        if(i >= info_.numThreeDofContacts)
+        {
+          // Add also contact torque
+          const auto endEffectorCurrentTorque = floating_base_model::
+            access_helper_functions::getContactTorques(input, i, info_);
+
+          const vector3_t endEffectorTargetTorque = endEffectorTargetWrench.block<3, 1>(3, 0);
+          
+          const vector3_t endEffectorTorqueError = endEffectorTargetTorque - endEffectorCurrentTorque;
+
+          const vector3_t weightedEndEffectorTorqueError = 
+            endEffectorWeights_.torques[i - info_.numThreeDofContacts].asDiagonal() * endEffectorTorqueError;
+
+          cost += endEffectorTorqueError .dot(weightedEndEffectorTorqueError);
+        }
       }
 
       // Joint current data
@@ -365,10 +381,6 @@ namespace legged_locomotion_mpc
       const size_t endEffectorNum = info_.numThreeDofContacts + info_.numSixDofContacts;
 
       const auto& endEffectorTargets = referenceManager_.getEndEffectorTrajectoryPoint(time);
-      
-      // In order to get true contact forces, not interpolated ones (when contact is changed for example)
-      const contact_flags_t targetContactFlags = referenceManager_.getContactFlags(time);
-      const vector_t forcesInInput = utils::weightCompensatingInput(info_, targetContactFlags);
 
       const size_t forceIndexOffset = 3 * info_.numThreeDofContacts 
           + 6 * info_.numSixDofContacts;
@@ -386,10 +398,14 @@ namespace legged_locomotion_mpc
           access_helper_functions::getContactForces(input, i, info_);
 
         // End effectors target data
-        const vector3_t endEffectorTargetPositon = endEffectorTargets.positions[i];
-        const vector3_t endEffectorTargetVelocity = endEffectorTargets.velocities[i];
-        const auto endEffectorTargetForce = floating_base_model::
-          access_helper_functions::getContactForces(forcesInInput, i, info_);
+        const vector3_t& endEffectorTargetPositon = endEffectorTargets.positions[i];
+        const vector3_t& endEffectorTargetVelocity = endEffectorTargets.velocities[i];
+
+        // In order to get true contact forces, not interpolated ones (when contact is changed for example)
+        const auto& endEffectorTargetWrench = 
+          leggedPrecomputation.getEndEffectorCompensationContactWrench(i);
+
+        const vector3_t endEffectorTargetForce = endEffectorTargetWrench.block<3, 1>(0, 0);
         
         // End effectors error
         const vector3_t endEffectorPositionError = endEffectorTargetPositon - endEffectorCurrentPositon;
@@ -443,12 +459,27 @@ namespace legged_locomotion_mpc
         }
         else
         {
+          // Add also contact torque
+          const auto endEffectorCurrentTorque = floating_base_model::
+            access_helper_functions::getContactTorques(input, i, info_);
+
+          const vector3_t endEffectorTargetTorque = endEffectorTargetWrench.block<3, 1>(3, 0);
+          
+          const vector3_t endEffectorTorqueError = endEffectorTargetTorque - endEffectorCurrentTorque;
+
+          const vector3_t weightedEndEffectorTorqueError = 
+            endEffectorWeights_.torques[i - info_.numThreeDofContacts].asDiagonal() * endEffectorTorqueError;
+
+          cost.f += endEffectorTorqueError .dot(weightedEndEffectorTorqueError);
+
           const size_t forceStartIndex = 6 * i - 3 * info_.numThreeDofContacts;
+          const size_t torqueStartIndex = forceStartIndex + 3;
+
           cost.dfdu.block<3, 1>(forceStartIndex, 0).noalias() += -weightedEndEffectorForceError;
+          cost.dfdu.block<3, 1>(torqueStartIndex, 0).noalias() += -weightedEndEffectorTorqueError;
+          
           cost.dfduu.block<3, 3>(forceStartIndex, forceStartIndex).diagonal().noalias() += 
             endEffectorWeights_.forces[i];
-
-          const size_t torqueStartIndex = 6 * i - 3 * info_.numThreeDofContacts + 3; 
           cost.dfduu.block<3, 3>(torqueStartIndex, torqueStartIndex).diagonal().noalias() += 
             endEffectorWeights_.torques[i - info_.numThreeDofContacts];
         }

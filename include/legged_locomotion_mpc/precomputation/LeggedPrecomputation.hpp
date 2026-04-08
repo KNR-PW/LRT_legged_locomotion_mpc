@@ -32,6 +32,7 @@
 #include <legged_locomotion_mpc/kinematics/PinocchioForwardEndEffectorKinematicsCppAd.hpp>
 #include <legged_locomotion_mpc/collision/PinocchioForwardCollisionKinematicsCppAd.hpp>
 #include <legged_locomotion_mpc/torque_approx/PinocchioTorqueApproximationCppAd.hpp>
+#include <legged_locomotion_mpc/weight_compensation/PinocchioWeightCompensator.hpp>
 
 namespace legged_locomotion_mpc
 {
@@ -43,7 +44,8 @@ namespace legged_locomotion_mpc
         const LeggedReferenceManager& referenceManager,
         const PinocchioForwardEndEffectorKinematicsCppAd& forwardKinematics,
         const PinocchioForwardCollisionKinematicsCppAd& collisionKinematics,
-        const PinocchioTorqueApproximationCppAd& torqueApproximator);
+        const PinocchioTorqueApproximationCppAd& torqueApproximator, 
+        const PinocchioWeightCompensator& weightCompensator);
 
       ~LeggedPrecomputation() override = default;
 
@@ -95,6 +97,8 @@ namespace legged_locomotion_mpc
       const vector3_t& getReferenceEndEffectorLinearVelocity(size_t endEffectorIndex) const;
       
       ocs2::scalar_t getReferenceEndEffectorTerrainClearance(size_t endEffectorIndex) const;
+
+      const vector6_t& getEndEffectorCompensationContactWrench(size_t endEffectorIndex) const;
 
     private:
 
@@ -192,6 +196,13 @@ namespace legged_locomotion_mpc
        */
       void updateCollisionKinematicsDerivatives(ocs2::scalar_t time, 
         const ocs2::vector_t& state);
+      
+      /**
+       * Updates:
+       * - end effector (3 and 6 DoF) contact forces or wrenches
+       */
+      void updateEndEffectorCompensationContactWrenches(ocs2::scalar_t time, 
+        const ocs2::vector_t& state);
 
       const floating_base_model::FloatingBaseModelInfo modelInfo_;
       const size_t endEffectorNumber_;
@@ -201,6 +212,7 @@ namespace legged_locomotion_mpc
       const PinocchioForwardEndEffectorKinematicsCppAd forwardKinematics_;
       const PinocchioForwardCollisionKinematicsCppAd collisionKinematics_;
       const PinocchioTorqueApproximationCppAd torqueApproximator_;
+      PinocchioWeightCompensator weightCompensator_;
 
       std::vector<vector3_t> endEffectorPositions_;
       std::vector<ocs2::VectorFunctionLinearApproximation> endEffectorPositionDerivaties_;
@@ -231,6 +243,8 @@ namespace legged_locomotion_mpc
 
       ocs2::vector_t torqueApproximation_;
       ocs2::VectorFunctionLinearApproximation torqueApproximationDerivatives_;
+
+      std::vector<vector6_t> endEffectorCompensationContactWrenches_;
   };
 } // namespace legged_locomotion_mpc
 

@@ -35,9 +35,6 @@ TEST(PinocchioWeightCompensator, getInput)
   PinocchioFloatingBaseDynamics dynamics(info);
   dynamics.setPinocchioInterface(interface);
 
-  FloatingBaseModelPinocchioMapping mapping(info);
-  mapping.setPinocchioInterface(interface);
-
   PinocchioWeightCompensator compensator(interface, info);
 
   for(size_t i = 0; i < NUM_TEST; ++i)
@@ -50,8 +47,6 @@ TEST(PinocchioWeightCompensator, getInput)
 
     auto contactFlags = locomotion::modeNumber2ContactFlags(randomMode);
     if(contactFlags[2] == 0 && contactFlags[3] == 0) contactFlags[2] = 1;
-
-    const vector_t q = mapping.getPinocchioJointPosition(state);
 
     const vector_t input = compensator.getInput(state, contactFlags);
 

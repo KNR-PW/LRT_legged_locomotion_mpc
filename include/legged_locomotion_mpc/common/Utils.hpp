@@ -78,6 +78,9 @@ namespace legged_locomotion_mpc
      * @param [in] info: info of FloatingBase model
      * @param [in] contactFlags: std::vector with contact flags
      * @return input vector with calculated forces
+     * 
+     * @warning This is not optimal for robots with 6 DoF contacts, 
+     * as this function does not compute contact torques
      */
     ocs2::vector_t weightCompensatingInput(
       const floating_base_model::FloatingBaseModelInfo &info, 
@@ -89,6 +92,9 @@ namespace legged_locomotion_mpc
      * @param [in] info: info of FloatingBase model
      * @param [in] contactFlags: std::vector with contact flags
      * @param [out] input: input vector with new calculated forces
+     * 
+     * @warning This is not optimal for robots with 6 DoF contacts, 
+     * as this function does not compute contact torques
      */
     void weightCompensatingAppendInput(ocs2::vector_t& input,
       const floating_base_model::FloatingBaseModelInfo &info, 

@@ -112,7 +112,7 @@ namespace legged_locomotion_mpc
     vector_t weightCompensatingInput(const FloatingBaseModelInfo &info, 
       const contact_flags_t &contactFlags)
     {
-      const auto numStanceLegs = numberOfClosedContacts(info, contactFlags);
+      const size_t numStanceLegs = numberOfClosedContacts(info, contactFlags);
       size_t numEndEffectors = info.numThreeDofContacts + info.numSixDofContacts;
       vector_t input = vector_t::Zero(info.inputDim);
       if(numStanceLegs > 0) 

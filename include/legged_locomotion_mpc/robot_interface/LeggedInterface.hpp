@@ -196,6 +196,12 @@ namespace legged_locomotion_mpc
        * @return const reference to the torque approximator
        */
       const PinocchioTorqueApproximationCppAd& torqueApproximator() const;
+      
+      /**
+       * @brief Get weight compensator
+       * @return reference to the weight compensator
+       */
+      PinocchioWeightCompensator& weightCompensator();
 
     private:
 
@@ -240,6 +246,7 @@ namespace legged_locomotion_mpc
       std::unique_ptr<PinocchioForwardCollisionKinematicsCppAd> collisionForwardKinematics_;
       std::unique_ptr<collision::PinocchioCollisionInterface> collisionInterface_;
       std::unique_ptr<PinocchioTorqueApproximationCppAd> torqueApproximator_;
+      std::unique_ptr<PinocchioWeightCompensator> weightCompensator_;
   };
 
   /**

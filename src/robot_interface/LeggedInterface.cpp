@@ -229,6 +229,11 @@ namespace legged_locomotion_mpc
     return *torqueApproximator_;
   }
 
+  PinocchioWeightCompensator& LeggedInterface::weightCompensator()
+  {
+    return *weightCompensator_;
+  }
+
   void LeggedInterface::createHelperClasses()
   {
     // Setup forward kinematics
@@ -252,6 +257,11 @@ namespace legged_locomotion_mpc
     torqueApproximator_ = std::make_unique<PinocchioTorqueApproximationCppAd>(
       *pinocchioInterfacePtr_, floatingBaseModelInfo_, 
       vector_t::Zero(floatingBaseModelInfo_.actuatedDofNum), torqueApproximatorName);
+
+    // Setup weight compensator
+
+    weightCompensator_ = std::make_unique<PinocchioWeightCompensator>(
+      *pinocchioInterfacePtr_, floatingBaseModelInfo_);
   }
 
   void LeggedInterface::createReferenceManager(scalar_t initTime, 
@@ -306,7 +316,7 @@ namespace legged_locomotion_mpc
       std::move(inverseKinematicsSolver));
 
     // Setup contact force wrench trajectory planner
-    ContactForceWrenchTrajectoryPlanner contactForceWrenchPlanner(floatingBaseModelInfo_);
+    ContactForceWrenchTrajectoryPlanner contactForceWrenchPlanner(*weightCompensator_);
 
     // Load settings for swing trajectory planner
     const auto swingStaticSettings = loadSwingPlannerStaticSettings(modelFile, 
@@ -348,8 +358,8 @@ namespace legged_locomotion_mpc
 
     SystemObservation currentObservation;
     currentObservation.state = currentState;
-    currentObservation.input = weightCompensatingInput(floatingBaseModelInfo_, 
-      standingFlags);
+      
+    currentObservation.input = weightCompensator_->getInput(currentState, standingFlags);
 
     referenceManagerPtr_->initialize(initTime, initTime + timeJump, 
       currentObservation, standingFlags, gaitParameters, swingParameters, 
@@ -360,7 +370,7 @@ namespace legged_locomotion_mpc
   void LeggedInterface::createInitializer()
   {
     // Setup initializer
-    initializerPtr_ = std::make_unique<LeggedInitializer>(floatingBaseModelInfo_, 
+    initializerPtr_ = std::make_unique<LeggedInitializer>(*weightCompensator_, 
       *referenceManagerPtr_);
   }
 
@@ -376,7 +386,7 @@ namespace legged_locomotion_mpc
     // Setup precomputation
     optimalProblem_.preComputationPtr = std::make_unique<LeggedPrecomputation>(
       floatingBaseModelInfo_, *referenceManagerPtr_, *endEffectorForwardKinematics_, 
-      *collisionForwardKinematics_, *torqueApproximator_);
+      *collisionForwardKinematics_, *torqueApproximator_, *weightCompensator_);
 
     const bool verbose = modelSettings_.verbose;
     
@@ -603,8 +613,7 @@ namespace legged_locomotion_mpc
       const size_t standingMode = ((0x01 << (endEffectorNum)) - 1);
       const contact_flags_t standingFlags(standingMode);
 
-      const vector_t currentInput = weightCompensatingInput(floatingBaseModelInfo_, 
-        standingFlags);
+      const vector_t currentInput = weightCompensator_->getInput(currentState, standingFlags);
 
       optimalProblem_.targetTrajectoriesPtr = &referenceManagerPtr_->getTargetTrajectories();
 

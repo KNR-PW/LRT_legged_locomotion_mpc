@@ -13,13 +13,15 @@ namespace legged_locomotion_mpc
     const LeggedReferenceManager& referenceManager,
     const PinocchioForwardEndEffectorKinematicsCppAd& forwardKinematics,
     const PinocchioForwardCollisionKinematicsCppAd& collisionKinematics,
-    const PinocchioTorqueApproximationCppAd& torqueApproximator):
+    const PinocchioTorqueApproximationCppAd& torqueApproximator, 
+    const PinocchioWeightCompensator& weightCompensator):
       PreComputation(), 
       endEffectorNumber_(modelInfo.numThreeDofContacts + modelInfo.numSixDofContacts),
       modelInfo_(std::move(modelInfo)), 
       collisionLinkNumber_(collisionKinematics.getCollisionNumber()),
       referenceManager_(referenceManager),forwardKinematics_(forwardKinematics), 
-      collisionKinematics_(collisionKinematics), torqueApproximator_(torqueApproximator) 
+      collisionKinematics_(collisionKinematics), torqueApproximator_(torqueApproximator),
+      weightCompensator_(weightCompensator)
   {
     rotationWorldToTerrains_.resize(endEffectorNumber_);
   }
@@ -88,6 +90,12 @@ namespace legged_locomotion_mpc
       {
         updateCollisionKinematicsDerivatives(t, x);
       }
+    }
+
+    // Cost
+    if(request.contains(Request::Cost))
+    {
+      updateEndEffectorCompensationContactWrenches(t, x);
     }
   }
 
@@ -237,6 +245,13 @@ namespace legged_locomotion_mpc
     return referenceTrajectoryPoint_.clearances[endEffectorIndex];
   }
 
+  const vector6_t& LeggedPrecomputation::getEndEffectorCompensationContactWrench(
+    size_t endEffectorIndex) const
+  {
+    assert(endEffectorIndex < endEffectorNumber_);
+    return endEffectorCompensationContactWrenches_[endEffectorIndex];
+  }
+
   void LeggedPrecomputation::updateEndEffectorPositions(scalar_t time, 
     const vector_t& state)
   {
@@ -327,5 +342,13 @@ namespace legged_locomotion_mpc
       state);
     collisionLinkEulerAngleDerivaties_ = collisionKinematics_.getOrientationLinearApproximation(
       state);
+  }
+
+  void LeggedPrecomputation::updateEndEffectorCompensationContactWrenches(scalar_t time, 
+    const vector_t& state)
+  {
+    const auto contactFlags = referenceManager_.getContactFlags(time);
+    endEffectorCompensationContactWrenches_ = weightCompensator_.getContactWrenches(state, 
+      contactFlags);
   }
 } // namespace legged_locomotion_mpc

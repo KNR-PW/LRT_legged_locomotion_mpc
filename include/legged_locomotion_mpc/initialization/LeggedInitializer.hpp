@@ -24,6 +24,7 @@
 
 #include "floating_base_model/FloatingBaseModelInfo.hpp"
 
+#include <legged_locomotion_mpc/weight_compensation/PinocchioWeightCompensator.hpp>
 #include <legged_locomotion_mpc/reference_manager/LeggedReferenceManager.hpp>
 
 namespace legged_locomotion_mpc
@@ -40,9 +41,10 @@ namespace legged_locomotion_mpc
 
       /** Constructor
        * @param [in] info: info of kinematics model
+       * @param [in] weightCompensator: Pinocchio weight compensator
        * @param [in] referenceManager: Legged model ReferenceManager.
        */
-      LeggedInitializer(floating_base_model::FloatingBaseModelInfo info,
+      LeggedInitializer(const PinocchioWeightCompensator& weightCompensator,
         const LeggedReferenceManager& referenceManager);
 
       ~LeggedInitializer() override = default;
@@ -55,7 +57,7 @@ namespace legged_locomotion_mpc
     private:
       LeggedInitializer(const LeggedInitializer &rhs) = default;
       
-      const floating_base_model::FloatingBaseModelInfo info_;
+      PinocchioWeightCompensator weightCompensator_;
       const LeggedReferenceManager& referenceManager_;
   };
 } // namespace legged_locomotion_mpc
