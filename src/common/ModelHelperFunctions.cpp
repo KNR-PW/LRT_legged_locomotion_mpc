@@ -9,6 +9,7 @@ namespace legged_locomotion_mpc
   namespace model_helper_functions
   {
     using namespace ocs2;
+
     /******************************************************************************************************/
     /******************************************************************************************************/
     /******************************************************************************************************/
@@ -23,6 +24,7 @@ namespace legged_locomotion_mpc
       auto& data = interface.getData();
       return (pinocchio::computeStaticTorque(model, data, q, fext) - pinocchio::computeGeneralizedGravity(model, data, q)).block(6, 0, info.actuatedDofNum, 1);
     }
+
     /******************************************************************************************************/
     /******************************************************************************************************/
     /******************************************************************************************************/
@@ -43,19 +45,17 @@ namespace legged_locomotion_mpc
       const Eigen::Matrix<SCALAR_T, 3, 1> gravityForce(SCALAR_T(0), SCALAR_T(0), 
         info.robotMass * PLUS_GRAVITY_VALUE);
 
-      const Eigen::Matrix<SCALAR_T, 3, 1> gravityTorque = comPosition.cross(gravityForce);
-
       const size_t numStanceLegs = contactFlags.count();
 
       const auto sixDofContacts = contactFlags >> info.numThreeDofContacts;
 
-      const size_t numSixDoFStanceLegs = contactFlags.count();
+      const size_t numSixDofStanceLegs = sixDofContacts.count();
 
       size_t numEndEffectors = info.numThreeDofContacts + info.numSixDofContacts;
 
       const Eigen::Matrix<SCALAR_T, 3, 1> forceInInertialFrame = gravityForce / SCALAR_T(numStanceLegs);
 
-      Eigen::Matrix<SCALAR_T, 3, 1> completeTorque = gravityTorque;
+      Eigen::Matrix<SCALAR_T, 3, 1> completeTorque = comPosition.cross(gravityForce);
 
       for(size_t i = 0; i < numEndEffectors; ++i)
       {
@@ -68,7 +68,7 @@ namespace legged_locomotion_mpc
         completeTorque -= endEffectorForceTorque;
       }
 
-      const Eigen::Matrix<SCALAR_T, 3, 1> torqueInertialFrame = completeTorque / SCALAR_T(numSixDoFStanceLegs);
+      const Eigen::Matrix<SCALAR_T, 3, 1> torqueInertialFrame = completeTorque / SCALAR_T(numSixDofStanceLegs);
 
       std::vector<Eigen::Matrix<SCALAR_T, 6, 1>> wrenches;
       wrenches.reserve(numEndEffectors);
