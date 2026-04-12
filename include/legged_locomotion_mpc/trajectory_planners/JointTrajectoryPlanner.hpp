@@ -44,6 +44,7 @@ namespace legged_locomotion_mpc
         
         using position_trajectories = std::vector<std::vector<vector3_t>>;
         using velocity_trajectories = std::vector<std::vector<vector3_t>>;
+        using normal_trajectories = std::vector<std::vector<vector3_t>>;
 
         /** 
          * Update target trajectories with force and wrench trajectory.
@@ -51,6 +52,7 @@ namespace legged_locomotion_mpc
          * @param [in] currentState: current robot state
          * @param [in] endEffectorPositionTrajectories: trajectory of end effector positions
          * @param [in] endEffectorVelocityTrajectories: trajectory of end effector velocities
+         * @param [in] endEffectorNormalTrajectories: trajectory of end effector normals
          * @param [out] targetTrajectories: target trajectories
          * 
          * @remark Every element of endEffectorPositionTrajectories 
@@ -65,11 +67,13 @@ namespace legged_locomotion_mpc
         void updateTrajectory(const ocs2::SystemObservation& currentObservation,
           ocs2::TargetTrajectories& targetTrajectories, 
           const position_trajectories& endEffectorPositionTrajectories,
-          const velocity_trajectories& endEffectorVelocityTrajectories);
+          const velocity_trajectories& endEffectorVelocityTrajectories,
+          const normal_trajectories& endEffectorNormalTrajectories);
 
         ocs2::vector_t computeJointPositions(const ocs2::vector_t& actualJointPositions, 
           const vector6_t& basePose, 
-          const std::vector<vector3_t>& endEffectorPositions);
+          const std::vector<vector3_t>& endEffectorPositions, 
+          const std::vector<vector3_t>& endEffectorNormals);
 
         ocs2::vector_t computeJointVelocities(const ocs2::vector_t& actualJointPositions,
           const vector6_t& basePose, const vector6_t& baseVelocity,

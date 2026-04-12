@@ -20,6 +20,25 @@ namespace legged_locomotion_mpc
     using namespace multi_end_effector_kinematics;
     using namespace legged_locomotion_mpc::locomotion;
 
+    // Helper function for creating end effector matrix from normal and base heading
+    matrix3_t getEndEffectorRotationMatrix(const vector3_t& endEffectorNormal, 
+      const vector3_t& baseHeadingVector)
+    {
+      /** Heading vector (X) same as base, but normal to sufrace normal 
+       * (without surface normal part)
+       */
+      const vector3_t endEffectorHeading = baseHeadingVector - (baseHeadingVector.dot(
+        endEffectorNormal)) * endEffectorNormal;
+
+      matrix3_t rotationMatrix;
+      rotationMatrix.col(0) = endEffectorHeading;
+      // Get Y vector from cross product
+      rotationMatrix.col(1) = endEffectorNormal.cross(endEffectorHeading);
+      rotationMatrix.col(2) = endEffectorNormal;
+
+      return rotationMatrix;
+    }
+
     JointTrajectoryPlanner::JointTrajectoryPlanner(
       FloatingBaseModelInfo modelInfo,
       MultiEndEffectorKinematics&& kinematicsSolver): 
@@ -58,11 +77,13 @@ namespace legged_locomotion_mpc
       const SystemObservation& currentObservation,
       TargetTrajectories& targetTrajectories, 
       const position_trajectories& endEffectorPositionTrajectories,
-      const velocity_trajectories& endEffectorVelocityTrajectories)
+      const velocity_trajectories& endEffectorVelocityTrajectories, 
+      const normal_trajectories& endEffectorNormalTrajectories)
     {
-      assert(endEffectorPositionTrajectories.size() == endEffectorVelocityTrajectories.size());
       assert(endEffectorPositionTrajectories.size() == targetTrajectories.timeTrajectory.size());
-      
+      assert(endEffectorVelocityTrajectories.size() == targetTrajectories.timeTrajectory.size());
+      assert(endEffectorNormalTrajectories.size() == targetTrajectories.timeTrajectory.size());
+
       const auto& currentState = currentObservation.state;
       const auto& currentInput = currentObservation.input;
 
@@ -87,6 +108,8 @@ namespace legged_locomotion_mpc
           endEffectorPositionTrajectories[i];
         const std::vector<vector3_t>& newEndEffectorVelocities = 
           endEffectorVelocityTrajectories[i];
+        const std::vector<vector3_t>& newEndEffectorNormals = 
+          endEffectorNormalTrajectories[i];
 
         const auto& previousState = targetTrajectories.stateTrajectory[i - 1];
         const auto& previousInput = targetTrajectories.inputTrajectory[i - 1];
@@ -119,7 +142,7 @@ namespace legged_locomotion_mpc
           access_helper_functions::getJointVelocities(newInput, modelInfo_);
         
         newJointPositions = computeJointPositions(extrapolatedJointPositions, newBasePose, 
-          newEndEffectorPositions);
+          newEndEffectorPositions, newEndEffectorNormals);
           
         newJointVelocities = computeJointVelocities(newJointPositions, newBasePose,
           newBaseVelocity, newEndEffectorVelocities);
@@ -129,26 +152,44 @@ namespace legged_locomotion_mpc
     vector_t JointTrajectoryPlanner::computeJointPositions(
       const vector_t& actualJointPositions,
       const vector6_t& basePose,  
-      const std::vector<vector3_t>& endEffectorPositions)
+      const std::vector<vector3_t>& endEffectorPositions, 
+      const std::vector<vector3_t>& endEffectorNormals)
     {
-      const size_t numEndEffectors = kinematicsSolver_.getModelInternalSettings().numEndEffectors;
-
-      std::vector<vector3_t> relativeEndEffectorPositions(numEndEffectors);
+      std::vector<vector3_t> relativeEndEffectorPositions(modelInfo_.numThreeDofContacts);
+      std::vector<pinocchio::SE3> relativeEndEffectorTransforms(
+        modelInfo_.numSixDofContacts);
 
       const vector3_t baseOrientationZyx = basePose.block<3, 1>(3, 0);
       const matrix3_t worldToBaseRotationMatrix = getRotationMatrixFromZyxEulerAngles(
         baseOrientationZyx).transpose();
 
-      for(size_t i = 0; i < numEndEffectors; ++i)
+      for(size_t i = 0; i < modelInfo_.numThreeDofContacts; ++i)
       {
         relativeEndEffectorPositions[i].noalias() = worldToBaseRotationMatrix * 
           (endEffectorPositions[i] - basePose.block<3, 1>(0, 0));
       }
 
+      for(size_t i = 0; i < modelInfo_.numSixDofContacts; ++i)
+      {
+        // Build end-effector -> world rotation matrix 
+
+        const vector3_t normal = worldToBaseRotationMatrix * endEffectorNormals[i 
+          + modelInfo_.numSixDofContacts];
+        const vector3_t baseHeading = worldToBaseRotationMatrix.col(0);
+
+        const matrix3_t endEffectorToBaseRotation = getEndEffectorRotationMatrix(normal, 
+          baseHeading);
+
+        relativeEndEffectorTransforms[i].translation().noalias() = worldToBaseRotationMatrix * 
+          (endEffectorPositions[i + modelInfo_.numThreeDofContacts] - basePose.block<3, 1>(0, 0));
+        relativeEndEffectorTransforms[i].rotation() = endEffectorToBaseRotation;
+      }
+
       vector_t newJointPositions;
 
       const ReturnStatus returnStatus = kinematicsSolver_.calculateJointPositions(
-        actualJointPositions, relativeEndEffectorPositions, newJointPositions);
+        actualJointPositions, relativeEndEffectorPositions, relativeEndEffectorTransforms, 
+        newJointPositions);
       
       if(returnStatus.success) return newJointPositions;
       else
@@ -189,33 +230,46 @@ namespace legged_locomotion_mpc
       const vector_t& actualJointPositions, const vector6_t& basePose, 
       const vector6_t& baseVelocity, const std::vector<vector3_t>& endEffectorVelocities)
     {
-      const size_t numEndEffectors = kinematicsSolver_.getModelInternalSettings().numEndEffectors;
+      std::vector<vector3_t> relativeEndEffectorVelocities(modelInfo_.numThreeDofContacts);
 
-      std::vector<vector3_t> relativeEndEffectorVelocities(numEndEffectors);
+      std::vector<pinocchio::Motion> relativeEndEffectorTwists(
+        modelInfo_.numSixDofContacts);
 
       const vector3_t baseOrientationZyx = basePose.block<3, 1>(3, 0);
       const matrix3_t worldToBaseRotationMatrix = getRotationMatrixFromZyxEulerAngles(
         baseOrientationZyx).transpose();
 
-      std::vector<vector3_t> relativeEndEffectorPositions(numEndEffectors);
+      std::vector<vector3_t> relativeEndEffectorPositions(modelInfo_.numThreeDofContacts);
+
+      std::vector<pinocchio::SE3> relativeEndEffectorTransforms(
+        modelInfo_.numSixDofContacts);
 
       kinematicsSolver_.calculateEndEffectorPoses(actualJointPositions, 
-        relativeEndEffectorPositions);
+        relativeEndEffectorPositions, relativeEndEffectorTransforms);
 
       const vector3_t& baseLinearVelocity = baseVelocity.block<3, 1>(0, 0);
       const vector3_t& baseAngularVelocity = baseVelocity.block<3, 1>(3, 0);
       
-      for(size_t i = 0; i < numEndEffectors; ++i)
+      for(size_t i = 0; i < modelInfo_.numThreeDofContacts; ++i)
       {
         relativeEndEffectorVelocities[i].noalias() = worldToBaseRotationMatrix * 
           (endEffectorVelocities[i]) - baseLinearVelocity - 
           baseAngularVelocity.cross(relativeEndEffectorPositions[i]);
       }
 
+      for(size_t i = 0; i < modelInfo_.numSixDofContacts; ++i)
+      {
+        relativeEndEffectorTwists[i].linear().noalias() = worldToBaseRotationMatrix * 
+          (endEffectorVelocities[i + modelInfo_.numThreeDofContacts]) - baseLinearVelocity 
+          - baseAngularVelocity.cross(relativeEndEffectorTransforms[i].translation());
+        relativeEndEffectorTwists[i].angular().noalias() = vector3_t::Zero();
+      }
+
       vector_t jointVelocities;
 
       const ReturnStatus returnStatus = kinematicsSolver_.calculateJointVelocities(
-        actualJointPositions, relativeEndEffectorVelocities, jointVelocities);
+        actualJointPositions, relativeEndEffectorVelocities, 
+        relativeEndEffectorTwists, jointVelocities);
       
       if(!returnStatus.success)
       {
@@ -242,7 +296,6 @@ namespace legged_locomotion_mpc
       {
         std::cerr << "\n #### Legged Locomotion MPC Inverse Kinematics Model Settings:";
         std::cerr << "\n #### =============================================================================\n";
-        std::cerr << "\n #### (IMPORTANT: Six DOF end effectors not supported, added to three DOF!)\n";
       }
 
       loadData::loadPtreeValue(pt, settings.baseLinkName, fieldName + ".baseLinkName", verbose);
@@ -250,12 +303,6 @@ namespace legged_locomotion_mpc
       loadData::loadStdVector(filename, fieldName + ".endEffectorThreeDofNames", settings.threeDofEndEffectorNames, verbose);
     
       loadData::loadStdVector(filename, fieldName + ".endEffectorSixDofNames", settings.sixDofEndEffectorNames, verbose);
-
-
-      settings.threeDofEndEffectorNames.insert(settings.threeDofEndEffectorNames.end(), 
-        settings.sixDofEndEffectorNames.begin(), settings.sixDofEndEffectorNames.end());
-
-      settings.sixDofEndEffectorNames.clear();
 
       if(verbose) 
       {
@@ -278,7 +325,6 @@ namespace legged_locomotion_mpc
       {
         std::cerr << "\n #### Legged Locomotion MPC Inverse Kinematics Solver Settings:";
         std::cerr << "\n #### =============================================================================\n";
-        std::cerr << "\n #### (IMPORTANT: Six DOF end effectors not supported, added to three DOF!)\n";
       }
 
       loadData::loadPtreeValue(pt, settings.maxIterations, fieldName + ".maxIterations", verbose);
@@ -339,7 +385,6 @@ namespace legged_locomotion_mpc
       {
         std::cerr << "\n #### Legged Locomotion MPC Inverse Kinematics Solver Name:";
         std::cerr << "\n #### =============================================================================\n";
-        std::cerr << "\n #### (IMPORTANT: Six DOF end effectors not supported, added to three \n";
       }
 
       loadData::loadPtreeValue(pt, solverName, fieldName + "", verbose);

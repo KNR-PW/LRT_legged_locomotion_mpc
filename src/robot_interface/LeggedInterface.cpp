@@ -301,15 +301,17 @@ namespace legged_locomotion_mpc
     const vector_t initJointPositions = access_helper_functions::getJointPositions(
       currentState, floatingBaseModelInfo_);
 
-    std::vector<vector3_t> endEffectorPositions(floatingBaseModelInfo_.numThreeDofContacts 
-      + floatingBaseModelInfo_.numSixDofContacts);
+    std::vector<vector3_t> endEffectorPositions(floatingBaseModelInfo_.numThreeDofContacts);
+
+    std::vector<pinocchio::SE3> endEffectorTransforms(
+      floatingBaseModelInfo_.numSixDofContacts);
 
     inverseKinematicsSolver.calculateEndEffectorPoses(initJointPositions, 
-      endEffectorPositions);
+      endEffectorPositions, endEffectorTransforms);
 
-    std::cerr << "HEIGHT: " << endEffectorPositions[0].z() << std::endl;
-    std::cerr << "HEIGHT: " << endEffectorPositions[0].z() << std::endl;
-    std::cerr << "HEIGHT: " << endEffectorPositions[0].z() << std::endl;
+    std::cerr << "HEIGHT: " << endEffectorTransforms[0].translation().z() << std::endl;
+    std::cerr << "HEIGHT: " << endEffectorTransforms[0].translation().z() << std::endl;
+    std::cerr << "HEIGHT: " << endEffectorTransforms[0].translation().z() << std::endl;
 
     // Setup joint trajectory planner
     JointTrajectoryPlanner jointPlanner(floatingBaseModelInfo_, 

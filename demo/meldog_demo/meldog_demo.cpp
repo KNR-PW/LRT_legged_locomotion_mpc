@@ -124,6 +124,7 @@ int main(int argc, char* argv[])
   // DDP
 
   const auto mpcSettings = leggedInterface.mpcSettings();
+  const auto sqpSettings = leggedInterface.sqpSettings();
   const auto ddpSettings = leggedInterface.ddpSettings();
 
   const auto& optimalProblem = leggedInterface.getOptimalControlProblem();
@@ -133,8 +134,11 @@ int main(int argc, char* argv[])
 
   auto& weightCompenator = leggedInterface.weightCompensator();
 
-  std::unique_ptr<MPC_BASE> mpcPtr = std::make_unique<GaussNewtonDDP_MPC>(mpcSettings, 
-    ddpSettings, rollout, optimalProblem, initializer);
+  // std::unique_ptr<MPC_BASE> mpcPtr = std::make_unique<GaussNewtonDDP_MPC>(mpcSettings, 
+  //   ddpSettings, rollout, optimalProblem, initializer);
+
+  std::unique_ptr<MPC_BASE> mpcPtr = std::make_unique<SqpMpc>(mpcSettings, sqpSettings, 
+    optimalProblem, initializer);
 
   mpcPtr->getSolverPtr()->setReferenceManager(leggedInterface.getReferenceManagerPtr());
 
@@ -240,16 +244,16 @@ int main(int argc, char* argv[])
 
       const auto& lastTrajectoryState = referenceManager.getTargetTrajectories().stateTrajectory.back();
 
-      std::cerr << "Ostatni euler angle z targetu: ";
-      std::cerr << lastTrajectoryState.block(9, 0, 3, 1).transpose() << std::endl;
+      // std::cerr << "Ostatni euler angle z targetu: ";
+      // std::cerr << lastTrajectoryState.block(9, 0, 3, 1).transpose() << std::endl;
 
-      std::cerr << "Rzeczywisty euler angle: ";
-      std::cerr << observation.state.block(9, 0, 3, 1).transpose() << std::endl;
+      // std::cerr << "Rzeczywisty euler angle: ";
+      // std::cerr << observation.state.block(9, 0, 3, 1).transpose() << std::endl;
 
-      if(std::abs(observation.time - 11.25) < 1e-6)
-      {
-        std::cerr << "Zaczyna sie!" << std::endl;
-      }
+      // if(std::abs(observation.time - 11.25) < 1e-6)
+      // {
+      //   std::cerr << "Zaczyna sie!" << std::endl;
+      // }
 
       mpcInterface.advanceMpc();
       mpcInterface.updatePolicy();

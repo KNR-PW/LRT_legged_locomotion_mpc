@@ -63,7 +63,7 @@ namespace legged_locomotion_mpc
        * Option for generating target trajectory in parallel to MPC
        * on another thread
        */
-      bool threaded = true;
+      bool threaded = false;
     };
   
     LeggedReferenceManager(floating_base_model::FloatingBaseModelInfo modelInfo,

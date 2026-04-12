@@ -44,19 +44,19 @@ legged_interface_settings
   useEndEffectorPlacementSoftConstraint   true
   useJointLimitsSoftConstraint            true
   useJointTorqueLimitsSoftConstraint      true
-  useTerrainAvoidanceSoftConstraint       true
+  useTerrainAvoidanceSoftConstraint       false
   useSelfCollisionAvoidanceSoftConstraint false
 
-  useNormalOrientationSoftConstraint   true
+  useNormalOrientationSoftConstraint      true
 }
 
 base_planner_static_settings
 {
-  initialBaseHeight 0.385857
+  initialBaseHeight 0.425857
 
   minimumBaseHeight 0.3
 
-  maximumBaseHeight 0.45
+  maximumBaseHeight 0.50
 
   maximumBaseHeadingVelocity 0.2
 
@@ -506,8 +506,8 @@ over_extension_penalty_settings
 
 reference_manager_settings
 {
-  maximumReferenceSampleInterval 0.05
-  gaitUpdateOffset               0.5
+  maximumReferenceSampleInterval 0.025
+  gaitUpdateOffset               0.75
   threaded                       false
 }
 
@@ -542,7 +542,7 @@ swing_planner_static_settings
 
 swing_planner_dynamic_settings
 {
-  invertedPendulumHeight 0.385857
+  invertedPendulumHeight 0.455857
 
   swingHeights
   {

@@ -69,8 +69,10 @@ TEST(JointTrajectoryPlannerTest, computeJointPositions)
     const std::vector<vector3_t> endEffectorPositions = 
       forwardKinematics.getPosition(state);
 
+    const std::vector<vector3_t> emptyNormals;
+
     const vector_t calculatedJointPositions = planner.computeJointPositions(
-      currentJointPositions, currentBasePose, endEffectorPositions);
+      currentJointPositions, currentBasePose, endEffectorPositions, emptyNormals);
     
     EXPECT_TRUE((calculatedJointPositions - jointPositionsTrue).norm() < positionTolerance);
   }
@@ -286,10 +288,13 @@ TEST(JointTrajectoryPlannerTest, updateTrajectory)
     getJointVelocities(currentInput, modelInfo) = 
     access_helper_functions::
     getJointVelocities(trajectoryTrue.inputTrajectory[0], modelInfo);
+
+    const std::vector<std::vector<vector3_t>> emptyNormalTrajectories(
+      endEffectorPositionsTrajectories.size());
   
   planner.updateTrajectory(initialObservation, trajectory, 
     endEffectorPositionsTrajectories, 
-    endEffectorVelocitiesTrajectories);
+    endEffectorVelocitiesTrajectories, emptyNormalTrajectories);
 
   for(size_t i = 0; i < referenceSize; ++i)
   {

@@ -267,7 +267,8 @@ namespace legged_locomotion_mpc
       swingPlanner_.getEndEffectorTrajectories(newTrajectory.timeTrajectory);
     
     jointPlanner_.updateTrajectory(currentObservation, newTrajectory, 
-      endEffectorTrajectories.positions, endEffectorTrajectories.velocities);
+      endEffectorTrajectories.positions, endEffectorTrajectories.velocities, 
+      endEffectorTrajectories.surfaceNormals);
 
     // If trajectory was subsampled, get new reference for end effectors
     if(settings_.maximumReferenceSampleInterval < basePlanner_.getStaticSettings().deltaTime)

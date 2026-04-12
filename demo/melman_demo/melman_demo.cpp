@@ -75,7 +75,7 @@ int main(int argc, char* argv[])
   vector_t initialState = vector_t::Zero(30);
   initialState.block<3,1>(6, 0) = initialBasePosition;
   initialState.block<3,1>(9, 0) = terrainEulerZyx;
-  access_helper_functions::getJointPositions(initialState, modelInfo) << 0.78539816339, 0, 2 * 0.78539816339, 1e-6, 1e-6, 0.4, -0.8, 0.4, 1e-6, 0.78539816339, 0, 2 * 0.78539816339, 1e-6, 1e-6, 0.4, -0.8, 0.4, 1e-6;
+  access_helper_functions::getJointPositions(initialState, modelInfo) << 0.78539816339, 1e-6, 2 * 0.78539816339, 1e-6, 1e-6, 0.4, -0.8, 0.4, 1e-6, 0.78539816339, 1e-6, 2 * 0.78539816339, 1e-6, 1e-6, 0.4, -0.8, 0.4, 1e-6;
   // access_helper_functions::getJointPositions(initialState, modelInfo) << 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326;
 
   LeggedInterface leggedInterface(initTime, initialState, 
@@ -94,7 +94,7 @@ int main(int argc, char* argv[])
   /* STANDING TROT */
   
   GaitDynamicParameters firstDynamicParams;
-  firstDynamicParams.steppingFrequency = 1.0 / 0.7;
+  firstDynamicParams.steppingFrequency = 0.5 * 1.0 / 0.7;
   firstDynamicParams.swingRatio = 3.0 / 7.0;
 
   const scalar_t firstOffset = 3.5 / 7.0;
@@ -127,8 +127,8 @@ int main(int argc, char* argv[])
   bool secondChange = true;
 
   const scalar_t firstMoveTime = 2.0;
-  const scalar_t secondMoveTime = 15.0;
-  const scalar_t endTime = 20.0;
+  const scalar_t secondMoveTime = 20.0;
+  const scalar_t endTime = 10.0;
 
   // referenceManager.updateCommand(command);
   // referenceManager.updateGaitParemeters(dynamicParams);
@@ -137,6 +137,7 @@ int main(int argc, char* argv[])
   // DDP
 
   const auto mpcSettings = leggedInterface.mpcSettings();
+  const auto sqpSettings = leggedInterface.sqpSettings();
   const auto ddpSettings = leggedInterface.ddpSettings();
 
   const auto& optimalProblem = leggedInterface.getOptimalControlProblem();
@@ -146,8 +147,11 @@ int main(int argc, char* argv[])
 
   auto& weightCompenator = leggedInterface.weightCompensator();
 
-  std::unique_ptr<MPC_BASE> mpcPtr = std::make_unique<GaussNewtonDDP_MPC>(mpcSettings, 
-    ddpSettings, rollout, optimalProblem, initializer);
+  // std::unique_ptr<MPC_BASE> mpcPtr = std::make_unique<GaussNewtonDDP_MPC>(mpcSettings, 
+  //   ddpSettings, rollout, optimalProblem, initializer);
+
+  std::unique_ptr<MPC_BASE> mpcPtr = std::make_unique<SqpMpc>(mpcSettings, sqpSettings, 
+    optimalProblem, initializer);
 
   mpcPtr->getSolverPtr()->setReferenceManager(leggedInterface.getReferenceManagerPtr());
 
@@ -184,6 +188,7 @@ int main(int argc, char* argv[])
   {
     mpcInterface.advanceMpc();
   }
+  std::cerr << "Init rollout" << std::endl;
   mpcInterface.initRollout(&leggedInterface.getRollout());
 
   std::cerr << "Main loop!" << std::endl;
@@ -204,8 +209,8 @@ int main(int argc, char* argv[])
   {
     std::cout << "Time: " << observation.time << "\n";
     observations.push_back(observation);
-    // try 
-    // {
+    try 
+    {
       // run MPC at current observation
       mpcInterface.setCurrentObservation(observation);
       referenceManager.updateObservation(observation);
@@ -215,8 +220,8 @@ int main(int argc, char* argv[])
       {
         firstChange = false;
         referenceManager.updateGaitParemeters(firstDynamicParams);
-        // referenceManager.updateCommand(firstCommand);
-        // referenceManager.preSolverRun(gaitTime, endTime, observation.state);
+        // // referenceManager.updateCommand(firstCommand);
+        // referenceManager.preSolverRun(firstGaitTime, endTime, observation.state);
 
         // const auto targetTrajectory = referenceManager.getTargetTrajectories();
 
@@ -228,11 +233,11 @@ int main(int argc, char* argv[])
         //   currentObservation.input = targetTrajectory.inputTrajectory[i];
         //   observations.push_back(currentObservation);
 
-        //   const auto referenceEndEffectorTrajectoryPoint = 
-        //     referenceManager.getEndEffectorTrajectoryPoint(currentObservation.time);
+          // const auto referenceEndEffectorTrajectoryPoint = 
+          //   referenceManager.getEndEffectorTrajectoryPoint(currentObservation.time);
 
-        //   referenceEndEffectorTrajectories.push_back(std::move(
-        //     referenceEndEffectorTrajectoryPoint));
+          // referenceEndEffectorTrajectories.push_back(std::move(
+          //   referenceEndEffectorTrajectoryPoint));
         // }
         // break;
       }
@@ -255,16 +260,16 @@ int main(int argc, char* argv[])
 
       const auto& lastTrajectoryState = referenceManager.getTargetTrajectories().stateTrajectory.back();
 
-      std::cerr << "Ostatni euler angle z targetu: ";
-      std::cerr << lastTrajectoryState.block(9, 0, 3, 1).transpose() << std::endl;
+      // std::cerr << "Ostatni euler angle z targetu: ";
+      // std::cerr << lastTrajectoryState.block(9, 0, 3, 1).transpose() << std::endl;
 
-      std::cerr << "Rzeczywisty euler angle: ";
-      std::cerr << observation.state.block(9, 0, 3, 1).transpose() << std::endl;
+      // std::cerr << "Rzeczywisty euler angle: ";
+      // std::cerr << observation.state.block(9, 0, 3, 1).transpose() << std::endl;
 
-      if(std::abs(observation.time - 11.25) < 1e-6)
-      {
-        std::cerr << "Zaczyna sie!" << std::endl;
-      }
+      // if(std::abs(observation.time - 11.25) < 1e-6)
+      // {
+      //   std::cerr << "Zaczyna sie!" << std::endl;
+      // }
 
       mpcInterface.advanceMpc();
       mpcInterface.updatePolicy();
@@ -328,13 +333,13 @@ int main(int argc, char* argv[])
       // std::cerr << "Reference joint velocities: " << access_helper_functions::getJointVelocities(targetInput, modelInfo).transpose() << std::endl;
       // std::cerr << "Real force: " << access_helper_functions::getContactForces(observation.input, 0 , modelInfo).transpose() << std::endl;
       // std::cerr << "Refrence force: " << access_helper_functions::getContactForces(targetInput, 0 , modelInfo).transpose() << std::endl;
-    // } 
-    // catch (std::exception& e) 
-    // {
-    //   std::cout << "MPC failed\n";
-    //   std::cout << e.what() << "\n";
-    //   break;
-    // }
+    } 
+    catch (std::exception& e) 
+    {
+      std::cout << "MPC failed\n";
+      std::cout << e.what() << "\n";
+      break;
+    }
   }
 
   // for(size_t i = 0; i < optimalTrajectory.timeTrajectory.size(); ++i)
