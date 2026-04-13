@@ -298,21 +298,6 @@ namespace legged_locomotion_mpc
     MultiEndEffectorKinematics inverseKinematicsSolver(urdfFile, kinematicModelSettings, 
       inverseSolverSettings, inverseSolverName);
 
-    const vector_t initJointPositions = access_helper_functions::getJointPositions(
-      currentState, floatingBaseModelInfo_);
-
-    std::vector<vector3_t> endEffectorPositions(floatingBaseModelInfo_.numThreeDofContacts);
-
-    std::vector<pinocchio::SE3> endEffectorTransforms(
-      floatingBaseModelInfo_.numSixDofContacts);
-
-    inverseKinematicsSolver.calculateEndEffectorPoses(initJointPositions, 
-      endEffectorPositions, endEffectorTransforms);
-
-    std::cerr << "HEIGHT: " << endEffectorTransforms[0].translation().z() << std::endl;
-    std::cerr << "HEIGHT: " << endEffectorTransforms[0].translation().z() << std::endl;
-    std::cerr << "HEIGHT: " << endEffectorTransforms[0].translation().z() << std::endl;
-
     // Setup joint trajectory planner
     JointTrajectoryPlanner jointPlanner(floatingBaseModelInfo_, 
       std::move(inverseKinematicsSolver));

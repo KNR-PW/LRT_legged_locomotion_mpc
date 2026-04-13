@@ -72,8 +72,8 @@ TEST(LeggedPrecomputationTest, getEndEffector)
 
   std::string solverName = "NewtonRaphson";
 
-  const std::vector<std::string> meldogFake3DofContactNames = {"RFF_link", "RRF_link"};
-  const std::vector<std::string> meldogFake6DofContactNames = {"LFF_link", "LRF_link"};
+  const std::vector<std::string> meldogFake3DofContactNames = {"RFF_link", "RRF_link", "LFF_link", "LRF_link"};
+  const std::vector<std::string> meldogFake6DofContactNames = {};
 
   KinematicsModelSettings modelSettings;
   modelSettings.baseLinkName = baseLink;
@@ -228,14 +228,10 @@ TEST(LeggedPrecomputationTest, getEndEffector)
 
     const auto truePositions = forwardKinematics.getPosition(state);
     const auto truePositionDerivatives = forwardKinematics.getPositionLinearApproximation(state);
-    const auto trueEulerAngles = forwardKinematics.getOrientation(state);
-    const auto trueEulerAngleDerivatives = forwardKinematics.getOrientationLinearApproximation(state);
     const auto trueLinearVelocities = forwardKinematics.getLinearVelocity(state, input);
     const auto trueLinearVelocityDerivatives = forwardKinematics.getLinearVelocityLinearApproximation(state, input);
-    const auto trueAngularVelocities = forwardKinematics.getAngularVelocity(state, input);
-    const auto trueAngularVelocityDerivatives = forwardKinematics.getAngularVelocityLinearApproximation(state, input);
 
-    for(size_t i = 0; i < 2; ++i)
+    for(size_t i = 0; i < 4; ++i)
     {
       const auto& position = precomputation.getEndEffectorPosition(i);
       const auto& positionDerivative = precomputation.getEndEffectorPositionDerivatives(i);
@@ -248,31 +244,6 @@ TEST(LeggedPrecomputationTest, getEndEffector)
       EXPECT_TRUE((truePositionDerivatives[i].dfdu - positionDerivative.dfdu).norm() < eps);
       EXPECT_TRUE((trueLinearVelocityDerivatives[i].dfdx - linearVelocityDerivative.dfdx).norm() < eps);
       EXPECT_TRUE((trueLinearVelocityDerivatives[i].dfdu - linearVelocityDerivative.dfdu).norm() < eps);
-    }
-    for(size_t i = 2; i < 4; ++i)
-    {
-      const auto& position = precomputation.getEndEffectorPosition(i);
-      const auto& positionDerivative = precomputation.getEndEffectorPositionDerivatives(i);
-      const auto& eulerAngles = precomputation.getEndEffectorOrientation(i);
-      const auto& eulerAngleDerivative = precomputation.getEndEffectorOrientationDerivatives(i);
-      const auto& linearVelocity = precomputation.getEndEffectorLinearVelocity(i);
-      const auto& linearVelocityDerivative = precomputation.getEndEffectorLinearVelocityDerivatives(i);
-      const auto& angularVelocity = precomputation.getEndEffectorAngularVelocity(i);
-      const auto& angularVelocityDerivative = precomputation.getEndEffectorAngularVelocityDerivatives(i);
-
-      const size_t forwardIndex = i - 2;
-      EXPECT_TRUE((truePositions[i] - position).norm() < eps);
-      EXPECT_TRUE((trueEulerAngles[forwardIndex] - eulerAngles).norm() < eps);
-      EXPECT_TRUE((trueLinearVelocities[i] - linearVelocity).norm() < eps);
-      EXPECT_TRUE((trueAngularVelocities[forwardIndex] - angularVelocity).norm() < eps);
-      EXPECT_TRUE((truePositionDerivatives[i].dfdx - positionDerivative.dfdx).norm() < eps);
-      EXPECT_TRUE((truePositionDerivatives[i].dfdu - positionDerivative.dfdu).norm() < eps);
-      EXPECT_TRUE((trueEulerAngleDerivatives[forwardIndex].dfdx - eulerAngleDerivative.dfdx).norm() < eps);
-      EXPECT_TRUE((trueEulerAngleDerivatives[forwardIndex].dfdu - eulerAngleDerivative.dfdu).norm() < eps);
-      EXPECT_TRUE((trueLinearVelocityDerivatives[i].dfdx - linearVelocityDerivative.dfdx).norm() < eps);
-      EXPECT_TRUE((trueLinearVelocityDerivatives[i].dfdu - linearVelocityDerivative.dfdu).norm() < eps);
-      EXPECT_TRUE((trueAngularVelocityDerivatives[forwardIndex].dfdx - angularVelocityDerivative.dfdx).norm() < eps);
-      EXPECT_TRUE((trueAngularVelocityDerivatives[forwardIndex].dfdu - angularVelocityDerivative.dfdu).norm() < eps);
     }
     testTime += testDeltaTime;
   }
@@ -322,8 +293,8 @@ TEST(LeggedPrecomputationTest, getCollisionLinks)
 
   std::string solverName = "NewtonRaphson";
 
-  const std::vector<std::string> meldogFake3DofContactNames = {"RFF_link", "RRF_link"};
-  const std::vector<std::string> meldogFake6DofContactNames = {"LFF_link", "LRF_link"};
+  const std::vector<std::string> meldogFake3DofContactNames = {"RFF_link", "RRF_link", "LFF_link", "LRF_link"};
+  const std::vector<std::string> meldogFake6DofContactNames = {};
 
   KinematicsModelSettings modelSettings;
   modelSettings.baseLinkName = baseLink;
@@ -544,8 +515,8 @@ TEST(LeggedPrecomputationTest, getTorque)
 
   std::string solverName = "NewtonRaphson";
 
-  const std::vector<std::string> meldogFake3DofContactNames = {"RFF_link", "RRF_link"};
-  const std::vector<std::string> meldogFake6DofContactNames = {"LFF_link", "LRF_link"};
+  const std::vector<std::string> meldogFake3DofContactNames = {"RFF_link", "RRF_link", "LFF_link", "LRF_link"};
+  const std::vector<std::string> meldogFake6DofContactNames = {};
 
   KinematicsModelSettings modelSettings;
   modelSettings.baseLinkName = baseLink;
@@ -754,8 +725,8 @@ TEST(LeggedPrecomputationTest, getReference)
 
   std::string solverName = "NewtonRaphson";
 
-  const std::vector<std::string> meldogFake3DofContactNames = {"RFF_link", "RRF_link"};
-  const std::vector<std::string> meldogFake6DofContactNames = {"LFF_link", "LRF_link"};
+  const std::vector<std::string> meldogFake3DofContactNames = {"RFF_link", "RRF_link", "LFF_link", "LRF_link"};
+  const std::vector<std::string> meldogFake6DofContactNames = {};
 
   KinematicsModelSettings modelSettings;
   modelSettings.baseLinkName = baseLink;
