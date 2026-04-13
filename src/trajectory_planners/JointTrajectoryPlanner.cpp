@@ -174,7 +174,7 @@ namespace legged_locomotion_mpc
         // Build end-effector -> world rotation matrix 
 
         const vector3_t normal = worldToBaseRotationMatrix * endEffectorNormals[i 
-          + modelInfo_.numSixDofContacts];
+          + modelInfo_.numThreeDofContacts];
         const vector3_t baseHeading = worldToBaseRotationMatrix.col(0);
 
         const matrix3_t endEffectorToBaseRotation = getEndEffectorRotationMatrix(normal, 
