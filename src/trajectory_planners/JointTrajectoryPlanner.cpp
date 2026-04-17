@@ -175,7 +175,8 @@ namespace legged_locomotion_mpc
 
         const vector3_t normal = worldToBaseRotationMatrix * endEffectorNormals[i 
           + modelInfo_.numThreeDofContacts];
-        const vector3_t baseHeading = worldToBaseRotationMatrix.col(0);
+
+        const vector3_t baseHeading{1.0, 0.0, 0.0};
 
         const matrix3_t endEffectorToBaseRotation = getEndEffectorRotationMatrix(normal, 
           baseHeading);
@@ -262,7 +263,7 @@ namespace legged_locomotion_mpc
         relativeEndEffectorTwists[i].linear().noalias() = worldToBaseRotationMatrix * 
           (endEffectorVelocities[i + modelInfo_.numThreeDofContacts]) - baseLinearVelocity 
           - baseAngularVelocity.cross(relativeEndEffectorTransforms[i].translation());
-        relativeEndEffectorTwists[i].angular().noalias() = vector3_t::Zero();
+        relativeEndEffectorTwists[i].angular().noalias() = -baseAngularVelocity;
       }
 
       vector_t jointVelocities;
