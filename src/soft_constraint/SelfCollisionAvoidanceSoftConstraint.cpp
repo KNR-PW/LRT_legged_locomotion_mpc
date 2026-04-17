@@ -430,7 +430,7 @@ namespace legged_locomotion_mpc
     ScalarFunctionQuadraticApproximation cost;
     cost.f = 0.0;
     cost.dfdx = vector_t::Zero(state.size());
-    cost.dfdxx = vector_t::Zero(state.size(), state.size());
+    cost.dfdxx = matrix_t::Zero(state.size(), state.size());
 
     // 3 DoF - 3 DoF
     for(size_t i = 0; i < endEffector33DoFPairIndices_.size(); ++i)
@@ -955,8 +955,8 @@ namespace legged_locomotion_mpc
       const matrix3_t distanceSecondGradient = getDistanceSecondGradient(normal, pointDistance);
 
       cost.dfdxx += penaltySecondDerivative * dDistancedx * dDistancedx.transpose() 
-        + penaltyDerivative * positionDifferenceGradient * distanceSecondGradient * 
-          positionDifferenceGradient.transpose();
+        + penaltyDerivative * positionDifferenceGradient.transpose() 
+          * distanceSecondGradient * positionDifferenceGradient;
     }
     return cost;
   }

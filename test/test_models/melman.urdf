@@ -24,6 +24,18 @@
       <mass value="1.569"/>
       <inertia ixx="3554.642e-6" ixy="-52.803e-6" ixz="364.587e-6" iyy="3113.534e-6" iyz="16.6e-6" izz="2635.241e-6"/>
     </inertial>
+    <collision name="sphere_0">
+      <origin xyz="9.638634213049647e-17 -0.016219105211232886 -0.02487027700581107" rpy="0 0 0" />
+      <geometry>
+        <sphere radius="0.048" />
+      </geometry>
+    </collision>
+    <collision name="sphere_1">
+      <origin xyz="9.638634213049647e-17 0.016219105211232886 -0.02487027700581107" rpy="0 0 0" />
+      <geometry>
+        <sphere radius="0.048" />
+      </geometry>
+    </collision>
   </link>
   <!-- LEFT HIP MOUNT-->
   <joint name="LTz" type="revolute">
@@ -294,6 +306,12 @@
       <mass value="0.011"/>
       <inertia ixx="2.246e-6" ixy="0.637e-6" ixz="0" iyy="3.894e-6" iyz="0" izz="4.859e-6"/>
     </inertial>
+    <collision name="sphere_2">
+      <origin xyz="0.0014321889732725006 0.0 -0.018015933051287403" rpy="0 0 0" />
+      <geometry>
+        <sphere radius="0.022" />
+      </geometry>
+    </collision>
   </link>
   <joint name="LAx" type="revolute">
     <origin rpy="0 0 0" xyz="0 0 0"/>
@@ -345,6 +363,12 @@
       <mass value="0.011"/>
       <inertia ixx="2.246e-6" ixy="-0.637e-6" ixz="0" iyy="3.894e-6" iyz="0" izz="4.859e-6"/>
     </inertial>
+    <collision name="sphere_3">
+      <origin xyz="0.0014321889732725006 0.0 -0.018015933051287403" rpy="0 0 0" />
+      <geometry>
+        <sphere radius="0.022" />
+      </geometry>
+    </collision>
   </link>
   <joint name="RAx" type="revolute">
     <origin rpy="0 0 0" xyz="0 0 0"/>

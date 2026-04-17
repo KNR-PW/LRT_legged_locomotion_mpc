@@ -101,25 +101,25 @@ int main(int argc, char* argv[])
   
   firstDynamicParams.phaseOffsets = {-firstOffset};
 
-  /* FLYING TROT */
-  GaitDynamicParameters secondDynamicParams;
-  secondDynamicParams.swingRatio =  0.33 / 0.6;
-  secondDynamicParams.steppingFrequency = 1.0 / 0.6;
-  scalar_t secondOffset = secondDynamicParams.swingRatio;
+  // /* FLYING TROT */
+  // GaitDynamicParameters secondDynamicParams;
+  // secondDynamicParams.swingRatio =  0.33 / 0.6;
+  // secondDynamicParams.steppingFrequency = 1.0 / 0.6;
+  // scalar_t secondOffset = secondDynamicParams.swingRatio;
 
-  secondDynamicParams.phaseOffsets = {-secondOffset + 0.03 / 0.6};
+  // secondDynamicParams.phaseOffsets = {-secondOffset + 0.03 / 0.6};
 
   BaseTrajectoryPlanner::BaseReferenceCommand firstCommand;
   firstCommand.baseHeadingVelocity = 0.05;
   firstCommand.baseLateralVelocity = 0.0;
   firstCommand.baseVerticalVelocity = 0.0;
-  firstCommand.yawRate = 1 * 0.0314;
+  firstCommand.yawRate = 1 * 0.05;
 
   BaseTrajectoryPlanner::BaseReferenceCommand secondCommand;
   secondCommand.baseHeadingVelocity = 0.15;
   secondCommand.baseLateralVelocity = -0.0;
   secondCommand.baseVerticalVelocity = 0.0;
-  secondCommand.yawRate = -1 * 0.0314;
+  secondCommand.yawRate = -1 * 0.1;
 
   const scalar_t firstGaitTime = 1.0;
   bool firstChange = true;
@@ -242,11 +242,11 @@ int main(int argc, char* argv[])
         // break;
       }
 
-      if(observation.time > secondGaitTime && secondChange)
-      {
-        secondChange = false;
-        referenceManager.updateGaitParemeters(secondDynamicParams);
-      }
+      // if(observation.time > secondGaitTime && secondChange)
+      // {
+      //   secondChange = false;
+      //   referenceManager.updateGaitParemeters(secondDynamicParams);
+      // }
 
       if(observation.time > firstMoveTime)
       {

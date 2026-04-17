@@ -44,7 +44,7 @@ legged_interface_settings
   useEndEffectorPlacementSoftConstraint   true
   useJointLimitsSoftConstraint            true
   useJointTorqueLimitsSoftConstraint      true
-  useTerrainAvoidanceSoftConstraint       false
+  useTerrainAvoidanceSoftConstraint       true
   useSelfCollisionAvoidanceSoftConstraint false
 
   useNormalOrientationSoftConstraint      true
@@ -52,7 +52,7 @@ legged_interface_settings
 
 base_planner_static_settings
 {
-  initialBaseHeight 0.425857
+  initialBaseHeight 0.405
 
   minimumBaseHeight 0.3
 
@@ -75,7 +75,9 @@ legged_collision_settings
 {
   collisionLinkNames
   {
-
+    [0] Trunk
+    [1] Left_ArmMounting
+    [2] Right_ArmMounting
   }
 
   terrainCollisionLinkNames
@@ -85,13 +87,17 @@ legged_collision_settings
 
   selfCollisionPairNames
   {
-    
+    [0] "Trunk, Left_ArmMounting"
+    [1] "Trunk, Right_ArmMounting"
   }
   
   maxExcesses
   {
-    [0] 0.075
-    [1] 0.075
+    [0] 0.005
+    [1] 0.005
+    [2] 0.075
+    [3] 0.075
+    [4] 0.075
   }
 
   terrainRelaxations
@@ -102,7 +108,8 @@ legged_collision_settings
 
   selfCollisionRelaxations
   {
-
+    [0] 0.005
+    [1] 0.005
   }
 
   shrinkRatio 0.1
@@ -188,14 +195,14 @@ inverse_solver_settings
 
   minimumStepSize       1e-5
 
-  dampingCoefficient    1e-2
+  dampingCoefficient    1e-9
 
-  stepCoefficient       0.75
+  stepCoefficient       0.85
 
   singularityThreshold  1e-6
 }
 
-inverse_solver_name NewtonRaphsonAD
+inverse_solver_name NewtonRaphson
 
 base_weights
 {
@@ -546,8 +553,8 @@ swing_planner_dynamic_settings
 
   swingHeights
   {
-    [0] 0.05
-    [1] 0.05
+    [0] 0.025
+    [1] 0.025
   }
 
   phases
