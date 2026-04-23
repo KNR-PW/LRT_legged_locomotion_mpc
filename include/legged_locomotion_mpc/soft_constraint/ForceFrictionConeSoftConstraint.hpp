@@ -32,8 +32,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef __FORCE_FRICTION_CONSTRAINT_LEGGED_LOCOMOTION_MPC__
 #define __FORCE_FRICTION_CONSTRAINT_LEGGED_LOCOMOTION_MPC__
 
-#include <ocs2_core/constraint/StateInputConstraint.h>
-#include <ocs2_core/misc/LoadData.h>
+#include <ocs2_core/cost/StateInputCost.h>
+#include <ocs2_core/penalties/Penalties.h>
 
 #include <floating_base_model/FloatingBaseModelInfo.hpp>
 
@@ -43,8 +43,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace legged_locomotion_mpc
 {
   /**
-   * Implements the constraint h(t,x,u) >= 0
+   * Implements the soft constraint h(t,x,u) >= 0
    *
+   * For every 3 DoF end effector:
    * frictionCoefficient * Fz - sqrt(Fx * Fx + Fy * Fy + regularization) >= 0
    *
    * The regularization prevents the constraint gradient / hessian to go to infinity when Fx = Fz = 0. It also creates a parabolic safety
@@ -52,7 +53,7 @@ namespace legged_locomotion_mpc
    * sqrt(regularization) instead of Fz = 0
    *
    */
-  class ForceFrictionConeConstraint final: public ocs2::StateInputConstraint 
+  class ForceFrictionConeSoftConstraint final: public ocs2::StateInputCost
   {
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     public:
@@ -62,12 +63,14 @@ namespace legged_locomotion_mpc
       * regularization: A positive number to regulize the friction constraint. refer to the FrictionConeConstraint documentation.
       * gripperForce: Gripper force in normal direction.
       * hessianDiagonalShift: The Hessian shift to assure a strictly-convex quadratic constraint approximation.
+      * barrierSettings: relaxed barrier settings
       */
       struct Config 
       {
         ocs2::scalar_t frictionCoefficient = 0.7;
         ocs2::scalar_t regularization = 25.0;
         ocs2::scalar_t hessianDiagonalShift = 1e-6;
+        ocs2::RelaxedBarrierPenalty::Config barrierSettings;
       };
 
       /**
@@ -75,47 +78,39 @@ namespace legged_locomotion_mpc
        * @param [in] referenceManager: Legged model ReferenceManager.
        * @param [in] config: Friction model settings.
        * @param [in] info: The floating base model information.
-       * @param [in] endEffectorIndex: The 3 DoF end effector index.
        */
-      ForceFrictionConeConstraint(
+      ForceFrictionConeSoftConstraint(
         const LeggedReferenceManager& referenceManager,
         Config config,
-        floating_base_model::FloatingBaseModelInfo info,
-        size_t endEffectorIndex);
+        floating_base_model::FloatingBaseModelInfo info);
 
-      ~ForceFrictionConeConstraint() override = default;
+      ~ForceFrictionConeSoftConstraint() override = default;
 
-      ForceFrictionConeConstraint* clone() const override;
+      ForceFrictionConeSoftConstraint* clone() const override;
 
-      bool isActive(ocs2::scalar_t time) const override;
+      /** Get cost term value */
+      ocs2::scalar_t getValue(ocs2::scalar_t time, const ocs2::vector_t& state,
+        const ocs2::vector_t& input, const ocs2::TargetTrajectories& targetTrajectories,
+        const ocs2::PreComputation& preComp) const override;
 
-      size_t getNumConstraints(ocs2::scalar_t time) const override;
-
-      ocs2::vector_t getValue(ocs2::scalar_t time, const ocs2::vector_t &state,
-        const ocs2::vector_t &input,
-        const ocs2::PreComputation &preComp) const override;
-
-      ocs2::VectorFunctionLinearApproximation getLinearApproximation(ocs2::scalar_t time,
-        const ocs2::vector_t &state,
-        const ocs2::vector_t &input,
-        const ocs2::PreComputation &preComp) const override;
-
-      ocs2::VectorFunctionQuadraticApproximation getQuadraticApproximation(ocs2::scalar_t time, 
-        const ocs2::vector_t &state,
-        const ocs2::vector_t &input,
-        const ocs2::PreComputation &preComp) const override;
+      /** Get cost term quadratic approximation */
+      ocs2::ScalarFunctionQuadraticApproximation getQuadraticApproximation(
+        ocs2::scalar_t time, const ocs2::vector_t& state, const ocs2::vector_t& input,
+        const ocs2::TargetTrajectories& targetTrajectories,
+        const ocs2::PreComputation& preComp) const override;
 
     private:
       
-      ForceFrictionConeConstraint(const ForceFrictionConeConstraint &other) = default;
+      ForceFrictionConeSoftConstraint(const ForceFrictionConeSoftConstraint &other);
 
-      ocs2::vector_t coneConstraint(const vector3_t &localForce) const;
+      ocs2::scalar_t coneConstraint(const vector3_t &localForce) const;
 
       const LeggedReferenceManager& referenceManager_;
 
       const Config config_;
-      const size_t endEffectorIndex_;
       const floating_base_model::FloatingBaseModelInfo info_;
+
+      std::unique_ptr<ocs2::RelaxedBarrierPenalty> frictionBarrierPenaltyPtr_;
   };
 
   /**
@@ -123,10 +118,10 @@ namespace legged_locomotion_mpc
    * @param [in] filename: file path with constraint settings.
    * @param [in] fieldName: field where settings are defined
    * @param [in] verbose: verbose flag
-   * @return ForceFrictionConeConstraint::Config struct
+   * @return ForceFrictionConeSoftConstraint::Config struct
    */
-  ForceFrictionConeConstraint::Config loadForceFrictionConeConfig(const std::string& filename,
-    const std::string& fieldName = "force_friction_cone_settings",
+  ForceFrictionConeSoftConstraint::Config loadForceFrictionConeConfig(const std::string& filename,
+    const std::string& fieldName = "force_friction_cone_soft_constraint_settings",
     bool verbose = "true");
 } // namespace legged_locomotion_mpc
 

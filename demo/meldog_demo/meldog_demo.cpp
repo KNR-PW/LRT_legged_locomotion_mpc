@@ -134,11 +134,11 @@ int main(int argc, char* argv[])
 
   auto& weightCompenator = leggedInterface.weightCompensator();
 
-  // std::unique_ptr<MPC_BASE> mpcPtr = std::make_unique<GaussNewtonDDP_MPC>(mpcSettings, 
-  //   ddpSettings, rollout, optimalProblem, initializer);
+  std::unique_ptr<MPC_BASE> mpcPtr = std::make_unique<GaussNewtonDDP_MPC>(mpcSettings, 
+    ddpSettings, rollout, optimalProblem, initializer);
 
-  std::unique_ptr<MPC_BASE> mpcPtr = std::make_unique<SqpMpc>(mpcSettings, sqpSettings, 
-    optimalProblem, initializer);
+  // std::unique_ptr<MPC_BASE> mpcPtr = std::make_unique<SqpMpc>(mpcSettings, sqpSettings, 
+  //   optimalProblem, initializer);
 
   mpcPtr->getSolverPtr()->setReferenceManager(leggedInterface.getReferenceManagerPtr());
 

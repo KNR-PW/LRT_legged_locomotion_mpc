@@ -33,7 +33,7 @@ legged_interface_settings
 
   useNormalVelocityConstraint             true
 
-  useForceFrictionConeConstraint          false
+  useForceFrictionConeSoftConstraint          false
   useZero3DofVelocityConstraint           false
   useZeroForceConstraint                  false
 
@@ -44,7 +44,7 @@ legged_interface_settings
   useEndEffectorPlacementSoftConstraint   true
   useJointLimitsSoftConstraint            true
   useJointTorqueLimitsSoftConstraint      true
-  useTerrainAvoidanceSoftConstraint       true
+  useTerrainAvoidanceSoftConstraint       false
   useSelfCollisionAvoidanceSoftConstraint false
 
   useNormalOrientationSoftConstraint      true
@@ -102,8 +102,8 @@ legged_collision_settings
 
   terrainRelaxations
   {
-    [0] 0.025
-    [1] 0.025
+    [0] 0.01
+    [1] 0.01
   }
 
   selfCollisionRelaxations
@@ -553,8 +553,8 @@ swing_planner_dynamic_settings
 
   swingHeights
   {
-    [0] 0.025
-    [1] 0.025
+    [0] 0.035
+    [1] 0.035
   }
 
   phases

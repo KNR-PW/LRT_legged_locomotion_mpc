@@ -14,7 +14,6 @@
 #include <legged_locomotion_mpc/cost/TerminalTrackingCost.hpp>
 #include <legged_locomotion_mpc/cost/TrajectoryTrackingCost.hpp>
 
-#include <legged_locomotion_mpc/constraint/ForceFrictionConeConstraint.hpp>
 #include <legged_locomotion_mpc/constraint/NormalVelocityConstraint.hpp>
 #include <legged_locomotion_mpc/constraint/WrenchFrictionConeConstraint.hpp>
 #include <legged_locomotion_mpc/constraint/Zero3DofVelocityConstraint.hpp>
@@ -22,6 +21,7 @@
 #include <legged_locomotion_mpc/constraint/ZeroForceConstraint.hpp>
 #include <legged_locomotion_mpc/constraint/ZeroWrenchConstraint.hpp>
 
+#include <legged_locomotion_mpc/soft_constraint/ForceFrictionConeSoftConstraint.hpp>
 #include <legged_locomotion_mpc/soft_constraint/EndEffectorPlacementSoftConstraint.hpp>
 #include <legged_locomotion_mpc/soft_constraint/JointLimitsSoftConstraint.hpp>
 #include <legged_locomotion_mpc/soft_constraint/JointTorqueLimitsSoftConstraint.hpp>
@@ -424,21 +424,8 @@ namespace legged_locomotion_mpc
       }
     }
 
-    const auto frictionForceSettings = loadForceFrictionConeConfig(modelFile, 
-      "force_friction_cone_settings", verbose);
-
     for(size_t i = 0; i < floatingBaseModelInfo_.numThreeDofContacts; ++i)
     {
-      if(interfaceSettings_.useForceFrictionConeConstraint)
-      {
-        auto forceFrictionConeConstraint = std::make_unique<ForceFrictionConeConstraint>(
-          *referenceManagerPtr_, frictionForceSettings, floatingBaseModelInfo_, i);
-        
-        const std::string name = "ForceFrictionConeConstraint_" + std::to_string(i);
-        optimalProblem_.inequalityConstraintPtr->add(name, 
-          std::move(forceFrictionConeConstraint));
-      }
-
       if(interfaceSettings_.useZero3DofVelocityConstraint)
       {
         auto zero3DofVelocityConstraint = std::make_unique<Zero3DofVelocityConstraint>(
@@ -497,6 +484,19 @@ namespace legged_locomotion_mpc
     }
 
     // Setup soft constraints
+    const auto frictionForceSettings = loadForceFrictionConeConfig(modelFile, 
+      "force_friction_cone_soft_constraint_settings", verbose);
+      
+    if(interfaceSettings_.useForceFrictionConeSoftConstraint)
+    {
+      auto forceFrictionConeConstraint = std::make_unique<ForceFrictionConeSoftConstraint>(
+        *referenceManagerPtr_, frictionForceSettings, floatingBaseModelInfo_);
+      
+      const std::string name = "ForceFrictionConeSoftConstraint";
+      optimalProblem_.softConstraintPtr->add(name, 
+        std::move(forceFrictionConeConstraint));
+    }
+
     if(interfaceSettings_.useEndEffectorPlacementSoftConstraint)
     {
       const auto endEffectorPlacementSettings = 
@@ -652,8 +652,8 @@ namespace legged_locomotion_mpc
       fieldName + ".useJointTorqueCost", verbose);
     loadData::loadPtreeValue(pt, settings.useNormalVelocityConstraint, 
       fieldName + ".useNormalVelocityConstraint", verbose);
-    loadData::loadPtreeValue(pt, settings.useForceFrictionConeConstraint, 
-      fieldName + ".useForceFrictionConeConstraint", verbose);
+    loadData::loadPtreeValue(pt, settings.useForceFrictionConeSoftConstraint, 
+      fieldName + ".useForceFrictionConeSoftConstraint", verbose);
     loadData::loadPtreeValue(pt, settings.useZero3DofVelocityConstraint, 
       fieldName + ".useZero3DofVelocityConstraint", verbose);
     loadData::loadPtreeValue(pt, settings.useZeroForceConstraint, 

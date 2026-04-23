@@ -91,7 +91,6 @@ add_library(${PROJECT_NAME}
 
   src/dynamics/LeggedDynamicsAD.cpp
 
-  src/constraint/ForceFrictionConeConstraint.cpp
   src/constraint/WrenchFrictionConeConstraint.cpp
   src/constraint/Zero3DofVelocityConstraint.cpp
   src/constraint/Zero6DofVelocityConstraint.cpp
@@ -105,6 +104,7 @@ add_library(${PROJECT_NAME}
   src/soft_constraint/SelfCollisionAvoidanceSoftConstraint.cpp
   src/soft_constraint/EndEffectorPlacementSoftConstraint.cpp
   src/soft_constraint/NormalOrientationSoftConstraint.cpp
+  src/soft_constraint/ForceFrictionConeSoftConstraint.cpp
 
   src/initialization/LeggedInitializer.cpp
 
@@ -277,7 +277,6 @@ if(BUILD_TESTING)
   target_compile_options(${PROJECT_NAME}_test_precomputation PUBLIC ${FLAGS})
 
   ament_add_gtest(${PROJECT_NAME}_test_constraints
-        test/constraint/ForceFrictionConeConstraintTest.cpp
         test/constraint/WrenchFrictionConeConstraintTest.cpp
   )
   ament_target_dependencies(${PROJECT_NAME}_test_constraints ${THIS_PACKAGE_DEPENDS})
@@ -295,6 +294,7 @@ if(BUILD_TESTING)
   target_compile_options(${PROJECT_NAME}_test_cost PUBLIC ${FLAGS})
 
   ament_add_gtest(${PROJECT_NAME}_test_soft_constraint
+        test/soft_constraint/ForceFrictionConeSoftConstraintTest.cpp
         test/soft_constraint/JointLimitsSoftConstraintTest.cpp
         test/soft_constraint/JointTorqueLimitsSoftConstraintTest.cpp
         test/soft_constraint/SelfCollisionAvoidanceSoftConstraintTest.cpp

@@ -1,8 +1,8 @@
 ; Multiple_Shooting SQP settings
 sqp
 {
-  nThreads                              6
-  dt                                    0.005
+  nThreads                              4
+  dt                                    0.01
   sqpIteration                          1
   deltaTol                              1e-4
   g_max                                 1e-2
@@ -21,8 +21,8 @@ sqp
 ; Multiple_Shooting IPM settings
 ipm
 {
-  nThreads                              3
-  dt                                    0.015
+  nThreads                              4
+  dt                                    0.01
   ipmIteration                          1
   deltaTol                              1e-4
   g_max                                 10.0
@@ -104,7 +104,7 @@ rollout
 
 mpc
 {
-  timeHorizon                     1.0  ; [s]
+  timeHorizon                     2.0  ; [s]
   solutionTimeWindow              -1   ; maximum [s]
   coldStart                       false
 

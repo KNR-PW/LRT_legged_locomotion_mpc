@@ -59,7 +59,7 @@ namespace legged_locomotion_mpc
         bool useNormalVelocityConstraint = true;
 
         // 3 DoF
-        bool useForceFrictionConeConstraint = true;
+        bool useForceFrictionConeSoftConstraint = true;
         bool useZero3DofVelocityConstraint = true;
         bool useZeroForceConstraint = true;
         // 6 DoF

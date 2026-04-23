@@ -104,12 +104,12 @@ rollout
 
 mpc
 {
-  timeHorizon                     1.0  ; [s]
+  timeHorizon                     3.0  ; [s]
   solutionTimeWindow              -1   ; maximum [s]
   coldStart                       false
 
   debugPrint                      true
 
-  mpcDesiredFrequency              40 ; [Hz]
+  mpcDesiredFrequency              50 ; [Hz]
   mrtDesiredFrequency             400 ; [Hz]
 }

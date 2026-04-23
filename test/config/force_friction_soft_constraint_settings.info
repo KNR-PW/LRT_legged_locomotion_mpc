@@ -1,6 +1,8 @@
-force_friction_cone_settings
+force_friction_cone_soft_constraint_settings
 {
   frictionCoefficient   0.9
   regularization        0.5
   hessianDiagonalShift  0.1
+  mu 0.5
+  delta 0.6
 }

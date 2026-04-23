@@ -110,16 +110,16 @@ int main(int argc, char* argv[])
   // secondDynamicParams.phaseOffsets = {-secondOffset + 0.03 / 0.6};
 
   BaseTrajectoryPlanner::BaseReferenceCommand firstCommand;
-  firstCommand.baseHeadingVelocity = 0.05;
+  firstCommand.baseHeadingVelocity = 0.025;
   firstCommand.baseLateralVelocity = 0.0;
   firstCommand.baseVerticalVelocity = 0.0;
-  firstCommand.yawRate = 1 * 0.05;
+  firstCommand.yawRate = 1 * 0.0;
 
   BaseTrajectoryPlanner::BaseReferenceCommand secondCommand;
-  secondCommand.baseHeadingVelocity = 0.15;
+  secondCommand.baseHeadingVelocity = 0.1;
   secondCommand.baseLateralVelocity = -0.0;
   secondCommand.baseVerticalVelocity = 0.0;
-  secondCommand.yawRate = -1 * 0.1;
+  secondCommand.yawRate = -1 * 0.0;
 
   const scalar_t firstGaitTime = 1.0;
   bool firstChange = true;
@@ -128,7 +128,7 @@ int main(int argc, char* argv[])
 
   const scalar_t firstMoveTime = 2.0;
   const scalar_t secondMoveTime = 20.0;
-  const scalar_t endTime = 10.0;
+  const scalar_t endTime = 15.0;
 
   // referenceManager.updateCommand(command);
   // referenceManager.updateGaitParemeters(dynamicParams);
@@ -147,11 +147,11 @@ int main(int argc, char* argv[])
 
   auto& weightCompenator = leggedInterface.weightCompensator();
 
-  // std::unique_ptr<MPC_BASE> mpcPtr = std::make_unique<GaussNewtonDDP_MPC>(mpcSettings, 
-  //   ddpSettings, rollout, optimalProblem, initializer);
+  std::unique_ptr<MPC_BASE> mpcPtr = std::make_unique<GaussNewtonDDP_MPC>(mpcSettings, 
+    ddpSettings, rollout, optimalProblem, initializer);
 
-  std::unique_ptr<MPC_BASE> mpcPtr = std::make_unique<SqpMpc>(mpcSettings, sqpSettings, 
-    optimalProblem, initializer);
+  // std::unique_ptr<MPC_BASE> mpcPtr = std::make_unique<SqpMpc>(mpcSettings, sqpSettings, 
+  //   optimalProblem, initializer);
 
   mpcPtr->getSolverPtr()->setReferenceManager(leggedInterface.getReferenceManagerPtr());
 

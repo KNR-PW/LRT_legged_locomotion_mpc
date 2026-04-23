@@ -16,7 +16,7 @@ TEST(LeggedInterfaceTest, loader)
   EXPECT_TRUE(settings.useTerminalTrackingCost                 == true);
   EXPECT_TRUE(settings.useJointTorqueCost                      == false);
   EXPECT_TRUE(settings.useNormalVelocityConstraint             == true);
-  EXPECT_TRUE(settings.useForceFrictionConeConstraint          == false);
+  EXPECT_TRUE(settings.useForceFrictionConeSoftConstraint          == false);
   EXPECT_TRUE(settings.useZero3DofVelocityConstraint           == true);
   EXPECT_TRUE(settings.useZeroForceConstraint                  == false);
   EXPECT_TRUE(settings.useWrenchFrictionConeConstraint         == true);
