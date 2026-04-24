@@ -210,9 +210,9 @@ namespace legged_locomotion_mpc
 
       void createHelperClasses();
 
-      void createReferenceManager(ocs2::scalar_t initTime,
+      void createReferenceManager(ocs2::scalar_t initTime, 
         const ocs2::vector_t& currentState, 
-        std::unique_ptr<terrain_model::TerrainModel> currentTerrainModel,
+        std::unique_ptr<terrain_model::TerrainModel> currentTerrainModel, 
         const std::string& modelFile, const std::string& urdfFile);
 
       void createInitializer();

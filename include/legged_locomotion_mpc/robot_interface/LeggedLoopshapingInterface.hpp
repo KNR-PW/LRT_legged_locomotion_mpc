@@ -1,0 +1,45 @@
+// Copyright (c) 2025, Bartłomiej Krajewski
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+/*
+ * Authors: Bartłomiej Krajewski (https://github.com/BartlomiejK2)
+ */
+
+#ifndef __LEGGED_LOOPSHAPING_INTERFACE_LEGGED_LOCOMOTION_MPC__
+#define __LEGGED_LOOPSHAPING_INTERFACE_LEGGED_LOCOMOTION_MPC__
+
+#include <ocs2_robotic_tools/common/LoopshapingRobotInterface.h>
+
+#include <legged_locomotion_mpc/robot_interface/LeggedInterface.hpp>
+
+namespace legged_locomotion_mpc
+{
+  class LeggedLoopshapingInterface: public ocs2::LoopshapingRobotInterface
+  {
+    public:
+      LeggedLoopshapingInterface(std::unique_ptr<LeggedInterface> leggedInterfacePtr,
+        std::shared_ptr<ocs2::LoopshapingDefinition> loopshapingDefinitionPtr);
+
+      LeggedInterface& getLeggedInterface();
+  };
+
+  LeggedLoopshapingInterface makeLeggedLoopshapingInterface(
+    ocs2::scalar_t initTime, const ocs2::vector_t& currentState, 
+    std::unique_ptr<terrain_model::TerrainModel> currentTerrainModel, 
+    const std::string& taskFile, const std::string& modelFile, const std::string& urdfFile, 
+    const std::string& loopshapingDefinitionFile);
+} // namespace legged_locomotion_mpc
+
+#endif

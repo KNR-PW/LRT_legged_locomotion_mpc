@@ -113,6 +113,7 @@ add_library(${PROJECT_NAME}
   src/cost/JointTorqueCost.cpp
 
   src/robot_interface/LeggedInterface.cpp
+  src/robot_interface/LeggedLoopshapingInterface.cpp
 
   src/visualization/LeggedVisualizer.cpp
 )

@@ -92,12 +92,16 @@ namespace legged_locomotion_mpc
   {
     const auto& leggedPrecomputation = cast<LeggedPrecomputation>(preComp);
 
+    const contact_flags_t contactFlags = referenceManager_.getContactFlags(time);
+
     const size_t endEffectorNum = info_.numThreeDofContacts + info_.numSixDofContacts;
 
     scalar_t cost = 0.0;
 
     for(size_t i = info_.numThreeDofContacts; i < endEffectorNum; ++i)
     {
+      if(!contactFlags[i]) continue;
+
       const auto wrenchInWorldFrame = access_helper_functions::getContactWrenches(input, i, 
         info_);
 
@@ -129,6 +133,8 @@ namespace legged_locomotion_mpc
   {
     const auto& leggedPrecomputation = cast<LeggedPrecomputation>(preComp);
 
+    const contact_flags_t contactFlags = referenceManager_.getContactFlags(time);
+
     ScalarFunctionQuadraticApproximation cost;
     cost.f = 0.0;
     cost.dfdx = vector_t::Zero(info_.stateDim);
@@ -141,6 +147,8 @@ namespace legged_locomotion_mpc
 
     for(size_t i = info_.numThreeDofContacts; i < endEffectorNum; ++i)
     {
+      if(!contactFlags[i]) continue;
+      
       const auto wrenchInWorldFrame = access_helper_functions::getContactWrenches(input, i, 
         info_);
 
