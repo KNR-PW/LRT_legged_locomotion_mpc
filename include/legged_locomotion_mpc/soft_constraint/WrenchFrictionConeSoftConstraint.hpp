@@ -17,11 +17,11 @@
  * Authors: Bartłomiej Krajewski (https://github.com/BartlomiejK2)
  */
 
-#ifndef __FORCE_WRENCH_CONSTRAINT_LEGGED_LOCOMOTION_MPC__
-#define __FORCE_WRENCH_CONSTRAINT_LEGGED_LOCOMOTION_MPC__
+#ifndef __FORCE_WRENCH_SOFT_CONSTRAINT_LEGGED_LOCOMOTION_MPC__
+#define __FORCE_WRENCH_SOFT_CONSTRAINT_LEGGED_LOCOMOTION_MPC__
 
-#include <ocs2_core/constraint/StateInputConstraint.h>
-#include <ocs2_core/misc/LoadData.h>
+#include <ocs2_core/cost/StateInputCost.h>
+#include <ocs2_core/penalties/Penalties.h>
 
 #include <floating_base_model/FloatingBaseModelInfo.hpp>
 
@@ -33,10 +33,10 @@ using namespace floating_base_model;
 namespace legged_locomotion_mpc
 {
   /**
-   * Implements the linear wrench cone constraint h(t,x,u) >= 0: 
-   * (https://hal.science/hal-02108449/document)
+   * Implements the linear wrench cone soft constraint for every 6 DoF end effector
+   * h(t,x,u) >= 0: (https://hal.science/hal-02108449/document)
    */
-  class WrenchFrictionConeConstraint final: public ocs2::StateInputConstraint 
+  class WrenchFrictionConeSoftConstraint final: public ocs2::StateInputCost 
   {
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     public:
@@ -53,6 +53,7 @@ namespace legged_locomotion_mpc
         ocs2::scalar_t frictionCoefficient = 0.7;
         ocs2::scalar_t footHalfLengthX;
         ocs2::scalar_t footHalfLengthY;
+        ocs2::RelaxedBarrierPenalty::Config barrierSettings;
       };
 
       /**
@@ -62,28 +63,27 @@ namespace legged_locomotion_mpc
        * @param [in] info: The centroidal model information.
        * @param [in] endEffectorIndex: The 6 DoF contact index.
        */
-      WrenchFrictionConeConstraint(const LeggedReferenceManager& referenceManager,
+      WrenchFrictionConeSoftConstraint(const LeggedReferenceManager& referenceManager,
         Config config,
-        floating_base_model::FloatingBaseModelInfo info,
-        size_t endEffectorIndex);
+        floating_base_model::FloatingBaseModelInfo info);
 
-      ~WrenchFrictionConeConstraint() override = default;
+      ~WrenchFrictionConeSoftConstraint() override = default;
 
-      WrenchFrictionConeConstraint* clone() const override;
+      WrenchFrictionConeSoftConstraint* clone() const override;
 
-      bool isActive(ocs2::scalar_t time) const override;
+      /** Get cost term value */
+      ocs2::scalar_t getValue(ocs2::scalar_t time, const ocs2::vector_t& state,
+        const ocs2::vector_t& input, const ocs2::TargetTrajectories& targetTrajectories,
+        const ocs2::PreComputation& preComp) const override;
 
-      size_t getNumConstraints(ocs2::scalar_t time) const override;
-
-      ocs2::vector_t getValue(ocs2::scalar_t time, const ocs2::vector_t &state,
-        const ocs2::vector_t &input, const ocs2::PreComputation &preComp) const override;
-
-      ocs2::VectorFunctionLinearApproximation getLinearApproximation(ocs2::scalar_t time,
-        const ocs2::vector_t &state, const ocs2::vector_t &input,
-        const ocs2::PreComputation &preComp) const override;
+      /** Get cost term quadratic approximation */
+      ocs2::ScalarFunctionQuadraticApproximation getQuadraticApproximation(
+        ocs2::scalar_t time, const ocs2::vector_t& state, const ocs2::vector_t& input,
+        const ocs2::TargetTrajectories& targetTrajectories,
+        const ocs2::PreComputation& preComp) const override;
 
     private:
-      WrenchFrictionConeConstraint(const WrenchFrictionConeConstraint &other) = default;
+      WrenchFrictionConeSoftConstraint(const WrenchFrictionConeSoftConstraint &other);
 
       Eigen::Matrix<ocs2::scalar_t, 16, 6> generateConeConstraintMatrix(
         const Config& config);
@@ -91,10 +91,11 @@ namespace legged_locomotion_mpc
       const LeggedReferenceManager& referenceManager_;
 
       const Config config_;
-      const size_t endEffectorIndex_;
       const floating_base_model::FloatingBaseModelInfo info_;
 
       Eigen::Matrix<ocs2::scalar_t, 16, 6> coneConstraintMatrix_;
+
+      std::unique_ptr<ocs2::RelaxedBarrierPenalty> frictionBarrierPenaltyPtr_;
   };
 
   /**
@@ -102,10 +103,11 @@ namespace legged_locomotion_mpc
    * @param [in] filename: file path with constraint settings.
    * @param [in] fieldName: field where settings are defined
    * @param [in] verbose: verbose flag
-   * @return WrenchFrictionConeConstraint::Config struct
+   * @return WrenchFrictionConeSoftConstraint::Config struct
    */
-  WrenchFrictionConeConstraint::Config loadWrenchFrictionConeConfig(
-    const std::string& filename, const std::string& fieldName = "wrench_friction_cone_settings",
+  WrenchFrictionConeSoftConstraint::Config loadWrenchFrictionConeConfig(
+    const std::string& filename, 
+    const std::string& fieldName = "wrench_friction_cone_soft_constraint_settings",
     bool verbose = "true");
 } // namespace legged_locomotion_mpc
 

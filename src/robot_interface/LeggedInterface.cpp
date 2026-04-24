@@ -15,13 +15,13 @@
 #include <legged_locomotion_mpc/cost/TrajectoryTrackingCost.hpp>
 
 #include <legged_locomotion_mpc/constraint/NormalVelocityConstraint.hpp>
-#include <legged_locomotion_mpc/constraint/WrenchFrictionConeConstraint.hpp>
 #include <legged_locomotion_mpc/constraint/Zero3DofVelocityConstraint.hpp>
 #include <legged_locomotion_mpc/constraint/Zero6DofVelocityConstraint.hpp>
 #include <legged_locomotion_mpc/constraint/ZeroForceConstraint.hpp>
 #include <legged_locomotion_mpc/constraint/ZeroWrenchConstraint.hpp>
 
 #include <legged_locomotion_mpc/soft_constraint/ForceFrictionConeSoftConstraint.hpp>
+#include <legged_locomotion_mpc/soft_constraint/WrenchFrictionConeSoftConstraint.hpp>
 #include <legged_locomotion_mpc/soft_constraint/EndEffectorPlacementSoftConstraint.hpp>
 #include <legged_locomotion_mpc/soft_constraint/JointLimitsSoftConstraint.hpp>
 #include <legged_locomotion_mpc/soft_constraint/JointTorqueLimitsSoftConstraint.hpp>
@@ -447,21 +447,8 @@ namespace legged_locomotion_mpc
       }
     }
 
-    const auto frictionWrenchSettings = loadWrenchFrictionConeConfig(modelFile, 
-      "wrench_friction_cone_settings", verbose);
-
     for(size_t i = floatingBaseModelInfo_.numThreeDofContacts; i < endEffectorNum; ++i)
     {
-      if(interfaceSettings_.useWrenchFrictionConeConstraint)
-      {
-        auto wrenchFrictionConeConstraint = std::make_unique<WrenchFrictionConeConstraint>(
-          *referenceManagerPtr_, frictionWrenchSettings, floatingBaseModelInfo_, i);
-        
-        const std::string name = "WrenchFrictionConeConstraint_" + std::to_string(i);
-        optimalProblem_.inequalityConstraintPtr->add(name, 
-          std::move(wrenchFrictionConeConstraint));
-      }
-
       if(interfaceSettings_.useZero6DofVelocityConstraint)
       {
         auto zero6DofVelocityConstraint = std::make_unique<Zero6DofVelocityConstraint>(
@@ -487,7 +474,8 @@ namespace legged_locomotion_mpc
     const auto frictionForceSettings = loadForceFrictionConeConfig(modelFile, 
       "force_friction_cone_soft_constraint_settings", verbose);
       
-    if(interfaceSettings_.useForceFrictionConeSoftConstraint)
+    if(interfaceSettings_.useForceFrictionConeSoftConstraint 
+      && floatingBaseModelInfo_.numThreeDofContacts > 0)
     {
       auto forceFrictionConeConstraint = std::make_unique<ForceFrictionConeSoftConstraint>(
         *referenceManagerPtr_, frictionForceSettings, floatingBaseModelInfo_);
@@ -495,6 +483,20 @@ namespace legged_locomotion_mpc
       const std::string name = "ForceFrictionConeSoftConstraint";
       optimalProblem_.softConstraintPtr->add(name, 
         std::move(forceFrictionConeConstraint));
+    }
+
+    const auto frictionWrenchSettings = loadWrenchFrictionConeConfig(modelFile, 
+      "wrench_friction_cone_soft_constraint_settings", verbose);
+
+    if(interfaceSettings_.useWrenchFrictionConeSoftConstraint 
+      && floatingBaseModelInfo_.numSixDofContacts > 0)
+    {
+      auto wrenchFrictionConeSoftConstraint = std::make_unique<WrenchFrictionConeSoftConstraint>(
+        *referenceManagerPtr_, frictionWrenchSettings, floatingBaseModelInfo_);
+      
+      const std::string name = "WrenchFrictionConeSoftConstraint";
+      optimalProblem_.softConstraintPtr->add(name, 
+        std::move(wrenchFrictionConeSoftConstraint));
     }
 
     if(interfaceSettings_.useEndEffectorPlacementSoftConstraint)
@@ -579,7 +581,8 @@ namespace legged_locomotion_mpc
         std::move(selfCollisionAvoidanceSoftConstraint));
     }
 
-    if(interfaceSettings_.useNormalOrientationSoftConstraint)
+    if(interfaceSettings_.useNormalOrientationSoftConstraint 
+      && floatingBaseModelInfo_.numSixDofContacts > 0)
     {
       const auto normalOrientationSettings = loadNormalOrientationSoftConstraintSettings(
         modelFile, "normal_orientation_soft_constraint_settings", verbose);
@@ -658,8 +661,8 @@ namespace legged_locomotion_mpc
       fieldName + ".useZero3DofVelocityConstraint", verbose);
     loadData::loadPtreeValue(pt, settings.useZeroForceConstraint, 
       fieldName + ".useZeroForceConstraint", verbose);
-    loadData::loadPtreeValue(pt, settings.useWrenchFrictionConeConstraint, 
-      fieldName + ".useWrenchFrictionConeConstraint", verbose);
+    loadData::loadPtreeValue(pt, settings.useWrenchFrictionConeSoftConstraint, 
+      fieldName + ".useWrenchFrictionConeSoftConstraint", verbose);
     loadData::loadPtreeValue(pt, settings.useZero6DofVelocityConstraint, 
       fieldName + ".useZero6DofVelocityConstraint", verbose);
     loadData::loadPtreeValue(pt, settings.useZeroWrenchConstraint, 

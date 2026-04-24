@@ -42,7 +42,7 @@ legged_interface_settings
   useZero3DofVelocityConstraint           true
   useZeroForceConstraint                  true
 
-  useWrenchFrictionConeConstraint         false
+  useWrenchFrictionConeSoftConstraint         false
   useZero6DofVelocityConstraint           false
   useZeroWrenchConstraint                 false
 

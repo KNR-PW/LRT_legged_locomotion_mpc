@@ -254,7 +254,7 @@ namespace legged_locomotion_mpc
     }
 
     loadData::loadPtreeValue(pt, config.barrierSettings.mu, 
-        fieldName + ".mu", verbose);
+      fieldName + ".mu", verbose);
 
     if(config.barrierSettings.mu < 0.0)
     {
@@ -262,7 +262,7 @@ namespace legged_locomotion_mpc
     }
 
     loadData::loadPtreeValue(pt, config.barrierSettings.delta, 
-        fieldName + ".delta", verbose);
+      fieldName + ".delta", verbose);
 
     if(config.barrierSettings.delta < 0.0)
     {

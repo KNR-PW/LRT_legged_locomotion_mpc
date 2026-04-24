@@ -33,11 +33,11 @@ legged_interface_settings
 
   useNormalVelocityConstraint             true
 
-  useForceFrictionConeSoftConstraint          false
+  useForceFrictionConeSoftConstraint      false
   useZero3DofVelocityConstraint           false
   useZeroForceConstraint                  false
 
-  useWrenchFrictionConeConstraint         true
+  useWrenchFrictionConeSoftConstraint     true
   useZero6DofVelocityConstraint           true
   useZeroWrenchConstraint                 true
 
@@ -162,11 +162,13 @@ end_effector_soft_constraint_settings
   delta 0.005
 }
 
-wrench_friction_cone_settings
+wrench_friction_cone_soft_constraint_settings
 {
   frictionCoefficient   0.7
   footLengthX           0.075
   footLengthY           0.05
+  mu                    0.1
+  delta                 0.005
 }
 
 gait_static_settings

@@ -91,7 +91,6 @@ add_library(${PROJECT_NAME}
 
   src/dynamics/LeggedDynamicsAD.cpp
 
-  src/constraint/WrenchFrictionConeConstraint.cpp
   src/constraint/Zero3DofVelocityConstraint.cpp
   src/constraint/Zero6DofVelocityConstraint.cpp
   src/constraint/ZeroForceConstraint.cpp
@@ -105,6 +104,7 @@ add_library(${PROJECT_NAME}
   src/soft_constraint/EndEffectorPlacementSoftConstraint.cpp
   src/soft_constraint/NormalOrientationSoftConstraint.cpp
   src/soft_constraint/ForceFrictionConeSoftConstraint.cpp
+  src/soft_constraint/WrenchFrictionConeSoftConstraint.cpp
 
   src/initialization/LeggedInitializer.cpp
 
@@ -276,14 +276,6 @@ if(BUILD_TESTING)
   target_link_libraries(${PROJECT_NAME}_test_precomputation ${PROJECT_NAME})
   target_compile_options(${PROJECT_NAME}_test_precomputation PUBLIC ${FLAGS})
 
-  ament_add_gtest(${PROJECT_NAME}_test_constraints
-        test/constraint/WrenchFrictionConeConstraintTest.cpp
-  )
-  ament_target_dependencies(${PROJECT_NAME}_test_constraints ${THIS_PACKAGE_DEPENDS})
-  target_include_directories(${PROJECT_NAME}_test_constraints PRIVATE test/include)
-  target_link_libraries(${PROJECT_NAME}_test_constraints ${PROJECT_NAME})
-  target_compile_options(${PROJECT_NAME}_test_constraints PUBLIC ${FLAGS})
-
   ament_add_gtest(${PROJECT_NAME}_test_cost
         test/cost/TrajectoryTrackingCostTest.cpp
         test/cost/JointTorqueCostTest.cpp
@@ -294,6 +286,7 @@ if(BUILD_TESTING)
   target_compile_options(${PROJECT_NAME}_test_cost PUBLIC ${FLAGS})
 
   ament_add_gtest(${PROJECT_NAME}_test_soft_constraint
+        test/soft_constraint/WrenchFrictionConeSoftConstraintTest.cpp
         test/soft_constraint/ForceFrictionConeSoftConstraintTest.cpp
         test/soft_constraint/JointLimitsSoftConstraintTest.cpp
         test/soft_constraint/JointTorqueLimitsSoftConstraintTest.cpp

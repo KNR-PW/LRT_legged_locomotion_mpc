@@ -7,7 +7,7 @@
 using namespace ocs2;
 using namespace legged_locomotion_mpc;
 
-TEST(ForceFrictionConeConstraint, loader)
+TEST(ForceFrictionConeSoftConstraint, loader)
 {
   const std::string filePath = meldogConfigFolder + "force_friction_soft_constraint_settings.info";
   

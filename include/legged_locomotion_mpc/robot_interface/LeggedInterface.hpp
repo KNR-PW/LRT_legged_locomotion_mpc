@@ -59,11 +59,10 @@ namespace legged_locomotion_mpc
         bool useNormalVelocityConstraint = true;
 
         // 3 DoF
-        bool useForceFrictionConeSoftConstraint = true;
         bool useZero3DofVelocityConstraint = true;
         bool useZeroForceConstraint = true;
+
         // 6 DoF
-        bool useWrenchFrictionConeConstraint = true;
         bool useZero6DofVelocityConstraint = true;
         bool useZeroWrenchConstraint = true;
 
@@ -73,8 +72,12 @@ namespace legged_locomotion_mpc
         bool useJointTorqueLimitsSoftConstraint = true;
         bool useTerrainAvoidanceSoftConstraint = true;
         bool useSelfCollisionAvoidanceSoftConstraint = true;
+
+        // 3 DoF
+        bool useForceFrictionConeSoftConstraint = true;
         
         // 6 DoF
+        bool useWrenchFrictionConeSoftConstraint = true;
         bool useNormalOrientationSoftConstraint = true;
       };
 

@@ -19,7 +19,7 @@ TEST(LeggedInterfaceTest, loader)
   EXPECT_TRUE(settings.useForceFrictionConeSoftConstraint          == false);
   EXPECT_TRUE(settings.useZero3DofVelocityConstraint           == true);
   EXPECT_TRUE(settings.useZeroForceConstraint                  == false);
-  EXPECT_TRUE(settings.useWrenchFrictionConeConstraint         == true);
+  EXPECT_TRUE(settings.useWrenchFrictionConeSoftConstraint         == true);
   EXPECT_TRUE(settings.useZero6DofVelocityConstraint           == false);
   EXPECT_TRUE(settings.useZeroWrenchConstraint                 == true);
   EXPECT_TRUE(settings.useEndEffectorPlacementSoftConstraint   == false);

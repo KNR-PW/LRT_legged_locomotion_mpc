@@ -17,11 +17,12 @@
  * Authors: Bartłomiej Krajewski (https://github.com/BartlomiejK2)
  */
 
-#include <legged_locomotion_mpc/constraint/WrenchFrictionConeConstraint.hpp>
+#include <legged_locomotion_mpc/soft_constraint/WrenchFrictionConeSoftConstraint.hpp>
 
 #include <boost/property_tree/info_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
 
+#include <ocs2_core/misc/LoadData.h>
 #include <ocs2_robotic_tools/common/RotationTransforms.h>
 
 #include <floating_base_model/AccessHelperFunctions.hpp>
@@ -36,30 +37,30 @@ namespace legged_locomotion_mpc
   /******************************************************************************************************/
   /******************************************************************************************************/
   /******************************************************************************************************/
-  WrenchFrictionConeConstraint::WrenchFrictionConeConstraint(
+  WrenchFrictionConeSoftConstraint::WrenchFrictionConeSoftConstraint(
     const LeggedReferenceManager &referenceManager,
     Config config,
-    FloatingBaseModelInfo info,
-    size_t endEffectorIndex): 
-      StateInputConstraint(ConstraintOrder::Linear),
+    FloatingBaseModelInfo info): 
+      StateInputCost(),
       referenceManager_(referenceManager),
-      config_(std::move(config)),
-      info_(std::move(info)) ,
-      endEffectorIndex_(endEffectorIndex)
+      config_(config),
+      info_(std::move(info)), 
+      frictionBarrierPenaltyPtr_(new RelaxedBarrierPenalty(config.barrierSettings))
+
   {
     if(config_.frictionCoefficient < 0)
     {
-      throw std::invalid_argument("[WrenchFrictionConeConstraint]: Fricition coefficient smaller than 0!");
+      throw std::invalid_argument("[WrenchFrictionConeSoftConstraint]: Fricition coefficient smaller than 0!");
     }
 
     if(config_.footHalfLengthX < 0)
     {
-      throw std::invalid_argument("[WrenchFrictionConeConstraint]: Foot length in direction X smaller than 0!");
+      throw std::invalid_argument("[WrenchFrictionConeSoftConstraint]: Foot length in direction X smaller than 0!");
     }
 
     if(config_.footHalfLengthY < 0)
     {
-      throw std::invalid_argument("[WrenchFrictionConeConstraint]: Foot length in direction Y smaller than 0!");
+      throw std::invalid_argument("[WrenchFrictionConeSoftConstraint]: Foot length in direction Y smaller than 0!");
     }
 
     coneConstraintMatrix_ = generateConeConstraintMatrix(config_);
@@ -68,105 +69,132 @@ namespace legged_locomotion_mpc
   /******************************************************************************************************/
   /******************************************************************************************************/
   /******************************************************************************************************/
-  WrenchFrictionConeConstraint* WrenchFrictionConeConstraint::clone() const
+  WrenchFrictionConeSoftConstraint* WrenchFrictionConeSoftConstraint::clone() const
   { 
-    return new WrenchFrictionConeConstraint(*this); 
+    return new WrenchFrictionConeSoftConstraint(*this); 
   }
 
   /******************************************************************************************************/
   /******************************************************************************************************/
   /******************************************************************************************************/
-  size_t WrenchFrictionConeConstraint::getNumConstraints(scalar_t time) const 
-  { 
-    return 16; 
-  };
+  WrenchFrictionConeSoftConstraint::WrenchFrictionConeSoftConstraint(
+    const WrenchFrictionConeSoftConstraint &other):
+      referenceManager_(other.referenceManager_), config_(other.config_),
+      info_(other.info_), coneConstraintMatrix_(other.coneConstraintMatrix_), 
+      frictionBarrierPenaltyPtr_(other.frictionBarrierPenaltyPtr_->clone()) {}
 
   /******************************************************************************************************/
   /******************************************************************************************************/
   /******************************************************************************************************/
-  bool WrenchFrictionConeConstraint::isActive(scalar_t time) const 
+  scalar_t WrenchFrictionConeSoftConstraint::getValue(scalar_t time, const vector_t& state, 
+    const vector_t& input, const TargetTrajectories& targetTrajectories, 
+    const PreComputation& preComp) const 
   {
-    return referenceManager_.getContactFlags(time)[endEffectorIndex_];
-  }
-
-  /******************************************************************************************************/
-  /******************************************************************************************************/
-  /******************************************************************************************************/
-  vector_t WrenchFrictionConeConstraint::getValue(scalar_t time,
-    const vector_t &state,
-    const vector_t &input,
-    const PreComputation &preComp) const 
-  {
-    const auto wrenchInWorldFrame = access_helper_functions::getContactWrenches(input, 
-      endEffectorIndex_, info_);
-
     const auto& leggedPrecomputation = cast<LeggedPrecomputation>(preComp);
 
-    // Get rotation matrix to foot frame because the axes are consistent with the leg lengths
-    const vector3_t eulerAngles = leggedPrecomputation.getEndEffectorOrientation(
-      endEffectorIndex_);
-    const matrix3_t rotationMatrixToTerrain = getRotationMatrixFromZyxEulerAngles(
-      eulerAngles).transpose();
-    
-    vector6_t localWrench;
-    localWrench.block<3, 1>(0, 0) = rotationMatrixToTerrain * wrenchInWorldFrame.block<3, 1>(0, 0);
-    localWrench.block<3, 1>(3, 0) = rotationMatrixToTerrain * wrenchInWorldFrame.block<3, 1>(3, 0);
+    const size_t endEffectorNum = info_.numThreeDofContacts + info_.numSixDofContacts;
 
-    const vector_t coneConstraint = coneConstraintMatrix_ * localWrench;
+    scalar_t cost = 0.0;
 
-    return coneConstraint;
+    for(size_t i = info_.numThreeDofContacts; i < endEffectorNum; ++i)
+    {
+      const auto wrenchInWorldFrame = access_helper_functions::getContactWrenches(input, i, 
+        info_);
+
+      // Get rotation matrix to foot frame because the axes are consistent with the leg lengths
+      const vector3_t eulerAngles = leggedPrecomputation.getEndEffectorOrientation(i);
+      const matrix3_t rotationMatrixToTerrain = getRotationMatrixFromZyxEulerAngles(
+        eulerAngles).transpose();
+      
+      vector6_t localWrench;
+      localWrench.block<3, 1>(0, 0) = rotationMatrixToTerrain * wrenchInWorldFrame.block<3, 1>(0, 0);
+      localWrench.block<3, 1>(3, 0) = rotationMatrixToTerrain * wrenchInWorldFrame.block<3, 1>(3, 0);
+
+      const Eigen::Vector<scalar_t, 16> coneConstraint = coneConstraintMatrix_ * localWrench;
+
+      cost += coneConstraint.unaryExpr([&](scalar_t hi) 
+        {
+          return frictionBarrierPenaltyPtr_->getValue(0.0, hi);
+        }).sum();
+    }
+    return cost;
   }
 
   /******************************************************************************************************/
   /******************************************************************************************************/
   /******************************************************************************************************/
-  VectorFunctionLinearApproximation WrenchFrictionConeConstraint::getLinearApproximation(
-    scalar_t time,
-    const vector_t &state,
-    const vector_t &input,
-    const PreComputation &preComp) const 
+  ScalarFunctionQuadraticApproximation WrenchFrictionConeSoftConstraint::getQuadraticApproximation(
+    scalar_t time, const vector_t& state, const vector_t& input, 
+    const TargetTrajectories& targetTrajectories, const PreComputation& preComp) const 
   {
-    const auto wrenchInWorldFrame = access_helper_functions::getContactWrenches(input, 
-      endEffectorIndex_, info_);
-    
     const auto& leggedPrecomputation = cast<LeggedPrecomputation>(preComp);
 
-    // Get rotation matrix to foot frame because the axes are consistent with the leg lengths
-    const vector3_t eulerAngles = leggedPrecomputation.getEndEffectorOrientation(
-      endEffectorIndex_);
-    const matrix3_t rotationMatrixToTerrain = getRotationMatrixFromZyxEulerAngles(
-      eulerAngles).transpose();
+    ScalarFunctionQuadraticApproximation cost;
+    cost.f = 0.0;
+    cost.dfdx = vector_t::Zero(info_.stateDim);
+    cost.dfdu = vector_t::Zero(info_.inputDim);
+    cost.dfdxx = matrix_t::Zero(info_.stateDim, info_.stateDim);
+    cost.dfduu = matrix_t::Zero(info_.inputDim, info_.inputDim);
+    cost.dfdux = matrix_t::Zero(info_.inputDim, info_.stateDim);
 
-    vector6_t localWrench;
-    localWrench.block<3, 1>(0, 0) = rotationMatrixToTerrain * wrenchInWorldFrame.block<3, 1>(0, 0);
-    localWrench.block<3, 1>(3, 0) = rotationMatrixToTerrain * wrenchInWorldFrame.block<3, 1>(3, 0);
+    const size_t endEffectorNum = info_.numThreeDofContacts + info_.numSixDofContacts;
 
-    const vector_t coneConstraint = coneConstraintMatrix_ * localWrench;
+    for(size_t i = info_.numThreeDofContacts; i < endEffectorNum; ++i)
+    {
+      const auto wrenchInWorldFrame = access_helper_functions::getContactWrenches(input, i, 
+        info_);
 
-    VectorFunctionLinearApproximation linearApproximation;
+      // Get rotation matrix to foot frame because the axes are consistent with the leg lengths
+      const vector3_t eulerAngles = leggedPrecomputation.getEndEffectorOrientation(i);
+      const matrix3_t rotationMatrixToTerrain = getRotationMatrixFromZyxEulerAngles(
+        eulerAngles).transpose();
 
-    linearApproximation.f = coneConstraint;
-    linearApproximation.dfdx = matrix_t::Zero(16, info_.stateDim);
-    linearApproximation.dfdu = matrix_t::Zero(16, info_.inputDim);
+      vector6_t localWrench;
+      localWrench.block<3, 1>(0, 0) = rotationMatrixToTerrain * wrenchInWorldFrame.block<3, 1>(0, 0);
+      localWrench.block<3, 1>(3, 0) = rotationMatrixToTerrain * wrenchInWorldFrame.block<3, 1>(3, 0);
 
-    matrix6_t rotation6x6 = matrix6_t::Zero();
-    rotation6x6.block<3, 3>(0, 0) = rotationMatrixToTerrain;
-    rotation6x6.block<3, 3>(3, 3) = rotationMatrixToTerrain;
+      const Eigen::Vector<scalar_t, 16> coneConstraint = coneConstraintMatrix_ * localWrench;
 
-    const size_t startIndex = (3 * info_.numThreeDofContacts + 6 * (endEffectorIndex_ - info_.numThreeDofContacts));
+      cost.f += coneConstraint.unaryExpr([&](scalar_t hi) 
+        {
+          return frictionBarrierPenaltyPtr_->getValue(0.0, hi);
+        }).sum();
 
-    linearApproximation.dfdu.block<16, 6>(0, startIndex) = coneConstraintMatrix_ * rotation6x6;
-    
-    return linearApproximation;
+      const Eigen::Vector<scalar_t, 16> barrierPenaltyDerivative = coneConstraint.unaryExpr([&](scalar_t hi) 
+        {
+          return frictionBarrierPenaltyPtr_->getDerivative(0.0, hi);
+        });
+
+      const Eigen::Vector<scalar_t, 16> barrierPenaltySecondDerivative = coneConstraint.unaryExpr([&](scalar_t hi) 
+        {
+          return frictionBarrierPenaltyPtr_->getSecondDerivative(0.0, hi);
+        });
+
+      matrix6_t rotation6x6 = matrix6_t::Zero();
+      rotation6x6.block<3, 3>(0, 0) = rotationMatrixToTerrain;
+      rotation6x6.block<3, 3>(3, 3) = rotationMatrixToTerrain;
+
+      const Eigen::Matrix<ocs2::scalar_t, 16, 6> rotatedConeConstraintMatrix = 
+        coneConstraintMatrix_ * rotation6x6;
+      
+      const size_t startIndex = (3 * info_.numThreeDofContacts + 6 * (i - info_.numThreeDofContacts));
+      
+      cost.dfdu.block<6, 1>(startIndex, 0) += rotatedConeConstraintMatrix.transpose() 
+        * barrierPenaltyDerivative;
+  
+      cost.dfduu.block<6, 6>(startIndex, startIndex) += rotatedConeConstraintMatrix.transpose() 
+        * barrierPenaltySecondDerivative.asDiagonal() * rotatedConeConstraintMatrix;
+    }
+    return cost;
   }
 
   /******************************************************************************************************/
   /******************************************************************************************************/
   /******************************************************************************************************/
-  Eigen::Matrix<scalar_t, 16, 6> WrenchFrictionConeConstraint::generateConeConstraintMatrix(
+  Eigen::Matrix<scalar_t, 16, 6> WrenchFrictionConeSoftConstraint::generateConeConstraintMatrix(
     const Config& config)
   {
-    Eigen::Matrix<scalar_t, 16, 6> coneConstraintMatrix;
+    Eigen::Matrix<scalar_t, 16, 6> coneConstraintMatrix = Eigen::Matrix<scalar_t, 16, 6>::Zero();
 
     // u * f_z + f_x >= 0
     coneConstraintMatrix(0, 0) = 1.0;
@@ -267,13 +295,13 @@ namespace legged_locomotion_mpc
     return coneConstraintMatrix;
   }
 
-  WrenchFrictionConeConstraint::Config loadWrenchFrictionConeConfig(
+  WrenchFrictionConeSoftConstraint::Config loadWrenchFrictionConeConfig(
     const std::string& filename, const std::string& fieldName,bool verbose)
   {
     boost::property_tree::ptree pt;
     read_info(filename, pt);
 
-    WrenchFrictionConeConstraint::Config config;
+    WrenchFrictionConeSoftConstraint::Config config;
 
     if(verbose) 
     {
@@ -281,27 +309,43 @@ namespace legged_locomotion_mpc
       std::cerr << "\n #### =============================================================================\n";
     }
 
-    ocs2::loadData::loadPtreeValue(pt, config.frictionCoefficient, fieldName + ".frictionCoefficient", verbose);
+    loadData::loadPtreeValue(pt, config.frictionCoefficient, fieldName + ".frictionCoefficient", verbose);
 
     if(config.frictionCoefficient < 0)
     {
-      throw std::invalid_argument("[WrenchFrictionConeConstraint]: Fricition coefficient smaller than 0!");
+      throw std::invalid_argument("[WrenchFrictionConeSoftConstraint]: Fricition coefficient smaller than 0!");
     }
 
-    ocs2::loadData::loadPtreeValue(pt, config.footHalfLengthX, fieldName + ".footLengthX", verbose);
+    loadData::loadPtreeValue(pt, config.footHalfLengthX, fieldName + ".footLengthX", verbose);
     config.footHalfLengthX *= 0.5;
 
     if(config.footHalfLengthX < 0)
     {
-      throw std::invalid_argument("[WrenchFrictionConeConstraint]: Foot length in direction X smaller than 0!");
+      throw std::invalid_argument("[WrenchFrictionConeSoftConstraint]: Foot length in direction X smaller than 0!");
     }
     
-    ocs2::loadData::loadPtreeValue(pt, config.footHalfLengthY, fieldName + ".footLengthY", verbose);
+    loadData::loadPtreeValue(pt, config.footHalfLengthY, fieldName + ".footLengthY", verbose);
     config.footHalfLengthY *= 0.5;
 
     if(config.footHalfLengthY < 0)
     {
-      throw std::invalid_argument("[WrenchFrictionConeConstraint]: Foot length in direction Y smaller than 0!");
+      throw std::invalid_argument("[WrenchFrictionConeSoftConstraint]: Foot length in direction Y smaller than 0!");
+    }
+
+    loadData::loadPtreeValue(pt, config.barrierSettings.mu, 
+      fieldName + ".mu", verbose);
+
+    if(config.barrierSettings.mu < 0.0)
+    {
+      throw std::invalid_argument("[WrenchFrictionConeSoftConstraint]: Relaxed barrier penalty mu smaller than 0.0!");
+    }
+
+    loadData::loadPtreeValue(pt, config.barrierSettings.delta, 
+      fieldName + ".delta", verbose);
+
+    if(config.barrierSettings.delta < 0.0)
+    {
+      throw std::invalid_argument("[WrenchFrictionConeSoftConstraint]: Relaxed barrier penalty delta smaller than 0.0!");
     }
 
     if(verbose) 
