@@ -29,14 +29,41 @@ namespace legged_locomotion_mpc
   class LeggedLoopshapingInterface: public ocs2::LoopshapingRobotInterface
   {
     public:
+
       LeggedLoopshapingInterface(std::unique_ptr<LeggedInterface> leggedInterfacePtr,
         std::shared_ptr<ocs2::LoopshapingDefinition> loopshapingDefinitionPtr);
-
+      
+      /**
+       * Gets normal legged interface
+       * @return reference to the LeggedInterface
+       * @warning While using loopshaping interface, do not use normal interface for
+       * getting optimal problem, reference manager, rollout and initial state for
+       * MPC, if your using it to change some parameters or references it is fine
+       */
       LeggedInterface& getLeggedInterface();
+
+
+      /**
+       * Gets the loopshaping initial state (system + filter)
+       * @return const reference to the loopshaping initial state (system + filter)
+       */
+      const ocs2::vector_t& getInitialState() const;
+
+      /**
+       * Gets the loopshaping Rollout.
+       * @return reference to the loopshaping RolloutBase.
+       */
+      ocs2::RolloutBase& getRollout();
+
+    private:
+      
+      ocs2::vector_t initialState_;
+
+      std::unique_ptr<ocs2::RolloutBase> loopshapingRolloutPtr_;
   };
 
   LeggedLoopshapingInterface makeLeggedLoopshapingInterface(
-    ocs2::scalar_t initTime, const ocs2::vector_t& currentState, 
+    ocs2::scalar_t initTime, const ocs2::vector_t& currentSystemState, 
     std::unique_ptr<terrain_model::TerrainModel> currentTerrainModel, 
     const std::string& taskFile, const std::string& modelFile, const std::string& urdfFile, 
     const std::string& loopshapingDefinitionFile);

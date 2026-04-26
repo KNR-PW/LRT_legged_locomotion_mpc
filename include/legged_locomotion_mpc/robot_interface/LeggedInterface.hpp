@@ -205,6 +205,12 @@ namespace legged_locomotion_mpc
        * @return reference to the weight compensator
        */
       PinocchioWeightCompensator& weightCompensator();
+      
+      /**
+       * @brief Get initial system state
+       * @return const reference to the initial system state
+       */
+      const ocs2::vector_t getInitialState() const;
 
     private:
 
@@ -250,6 +256,8 @@ namespace legged_locomotion_mpc
       std::unique_ptr<collision::PinocchioCollisionInterface> collisionInterface_;
       std::unique_ptr<PinocchioTorqueApproximationCppAd> torqueApproximator_;
       std::unique_ptr<PinocchioWeightCompensator> weightCompensator_;
+
+      ocs2::vector_t initialState_;
   };
 
   /**

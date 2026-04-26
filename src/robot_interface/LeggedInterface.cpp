@@ -56,6 +56,8 @@ namespace legged_locomotion_mpc
     const std::string& taskFile, const std::string& modelFile,
     const std::string& urdfFile)
   {
+    initialState_ = currentState;
+
     // Check that task file exists
     const boost::filesystem::path taskFilePath(taskFile);
     if (exists(taskFilePath)) 
@@ -232,6 +234,11 @@ namespace legged_locomotion_mpc
   PinocchioWeightCompensator& LeggedInterface::weightCompensator()
   {
     return *weightCompensator_;
+  }
+
+  const vector_t LeggedInterface::getInitialState() const
+  {
+    return initialState_;
   }
 
   void LeggedInterface::createHelperClasses()

@@ -13,7 +13,7 @@
 
 #include <floating_base_model/FactoryFunctions.hpp>
 
-#include <legged_locomotion_mpc/robot_interface/LeggedInterface.hpp>
+#include <legged_locomotion_mpc/robot_interface/LeggedLoopshapingInterface.hpp>
 
 #include <legged_locomotion_mpc/path_management/package_path.h>
 
@@ -35,6 +35,7 @@ int main(int argc, char* argv[])
   const std::string taskFilePath = configFilePath + "task.info";
   const std::string modelFilePath = configFilePath + "legged_model.info";
   const std::string urdfFilePath = meldogWithBaseLinkUrdfFile;
+  const std::string loopshapingFilePath = configFilePath + "loopshaping.info";
 
   const scalar_t initTime = 0.0;
 
@@ -46,7 +47,7 @@ int main(int argc, char* argv[])
   std::unique_ptr<TerrainModel> terrainModel = 
     std::make_unique<PlanarTerrainModel>(terrainPlane);
 
-  ocs2::PinocchioInterface interface = createPinocchioInterfaceFromUrdfFile(urdfFilePath, baseLink);
+  PinocchioInterface interface = createPinocchioInterfaceFromUrdfFile(urdfFilePath, baseLink);
   const FloatingBaseModelInfo modelInfo = createFloatingBaseModelInfo(interface, meldog3DofContactNames, meldog6DofContactNames);
 
   const vector2_t initPositionXY{0.0, 0.0};
@@ -65,8 +66,13 @@ int main(int argc, char* argv[])
   // access_helper_functions::getJointPositions(initialState, modelInfo) << 0, -0.62359877559, 1.0471975512, 0, -0.62359877559, 1.0471975512, 0, -0.62359877559, 1.0471975512, 0, -0.62359877559, 1.0471975512;
   access_helper_functions::getJointPositions(initialState, modelInfo) << 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326, 0, -0.785398163, 1.570796326;
 
-  LeggedInterface leggedInterface(initTime, initialState, 
-    std::move(terrainModel), taskFilePath, modelFilePath, urdfFilePath);
+  LeggedLoopshapingInterface loopShapingInterface = makeLeggedLoopshapingInterface(initTime, 
+    initialState, std::move(terrainModel), taskFilePath, modelFilePath, urdfFilePath, 
+    loopshapingFilePath);
+  
+  LeggedInterface& leggedInterface = loopShapingInterface.getLeggedInterface();
+
+  const auto loopshapeDefinition = *loopShapingInterface.getLoopshapingDefinition();
 
   auto& referenceManager = leggedInterface.getLeggedReferenceManager();
   
@@ -127,10 +133,10 @@ int main(int argc, char* argv[])
   const auto sqpSettings = leggedInterface.sqpSettings();
   const auto ddpSettings = leggedInterface.ddpSettings();
 
-  const auto& optimalProblem = leggedInterface.getOptimalControlProblem();
-  const auto& initializer = leggedInterface.getInitializer();
+  const auto& optimalProblem = loopShapingInterface.getOptimalControlProblem();
+  const auto& initializer = loopShapingInterface.getInitializer();
 
-  auto& rollout = leggedInterface.getRollout();
+  auto& rollout = loopShapingInterface.getRollout();
 
   auto& weightCompenator = leggedInterface.weightCompensator();
 
@@ -140,9 +146,9 @@ int main(int argc, char* argv[])
   // std::unique_ptr<MPC_BASE> mpcPtr = std::make_unique<SqpMpc>(mpcSettings, sqpSettings, 
   //   optimalProblem, initializer);
 
-  mpcPtr->getSolverPtr()->setReferenceManager(leggedInterface.getReferenceManagerPtr());
+  mpcPtr->getSolverPtr()->setReferenceManager(loopShapingInterface.getReferenceManagerPtr());
 
-  std::unique_ptr<ocs2::RolloutBase> rolloutPtr(rollout.clone());
+  std::unique_ptr<RolloutBase> rolloutPtr(rollout.clone());
 
   MPC_MRT_Interface mpcInterface(*mpcPtr);
 
@@ -150,10 +156,10 @@ int main(int argc, char* argv[])
   const contact_flags_t standingFlags(standingMode);
 
   // ====== Execute the scenario ========
-  ocs2::SystemObservation observation;
+  SystemObservation observation;
   observation.time = initTime;
-  observation.state = initialState;
-  observation.input = weightCompenator.getInput(initialState, standingFlags);
+  observation.state = loopShapingInterface.getInitialState();
+  observation.input = vector_t::Zero(Meldog::STATE_DIM);
 
   // Wait for the first policy
   mpcInterface.setCurrentObservation(observation);
@@ -183,21 +189,27 @@ int main(int argc, char* argv[])
   modeSchedule.clear();
   std::vector<PerformanceIndex> performances;
 
-  std::vector<ocs2::SystemObservation> observations;
+  std::vector<SystemObservation> observations;
   std::vector<contact_flags_t> contactFlags;
 
-  std::vector<ocs2::scalar_array_t> optimizedTimeTrajectories;
-  std::vector<ocs2::vector_array_t> optimizedStateTrajectories;
+  std::vector<scalar_array_t> optimizedTimeTrajectories;
+  std::vector<vector_array_t> optimizedStateTrajectories;
 
   while(observation.time < endTime) 
   {
     std::cout << "Time: " << observation.time << "\n";
-    observations.push_back(observation);
     try 
     {
       // run MPC at current observation
       mpcInterface.setCurrentObservation(observation);
-      referenceManager.updateObservation(observation);
+
+      SystemObservation systemObservation;
+      systemObservation.time = observation.time;
+      systemObservation.state = observation.state.head(Meldog::STATE_DIM);
+      systemObservation.input = loopshapeDefinition.getSystemInput(observation.state, observation.input);
+      referenceManager.updateObservation(systemObservation);
+
+      observations.push_back(systemObservation);
       
 
       if(observation.time > firstGaitTime && firstChange)
@@ -271,11 +283,19 @@ int main(int argc, char* argv[])
         mpcInterface.getPolicy().inputTrajectory_);
 
       optimizedTimeTrajectories.push_back(mpcInterface.getPolicy().timeTrajectory_);
-      optimizedStateTrajectories.push_back(mpcInterface.getPolicy().stateTrajectory_);
+      
+      vector_array_t systemStateTrajectory;
+      systemStateTrajectory.reserve(mpcInterface.getPolicy().stateTrajectory_.size());
+      for(const auto& state: mpcInterface.getPolicy().stateTrajectory_)
+      {
+        systemStateTrajectory.push_back(state.head(Meldog::STATE_DIM));
+      }
+      optimizedStateTrajectories.push_back(systemStateTrajectory);
 
       optimalTrajectory.timeTrajectory.push_back(observation.time);
-      optimalTrajectory.stateTrajectory.push_back(observation.state);
-      optimalTrajectory.inputTrajectory.push_back(observation.input);
+      optimalTrajectory.stateTrajectory.push_back(observation.state.head(Meldog::STATE_DIM));
+      optimalTrajectory.inputTrajectory.push_back(loopshapeDefinition.getSystemInput(
+        observation.state, observation.input));
 
 
       if(modeSchedule.modeSequence.empty()) 
