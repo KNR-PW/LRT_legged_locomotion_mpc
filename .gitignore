@@ -1,4 +1,4 @@
 .vscode
-build/
-tmp/
-include/legged_locomotion_mpc/path_management/package_path.h
+**/build/
+**/tmp/
+**/package_path.h
