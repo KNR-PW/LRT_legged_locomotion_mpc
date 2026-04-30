@@ -20,7 +20,7 @@ namespace terrain_model
     public:
       EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-      explicit PlanarSignedDistanceField(TerrainPlane terrainPlane);
+      PlanarSignedDistanceField(TerrainPlane terrainPlane);
       ~PlanarSignedDistanceField() override = default;
       
       PlanarSignedDistanceField* clone() const override;

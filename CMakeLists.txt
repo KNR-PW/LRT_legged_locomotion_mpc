@@ -21,6 +21,7 @@ set(THIS_PACKAGE_DEPENDS
     ocs2_core
     ocs2_robotic_tools
     grid_map_sdf
+    pcl_ros
     convex_plane_decomposition_ros
 )
 
@@ -43,6 +44,9 @@ add_library(${PROJECT_NAME}
   src/planar_model/PlanarSignedDistanceField.cpp
   src/planar_model/PlanarTerrainModel.cpp
   src/planar_model/PlanarFactoryFunctions.cpp
+
+  src/segmented_planes_model/SegmentedPlanesSignedDistanceField.cpp
+  src/segmented_planes_model/SegmentedPlanesTerrainModel.cpp
   
 )
 

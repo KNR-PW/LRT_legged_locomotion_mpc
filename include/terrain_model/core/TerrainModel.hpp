@@ -32,16 +32,14 @@ namespace terrain_model
       /** Penalty function needs to return values >= 0 */ 
       virtual TerrainPlane getLocalTerrainAtPositionInWorldAlongGravity(
         const vector3_t& positionInWorld,
-        std::function<ocs2::scalar_t(const vector3_t&)>
-        penaltyFunction) const = 0;
+        std::function<ocs2::scalar_t(const vector3_t&)> penaltyFunction) const = 0;
       
       ConvexTerrain getConvexTerrainAtPositionInWorld(const vector3_t& positionInWorld) const;
       
       /** Penalty function needs to return values >= 0 */
       virtual ConvexTerrain getConvexTerrainAtPositionInWorld(
         const vector3_t& positionInWorld,
-        std::function<ocs2::scalar_t(const vector3_t&)>
-        penaltyFunction) const;
+        std::function<ocs2::scalar_t(const vector3_t&)> penaltyFunction) const;
       
       /** Returns the signed distance field for this terrain if one is available */
       virtual const SignedDistanceField* getSignedDistanceField() const;

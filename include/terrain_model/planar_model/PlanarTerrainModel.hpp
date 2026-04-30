@@ -20,7 +20,7 @@ namespace terrain_model
     public:
       EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-      explicit PlanarTerrainModel(TerrainPlane terrainPlane);
+      PlanarTerrainModel(TerrainPlane terrainPlane);
 
       ~PlanarTerrainModel() override = default;
 
@@ -28,8 +28,7 @@ namespace terrain_model
 
       TerrainPlane getLocalTerrainAtPositionInWorldAlongGravity(
         const vector3_t& positionInWorld,
-        std::function<ocs2::scalar_t(const vector3_t&)>
-        penaltyFunction) const override;
+        std::function<ocs2::scalar_t(const vector3_t&)> penaltyFunction) const override;
 
       vector3_t getHighestObstacleAlongLine(
         const vector3_t& position1InWorld,
@@ -41,8 +40,7 @@ namespace terrain_model
 
       ConvexTerrain getConvexTerrainAtPositionInWorld(
         const vector3_t& positionInWorld,
-        std::function<ocs2::scalar_t(const vector3_t&)>
-        penaltyFunction) const override;
+        std::function<ocs2::scalar_t(const vector3_t&)> penaltyFunction) const override;
 
       const SignedDistanceField* getSignedDistanceField() const override;
 
