@@ -1,4 +1,4 @@
 .vscode
-build/
-tmp/
-include/floating_base_model/path_management/package_path.h
+**/build/
+**/tmp/
+**/package_path.h
