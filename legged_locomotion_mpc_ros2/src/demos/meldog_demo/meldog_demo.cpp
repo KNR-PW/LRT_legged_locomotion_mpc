@@ -1,5 +1,3 @@
-// #include "rclcpp/rclcpp.hpp"
-
 #include <ocs2_mpc/MPC_MRT_Interface.h>
 #include <ocs2_sqp/SqpMpc.h>
 #include <ocs2_ddp/GaussNewtonDDP_MPC.h>
@@ -15,11 +13,11 @@
 
 #include <legged_locomotion_mpc/robot_interface/LeggedLoopshapingInterface.hpp>
 
-#include <legged_locomotion_mpc/path_management/package_path.h>
+#include <legged_locomotion_mpc_ros2/path_management/package_path.h>
 
 #include <legged_locomotion_mpc/visualization/LeggedVisializer.hpp>
 
-#include "../../test/include/definitions.hpp"
+#include "../../../include/legged_locomotion_mpc_ros2/demos/meldog_demo/meldog_definitions.hpp"
 
 using namespace ocs2;
 using namespace terrain_model;
@@ -28,13 +26,15 @@ using namespace legged_locomotion_mpc;
 using namespace legged_locomotion_mpc::utils;
 using namespace legged_locomotion_mpc::locomotion;
 using namespace legged_locomotion_mpc::planners;
+using namespace legged_locomotion_mpc_ros2;
+using namespace legged_locomotion_mpc_ros2::meldog_definitions;
 
 int main(int argc, char* argv[]) 
 {
-  const std::string configFilePath = package_path::getPath() + "/demo/meldog_demo/config/";
+  const std::string configFilePath = configDirectory;
   const std::string taskFilePath = configFilePath + "task.info";
   const std::string modelFilePath = configFilePath + "legged_model.info";
-  const std::string urdfFilePath = meldogWithBaseLinkUrdfFile;
+  const std::string urdfFilePath = urdfFile;
   const std::string loopshapingFilePath = configFilePath + "loopshaping.info";
 
   const scalar_t initTime = 0.0;
@@ -48,7 +48,7 @@ int main(int argc, char* argv[])
     std::make_unique<PlanarTerrainModel>(terrainPlane);
 
   PinocchioInterface interface = createPinocchioInterfaceFromUrdfFile(urdfFilePath, baseLink);
-  const FloatingBaseModelInfo modelInfo = createFloatingBaseModelInfo(interface, meldog3DofContactNames, meldog6DofContactNames);
+  const FloatingBaseModelInfo modelInfo = createFloatingBaseModelInfo(interface, threeDofContactNames, sixDofContactNames);
 
   const vector2_t initPositionXY{0.0, 0.0};
 
@@ -60,7 +60,7 @@ int main(int argc, char* argv[])
   
   initialBasePosition.z() += baseSettings.initialBaseHeight / terrainPlane.getSurfaceNormalInWorld().z();
 
-  vector_t initialState = vector_t::Zero(Meldog::STATE_DIM);
+  vector_t initialState = vector_t::Zero(STATE_DIM);
   initialState.block<3,1>(6, 0) = initialBasePosition;
   initialState.block<3,1>(9, 0) = terrainEulerZyx;
   // access_helper_functions::getJointPositions(initialState, modelInfo) << 0, -0.62359877559, 1.0471975512, 0, -0.62359877559, 1.0471975512, 0, -0.62359877559, 1.0471975512, 0, -0.62359877559, 1.0471975512;
@@ -152,14 +152,14 @@ int main(int argc, char* argv[])
 
   MPC_MRT_Interface mpcInterface(*mpcPtr);
 
-  const size_t standingMode = ((0x01 << (4)) - 1);
+  const size_t standingMode = ((0x01 << (NUM_THREE_DOF_CONTACTS)) - 1);
   const contact_flags_t standingFlags(standingMode);
 
   // ====== Execute the scenario ========
   SystemObservation observation;
   observation.time = initTime;
   observation.state = loopShapingInterface.getInitialState();
-  observation.input = vector_t::Zero(Meldog::STATE_DIM);
+  observation.input = vector_t::Zero(INPUT_DIM);
 
   // Wait for the first policy
   mpcInterface.setCurrentObservation(observation);
@@ -205,7 +205,7 @@ int main(int argc, char* argv[])
 
       SystemObservation systemObservation;
       systemObservation.time = observation.time;
-      systemObservation.state = observation.state.head(Meldog::STATE_DIM);
+      systemObservation.state = observation.state.head(STATE_DIM);
       systemObservation.input = loopshapeDefinition.getSystemInput(observation.state, observation.input);
       referenceManager.updateObservation(systemObservation);
 
@@ -288,12 +288,12 @@ int main(int argc, char* argv[])
       systemStateTrajectory.reserve(mpcInterface.getPolicy().stateTrajectory_.size());
       for(const auto& state: mpcInterface.getPolicy().stateTrajectory_)
       {
-        systemStateTrajectory.push_back(state.head(Meldog::STATE_DIM));
+        systemStateTrajectory.push_back(state.head(STATE_DIM));
       }
       optimizedStateTrajectories.push_back(systemStateTrajectory);
 
       optimalTrajectory.timeTrajectory.push_back(observation.time);
-      optimalTrajectory.stateTrajectory.push_back(observation.state.head(Meldog::STATE_DIM));
+      optimalTrajectory.stateTrajectory.push_back(observation.state.head(STATE_DIM));
       optimalTrajectory.inputTrajectory.push_back(loopshapeDefinition.getSystemInput(
         observation.state, observation.input));
 

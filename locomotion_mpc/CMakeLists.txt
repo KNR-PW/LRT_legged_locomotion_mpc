@@ -21,30 +21,23 @@ configure_file(
 find_package(ament_cmake REQUIRED)
 
 set(THIS_PACKAGE_DEPENDS
-    ocs2_ddp
-    ocs2_mpc
-    ocs2_sqp
-    ocs2_ipm
-    ocs2_sphere_approximation
-    floating_base_model
-    terrain_model
-    multi_end_effector_kinematics
-
-    rclcpp
-    tf2_ros
-    sensor_msgs
-    visualization_msgs
-    geometry_msgs
-    ocs2_ros_interfaces
+  ocs2_ddp
+  ocs2_mpc
+  ocs2_sqp
+  ocs2_ipm
+  ocs2_sphere_approximation
+  floating_base_model
+  terrain_model
+  multi_end_effector_kinematics
 )
 
 set(FLAGS
-        ${OCS2_CXX_FLAGS}
-        ${pinocchio_CFLAGS_OTHER}
-        -Wno-ignored-attributes
-        -Wno-invalid-partial-specialization   # to silence warning with unsupported Eigen Tensor
-        -DPINOCCHIO_URDFDOM_TYPEDEF_SHARED_PTR
-        -DPINOCCHIO_URDFDOM_USE_STD_SHARED_PTR
+  ${OCS2_CXX_FLAGS}
+  ${pinocchio_CFLAGS_OTHER}
+  -Wno-ignored-attributes
+  -Wno-invalid-partial-specialization   # to silence warning with unsupported Eigen Tensor
+  -DPINOCCHIO_URDFDOM_TYPEDEF_SHARED_PTR
+  -DPINOCCHIO_URDFDOM_USE_STD_SHARED_PTR
 )
 
 foreach(Dependency IN ITEMS ${THIS_PACKAGE_DEPENDS})
@@ -114,32 +107,17 @@ add_library(${PROJECT_NAME}
 
   src/robot_interface/LeggedInterface.cpp
   src/robot_interface/LeggedLoopshapingInterface.cpp
-
-  src/visualization/LeggedVisualizer.cpp
 )
 
 target_include_directories(${PROJECT_NAME}
-        PUBLIC
-        "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
-        "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>"
+  PUBLIC
+  "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+  "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>"
 )
 
 ament_target_dependencies(${PROJECT_NAME} ${THIS_PACKAGE_DEPENDS})
 target_compile_options(${PROJECT_NAME} PUBLIC ${FLAGS})
 
-# Meldog demo
-add_executable(${PROJECT_NAME}_meldog_demo
-      demo/meldog_demo/meldog_demo.cpp
-)
-target_link_libraries(${PROJECT_NAME}_meldog_demo ${PROJECT_NAME})
-ament_target_dependencies(${PROJECT_NAME}_meldog_demo ${THIS_PACKAGE_DEPENDS})
-
-# Melman demo
-add_executable(${PROJECT_NAME}_melman_demo
-      demo/melman_demo/melman_demo.cpp
-)
-target_link_libraries(${PROJECT_NAME}_melman_demo ${PROJECT_NAME})
-ament_target_dependencies(${PROJECT_NAME}_melman_demo ${THIS_PACKAGE_DEPENDS})
 
 #########################
 ###   CLANG TOOLING   ###
@@ -147,25 +125,19 @@ ament_target_dependencies(${PROJECT_NAME}_melman_demo ${THIS_PACKAGE_DEPENDS})
 
 find_package(cmake_clang_tools QUIET)
 if(cmake_clang_tools_FOUND)
-    message(STATUS "Run clang tooling for target " ${PROJECT_NAME})
-    add_clang_tooling(
-            TARGETS ${PROJECT_NAME}
-            SOURCE_DIRS src include test
-            CT_HEADER_DIRS include
-            CF_WERROR
-    )
+  message(STATUS "Run clang tooling for target " ${PROJECT_NAME})
+  add_clang_tooling(
+    TARGETS ${PROJECT_NAME}
+    SOURCE_DIRS src include test
+    CT_HEADER_DIRS include
+    CF_WERROR
+  )
 endif (cmake_clang_tools_FOUND)
 
 
 #############
 ## Install ##
 #############
-
-install(TARGETS ${PROJECT_NAME}_meldog_demo
-    DESTINATION lib/${PROJECT_NAME})
-
-install(TARGETS ${PROJECT_NAME}_melman_demo
-    DESTINATION lib/${PROJECT_NAME})
 
 install(TARGETS
   ${PROJECT_NAME}
@@ -182,6 +154,7 @@ install(
 
 ament_export_dependencies(${THIS_PACKAGE_DEPENDS})
 ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
+
 
 if(BUILD_TESTING)
 

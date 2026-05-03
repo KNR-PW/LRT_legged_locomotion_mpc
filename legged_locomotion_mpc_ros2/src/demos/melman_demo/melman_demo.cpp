@@ -15,11 +15,11 @@
 
 #include <legged_locomotion_mpc/robot_interface/LeggedInterface.hpp>
 
-#include <legged_locomotion_mpc/path_management/package_path.h>
+#include <legged_locomotion_mpc_ros2/path_management/package_path.h>
 
 #include <legged_locomotion_mpc/visualization/LeggedVisializer.hpp>
 
-#include "../../test/include/definitions.hpp"
+#include "../../../include/legged_locomotion_mpc_ros2/demos/melman_demo/melman_definitions.hpp"
 
 using namespace ocs2;
 using namespace terrain_model;
@@ -28,13 +28,15 @@ using namespace legged_locomotion_mpc;
 using namespace legged_locomotion_mpc::utils;
 using namespace legged_locomotion_mpc::locomotion;
 using namespace legged_locomotion_mpc::planners;
+using namespace legged_locomotion_mpc_ros2;
+using namespace legged_locomotion_mpc_ros2::melman_definitions;
 
 int main(int argc, char* argv[]) 
 {
-  const std::string configFilePath = package_path::getPath() + "/demo/melman_demo/config/";
+  const std::string configFilePath = configDirectory;
   const std::string taskFilePath = configFilePath + "task.info";
   const std::string modelFilePath = configFilePath + "legged_model.info";
-  const std::string urdfFilePath = legged_locomotion_mpc::package_path::getPath() + "/test/test_models/melman.urdf";
+  const std::string urdfFilePath = urdfFile;
 
   const scalar_t initTime = 0.0;
 
@@ -46,21 +48,8 @@ int main(int argc, char* argv[])
   std::unique_ptr<TerrainModel> terrainModel = 
     std::make_unique<PlanarTerrainModel>(terrainPlane);
 
-  const std::string melmanBaseLink = "Trunk";
-  const std::vector<std::string> melmanEndEffectors6Dof{"Right_Foot", "Left_Foot"};
-  std::vector<std::string> melmanEndEffectors3Dof;
-
-  ocs2::PinocchioInterface interface = createPinocchioInterfaceFromUrdfFile(urdfFilePath, melmanBaseLink);
-  const FloatingBaseModelInfo modelInfo = createFloatingBaseModelInfo(interface, melmanEndEffectors3Dof, melmanEndEffectors6Dof);
-
-  std::cerr << modelInfo << std::endl;
-
-  const auto& model = interface.getModel();
-
-  for(size_t i = 0; i < model.names.size(); ++i)
-  {
-    std::cerr << i << ": " << model.names[i] << std::endl;
-  }
+  ocs2::PinocchioInterface interface = createPinocchioInterfaceFromUrdfFile(urdfFilePath, baseLink);
+  const FloatingBaseModelInfo modelInfo = createFloatingBaseModelInfo(interface, threeDofContactNames, sixDofContactNames);
 
   const vector2_t initPositionXY{0.0, 0.0};
 
@@ -72,7 +61,7 @@ int main(int argc, char* argv[])
   
   initialBasePosition.z() += baseSettings.initialBaseHeight / terrainPlane.getSurfaceNormalInWorld().z();
 
-  vector_t initialState = vector_t::Zero(30);
+  vector_t initialState = vector_t::Zero(STATE_DIM);
   initialState.block<3,1>(6, 0) = initialBasePosition;
   initialState.block<3,1>(9, 0) = terrainEulerZyx;
   access_helper_functions::getJointPositions(initialState, modelInfo) << 0.78539816339, 1e-6, 2 * 0.78539816339, 1e-6, 1e-6, 0.4, -0.8, 0.4, 1e-6, 0.78539816339, 1e-6, 2 * 0.78539816339, 1e-6, 1e-6, 0.4, -0.8, 0.4, 1e-6;
@@ -159,7 +148,7 @@ int main(int argc, char* argv[])
 
   MPC_MRT_Interface mpcInterface(*mpcPtr);
 
-  const size_t standingMode = ((0x01 << (2)) - 1);
+  const size_t standingMode = ((0x01 << (NUM_SIX_DOF_CONTACTS)) - 1);
   const contact_flags_t standingFlags(standingMode);
 
   // ====== Execute the scenario ========
@@ -389,8 +378,6 @@ int main(int argc, char* argv[])
         rclcpp::sleep_for(durationNanoseconds);
         visualizationTime = observations[visualizationIndex].time;
       }
-
-
     }
   }
   

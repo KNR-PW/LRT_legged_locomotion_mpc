@@ -13,6 +13,7 @@
   <exec_depend>legged_locomotion_mpc</exec_depend>
   <exec_depend>floating_base_model</exec_depend>
   <exec_depend>terrain_model</exec_depend>
+  <exec_depend>legged_locomotion_mpc_ros2</exec_depend>
 
   <export>
     <build_type>ament_cmake</build_type>
