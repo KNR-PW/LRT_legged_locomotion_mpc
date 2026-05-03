@@ -20,6 +20,10 @@ namespace terrain_model
     public:
       EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
+      // Static const parameters for GridMap representation of plane terrain
+      static constexpr ocs2::scalar_t GRIDMAP_LENGTH = 3.0;     // [m]
+      static constexpr ocs2::scalar_t GRIDMAP_RESOLUTION = 0.5; // [m/cell]
+
       PlanarTerrainModel(TerrainPlane terrainPlane);
 
       ~PlanarTerrainModel() override = default;
@@ -46,10 +50,13 @@ namespace terrain_model
 
       vector3_t getSmoothedPositon(const vector2_t& positionXYInWorld) const override;
 
+      const grid_map::GridMap& getGridMapTerrain() const override;
+
     private:
 
       TerrainPlane terrainPlane_;
       PlanarSignedDistanceField sdf_;
+      grid_map::GridMap gridMap_;
   };
 }; // namespace terrain_model
 

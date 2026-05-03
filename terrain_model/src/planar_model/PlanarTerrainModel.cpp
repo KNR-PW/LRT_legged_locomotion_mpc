@@ -12,8 +12,36 @@ namespace terrain_model
   /******************************************************************************************************/
   /******************************************************************************************************/
   /******************************************************************************************************/
-  PlanarTerrainModel::PlanarTerrainModel(TerrainPlane terrainPlane)
-    : terrainPlane_(terrainPlane), sdf_(std::move(terrainPlane)) {}
+  PlanarTerrainModel::PlanarTerrainModel(TerrainPlane terrainPlane): 
+    terrainPlane_(terrainPlane), sdf_(std::move(terrainPlane)) 
+  {
+    // Prepare gridMap
+    const auto& terrainPosition3D = terrainPlane_.getPosition();
+    const grid_map::Position gridMapPosition{terrainPosition3D.x(), terrainPosition3D.y()};
+    const grid_map::Length gridMapLength{GRIDMAP_LENGTH, GRIDMAP_LENGTH};
+    gridMap_.setGeometry(gridMapLength, GRIDMAP_RESOLUTION, gridMapPosition);
+
+    const size_t matrixSize = static_cast<size_t>(GRIDMAP_LENGTH / GRIDMAP_RESOLUTION);
+
+    Eigen::MatrixXf data(matrixSize, matrixSize);
+
+    vector2_t currentPosition = gridMapPosition;
+    currentPosition.array() += 
+      (matrixSize - 1) / (2 * matrixSize) * GRIDMAP_LENGTH;
+
+    for(size_t i = 0; i < matrixSize; ++i)
+    {
+      for(size_t j = 0; j < matrixSize; ++j)
+      {
+        data(i, j) = terrainPlane_.projectPositionInWorldOntoPlaneAlongGravity(
+          currentPosition).z();
+        currentPosition(1) -= GRIDMAP_LENGTH / matrixSize;
+      }
+      currentPosition(1) += GRIDMAP_LENGTH;
+      currentPosition(0) -= GRIDMAP_LENGTH / matrixSize;
+    }
+    gridMap_.add(elevationLayerName, data);
+  }
 
    /******************************************************************************************************/
   /******************************************************************************************************/
@@ -98,5 +126,13 @@ namespace terrain_model
   vector3_t PlanarTerrainModel::getSmoothedPositon(const vector2_t& positionXYInWorld) const
   {
     return terrainPlane_.projectPositionInWorldOntoPlaneAlongGravity(positionXYInWorld);
+  }
+
+  /******************************************************************************************************/
+  /******************************************************************************************************/
+  /******************************************************************************************************/
+  const grid_map::GridMap& PlanarTerrainModel::getGridMapTerrain() const
+  {
+    return gridMap_;
   }
 } // namespace terrain_model

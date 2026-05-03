@@ -6,6 +6,8 @@
 #ifndef __TERRAIN_MODEL_TERRAIN_MODEL__
 #define __TERRAIN_MODEL_TERRAIN_MODEL__
 
+#include <grid_map_core/GridMap.hpp>
+
 #include <terrain_model/core/Types.hpp>
 #include <terrain_model/core/SignedDistanceField.hpp>
 #include <terrain_model/core/TerrainPlane.hpp>
@@ -61,7 +63,13 @@ namespace terrain_model
        * value in world frame.
        */
       virtual vector3_t getSmoothedPositon(const vector2_t& positionXYInWorld) const = 0;
-  };
+        
+      /**
+       * Get const reference of GridMap representation of terrain model.
+       * Data is stored in "elevation" layer
+       */
+      virtual const grid_map::GridMap& getGridMapTerrain() const = 0;
+    };
 }; // namespace terrain_model
 
 #endif

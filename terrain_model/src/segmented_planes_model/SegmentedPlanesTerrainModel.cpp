@@ -17,10 +17,6 @@ namespace terrain_model
   using namespace ocs2;
   using namespace grid_map;
   using namespace convex_plane_decomposition;
-  namespace
-  {
-      const std::string elevationLayerName = "elevation";
-  } // namespace
   /******************************************************************************************************/
   /******************************************************************************************************/
   /******************************************************************************************************/
@@ -202,6 +198,14 @@ namespace terrain_model
         grid_map::InterpolationMethods::INTER_NEAREST);
       return vector3_t(positionXYInWorld.x(), positionXYInWorld.y(), z);
     }
+  }
+
+  /******************************************************************************************************/
+  /******************************************************************************************************/
+  /******************************************************************************************************/
+  const grid_map::GridMap& SegmentedPlanesTerrainModel::getGridMapTerrain() const
+  {
+    return planarTerrain_.gridMap;
   }
 
   /******************************************************************************************************/

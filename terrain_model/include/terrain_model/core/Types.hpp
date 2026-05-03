@@ -46,6 +46,8 @@ namespace terrain_model
   using vector6_t = Eigen::Matrix<ocs2::scalar_t, 6, 1>;
   using matrix6_t = Eigen::Matrix<ocs2::scalar_t, 6, 6>;
   using quaternion_t = Eigen::Quaternion<ocs2::scalar_t>;
+
+  const std::string elevationLayerName = "elevation";
 };
 
 #endif

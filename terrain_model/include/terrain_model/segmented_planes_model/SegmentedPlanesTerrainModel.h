@@ -44,6 +44,8 @@ namespace terrain_model
 
       vector3_t getSmoothedPositon(const vector2_t& positionXYInWorld) const override;
 
+      const grid_map::GridMap& getGridMapTerrain() const override;
+
     private:
       void createSignedDistanceBetween(const Eigen::Vector3d& minCoordinates,
         const Eigen::Vector3d& maxCoordinates);
