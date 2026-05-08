@@ -17,7 +17,7 @@
 
 #include <legged_locomotion_mpc_ros2/path_management/package_path.h>
 
-#include <legged_locomotion_mpc/visualization/LeggedVisializer.hpp>
+#include <legged_locomotion_mpc_ros2/visualization/LeggedVisualizer.hpp>
 
 #include "../../../include/legged_locomotion_mpc_ros2/demos/melman_demo/melman_definitions.hpp"
 
@@ -345,13 +345,13 @@ int main(int argc, char* argv[])
 
   rclcpp::init(argc, argv);
 
-  const auto visualizerSettings = ros::LeggedVisualizer::Settings();
+  const auto visualizerSettings = LeggedVisualizer::Settings();
   const auto modelSettings = leggedInterface.modelSettings();
   const auto& forwardKinematics = leggedInterface.forwardKinematics();
   const auto& torqueApproximator = leggedInterface.torqueApproximator();
   const auto& robotModel = leggedInterface.pinocchioInterface().getModel();
 
-  const auto leggedVisualizer = std::make_shared<ros::LeggedVisualizer>(visualizerSettings, 
+  const auto leggedVisualizer = std::make_shared<LeggedVisualizer>(visualizerSettings, 
     modelSettings, modelInfo, robotModel, forwardKinematics, torqueApproximator);
 
   while(true)

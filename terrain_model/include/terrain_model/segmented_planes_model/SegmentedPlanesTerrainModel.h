@@ -19,7 +19,8 @@ namespace terrain_model
     public:
 
       SegmentedPlanesTerrainModel(
-        convex_plane_decomposition::PlanarTerrain planarTerrain);
+        convex_plane_decomposition::PlanarTerrain planarTerrain, 
+        std::string referenceFrameName = "world");
 
       SegmentedPlanesTerrainModel(
         convex_plane_decomposition::PlanarTerrain&& planarTerrain);
@@ -53,7 +54,7 @@ namespace terrain_model
       std::pair<Eigen::Vector3d, Eigen::Vector3d> getSignedDistanceRange(
         const grid_map::GridMap& gridMap, const std::string& elevationLayer);
 
-      const convex_plane_decomposition::PlanarTerrain planarTerrain_;
+      convex_plane_decomposition::PlanarTerrain planarTerrain_;
       std::unique_ptr<SegmentedPlanesSignedDistanceField> signedDistanceField_;
       const grid_map::Matrix* const elevationData_;
   };

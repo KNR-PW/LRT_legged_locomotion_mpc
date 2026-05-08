@@ -15,7 +15,9 @@
 
 #include <legged_locomotion_mpc_ros2/path_management/package_path.h>
 
-#include <legged_locomotion_mpc/visualization/LeggedVisializer.hpp>
+#include <legged_locomotion_mpc_ros2/visualization/LeggedVisualizer.hpp>
+
+#include <legged_locomotion_mpc/common/ModelSettings.hpp>
 
 #include "../../../include/legged_locomotion_mpc_ros2/demos/meldog_demo/meldog_definitions.hpp"
 
@@ -44,8 +46,10 @@ int main(int argc, char* argv[])
 
   TerrainPlane terrainPlane(vector3_t::Zero(), terrainRotation.transpose());
 
+  const auto modelSettings = loadModelSettings(modelFilePath);
+
   std::unique_ptr<TerrainModel> terrainModel = 
-    std::make_unique<PlanarTerrainModel>(terrainPlane);
+    std::make_unique<PlanarTerrainModel>(terrainPlane, modelSettings.worldLinkName);
 
   PinocchioInterface interface = createPinocchioInterfaceFromUrdfFile(urdfFilePath, baseLink);
   const FloatingBaseModelInfo modelInfo = createFloatingBaseModelInfo(interface, threeDofContactNames, sixDofContactNames);
@@ -195,6 +199,8 @@ int main(int argc, char* argv[])
   std::vector<scalar_array_t> optimizedTimeTrajectories;
   std::vector<vector_array_t> optimizedStateTrajectories;
 
+  std::vector<std::unique_ptr<PlanarTerrainModel>> terrainModels;
+
   while(observation.time < endTime) 
   {
     std::cout << "Time: " << observation.time << "\n";
@@ -208,6 +214,21 @@ int main(int argc, char* argv[])
       systemObservation.state = observation.state.head(STATE_DIM);
       systemObservation.input = loopshapeDefinition.getSystemInput(observation.state, observation.input);
       referenceManager.updateObservation(systemObservation);
+
+      vector3_t currentTerrainPosition = observation.state.block<3, 1>(6, 0);
+      currentTerrainPosition.z() = 0.0;
+
+      terrainPlane = TerrainPlane(currentTerrainPosition, terrainRotation.transpose());
+
+      terrainModel = 
+        std::make_unique<PlanarTerrainModel>(terrainPlane, modelSettings.worldLinkName);
+
+      auto terrainModelCopy = 
+        std::make_unique<PlanarTerrainModel>(terrainPlane, modelSettings.worldLinkName);
+
+      terrainModels.push_back(std::move(terrainModelCopy));
+
+      referenceManager.updateTerrainModel(std::move(terrainModel));
 
       observations.push_back(systemObservation);
       
@@ -360,13 +381,12 @@ int main(int argc, char* argv[])
 
   rclcpp::init(argc, argv);
 
-  const auto visualizerSettings = ros::LeggedVisualizer::Settings();
-  const auto modelSettings = leggedInterface.modelSettings();
+  const auto visualizerSettings = LeggedVisualizer::Settings();
   const auto& forwardKinematics = leggedInterface.forwardKinematics();
   const auto& torqueApproximator = leggedInterface.torqueApproximator();
   const auto& robotModel = leggedInterface.pinocchioInterface().getModel();
 
-  const auto leggedVisualizer = std::make_shared<ros::LeggedVisualizer>(visualizerSettings, 
+  const auto leggedVisualizer = std::make_shared<LeggedVisualizer>(visualizerSettings, 
     modelSettings, modelInfo, robotModel, forwardKinematics, torqueApproximator);
 
   while(true)
@@ -377,6 +397,7 @@ int main(int argc, char* argv[])
     {
       const auto currentTimeStamp = leggedVisualizer->now();
       leggedVisualizer->publishObservation(currentTimeStamp, observations[visualizationIndex]);
+      leggedVisualizer->publishTerrainModel(*terrainModels[visualizationIndex]);
       if(visualizationIndex < optimizedTimeTrajectories.size())
       {
         leggedVisualizer->publishOptimizedTrajectory(currentTimeStamp, 
@@ -393,8 +414,6 @@ int main(int argc, char* argv[])
         rclcpp::sleep_for(durationNanoseconds);
         visualizationTime = observations[visualizationIndex].time;
       }
-
-
     }
   }
   

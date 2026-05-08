@@ -30,6 +30,8 @@
 
 #include <floating_base_model/FloatingBaseModelInfo.hpp>
 
+#include <terrain_model/core/TerrainModel.hpp>
+
 #include <legged_locomotion_mpc/common/Types.hpp>
 #include <legged_locomotion_mpc/common/ModelSettings.hpp>
 #include <legged_locomotion_mpc/kinematics/PinocchioForwardEndEffectorKinematicsCppAd.hpp>
@@ -41,6 +43,8 @@
 #include <visualization_msgs/msg/marker.hpp>
 #include <visualization_msgs/msg/marker_array.hpp>
 #include <geometry_msgs/msg/twist_stamped.hpp>
+
+#include <grid_map_ros/GridMapRosConverter.hpp>
 
 namespace legged_locomotion_mpc_ros2
 {
@@ -86,11 +90,13 @@ namespace legged_locomotion_mpc_ros2
       };
 
       LeggedVisualizer(Settings visualizationSettings,
-        ModelSettings modelSettings,
+        legged_locomotion_mpc::ModelSettings modelSettings,
         floating_base_model::FloatingBaseModelInfo modelInfo,
         const pinocchio::Model& robotModel, 
-        const PinocchioForwardEndEffectorKinematicsCppAd& forwardKinematics, 
-        const PinocchioTorqueApproximationCppAd& torqueApproximator);
+        const legged_locomotion_mpc::PinocchioForwardEndEffectorKinematicsCppAd& 
+          forwardKinematics, 
+        const legged_locomotion_mpc::PinocchioTorqueApproximationCppAd& 
+          torqueApproximator);
 
       void publishObservation(const rclcpp::Time& timeStamp, 
         const ocs2::SystemObservation& currentObservation);
@@ -102,6 +108,8 @@ namespace legged_locomotion_mpc_ros2
         const ocs2::scalar_array_t& optimizedTimeTrajectory,
         const ocs2::vector_array_t& optimizedStateTrajectory);
 
+      void publishTerrainModel(const terrain_model::TerrainModel& terrainModel);
+
     private:
 
       void publishJointStates(const rclcpp::Time& timeStamp, 
@@ -109,42 +117,56 @@ namespace legged_locomotion_mpc_ros2
         const ocs2::vector_t& jointTorques);
       
       void publishBaseTransform(const rclcpp::Time& timeStamp, std::string frameName, 
-        const vector3_t& basePositon, const vector3_t& baseEulerAngles);
+        const legged_locomotion_mpc::vector3_t& basePositon, 
+        const legged_locomotion_mpc::vector3_t& baseEulerAngles);
 
       void publishBaseTransform(const rclcpp::Time& timeStamp,  
-        const vector3_t& basePositon, const vector3_t& baseEulerAngles);
+        const legged_locomotion_mpc::vector3_t& basePositon, 
+        const legged_locomotion_mpc::vector3_t& baseEulerAngles);
 
       void publishBaseTwist(const rclcpp::Time& timeStamp, 
-        const vector3_t& baseLinearVelocity, const vector3_t& baseAngularVelocity);
+        const legged_locomotion_mpc::vector3_t& baseLinearVelocity, 
+        const legged_locomotion_mpc::vector3_t& baseAngularVelocity);
 
       void publishEndEffectorMarkers(const rclcpp::Time& timeStamp, 
-        const contact_flags_t& contactFlags,
-        const std::vector<vector3_t>& endEffectorPositions,
-        const std::vector<vector3_t>& endEffectorForces, 
-        const std::vector<vector3_t>& endEffectorTorques);
+        const legged_locomotion_mpc::contact_flags_t& contactFlags,
+        const std::vector<legged_locomotion_mpc::vector3_t>& endEffectorPositions,
+        const std::vector<legged_locomotion_mpc::vector3_t>& endEffectorForces, 
+        const std::vector<legged_locomotion_mpc::vector3_t>& endEffectorTorques);
       
       const Settings visualizationSettings_;
-      const ModelSettings modelSettings_;
+      const legged_locomotion_mpc::ModelSettings modelSettings_;
       const floating_base_model::FloatingBaseModelInfo modelInfo_;
       const std::string robotName_;
       std::vector<std::string> jointNames_;
 
       std::shared_ptr<tf2_ros::TransformBroadcaster> baseTransformBroadcaster_;
+      
       rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr baseTwistPublisher_;
+
       rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr jointStatePublisher_;
+
       rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr 
         desiredBasePositionPublisher_;
+
       std::vector<rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr>
         desiredEndEffectorDataPublishers_;
+
       rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr 
         optimizedBasePositionPublisher_;
+
       std::vector<rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr>
         optimizedEndEffectorDataPublishers_;
+        
       rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr
         currentStatePublisher_; 
 
-      const PinocchioForwardEndEffectorKinematicsCppAd forwardKinematics_;
-      const PinocchioTorqueApproximationCppAd torqueApproximator_;
+      rclcpp::Publisher<grid_map_msgs::msg::GridMap>::SharedPtr gridMapPublisher_;
+
+      const legged_locomotion_mpc::PinocchioForwardEndEffectorKinematicsCppAd 
+        forwardKinematics_;
+      const legged_locomotion_mpc::PinocchioTorqueApproximationCppAd 
+        torqueApproximator_;
   };
 } // namespace legged_locomotion_mpc_ros2
 

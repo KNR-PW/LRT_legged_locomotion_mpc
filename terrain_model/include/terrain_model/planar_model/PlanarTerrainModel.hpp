@@ -24,7 +24,8 @@ namespace terrain_model
       static constexpr ocs2::scalar_t GRIDMAP_LENGTH = 3.0;     // [m]
       static constexpr ocs2::scalar_t GRIDMAP_RESOLUTION = 0.5; // [m/cell]
 
-      PlanarTerrainModel(TerrainPlane terrainPlane);
+      PlanarTerrainModel(TerrainPlane terrainPlane, 
+        std::string referenceFrameName = "world");
 
       ~PlanarTerrainModel() override = default;
 

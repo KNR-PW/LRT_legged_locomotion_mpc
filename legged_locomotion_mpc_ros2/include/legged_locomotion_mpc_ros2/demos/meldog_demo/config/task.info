@@ -63,15 +63,15 @@ ddp
   minRelCost                      1e-1
   constraintTolerance             5e-3
 
-  displayInfo                     true
-  displayShortSummary             true
-  checkNumericalStability         true
-  debugPrintRollout               true
+  displayInfo                     false
+  displayShortSummary             false
+  checkNumericalStability         false
+  debugPrintRollout               false
 
   AbsTolODE                       1e-5
   RelTolODE                       1e-3
-  maxNumStepsPerSecond            10000
-  timeStep                        0.005
+  maxNumStepsPerSecond            1000
+  timeStep                        0.01
   backwardPassIntegratorType      ODE45
 
   constraintPenaltyInitialValue   20.0
@@ -96,15 +96,15 @@ rollout
 {
   AbsTolODE                       1e-5
   RelTolODE                       1e-3
-  timeStep                        0.005
+  timeStep                        0.01
   integratorType                  ODE45
-  maxNumStepsPerSecond            10000
-  checkNumericalStability         true
+  maxNumStepsPerSecond            1000
+  checkNumericalStability         false
 }
 
 mpc
 {
-  timeHorizon                     3.0  ; [s]
+  timeHorizon                     1.0  ; [s]
   solutionTimeWindow              -1   ; maximum [s]
   coldStart                       false
 

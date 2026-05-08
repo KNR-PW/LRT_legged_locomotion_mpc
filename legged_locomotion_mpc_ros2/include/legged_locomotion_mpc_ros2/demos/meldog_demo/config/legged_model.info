@@ -38,11 +38,11 @@ legged_interface_settings
 
   useNormalVelocityConstraint             true
 
-  useForceFrictionConeSoftConstraint          true
+  useForceFrictionConeSoftConstraint      true
   useZero3DofVelocityConstraint           true
   useZeroForceConstraint                  true
 
-  useWrenchFrictionConeSoftConstraint         false
+  useWrenchFrictionConeSoftConstraint     false
   useZero6DofVelocityConstraint           false
   useZeroWrenchConstraint                 false
 
@@ -52,7 +52,7 @@ legged_interface_settings
   useTerrainAvoidanceSoftConstraint       true
   useSelfCollisionAvoidanceSoftConstraint false
 
-  useNormalOrientationSoftConstraint   false
+  useNormalOrientationSoftConstraint      false
 }
 
 base_planner_static_settings
@@ -429,62 +429,62 @@ joint_torque_weights
 {
   LFT_joint
   {
-    torqueWeight 0.05
+    torqueWeight 0.5
   }
 
   LFH_joint
   {
-    torqueWeight 0.05
+    torqueWeight 0.5
   }
 
   LFK_joint
   {
-    torqueWeight 0.05
+    torqueWeight 0.5
   }
 
   LRT_joint
   {
-    torqueWeight 0.05
+    torqueWeight 0.5
   }
 
   LRH_joint
   {
-    torqueWeight 0.05
+    torqueWeight 0.5
   }
 
   LRK_joint
   {
-    torqueWeight 0.05
+    torqueWeight 0.5
   }
 
   RFT_joint
   {
-    torqueWeight 0.05
+    torqueWeight 0.5
   }
 
   RFH_joint
   {
-    torqueWeight 0.05
+    torqueWeight 0.5
   }
 
   RFK_joint
   {
-    torqueWeight 0.05
+    torqueWeight 0.5
   }
 
   RRT_joint
   {
-    torqueWeight 0.05
+    torqueWeight 0.5
   }
 
   RRH_joint
   {
-    torqueWeight 0.05
+    torqueWeight 0.5
   }
 
   RRK_joint
   {
-    torqueWeight 0.05
+    torqueWeight 0.5
   }
 }
 
@@ -498,7 +498,7 @@ over_extension_penalty_settings
 reference_manager_settings
 {
   maximumReferenceSampleInterval 0.05
-  gaitUpdateOffset               0.1
+  gaitUpdateOffset               0.15
   threaded                       false
 }
 

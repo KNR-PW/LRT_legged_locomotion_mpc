@@ -22,7 +22,9 @@ namespace terrain_model
   {
     public:
     
-      TerrainModel() = default;
+      TerrainModel(std::string referenceFrameName = "world"): 
+        referenceFrameName_(std::move(referenceFrameName)) {}
+
       virtual ~TerrainModel() = default;
 
       virtual TerrainModel* clone() const = 0;
@@ -69,6 +71,13 @@ namespace terrain_model
        * Data is stored in "elevation" layer
        */
       virtual const grid_map::GridMap& getGridMapTerrain() const = 0;
+
+      protected:
+
+        /** 
+         * Name of the frame that terrain position is relative to
+         */
+        std::string referenceFrameName_;
     };
 }; // namespace terrain_model
 

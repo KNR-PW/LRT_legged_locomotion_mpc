@@ -12,13 +12,16 @@ namespace terrain_model
   /******************************************************************************************************/
   /******************************************************************************************************/
   /******************************************************************************************************/
-  PlanarTerrainModel::PlanarTerrainModel(TerrainPlane terrainPlane): 
-    terrainPlane_(terrainPlane), sdf_(std::move(terrainPlane)) 
+  PlanarTerrainModel::PlanarTerrainModel(TerrainPlane terrainPlane, 
+    std::string referenceFrameName): 
+      TerrainModel(std::move(referenceFrameName)), 
+      terrainPlane_(terrainPlane), sdf_(std::move(terrainPlane)) 
   {
     // Prepare gridMap
     const auto& terrainPosition3D = terrainPlane_.getPosition();
     const grid_map::Position gridMapPosition{terrainPosition3D.x(), terrainPosition3D.y()};
     const grid_map::Length gridMapLength{GRIDMAP_LENGTH, GRIDMAP_LENGTH};
+    gridMap_.setFrameId(referenceFrameName_);
     gridMap_.setGeometry(gridMapLength, GRIDMAP_RESOLUTION, gridMapPosition);
 
     const size_t matrixSize = static_cast<size_t>(GRIDMAP_LENGTH / GRIDMAP_RESOLUTION);
