@@ -47,6 +47,7 @@ add_library(${PROJECT_NAME}
 
   src/segmented_planes_model/SegmentedPlanesSignedDistanceField.cpp
   src/segmented_planes_model/SegmentedPlanesTerrainModel.cpp
+  src/segmented_planes_model/SegmentedPlanesFactoryFunctions.cpp
   
 )
 

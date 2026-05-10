@@ -23,7 +23,8 @@ namespace terrain_model
         std::string referenceFrameName = "world");
 
       SegmentedPlanesTerrainModel(
-        convex_plane_decomposition::PlanarTerrain&& planarTerrain);
+        convex_plane_decomposition::PlanarTerrain&& planarTerrain, 
+        std::string referenceFrameName = "world");
 
       TerrainPlane getLocalTerrainAtPositionInWorldAlongGravity(
         const vector3_t& positionInWorld,

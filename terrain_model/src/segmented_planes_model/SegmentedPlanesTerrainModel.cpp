@@ -36,10 +36,12 @@ namespace terrain_model
   /******************************************************************************************************/
   /******************************************************************************************************/
   SegmentedPlanesTerrainModel::SegmentedPlanesTerrainModel(
-    PlanarTerrain&& planarTerrain): planarTerrain_(std::move(planarTerrain)),
+    PlanarTerrain&& planarTerrain, std::string referenceFrameName): 
+    planarTerrain_(std::move(planarTerrain)),
       signedDistanceField_(nullptr),
       elevationData_(&planarTerrain_.gridMap.get(elevationLayerName))
   {
+    planarTerrain_.gridMap.setFrameId(referenceFrameName_);
     const auto ranges = getSignedDistanceRange(planarTerrain_.gridMap, elevationLayerName);
     createSignedDistanceBetween(ranges.first, ranges.second);
   }
