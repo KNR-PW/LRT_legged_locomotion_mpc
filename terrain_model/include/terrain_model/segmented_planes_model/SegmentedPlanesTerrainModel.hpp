@@ -8,7 +8,7 @@
 
 #include <terrain_model/core/Types.hpp>
 #include <terrain_model/core/TerrainModel.hpp>
-#include <terrain_model/segmented_planes_model/SegmentedPlanesSignedDistanceField.h>
+#include <terrain_model/segmented_planes_model/SegmentedPlanesSignedDistanceField.hpp>
 
 #include <convex_plane_decomposition/PlanarRegion.h>
 

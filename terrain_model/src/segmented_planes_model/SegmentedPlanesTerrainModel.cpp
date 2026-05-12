@@ -3,7 +3,7 @@
 // Modified by Bartłomiej Krajewski (https://github.com/BartlomiejK2) on 30.04.2026
 //
 
-#include <terrain_model/segmented_planes_model/SegmentedPlanesTerrainModel.h>
+#include <terrain_model/segmented_planes_model/SegmentedPlanesTerrainModel.hpp>
 
 #include <algorithm>
 

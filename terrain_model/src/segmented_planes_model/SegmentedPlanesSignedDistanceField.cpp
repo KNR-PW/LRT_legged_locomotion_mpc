@@ -1,4 +1,4 @@
-#include <terrain_model/segmented_planes_model/SegmentedPlanesSignedDistanceField.h>
+#include <terrain_model/segmented_planes_model/SegmentedPlanesSignedDistanceField.hpp>
 
 namespace terrain_model
 {
