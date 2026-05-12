@@ -21,9 +21,9 @@ namespace terrain_model
   /******************************************************************************************************/
   /******************************************************************************************************/
   SegmentedPlanesTerrainModel::SegmentedPlanesTerrainModel(
-    PlanarTerrain planarTerrain, std::string referenceFrameName): 
+    const PlanarTerrain& planarTerrain, std::string referenceFrameName): 
       TerrainModel(std::move(referenceFrameName)),
-      planarTerrain_(std::move(planarTerrain)), 
+      planarTerrain_(planarTerrain), 
       signedDistanceField_(nullptr),
       elevationData_(&planarTerrain_.gridMap.get(elevationLayerName))
   {
@@ -44,6 +44,14 @@ namespace terrain_model
     planarTerrain_.gridMap.setFrameId(referenceFrameName_);
     const auto ranges = getSignedDistanceRange(planarTerrain_.gridMap, elevationLayerName);
     createSignedDistanceBetween(ranges.first, ranges.second);
+  }
+
+  /******************************************************************************************************/
+  /******************************************************************************************************/
+  /******************************************************************************************************/
+  SegmentedPlanesTerrainModel* SegmentedPlanesTerrainModel::clone() const
+  {
+    return new SegmentedPlanesTerrainModel(*this);
   }
   
   /******************************************************************************************************/
@@ -240,6 +248,18 @@ namespace terrain_model
     }
   }
 
+  /******************************************************************************************************/
+  /******************************************************************************************************/
+  /******************************************************************************************************/
+  SegmentedPlanesTerrainModel::SegmentedPlanesTerrainModel(
+    const SegmentedPlanesTerrainModel& rhs):
+    planarTerrain_(rhs.planarTerrain_), 
+    signedDistanceField_(new SegmentedPlanesSignedDistanceField(*rhs.signedDistanceField_)),
+    elevationData_(&planarTerrain_.gridMap.get(elevationLayerName)) {}
+  
+  /******************************************************************************************************/
+  /******************************************************************************************************/
+  /******************************************************************************************************/
   std::pair<Eigen::Vector3d, Eigen::Vector3d> SegmentedPlanesTerrainModel::getSignedDistanceRange(
     const grid_map::GridMap& gridMap, const std::string& elevationLayer)
   {

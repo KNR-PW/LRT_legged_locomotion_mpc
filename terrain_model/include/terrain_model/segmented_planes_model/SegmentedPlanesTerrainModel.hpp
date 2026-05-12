@@ -19,12 +19,16 @@ namespace terrain_model
     public:
 
       SegmentedPlanesTerrainModel(
-        convex_plane_decomposition::PlanarTerrain planarTerrain, 
+        const convex_plane_decomposition::PlanarTerrain& planarTerrain, 
         std::string referenceFrameName = "world");
 
       SegmentedPlanesTerrainModel(
         convex_plane_decomposition::PlanarTerrain&& planarTerrain, 
         std::string referenceFrameName = "world");
+
+      ~SegmentedPlanesTerrainModel() override = default;
+
+      SegmentedPlanesTerrainModel* clone() const override;
 
       TerrainPlane getLocalTerrainAtPositionInWorldAlongGravity(
         const vector3_t& positionInWorld,
@@ -49,12 +53,15 @@ namespace terrain_model
       const grid_map::GridMap& getGridMapTerrain() const override;
 
     private:
+
+      SegmentedPlanesTerrainModel(const SegmentedPlanesTerrainModel& rhs);
+
       void createSignedDistanceBetween(const Eigen::Vector3d& minCoordinates,
         const Eigen::Vector3d& maxCoordinates);
 
       std::pair<Eigen::Vector3d, Eigen::Vector3d> getSignedDistanceRange(
         const grid_map::GridMap& gridMap, const std::string& elevationLayer);
-
+      
       convex_plane_decomposition::PlanarTerrain planarTerrain_;
       std::unique_ptr<SegmentedPlanesSignedDistanceField> signedDistanceField_;
       const grid_map::Matrix* const elevationData_;
