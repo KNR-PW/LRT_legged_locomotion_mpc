@@ -537,7 +537,8 @@ namespace legged_locomotion_mpc_ros2
   void LeggedVisualizer::publishTerrainModel(const terrain_model::TerrainModel& terrainModel)
   {
     auto gridMapMessage =
-    grid_map::GridMapRosConverter::toMessage(terrainModel.getGridMapTerrain());
+    grid_map::GridMapRosConverter::toMessage(terrainModel.getGridMapTerrain(), 
+      {terrain_model::elevationLayerName});
 
     gridMapPublisher_->publish(std::move(gridMapMessage));
   }
