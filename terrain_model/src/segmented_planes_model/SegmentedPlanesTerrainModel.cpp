@@ -37,9 +37,10 @@ namespace terrain_model
   /******************************************************************************************************/
   SegmentedPlanesTerrainModel::SegmentedPlanesTerrainModel(
     PlanarTerrain&& planarTerrain, std::string referenceFrameName): 
+    TerrainModel(std::move(referenceFrameName)),
     planarTerrain_(std::move(planarTerrain)),
-      signedDistanceField_(nullptr),
-      elevationData_(&planarTerrain_.gridMap.get(elevationLayerName))
+    signedDistanceField_(nullptr),
+    elevationData_(&planarTerrain_.gridMap.get(elevationLayerName))
   {
     planarTerrain_.gridMap.setFrameId(referenceFrameName_);
     const auto ranges = getSignedDistanceRange(planarTerrain_.gridMap, elevationLayerName);
@@ -85,7 +86,11 @@ namespace terrain_model
 
     if (projection.regionPtr == nullptr)
     {
-      throw std::runtime_error("[SegmentedPlanesTerrainModel] No region found");
+      std::stringstream stringStream;
+      stringStream << positionInWorld.transpose();
+
+      std::string message = "[SegmentedPlanesTerrainModel] No region found at: " + stringStream.str();
+      throw std::runtime_error(message.c_str());
     }
 
     // Convert boundary and projection to terrain frame
