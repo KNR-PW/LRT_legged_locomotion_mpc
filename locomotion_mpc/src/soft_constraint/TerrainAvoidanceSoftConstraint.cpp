@@ -156,7 +156,9 @@ namespace legged_locomotion_mpc
       const scalar_t terrainClearance = leggedPrecomputation.getReferenceEndEffectorTerrainClearance(i);
       const scalar_t relaxation = relaxations_[i];
       const auto [sdfDistance, sdfGradient] = sdf->valueAndDerivative(position);
+
       const scalar_t distance = sdfDistance - radius - terrainClearance + relaxation;
+
       cost.f += terrainAvoidancePenaltyPtr_->getValue(0.0, distance);
 
       const scalar_t penaltyDerivative = terrainAvoidancePenaltyPtr_->getDerivative(

@@ -107,20 +107,20 @@ int main(int argc, char* argv[])
   secondDynamicParams.phaseOffsets = {-secondOffset + 0.03 / 0.6, -secondOffset + 0.03 / 0.6, 0};
 
   BaseTrajectoryPlanner::BaseReferenceCommand firstCommand;
-  firstCommand.baseHeadingVelocity = 0.3;
-  firstCommand.baseLateralVelocity = 0.1;
+  firstCommand.baseHeadingVelocity = 0.2;
+  firstCommand.baseLateralVelocity = 0.0;
   firstCommand.baseVerticalVelocity = 0.0;
-  firstCommand.yawRate = 1 * 0.314;
+  firstCommand.yawRate = 0.0;
 
   BaseTrajectoryPlanner::BaseReferenceCommand secondCommand;
-  secondCommand.baseHeadingVelocity = 0.40;
-  secondCommand.baseLateralVelocity = -0.1;
+  secondCommand.baseHeadingVelocity = 0.3;
+  secondCommand.baseLateralVelocity = 0.0;
   secondCommand.baseVerticalVelocity = 0.0;
-  secondCommand.yawRate = -1 * 0.314;
+  secondCommand.yawRate = -0.0;
 
   const scalar_t firstGaitTime = 1.0;
   bool firstChange = true;
-  const scalar_t secondGaitTime = 8.0;
+  const scalar_t secondGaitTime = 25.0;
   bool secondChange = true;
 
   const scalar_t firstMoveTime = 2.0;
@@ -213,7 +213,20 @@ int main(int argc, char* argv[])
       systemObservation.time = observation.time;
       systemObservation.state = observation.state.head(STATE_DIM);
       systemObservation.input = loopshapeDefinition.getSystemInput(observation.state, observation.input);
-      referenceManager.updateObservation(systemObservation);
+      // referenceManager.updateObservation(systemObservation);
+
+      observations.push_back(systemObservation);
+
+      // Test 16.05.2026
+
+      const auto currentTargetState = referenceManager.getTargetTrajectories().getDesiredState(observation.time);
+      const auto currentTargetInput = referenceManager.getTargetTrajectories().getDesiredInput(observation.time);
+      SystemObservation referenceObservation;
+      referenceObservation.time = observation.time;
+      referenceObservation.state = currentTargetState;
+      referenceObservation.input = currentTargetInput;
+
+      referenceManager.updateObservation(referenceObservation);
 
       vector3_t currentTerrainPosition = observation.state.block<3, 1>(6, 0);
       currentTerrainPosition.z() = 0.0;
@@ -229,10 +242,7 @@ int main(int argc, char* argv[])
       terrainModels.push_back(std::move(terrainModelCopy));
 
       referenceManager.updateTerrainModel(std::move(terrainModel));
-
-      observations.push_back(systemObservation);
       
-
       if(observation.time > firstGaitTime && firstChange)
       {
         firstChange = false;

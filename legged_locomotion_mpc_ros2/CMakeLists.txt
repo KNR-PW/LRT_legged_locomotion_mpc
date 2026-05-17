@@ -47,12 +47,18 @@ target_include_directories(${PROJECT_NAME}
 ament_target_dependencies(${PROJECT_NAME} ${THIS_PACKAGE_DEPENDS})
 target_compile_options(${PROJECT_NAME} PUBLIC ${FLAGS})
 
-# Meldog demo
-add_executable(${PROJECT_NAME}_meldog_demo
-  src/demos/meldog_demo/meldog_demo.cpp
+# Meldog demos
+add_executable(${PROJECT_NAME}_meldog_demo_planar_terrain
+  src/demos/meldog_demo/meldog_demo_planar_terrain.cpp
 )
-target_link_libraries(${PROJECT_NAME}_meldog_demo ${PROJECT_NAME})
-ament_target_dependencies(${PROJECT_NAME}_meldog_demo ${THIS_PACKAGE_DEPENDS})
+target_link_libraries(${PROJECT_NAME}_meldog_demo_planar_terrain ${PROJECT_NAME})
+ament_target_dependencies(${PROJECT_NAME}_meldog_demo_planar_terrain ${THIS_PACKAGE_DEPENDS})
+
+add_executable(${PROJECT_NAME}_meldog_demo_segmented_terrain
+  src/demos/meldog_demo/meldog_demo_segmented_terrain.cpp
+)
+target_link_libraries(${PROJECT_NAME}_meldog_demo_segmented_terrain ${PROJECT_NAME})
+ament_target_dependencies(${PROJECT_NAME}_meldog_demo_segmented_terrain ${THIS_PACKAGE_DEPENDS})
 
 # Melman demo
 add_executable(${PROJECT_NAME}_melman_demo
@@ -81,7 +87,10 @@ endif (cmake_clang_tools_FOUND)
 ## Install ##
 #############
 
-install(TARGETS ${PROJECT_NAME}_meldog_demo
+install(TARGETS ${PROJECT_NAME}_meldog_demo_planar_terrain
+    DESTINATION lib/${PROJECT_NAME})
+
+install(TARGETS ${PROJECT_NAME}_meldog_demo_segmented_terrain
     DESTINATION lib/${PROJECT_NAME})
 
 install(TARGETS ${PROJECT_NAME}_melman_demo

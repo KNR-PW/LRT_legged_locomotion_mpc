@@ -1,7 +1,7 @@
 ; Multiple_Shooting SQP settings
 sqp
 {
-  nThreads                              3
+  nThreads                              1
   dt                                    0.005
   sqpIteration                          1
   deltaTol                              1e-4

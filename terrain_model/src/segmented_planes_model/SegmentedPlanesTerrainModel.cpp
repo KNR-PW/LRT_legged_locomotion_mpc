@@ -269,7 +269,7 @@ namespace terrain_model
     const grid_map::GridMap& gridMap, const std::string& elevationLayer)
   {
     // Read min-max from elevation map
-    const float heightMargin = 0.1;
+    const float heightMargin = 0.5;
     const auto& elevationData = planarTerrain_.gridMap.get(elevationLayer);
     const float minValue = elevationData.minCoeffOfFinites() - heightMargin;
     const float maxValue = elevationData.maxCoeffOfFinites() + heightMargin;
